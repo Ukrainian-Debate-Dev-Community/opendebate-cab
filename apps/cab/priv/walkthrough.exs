@@ -1,52 +1,18 @@
-# Full acceptance walkthrough against a LIVE engine.
+# Tournament acceptance walkthrough against a LIVE engine.
 #
 #     cd platform && mix run apps/cab/priv/walkthrough.exs
 #
 # Requires: the Node engine running on ENGINE_URL (default
 # http://localhost:3100) with the shared ENGINE_JWT_SECRET, and the
 # gateway dev database. Exercises every Cab.EngineApi call used by the
-# LiveViews: tournament (8 teams, 2 judges, 3 rounds + final,
-# champion) and the club session flow.
+# tournament LiveViews: 8 teams, 2 judges, 3 rounds + final, champion.
+# The club session flow lives in walkthrough_club.exs (the two scripts
+# are split so a single run stays inside the engine's rate limit;
+# restart the engine between runs to reset it).
 
-alias Cab.{Accounts, Clubs, EngineApi, Tournaments, Repo}
-alias Cab.Accounts.User
+Code.require_file("walk.exs", __DIR__)
 
-defmodule Walk do
-  def check!(label, result) do
-    case result do
-      {:ok, value} ->
-        IO.puts("  ok  #{label}")
-        value
-
-      :ok ->
-        IO.puts("  ok  #{label}")
-        :ok
-
-      {:error, reason} ->
-        IO.puts("  FAIL #{label}: #{inspect(reason)}")
-        raise "walkthrough failed at: #{label}"
-
-      other ->
-        IO.puts("  ok  #{label} -> #{inspect(other)}")
-        other
-    end
-  end
-
-  def gateway_user!(username) do
-    user =
-      Repo.get_by(User, username: username) ||
-        Repo.insert!(User.changeset(%User{}, %{username: username}))
-
-    user = Accounts.ensure_node_user(user)
-
-    if user.node_user_id == nil do
-      raise "could not provision engine user for #{username} — is the engine up?"
-    end
-
-    user
-  end
-end
-
+alias Cab.{EngineApi, Tournaments}
 
 stamp = System.os_time(:second)
 
@@ -187,54 +153,5 @@ champion = Walk.check!("champion", Tournaments.champion(actor, event_id))
 IO.puts("      CHAMPION: #{champion}")
 if champion == nil, do: raise("no champion resolved")
 
-Walk.check!("mark event completed", EngineApi.update_event(actor, event_id, %{status: "completed"}))
-
-IO.puts("== Club session flow ==")
-
-{:ok, club} = Clubs.create_club(%{name: "Script Club #{stamp}"})
-
-club_org = Walk.check!("create club organisation", EngineApi.create_organisation(actor, "#{club.name} (club)"))
-Walk.check!("club add_owner (helper co-owner)", EngineApi.add_owner(actor, club_org["id"], helper.node_user_id))
-{:ok, club} = Clubs.update_club(club, %{engine_organisation_id: club_org["id"]})
-
-club_event = Walk.check!("create club event", EngineApi.create_event(actor, club.engine_organisation_id, "Club night #{stamp}"))
-club_round = Walk.check!("create club round", EngineApi.create_round(actor, club_event["id"], "Club round", 1))
-
-club_lines =
-  """
-  Reds: Rita #{stamp}, Remy #{stamp}
-  Blues: Bo #{stamp}, Bree #{stamp}
-  Greens: Gale #{stamp}, Glen #{stamp}
-  Golds: Goldie #{stamp}, Grant #{stamp}
-  """
-
-4 = Walk.check!("club teams", Tournaments.create_teams_from_lines(actor, club_event["id"], club_lines))
-club_judge = Walk.check!("club judge", EngineApi.provision_participant(actor, club_event["id"], "Club Judge", "adjudicator"))
-club_teams = Walk.check!("club list_teams", EngineApi.list_teams(actor, club_event["id"]))
-
-club_slots =
-  club_teams |> Enum.with_index(1) |> Enum.map(fn {t, i} -> %{team_id: t["id"], position: i} end)
-
-Walk.check!(
-  "club create_room",
-  EngineApi.create_room(actor, club_round["id"], club_slots, [
-    %{participant_id: club_judge["id"], role: "chair"}
-  ])
-)
-
-[club_room] = Walk.check!("club list_rooms (1)", EngineApi.list_rooms(actor, club_round["id"]))
-
-winner_slot = Enum.at(Enum.sort_by(club_room["RoomTeams"], & &1["position"]), 1)
-{:ok, w_rankings, w_scores} = Tournaments.winner_ballot_payload(club_room, winner_slot["id"])
-
-Walk.check!("club winner ballot", EngineApi.submit_scores(actor, club_room["id"], w_rankings, w_scores))
-Walk.check!("club confirm", EngineApi.confirm_room(actor, club_room["id"]))
-Walk.check!("club round completed", EngineApi.update_round(actor, club_round["id"], %{status: "completed"}))
-Walk.check!("club event completed", EngineApi.update_event(actor, club_event["id"], %{status: "completed"}))
-
-history = Walk.check!("club history", EngineApi.list_organisation_events(actor, club.engine_organisation_id))
-true = Enum.any?(history, &(&1["id"] == club_event["id"] and &1["status"] == "completed"))
-IO.puts("      club winner: #{get_in(winner_slot, ["Team", "name"])}")
-
 IO.puts("")
-IO.puts("WALKTHROUGH COMPLETE: tournament #{event_id} (org #{org["id"]}) champion=#{champion}; club event #{club_event["id"]}")
+IO.puts("TOURNAMENT WALKTHROUGH COMPLETE: event #{event_id} (org #{org["id"]}) champion=#{champion}")

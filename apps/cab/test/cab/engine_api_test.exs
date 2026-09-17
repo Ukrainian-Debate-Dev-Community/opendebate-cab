@@ -161,6 +161,21 @@ defmodule Cab.EngineApiTest do
     assert {:ok, _} = EngineApi.eliminate_teams(9, 11, [5])
   end
 
+  test "propose_teams asks auto-generate with the format" do
+    stub(fn conn, _params ->
+      assert conn.method == "GET"
+      assert conn.request_path == "/api/events/11/teams/auto-generate"
+      assert conn.query_string == "format_id=1"
+
+      ok(conn, %{
+        "total_free_speakers" => 4,
+        "proposed_teams" => [%{"name" => "Random Team 1", "participant_ids" => [1, 2]}]
+      })
+    end)
+
+    assert {:ok, %{"proposed_teams" => [_]}} = EngineApi.propose_teams(9, 11)
+  end
+
   test "create_team posts participant ids (duplicates allowed for iron)" do
     stub(fn conn, params ->
       assert conn.request_path == "/api/events/11/teams"

@@ -293,6 +293,19 @@ defmodule Cab.EngineApi do
   # Teams
   # ---------------------------------------------------------------
 
+  @doc """
+  Asks the engine to propose random teams from free (attendance-aware)
+  speakers. Returns `{:ok, %{"total_free_speakers" => n,
+  "proposed_teams" => [%{"name" => _, "participant_ids" => [...]}]}}`.
+  Proposals are not persisted — create them with `create_team/5`.
+  """
+  def propose_teams(actor, event_id, format_id \\ @bp_format_id) do
+    Engine.get(actor, "/api/events/#{event_id}/teams/auto-generate",
+      params: [format_id: format_id]
+    )
+    |> unwrap()
+  end
+
   def create_team(actor, event_id, name, participant_ids, attrs \\ %{}) do
     Engine.post(
       actor,
