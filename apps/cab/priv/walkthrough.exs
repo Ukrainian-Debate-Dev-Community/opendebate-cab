@@ -1,6 +1,6 @@
 # Full acceptance walkthrough against a LIVE engine.
 #
-#     cd cab/gateway && mix run priv/walkthrough.exs
+#     cd platform && mix run apps/cab/priv/walkthrough.exs
 #
 # Requires: the Node engine running on ENGINE_URL (default
 # http://localhost:3100) with the shared ENGINE_JWT_SECRET, and the

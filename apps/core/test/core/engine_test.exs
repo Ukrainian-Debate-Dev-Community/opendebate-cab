@@ -1,7 +1,7 @@
-defmodule Cab.EngineTest do
+defmodule Core.EngineTest do
   use ExUnit.Case, async: true
 
-  alias Cab.Engine
+  alias Core.Engine
 
   @secret "test-engine-secret"
 
@@ -28,7 +28,7 @@ defmodule Cab.EngineTest do
 
   describe "provision_user/1" do
     test "registers the user and returns the id claim of the response token" do
-      Req.Test.stub(Cab.Engine, fn conn ->
+      Req.Test.stub(Core.Engine, fn conn ->
         assert conn.method == "POST"
         assert conn.request_path == "/api/users/register"
 
@@ -44,7 +44,7 @@ defmodule Cab.EngineTest do
     end
 
     test "retries with a suffixed username on conflict" do
-      Req.Test.stub(Cab.Engine, fn conn ->
+      Req.Test.stub(Core.Engine, fn conn ->
         {:ok, body, conn} = Plug.Conn.read_body(conn)
         params = Jason.decode!(body)
 
@@ -62,7 +62,7 @@ defmodule Cab.EngineTest do
     end
 
     test "gives up after repeated conflicts" do
-      Req.Test.stub(Cab.Engine, fn conn ->
+      Req.Test.stub(Core.Engine, fn conn ->
         conn
         |> Plug.Conn.put_resp_content_type("application/json")
         |> Plug.Conn.send_resp(409, ~s({"error":"username taken"}))
@@ -72,7 +72,7 @@ defmodule Cab.EngineTest do
     end
 
     test "returns an error when the engine is unreachable" do
-      Req.Test.stub(Cab.Engine, fn conn ->
+      Req.Test.stub(Core.Engine, fn conn ->
         Req.Test.transport_error(conn, :econnrefused)
       end)
 
@@ -81,7 +81,7 @@ defmodule Cab.EngineTest do
     end
 
     test "returns an error when the response token lacks an id claim" do
-      Req.Test.stub(Cab.Engine, fn conn ->
+      Req.Test.stub(Core.Engine, fn conn ->
         Req.Test.json(conn, %{"status" => "ok", "token" => engine_token(%{"sub" => "nope"})})
       end)
 
@@ -91,7 +91,7 @@ defmodule Cab.EngineTest do
 
   describe "request helpers" do
     test "get/2 attaches a bearer token minted for the given user" do
-      Req.Test.stub(Cab.Engine, fn conn ->
+      Req.Test.stub(Core.Engine, fn conn ->
         assert ["Bearer " <> token] = Plug.Conn.get_req_header(conn, "authorization")
         assert {:ok, %{"id" => 5}} = Joken.verify(token, signer())
         Req.Test.json(conn, %{"ok" => true})
@@ -102,7 +102,7 @@ defmodule Cab.EngineTest do
     end
 
     test "post/3 sends JSON with a bearer token" do
-      Req.Test.stub(Cab.Engine, fn conn ->
+      Req.Test.stub(Core.Engine, fn conn ->
         assert ["Bearer " <> _] = Plug.Conn.get_req_header(conn, "authorization")
         {:ok, body, conn} = Plug.Conn.read_body(conn)
         assert Jason.decode!(body) == %{"name" => "Kyiv Open"}
@@ -114,7 +114,7 @@ defmodule Cab.EngineTest do
     end
 
     test "public_get/1 sends no authorization header" do
-      Req.Test.stub(Cab.Engine, fn conn ->
+      Req.Test.stub(Core.Engine, fn conn ->
         assert Plug.Conn.get_req_header(conn, "authorization") == []
         Req.Test.json(conn, [%{"id" => 1}])
       end)

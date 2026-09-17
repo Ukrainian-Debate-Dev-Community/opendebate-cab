@@ -3,7 +3,7 @@ defmodule CabWeb.PublicApiController do
 
   def tournaments(conn, _params) do
     # Engine's GET /api/events is public — no engine-side auth needed.
-    case Cab.Engine.public_get("/api/events") do
+    case Core.Engine.public_get("/api/events") do
       {:ok, %Req.Response{status: 200, body: body}} ->
         json(conn, body)
 

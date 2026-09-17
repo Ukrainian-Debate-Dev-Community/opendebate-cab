@@ -55,7 +55,7 @@ defmodule Cab.AccountsTest do
       {:ok, user} = Accounts.upsert_from_oauth(auth())
       assert user.node_user_id == nil
 
-      Req.Test.stub(Cab.Engine, fn conn ->
+      Req.Test.stub(Core.Engine, fn conn ->
         Req.Test.json(conn, %{"status" => "ok", "token" => engine_token(%{"id" => 42})})
       end)
 
@@ -75,7 +75,7 @@ defmodule Cab.AccountsTest do
     test "continues without node_user_id when the engine is down" do
       {:ok, user} = Accounts.upsert_from_oauth(auth())
 
-      Req.Test.stub(Cab.Engine, fn conn ->
+      Req.Test.stub(Core.Engine, fn conn ->
         Req.Test.transport_error(conn, :econnrefused)
       end)
 

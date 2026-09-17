@@ -4,7 +4,7 @@ defmodule CabWeb.DashboardLiveTest do
   import Phoenix.LiveViewTest
 
   test "mounts and lists public engine events", %{conn: conn} do
-    Req.Test.stub(Cab.Engine, fn conn ->
+    Req.Test.stub(Core.Engine, fn conn ->
       assert conn.request_path == "/api/events"
 
       Req.Test.json(conn, %{
@@ -28,7 +28,7 @@ defmodule CabWeb.DashboardLiveTest do
   end
 
   test "shows the engine error inline when the engine is down", %{conn: conn} do
-    Req.Test.stub(Cab.Engine, fn conn ->
+    Req.Test.stub(Core.Engine, fn conn ->
       Req.Test.transport_error(conn, :econnrefused)
     end)
 

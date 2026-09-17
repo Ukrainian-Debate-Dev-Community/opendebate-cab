@@ -23,10 +23,10 @@ config :cab, CabWeb.Endpoint,
 
 # Stub the Node engine at the HTTP boundary (Req.Test); no live engine
 # is required in tests.
-config :cab, Cab.Engine,
+config :core, Core.Engine,
   base_url: "http://engine.test",
   jwt_secret: "test-engine-secret",
-  req_options: [plug: {Req.Test, Cab.Engine}]
+  req_options: [plug: {Req.Test, Core.Engine}]
 
 config :cab, :portal_api_token, "portal-test-token"
 

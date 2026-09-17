@@ -1,4 +1,4 @@
-defmodule Cab.Engine do
+defmodule Core.Engine do
   @moduledoc """
   HTTP client for the Node tab engine.
 
@@ -142,7 +142,7 @@ defmodule Cab.Engine do
       base_url: Keyword.get(config, :base_url, "http://localhost:3100"),
       retry: false
     )
-    # test env injects [plug: {Req.Test, Cab.Engine}] here to stub the engine
+    # test env injects [plug: {Req.Test, Core.Engine}] here to stub the engine
     |> Req.merge(Keyword.get(config, :req_options, []))
   end
 
@@ -150,5 +150,5 @@ defmodule Cab.Engine do
     Joken.Signer.create("HS256", Keyword.fetch!(config(), :jwt_secret))
   end
 
-  defp config, do: Application.get_env(:cab, __MODULE__, [])
+  defp config, do: Application.get_env(:core, __MODULE__, [])
 end

@@ -8,7 +8,7 @@ defmodule Cab.EngineApiTest do
   defp signer, do: Joken.Signer.create("HS256", @secret)
 
   defp stub(fun) do
-    Req.Test.stub(Cab.Engine, fn conn ->
+    Req.Test.stub(Core.Engine, fn conn ->
       {:ok, body, conn} = Plug.Conn.read_body(conn)
       params = if body == "", do: %{}, else: Jason.decode!(body)
       fun.(conn, params)

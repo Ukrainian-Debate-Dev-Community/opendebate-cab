@@ -20,7 +20,7 @@ config :ueberauth, Ueberauth.Strategy.Github.OAuth,
 # Node engine + portal API. Test config pins its own deterministic
 # values in config/test.exs; runtime.exs runs after it, so skip :test.
 if config_env() != :test do
-  config :cab, Cab.Engine,
+  config :core, Core.Engine,
     base_url: System.get_env("ENGINE_URL", "http://localhost:3100"),
     jwt_secret: System.get_env("ENGINE_JWT_SECRET", "insecure-dev-engine-secret")
 

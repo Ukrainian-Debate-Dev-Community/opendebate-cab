@@ -1,14 +1,15 @@
 defmodule CabWeb.Ui do
   @moduledoc """
-  Shared shell and helpers for the cab pages, styled after the
-  design/cab2 mockups (violet + gold, top bar with user menu, cards,
-  progress strips, tags, alerts). CSS is inlined and scoped under
-  `.cab` so it cannot collide with the daisyUI classes of the default
-  layout.
+  cab-specific chrome on top of the `Core.Ui` design system: the page
+  shell (top bar, user menu, inlined cab2 CSS scoped under `.cab`) and
+  the tournament flow strips wired to cab routes. Pure, route-free
+  components (statusline, guide, status_tag) live in `Core.Ui`.
   """
 
   use Phoenix.Component
   use Phoenix.VerifiedRoutes, endpoint: CabWeb.Endpoint, router: CabWeb.Router
+
+  import Core.Ui
 
   attr :current_user, :any, default: nil
   attr :dev_routes, :boolean, default: false
@@ -194,35 +195,6 @@ defmodule CabWeb.Ui do
   end
 
   @doc """
-  Generic progress strip (port of cab2 ui.js `statusline`): renders
-  `items` as pseg segments. Each item is a map with `:label`, optional
-  `:state` ("done" | "live" | nil), `:sel` and `:href` (segments with
-  an href are links). Every strip — round flow, step flow,
-  club stages — goes through this one component.
-  """
-  attr :items, :list, required: true
-  attr :style, :string, default: nil
-
-  def statusline(assigns) do
-    ~H"""
-    <div class="progressline" style={@style}>
-      <%= for item <- @items do %>
-        <a
-          :if={item[:href]}
-          class={["pseg", item[:state], item[:sel] && "sel"]}
-          href={item[:href]}
-        >
-          {item.label}
-        </a>
-        <span :if={!item[:href]} class={["pseg", item[:state], item[:sel] && "sel"]}>
-          {item.label}
-        </span>
-      <% end %>
-    </div>
-    """
-  end
-
-  @doc """
   cab2 tdFlow: rounds strip (R1..Rn, Final) plus, when `seq` names a
   preliminary round, the four-step strip for it. `steps_done` is how
   many of check-in / draw+motion / ballots / done are finished;
@@ -315,36 +287,6 @@ defmodule CabWeb.Ui do
 
   defp round_link(event_id, %{"sequence" => seq}),
     do: ~p"/t/#{event_id}/r/#{seq}/checkin"
-
-  @doc "Guidance line (cab2 alert--info) with an optional CTA slot."
-  slot :inner_block, required: true
-  slot :action
-
-  def guide(assigns) do
-    ~H"""
-    <div class="alert alert--info">
-      <span>{render_slot(@inner_block)}</span>
-      <span :if={@action != []} style="margin-left:auto;">{render_slot(@action)}</span>
-    </div>
-    """
-  end
-
-  attr :status, :string, required: true
-
-  def status_tag(assigns) do
-    ~H"""
-    <span class={["tag", status_tag_class(@status)]}>{@status}</span>
-    """
-  end
-
-  defp status_tag_class(status) do
-    case status do
-      s when s in ["confirmed", "completed"] -> "tag--ok"
-      s when s in ["judging", "in_progress"] -> "tag--warn"
-      s when s in ["pending", "scheduled", "draft"] -> "tag--muted"
-      _ -> "tag--info"
-    end
-  end
 
   defp initials(username) do
     username

@@ -64,7 +64,7 @@ defmodule Cab.Accounts do
   next engine-touching action.
   """
   def ensure_node_user(%User{node_user_id: nil} = user) do
-    case Cab.Engine.provision_user(user.username) do
+    case Core.Engine.provision_user(user.username) do
       {:ok, engine_id} ->
         case set_node_user_id(user, engine_id) do
           {:ok, updated} ->

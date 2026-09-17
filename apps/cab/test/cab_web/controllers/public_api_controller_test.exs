@@ -25,7 +25,7 @@ defmodule CabWeb.PublicApiControllerTest do
       %{"id" => 2, "name" => "Phoenix Cup", "status" => "registration"}
     ]
 
-    Req.Test.stub(Cab.Engine, fn req_conn ->
+    Req.Test.stub(Core.Engine, fn req_conn ->
       assert req_conn.request_path == "/api/events"
       assert Plug.Conn.get_req_header(req_conn, "authorization") == []
       Req.Test.json(req_conn, events)
@@ -36,7 +36,7 @@ defmodule CabWeb.PublicApiControllerTest do
   end
 
   test "maps engine errors to 502", %{conn: conn} do
-    Req.Test.stub(Cab.Engine, fn req_conn ->
+    Req.Test.stub(Core.Engine, fn req_conn ->
       Plug.Conn.send_resp(req_conn, 500, "boom")
     end)
 
@@ -45,7 +45,7 @@ defmodule CabWeb.PublicApiControllerTest do
   end
 
   test "maps an unreachable engine to 502", %{conn: conn} do
-    Req.Test.stub(Cab.Engine, fn req_conn ->
+    Req.Test.stub(Core.Engine, fn req_conn ->
       Req.Test.transport_error(req_conn, :econnrefused)
     end)
 

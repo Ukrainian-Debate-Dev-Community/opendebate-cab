@@ -1,6 +1,6 @@
 defmodule Cab.EngineApi do
   @moduledoc """
-  Typed, thin wrappers over `Cab.Engine` for every engine call the gateway  needs. Every function takes the acting engine user id (`actor` =
+  Typed, thin wrappers over `Core.Engine` for every engine call the gateway  needs. Every function takes the acting engine user id (`actor` =
   `user.node_user_id`) first and returns `{:ok, data}` or
   `{:error, message}` with a human-readable message suitable for
   inline display.
@@ -23,7 +23,7 @@ defmodule Cab.EngineApi do
 
   ### Users
   - `POST /users/register` {username,password} -> 201 {token,data:{id}}
-    (public; used by Cab.Engine.provision_user)
+    (public; used by Core.Engine.provision_user)
   - `POST /users/login` {username,password} -> {token}
 
   ### Organisations
@@ -140,7 +140,7 @@ defmodule Cab.EngineApi do
   then adds the acting user as owner for full control.
   """
 
-  alias Cab.Engine
+  alias Core.Engine
 
   @bp_format_id 1
 
@@ -394,7 +394,7 @@ defmodule Cab.EngineApi do
   def provision_participant(actor, event_id, display_name, role) do
     username = shadow_username(display_name)
 
-    with {:ok, engine_user_id} <- provision_error(Cab.Engine.provision_user(username)),
+    with {:ok, engine_user_id} <- provision_error(Core.Engine.provision_user(username)),
          {:ok, participant} <- add_participant(actor, event_id, display_name, role, engine_user_id) do
       {:ok, participant}
     end
