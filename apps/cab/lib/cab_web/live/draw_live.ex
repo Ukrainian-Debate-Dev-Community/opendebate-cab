@@ -176,9 +176,9 @@ defmodule CabWeb.DrawLive do
           <span :if={@motion && @motion["is_released"]} class="tag tag--ok">released</span>
         </form>
         <span class="f-help" style="flex-basis:100%;">
-          One motion per round, shared by all its rooms. (The engine attaches a motion to a
-          room only at creation and has no per-room motion editing — participants see motions
-          per event once released.)
+          Tournament practice: one motion per round, shared by all its rooms and released to
+          everyone at once. (Per-room motions exist too — club sessions use them, set by each
+          room's judge.)
         </span>
       </div>
 

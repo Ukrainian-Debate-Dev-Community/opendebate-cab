@@ -25,8 +25,8 @@ IO.puts("== Club session flow (registration per flow graphs 2+4) ==")
 
 club_event =
   Walk.check!(
-    "open session (org + event + round + motion)",
-    Clubs.open_session(actor, club, "Club night #{stamp}", "THW hold club nights weekly")
+    "open session (org + event + round)",
+    Clubs.open_session(actor, club, "Club night #{stamp}")
   )
 
 club = Clubs.get_club(club.id)
@@ -65,7 +65,18 @@ IO.puts("  ok  session stage :signup with 9 self-registered participants")
 {:ok, session} = Clubs.current_session(actor, club.engine_organisation_id)
 :running = session.stage
 [club_room] = session.rooms
-IO.puts("  ok  session stage :running with 1 room")
+IO.puts("  ok  session stage :running with 1 room (no motion yet)")
+
+# THE JUDGE (room chair, not the host) announces this room's motion
+Walk.check!(
+  "judge sets their room's motion (chair privilege)",
+  Clubs.set_room_motion(judge_user.node_user_id, club_room["id"], "THW let judges pick motions")
+)
+
+{:ok, session} = Clubs.current_session(actor, club.engine_organisation_id)
+[club_room] = session.rooms
+"THW let judges pick motions" = get_in(club_room, ["Motion", "motion_text"])
+IO.puts("  ok  room now carries its own motion, set by its judge")
 
 winner_slot = Enum.at(Enum.sort_by(club_room["RoomTeams"], & &1["position"]), 1)
 Walk.check!("judge picks winner", Clubs.pick_winner(actor, club_room, winner_slot["id"]))

@@ -47,14 +47,23 @@ defmodule CabWeb.ClubLive do
     {:noreply, load(socket)}
   end
 
-  def handle_event("open_session", %{"name" => name, "motion" => motion}, socket) do
+  def handle_event("open_session", %{"name" => name}, socket) do
     with club when club != nil <- socket.assigns.club,
          {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _event} <-
-           Clubs.open_session(actor, club, presence(name, default_session_name()), motion) do
+           Clubs.open_session(actor, club, presence(name, default_session_name())) do
       {:noreply, socket |> assign(notice: "session open — waiting for sign-ups") |> load()}
     else
       nil -> {:noreply, assign(socket, error: "select or create a club first")}
+      {:error, message} -> {:noreply, assign(socket, error: message)}
+    end
+  end
+
+  def handle_event("set_room_motion", %{"room_id" => room_id, "text" => text}, socket) do
+    with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
+         {:ok, _} <- Clubs.set_room_motion(actor, room_id, String.trim(text)) do
+      {:noreply, socket |> assign(notice: "motion set for room ##{room_id}") |> load()}
+    else
       {:error, message} -> {:noreply, assign(socket, error: message)}
     end
   end
@@ -180,6 +189,15 @@ defmodule CabWeb.ClubLive do
     end)
   end
 
+  # Is the current user the judge (an adjudicator) of this room?
+  defp judge_of?(_room, nil), do: false
+
+  defp judge_of?(room, user) do
+    Enum.any?(room["RoomAdjudicators"] || [], fn adjudicator ->
+      get_in(adjudicator, ["EventParticipant", "user_id"]) == user.node_user_id
+    end)
+  end
+
   def render(assigns) do
     ~H"""
     <.shell
@@ -214,7 +232,8 @@ defmodule CabWeb.ClubLive do
         </:action>
       </.guide>
       <.guide :if={@session && @session.stage == :running}>
-        Debate in progress. When a room ends, its judge (or the host) clicks the winning team.
+        Rooms are set. Each room's <b>judge announces the motion for their room</b> (the field
+        on the room card is theirs), then runs the debate and clicks the winning team.
       </.guide>
       <.guide :if={@session && @session.stage == :closing}>
         All winners recorded — close the session.
@@ -255,14 +274,8 @@ defmodule CabWeb.ClubLive do
                 placeholder={default_session_name()}
                 style="flex:1; min-width:200px;"
               />
-              <input
-                class="input"
-                type="text"
-                name="motion"
-                placeholder="Motion (optional)"
-                style="flex:2; min-width:260px;"
-              />
               <button class="btn btn--cta" type="submit">Open sign-ups</button>
+              <span class="f-help">motions come later — each room's judge sets their own</span>
             </div>
           </form>
         </div>
@@ -316,12 +329,38 @@ defmodule CabWeb.ClubLive do
       </div>
 
       <div :if={@session && @session.stage in [:running, :closing]}>
-        <div :if={@session.motion} class="motionline">
-          <span class="tag tag--gold">motion</span>
-          <span class="m">{@session.motion["motion_text"]}</span>
-        </div>
-
         <div :for={room <- @session.rooms} class="table-card card scroll-x">
+          <div :if={room["Motion"]} class="motionline" style="margin:10px 12px;">
+            <span class="tag tag--gold">room #{room["id"]} motion</span>
+            <span class="m">{get_in(room, ["Motion", "motion_text"])}</span>
+          </div>
+          <form
+            :if={is_nil(room["Motion"]) && room["status"] in ["pending", "judging"] &&
+              judge_of?(room, @current_user)}
+            phx-submit="set_room_motion"
+            class="f-row"
+            style="margin:10px 12px;"
+          >
+            <input type="hidden" name="room_id" value={room["id"]} />
+            <span class="tag tag--gold">your room's motion</span>
+            <input
+              class="input"
+              type="text"
+              name="text"
+              placeholder="This House would…"
+              required
+              style="flex:1; min-width:240px;"
+            />
+            <button class="btn btn--primary btn--sm" type="submit">Announce motion</button>
+          </form>
+          <div
+            :if={is_nil(room["Motion"]) && !judge_of?(room, @current_user)}
+            class="motionline"
+            style="margin:10px 12px;"
+          >
+            <span class="tag tag--muted">motion</span>
+            <span class="f-help">the judge of this room announces it</span>
+          </div>
           <table class="tbl drawtbl">
             <thead>
               <tr>

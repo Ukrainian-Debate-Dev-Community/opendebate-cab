@@ -78,26 +78,24 @@ defmodule Cab.Clubs do
 
   @doc """
   Opens a routine session: a one-round event in the club's engine
-  organisation, ready for sign-ups. Optional motion is stored on the
-  round (released immediately — club nights hide nothing).
+  organisation, ready for sign-ups. Motions are NOT set here — each
+  room's judge sets their own room's motion once rooms are made.
   """
-  def open_session(actor, %Club{} = club, name, motion \\ nil) do
+  def open_session(actor, %Club{} = club, name) do
     with {:ok, org_id} <- ensure_club_org(actor, club),
          {:ok, event} <- EngineApi.create_event(actor, org_id, name),
-         {:ok, _round} <- EngineApi.create_round(actor, event["id"], "Club round", 1),
-         :ok <- maybe_set_motion(actor, event["id"], motion) do
+         {:ok, _round} <- EngineApi.create_round(actor, event["id"], "Club round", 1) do
       {:ok, event}
     end
   end
 
-  defp maybe_set_motion(_actor, _event_id, nil), do: :ok
-  defp maybe_set_motion(_actor, _event_id, ""), do: :ok
-
-  defp maybe_set_motion(actor, event_id, motion) do
-    with {:ok, _} <- Tournaments.set_round_motion(actor, event_id, 1, motion),
-         {:ok, _} <- Tournaments.release_round_motion(actor, event_id, 1) do
-      :ok
-    end
+  @doc """
+  The judge of a room sets that room's motion (per-room motions —
+  rooms of one session may debate different motions). Chair-guarded
+  in the engine, with owner/organiser fall-through for the host.
+  """
+  def set_room_motion(actor, room_id, motion_text) do
+    EngineApi.set_room_motion(actor, room_id, motion_text)
   end
 
   @doc """
@@ -113,7 +111,7 @@ defmodule Cab.Clubs do
   @doc """
   The club's current session — the latest not-completed event of its
   organisation — loaded with everything the page needs:
-  `%{event, round, participants, rooms, motion, stage}` where stage is
+  `%{event, round, participants, rooms, stage}` where stage is
   `:signup` (no rooms yet), `:running` (rooms made, ballots open) or
   `:closing` (all rooms confirmed, session not finished yet).
   Returns `{:ok, nil}` when no session is open.
@@ -127,15 +125,13 @@ defmodule Cab.Clubs do
         event ->
           with {:ok, round} <- Tournaments.round_by_sequence(actor, event["id"], 1),
                {:ok, participants} <- EngineApi.list_participants(actor, event["id"]),
-               {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]),
-               {:ok, motion} <- Tournaments.round_motion(actor, event["id"], 1) do
+               {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
             {:ok,
              %{
                event: event,
                round: round,
                participants: participants,
                rooms: rooms,
-               motion: motion,
                stage: session_stage(rooms)
              }}
           end
@@ -175,7 +171,7 @@ defmodule Cab.Clubs do
 
         true ->
           with {:ok, team_ids} <- create_attendance_teams(actor, event_id),
-               {:ok, count} <- create_session_rooms(actor, event_id, round, team_ids, judges) do
+               {:ok, count} <- create_session_rooms(actor, round, team_ids, judges) do
             {:ok, count}
           end
       end
@@ -209,13 +205,9 @@ defmodule Cab.Clubs do
   defp first_name(nil), do: "?"
   defp first_name(display_name), do: display_name |> String.split() |> hd()
 
-  defp create_session_rooms(actor, event_id, round, team_ids, judges) do
-    motion_id =
-      case Tournaments.round_motion(actor, event_id, 1) do
-        {:ok, %{"id" => id}} -> id
-        _ -> nil
-      end
-
+  # Rooms are created motion-less: each room's judge sets their own
+  # motion afterwards via set_room_motion/3.
+  defp create_session_rooms(actor, round, team_ids, judges) do
     team_ids
     |> Enum.chunk_every(@teams_per_room)
     |> Enum.with_index()
@@ -227,10 +219,9 @@ defmodule Cab.Clubs do
 
       chair = Enum.at(judges, index)
 
-      case EngineApi.create_room(actor, round["id"], slots,
-             [%{participant_id: chair["id"], role: "chair"}],
-             motion_id: motion_id
-           ) do
+      case EngineApi.create_room(actor, round["id"], slots, [
+             %{participant_id: chair["id"], role: "chair"}
+           ]) do
         {:ok, _} -> {:cont, {:ok, count + 1}}
         {:error, message} -> {:halt, {:error, message}}
       end

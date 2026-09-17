@@ -95,6 +95,11 @@ defmodule Cab.EngineApi do
     Room statuses: pending -> judging -> completed -> confirmed | void.
   - `PATCH /rounds/:roundId/rooms/swap-teams` {room_team_id_a,
     room_team_id_b} — both rooms must be 'pending', same format.
+  - `POST /rooms/:roomId/motion` {motion_text, infoslide?} — the
+    room's CHAIR (owner/organiser fall-through) sets this room's
+    motion while pending/judging: creates a released event motion and
+    attaches it atomically. Rooms of one round may carry different
+    motions (club sessions). Room listing includes each room's Motion.
   - `DELETE /rooms/:roomId` — not while judging/completed/confirmed.
 
   ### Motions (event-scoped; rooms reference motion_id optionally)
@@ -352,6 +357,20 @@ defmodule Cab.EngineApi do
       room_team_id_a: room_team_id_a,
       room_team_id_b: room_team_id_b
     })
+    |> unwrap()
+  end
+
+  @doc """
+  Sets THIS room's motion as its judge (chair; owner/organiser
+  fall-through). The engine creates a released event motion and
+  attaches it to the room atomically.
+  """
+  def set_room_motion(actor, room_id, motion_text, attrs \\ %{}) do
+    Engine.post(
+      actor,
+      "/api/rooms/#{room_id}/motion",
+      Map.merge(%{motion_text: motion_text}, attrs)
+    )
     |> unwrap()
   end
 

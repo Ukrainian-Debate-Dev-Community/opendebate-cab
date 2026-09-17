@@ -217,6 +217,17 @@ defmodule Cab.EngineApiTest do
     assert {:ok, _} = EngineApi.swap_teams(9, 21, 1, 2)
   end
 
+  test "set_room_motion posts the judge's motion to the room" do
+    stub(fn conn, params ->
+      assert conn.method == "POST"
+      assert conn.request_path == "/api/rooms/71/motion"
+      assert params == %{"motion_text" => "THW"}
+      ok(conn, %{"motion" => %{"id" => 31, "is_released" => true}, "room_id" => 71})
+    end)
+
+    assert {:ok, %{"motion" => %{"id" => 31}}} = EngineApi.set_room_motion(9, 71, "THW")
+  end
+
   test "submit_scores posts rankings and speaker scores" do
     stub(fn conn, params ->
       assert conn.request_path == "/api/rooms/71/scores"
