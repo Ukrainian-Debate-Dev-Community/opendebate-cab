@@ -3,11 +3,12 @@ defmodule Platform.MixProject do
 
   # Umbrella of the uadebate platform. Layering (deps point down only):
   #
-  #   engine (Node, cab/api) <- core <- cab <- uadebate
-  #                                      ^------- dfu
+  #   engine (Node, cab/api) <- core <- cab <- dfu <- uadebate
   #
+  # uadebate is the public facade at the top: it aggregates data from
+  # cab (tournaments, clubs, motions) and dfu (public org documents).
   # Releases pick the scope: a deployment that wants only cab ships
-  # `cab_only` and never compiles-in uadebate/dfu.
+  # `cab_only` and never compiles-in dfu/uadebate.
   def project do
     [
       apps_path: "apps",
@@ -24,7 +25,7 @@ defmodule Platform.MixProject do
         applications: [cab: :permanent]
       ],
       full: [
-        applications: [cab: :permanent, uadebate: :permanent, dfu: :permanent]
+        applications: [cab: :permanent, dfu: :permanent, uadebate: :permanent]
       ]
     ]
   end
