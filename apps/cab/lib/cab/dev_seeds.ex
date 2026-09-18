@@ -1,7 +1,7 @@
 defmodule Cab.DevSeeds do
   @moduledoc """
-  DEV ONLY seeding helpers behind the /dev/debug panel (routes exist
-  only under the :dev_routes compile guard). Generates bot
+  DEV ONLY seeding helpers behind the left debug panel (rendered only
+  when :dev_routes is enabled). Generates bot
   participants so flows can be exercised without hand-registering a
   cast. Bots are real gateway users with real engine counterparts —
   everything runs through the same code paths as live users.

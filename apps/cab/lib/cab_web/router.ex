@@ -67,11 +67,6 @@ defmodule CabWeb.Router do
 
       # DEV ONLY: session user switcher (bypasses OAuth).
       get "/switch-user", CabWeb.DevSessionController, :switch
-
-      # DEV ONLY: debug panel — auto-generate participants (bots).
-      live_session :dev_debug, on_mount: {CabWeb.LiveAuth, :current_user} do
-        live "/debug", CabWeb.DevDebugLive
-      end
     end
   end
 end

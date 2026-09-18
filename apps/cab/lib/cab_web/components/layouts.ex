@@ -46,49 +46,24 @@ defmodule CabWeb.Layouts do
       <div class="bar">
         <.link navigate={~p"/"} class="brand"><span class="dot">C</span> cab</.link>
         <span :if={@context} class="ctx">{@context}</span>
-        <details :if={@dev_routes} class="usermenu" id="user-menu">
-          <summary>
-            <span :if={@current_user} class="avatar">{initials(@current_user.username)}</span>
-            <span :if={@current_user}>{@current_user.username}</span>
-            <span :if={is_nil(@current_user)} class="tag tag--warn">
-              not signed in — pick a user
-            </span>
-            ▾
-          </summary>
-          <div class="userdrop">
-            <div class="dhead">switch user (dev only)</div>
-            <a
-              :for={user <- @dev_users}
-              href={"/dev/switch-user?username=#{user.username}&return_to=#{@return_to}"}
-              style={
-                @current_user && @current_user.username == user.username &&
-                  "font-weight:800;color:var(--violet-700);"
-              }
-            >
-              {user.username}
-            </a>
-            <form action="/dev/switch-user" method="get" id="dev-switch-user-form">
-              <input type="hidden" name="return_to" value={@return_to} />
-              <input
-                class="input"
-                type="text"
-                name="username"
-                placeholder="new user…"
-                style="flex:1;"
-              />
-              <button class="btn btn--soft btn--sm" type="submit">Go</button>
-            </form>
-            <div style="border-top:1px solid var(--line); margin:5px 0;"></div>
-            <a href="/dev/debug">Debug panel</a>
-          </div>
-        </details>
-        <span :if={!@dev_routes} class="usermenu" style="font-size:.82rem; font-weight:600;">
+        <span class="usermenu" style="font-size:.82rem; font-weight:600;">
+          <span :if={@current_user} class="avatar" style="margin-right:6px;">
+            {initials(@current_user.username)}
+          </span>
           <span :if={@current_user}>{@current_user.username}</span>
           <span :if={is_nil(@current_user)} class="text-muted">not signed in</span>
         </span>
       </div>
 
-      <div class="pubwrap">
+      <.live_component
+        :if={@dev_routes}
+        module={CabWeb.DevPanel}
+        id="dev-panel"
+        current_user={@current_user}
+        return_to={@return_to}
+      />
+
+      <div class={["pubwrap", @dev_routes && "with-devpanel"]}>
         <div class="rolehead">
           <h1 class="h1">{@title}</h1>
           {render_slot(@head_tag)}

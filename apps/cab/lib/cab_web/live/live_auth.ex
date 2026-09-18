@@ -9,6 +9,12 @@ defmodule CabWeb.LiveAuth do
 
   alias Cab.Accounts
 
+  # The fixed dev cast: one persona per role. Switching between these
+  # three shows every perspective the app has — no user zoo.
+  @dev_cast ~w(organiser judge speaker)
+
+  def dev_cast, do: @dev_cast
+
   def on_mount(:current_user, _params, session, socket) do
     user = session["user_id"] && Accounts.get_user(session["user_id"])
     dev_routes = Application.get_env(:cab, :dev_routes, false)
@@ -18,7 +24,7 @@ defmodule CabWeb.LiveAuth do
        current_user: user,
        error: nil,
        dev_routes: dev_routes,
-       dev_users: if(dev_routes, do: Accounts.list_users(), else: [])
+       dev_users: if(dev_routes, do: @dev_cast, else: [])
      )}
   end
 

@@ -225,3 +225,24 @@
   border-radius:8px; font:inherit; font-size:.8rem; text-align:center; }
 .cab .chip { display:inline-block; background:#fff; border:1.5px solid var(--violet-200);
   border-radius:999px; padding:5px 12px; font-size:.8rem; font-weight:600; }
+
+/* DEV ONLY left debug panel */
+.cab .devpanel { position:fixed; left:0; top:50px; bottom:0; width:236px;
+  overflow-y:auto; background:#fff; border-right:1px solid var(--line);
+  padding:14px 14px 40px; z-index:30; font-size:.82rem; }
+.cab .devpanel h3 { font-size:.68rem; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted); margin:14px 0 8px; font-weight:800; }
+.cab .devpanel h3:first-child { margin-top:0; }
+.cab .devpanel .rolebtn { display:flex; align-items:center; gap:8px; width:100%;
+  padding:7px 10px; border-radius:10px; margin-bottom:4px; text-decoration:none;
+  color:var(--ink); font-weight:600; }
+.cab .devpanel .rolebtn:hover { background:var(--violet-50); }
+.cab .devpanel .rolebtn.on { background:var(--role-soft); color:var(--violet-700);
+  font-weight:800; }
+.cab .devpanel .input, .cab .devpanel select { width:100%; margin-bottom:6px;
+  padding:6px 10px; font-size:.8rem; border-radius:10px; }
+.cab .devpanel .num { width:4.2em !important; display:inline-block; }
+.cab .devpanel .result { margin-top:8px; font-size:.76rem; }
+.cab .pubwrap.with-devpanel { margin-left:252px; margin-right:auto; }
+@media (max-width: 900px) { .cab .devpanel { display:none; }
+  .cab .pubwrap.with-devpanel { margin-left:auto; } }
