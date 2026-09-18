@@ -78,6 +78,8 @@ defmodule CabWeb.Layouts do
               />
               <button class="btn btn--soft btn--sm" type="submit">Go</button>
             </form>
+            <div style="border-top:1px solid var(--line); margin:5px 0;"></div>
+            <a href="/dev/debug">Debug panel</a>
           </div>
         </details>
         <span :if={!@dev_routes} class="usermenu" style="font-size:.82rem; font-weight:600;">
