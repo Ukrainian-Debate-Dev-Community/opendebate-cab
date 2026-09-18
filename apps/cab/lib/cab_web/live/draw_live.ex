@@ -20,7 +20,8 @@ defmodule CabWeb.DrawLive do
         round: nil,
         rooms: [],
         motion: nil,
-        notice: nil
+        notice: nil,
+        privileged: false
       )
 
     {:ok, load(socket)}
@@ -34,7 +35,14 @@ defmodule CabWeb.DrawLive do
          {:ok, round} <- Tournaments.round_by_sequence(actor, event_id, sequence),
          {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]),
          {:ok, motion} <- Tournaments.round_motion(actor, event_id, sequence) do
-      assign(socket, rounds: rounds, round: round, rooms: rooms, motion: motion, error: nil)
+      assign(socket,
+        rounds: rounds,
+        round: round,
+        rooms: rooms,
+        motion: motion,
+        privileged: LiveAuth.privileged?(socket.assigns.current_user, event_id),
+        error: nil
+      )
     else
       {:error, message} -> assign(socket, error: message)
     end
@@ -52,7 +60,12 @@ defmodule CabWeb.DrawLive do
   def handle_event("save_motion", %{"text" => text}, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <-
-           Tournaments.set_round_motion(actor, socket.assigns.event_id, socket.assigns.sequence, text) do
+           Tournaments.set_round_motion(
+             actor,
+             socket.assigns.event_id,
+             socket.assigns.sequence,
+             text
+           ) do
       {:noreply, socket |> assign(notice: "motion saved") |> load()}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
@@ -62,7 +75,11 @@ defmodule CabWeb.DrawLive do
   def handle_event("release_motion", _params, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <-
-           Tournaments.release_round_motion(actor, socket.assigns.event_id, socket.assigns.sequence) do
+           Tournaments.release_round_motion(
+             actor,
+             socket.assigns.event_id,
+             socket.assigns.sequence
+           ) do
       {:noreply, socket |> assign(notice: "motion released") |> load()}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
@@ -127,7 +144,7 @@ defmodule CabWeb.DrawLive do
         active="draw"
       />
 
-      <.guide :if={@rooms == []}>
+      <.guide :if={@privileged && @rooms == []}>
         No rooms yet — make them on the check-in page first.
         <:action>
           <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}/r/#{@sequence}/checkin"}>
@@ -135,10 +152,10 @@ defmodule CabWeb.DrawLive do
           </a>
         </:action>
       </.guide>
-      <.guide :if={@rooms != [] && is_nil(@motion)}>
+      <.guide :if={@privileged && @rooms != [] && is_nil(@motion)}>
         Rooms are set. Write the motion below and save it, then release it to the speakers.
       </.guide>
-      <.guide :if={@rooms != [] && @motion && !@motion["is_released"]}>
+      <.guide :if={@privileged && @rooms != [] && @motion && !@motion["is_released"]}>
         Motion saved but still hidden. Release it when the teams are seated.
         <:action>
           <button class="btn btn--cta btn--sm" phx-click="release_motion">Release motion</button>
@@ -153,7 +170,7 @@ defmodule CabWeb.DrawLive do
         </:action>
       </.guide>
 
-      <div class="motionline">
+      <div :if={@privileged} class="motionline">
         <span class="tag tag--gold">R{@sequence} motion</span>
         <form phx-submit="save_motion" class="f-row" style="flex:1;">
           <input
@@ -179,6 +196,14 @@ defmodule CabWeb.DrawLive do
           Tournament practice: one motion per round, shared by all its rooms and released to
           everyone at once. (Per-room motions exist too — club sessions use them, set by each
           room's judge.)
+        </span>
+      </div>
+
+      <div :if={!@privileged} class="motionline">
+        <span class="tag tag--gold">R{@sequence} motion</span>
+        <span :if={@motion && @motion["is_released"]} class="m">{@motion["motion_text"]}</span>
+        <span :if={!(@motion && @motion["is_released"])} class="f-help">
+          not released yet — the organisers announce it when the round starts
         </span>
       </div>
 
@@ -213,7 +238,7 @@ defmodule CabWeb.DrawLive do
         </table>
       </div>
 
-      <div :if={length(@slots) > 1} class="card">
+      <div :if={@privileged && length(@slots) > 1} class="card">
         <div class="card__head"><b>Fix the draw — swap two team slots</b></div>
         <div class="card__pad">
           <form phx-submit="swap" class="f-row">

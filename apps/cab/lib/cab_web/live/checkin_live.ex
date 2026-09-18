@@ -17,7 +17,8 @@ defmodule CabWeb.CheckinLive do
         rounds: [],
         round: nil,
         teams: [],
-        rooms: []
+        rooms: [],
+        privileged: false
       )
 
     {:ok, load(socket)}
@@ -31,7 +32,14 @@ defmodule CabWeb.CheckinLive do
          {:ok, round} <- Tournaments.round_by_sequence(actor, event_id, sequence),
          {:ok, teams} <- Tournaments.teams_with_checkin(actor, event_id),
          {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
-      assign(socket, rounds: rounds, round: round, teams: teams, rooms: rooms, error: nil)
+      assign(socket,
+        rounds: rounds,
+        round: round,
+        teams: teams,
+        rooms: rooms,
+        privileged: LiveAuth.privileged?(socket.assigns.current_user, event_id),
+        error: nil
+      )
     else
       {:error, message} -> assign(socket, error: message)
     end
@@ -53,7 +61,8 @@ defmodule CabWeb.CheckinLive do
 
   def handle_event("generate_rooms", _params, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
-         {:ok, _count} <- Tournaments.generate_rooms(actor, socket.assigns.event_id, socket.assigns.round) do
+         {:ok, _count} <-
+           Tournaments.generate_rooms(actor, socket.assigns.event_id, socket.assigns.round) do
       {:noreply,
        push_navigate(socket,
          to: ~p"/t/#{socket.assigns.event_id}/r/#{socket.assigns.sequence}/draw"
@@ -96,24 +105,27 @@ defmodule CabWeb.CheckinLive do
           </a>
         </:action>
       </.guide>
-      <.guide :if={@rooms == [] && @teams == []}>
+      <.guide :if={@privileged && @rooms == [] && @teams == []}>
         No teams yet — add them on the Setup page first.
         <:action>
           <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}/setup"}>Setup</a>
         </:action>
       </.guide>
-      <.guide :if={@rooms == [] && @teams != [] && @checked_count < length(@teams)}>
+      <.guide :if={@privileged && @rooms == [] && @teams != [] && @checked_count < length(@teams)}>
         Tick every team that is present ({@checked_count} / {length(@teams)} checked in),
         then press <b>Make rooms</b>. Rooms hold {Cab.Tournaments.teams_per_room()} teams, 1 judge each.
         <:action>
           <button class="btn btn--cta btn--sm" phx-click="generate_rooms">Make rooms</button>
         </:action>
       </.guide>
-      <.guide :if={@rooms == [] && @teams != [] && @checked_count == length(@teams)}>
+      <.guide :if={@privileged && @rooms == [] && @teams != [] && @checked_count == length(@teams)}>
         Everyone is checked in — make the rooms.
         <:action>
           <button class="btn btn--cta btn--sm" phx-click="generate_rooms">Make rooms</button>
         </:action>
+      </.guide>
+      <.guide :if={!@privileged && @rooms == []}>
+        Check-in is managed by the organisers — the draw appears here once rooms are made.
       </.guide>
 
       <div class="section-title">Teams present ({@checked_count} / {length(@teams)})</div>
@@ -133,6 +145,7 @@ defmodule CabWeb.CheckinLive do
                   type="checkbox"
                   checked={team["checked_in"]}
                   phx-click="toggle"
+                  disabled={!@privileged}
                   phx-value-team-id={team["id"]}
                   style="width:18px;height:18px;accent-color:#66347E;cursor:pointer;"
                 />

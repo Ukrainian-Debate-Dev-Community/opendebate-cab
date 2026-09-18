@@ -22,7 +22,8 @@ defmodule CabWeb.ClubLive do
         club: nil,
         session: nil,
         history: [],
-        notice: nil
+        notice: nil,
+        privileged: false
       )
 
     {:ok, socket}
@@ -31,8 +32,7 @@ defmodule CabWeb.ClubLive do
   def handle_event("create_club", %{"name" => name}, socket) do
     case Clubs.create_club(%{name: String.trim(name)}) do
       {:ok, club} ->
-        {:noreply,
-         socket |> assign(clubs: Clubs.list_clubs(), club: club, error: nil) |> load()}
+        {:noreply, socket |> assign(clubs: Clubs.list_clubs(), club: club, error: nil) |> load()}
 
       {:error, changeset} ->
         {:noreply, assign(socket, error: "could not create club: #{inspect(changeset.errors)}")}
@@ -119,7 +119,8 @@ defmodule CabWeb.ClubLive do
     end
   end
 
-  defp load(%{assigns: %{club: nil}} = socket), do: assign(socket, session: nil, history: [])
+  defp load(%{assigns: %{club: nil}} = socket),
+    do: assign(socket, session: nil, history: [], privileged: false)
 
   defp load(socket) do
     club = Clubs.get_club(socket.assigns.club.id)
@@ -129,9 +130,13 @@ defmodule CabWeb.ClubLive do
          {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, session} <- Clubs.current_session(actor, org_id),
          {:ok, history} <- Clubs.club_history(actor, org_id) do
-      assign(socket, session: session, history: history, error: nil)
+      privileged =
+        session != nil and
+          LiveAuth.privileged?(socket.assigns.current_user, session.event["id"])
+
+      assign(socket, session: session, history: history, privileged: privileged, error: nil)
     else
-      nil -> assign(socket, session: nil, history: [])
+      nil -> assign(socket, session: nil, history: [], privileged: false)
       {:error, message} -> assign(socket, error: message)
     end
   end
@@ -223,10 +228,11 @@ defmodule CabWeb.ClubLive do
       <.guide :if={@club && is_nil(@session)}>
         No session open at <b>{@club.name}</b>. Open one and let members sign up.
       </.guide>
-      <.guide :if={@session && @session.stage == :signup}>
+      <.guide :if={@privileged && @session && @session.stage == :signup}>
         Sign-ups are open — register yourself with one click. Rooms need speakers in
-        multiples of 8 and one judge per room ({length(speakers(@session))} speakers,
-        {length(judges(@session))} judges so far).
+        multiples of 8 and one judge per room ({length(speakers(@session))} speakers, {length(
+          judges(@session)
+        )} judges so far).
         <:action>
           <button class="btn btn--cta btn--sm" phx-click="make_rooms">Make rooms</button>
         </:action>
@@ -235,7 +241,7 @@ defmodule CabWeb.ClubLive do
         Rooms are set. Each room's <b>judge announces the motion for their room</b> (the field
         on the room card is theirs), then runs the debate and clicks the winning team.
       </.guide>
-      <.guide :if={@session && @session.stage == :closing}>
+      <.guide :if={@privileged && @session && @session.stage == :closing}>
         All winners recorded — close the session.
         <:action>
           <button class="btn btn--cta btn--sm" phx-click="finish_session">Finish session</button>
@@ -335,8 +341,10 @@ defmodule CabWeb.ClubLive do
             <span class="m">{get_in(room, ["Motion", "motion_text"])}</span>
           </div>
           <form
-            :if={is_nil(room["Motion"]) && room["status"] in ["pending", "judging"] &&
-              judge_of?(room, @current_user)}
+            :if={
+              is_nil(room["Motion"]) && room["status"] in ["pending", "judging"] &&
+                judge_of?(room, @current_user)
+            }
             phx-submit="set_room_motion"
             class="f-row"
             style="margin:10px 12px;"
@@ -382,7 +390,10 @@ defmodule CabWeb.ClubLive do
                 <td>{speakers_of(room_team)}</td>
                 <td>
                   <button
-                    :if={room["status"] not in ["completed", "confirmed"]}
+                    :if={
+                      (judge_of?(room, @current_user) || @privileged) &&
+                        room["status"] not in ["completed", "confirmed"]
+                    }
                     class="btn btn--soft btn--sm"
                     phx-click="pick_winner"
                     phx-value-room-id={room["id"]}

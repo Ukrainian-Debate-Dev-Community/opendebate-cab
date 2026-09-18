@@ -28,7 +28,8 @@ defmodule CabWeb.BallotsLive do
         rounds: [],
         round: nil,
         rooms: [],
-        notice: nil
+        notice: nil,
+        privileged: false
       )
 
     {:ok, load(socket)}
@@ -41,7 +42,13 @@ defmodule CabWeb.BallotsLive do
          {:ok, rounds} <- EngineApi.list_rounds(actor, event_id),
          {:ok, round} <- Tournaments.round_by_sequence(actor, event_id, sequence),
          {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
-      assign(socket, rounds: rounds, round: round, rooms: rooms, error: nil)
+      assign(socket,
+        rounds: rounds,
+        round: round,
+        rooms: rooms,
+        privileged: LiveAuth.privileged?(socket.assigns.current_user, event_id),
+        error: nil
+      )
     else
       {:error, message} -> assign(socket, error: message)
     end
@@ -152,7 +159,7 @@ defmodule CabWeb.BallotsLive do
         active="ballots"
       />
 
-      <.guide :if={@rooms == []}>
+      <.guide :if={@privileged && @rooms == []}>
         No rooms in this round yet — make them on the check-in page.
         <:action>
           <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}/r/#{@sequence}/checkin"}>
@@ -160,17 +167,17 @@ defmodule CabWeb.BallotsLive do
           </a>
         </:action>
       </.guide>
-      <.guide :if={@rooms != [] && !all_confirmed?(@rooms)}>
+      <.guide :if={@privileged && @rooms != [] && !all_confirmed?(@rooms)}>
         Enter 8 speaker scores per room (50–100) and submit — team places are computed from
         the totals. Then <b>confirm</b> each ballot to lock it.
       </.guide>
-      <.guide :if={all_confirmed?(@rooms) && !round_completed?(@round)}>
+      <.guide :if={@privileged && all_confirmed?(@rooms) && !round_completed?(@round)}>
         All ballots confirmed — complete the round.
         <:action>
           <button class="btn btn--cta btn--sm" phx-click="complete_round">Complete round</button>
         </:action>
       </.guide>
-      <.guide :if={round_completed?(@round) && @next_round}>
+      <.guide :if={@privileged && round_completed?(@round) && @next_round}>
         Round {@sequence} is done.
         <:action>
           <a
@@ -183,7 +190,7 @@ defmodule CabWeb.BallotsLive do
           </a>
         </:action>
       </.guide>
-      <.guide :if={round_completed?(@round) && is_nil(@next_round)}>
+      <.guide :if={@privileged && round_completed?(@round) && is_nil(@next_round)}>
         Round {@sequence} is done — back to the overview to break or see standings.
         <:action>
           <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}"}>Overview</a>
@@ -196,7 +203,7 @@ defmodule CabWeb.BallotsLive do
           <.status_tag status={room["status"]} />
         </div>
 
-        <form :if={room["status"] in ["pending", "judging"]} phx-submit="submit_ballot">
+        <form :if={@privileged && room["status"] in ["pending", "judging"]} phx-submit="submit_ballot">
           <input type="hidden" name="room_id" value={room["id"]} />
           <div
             :for={room_team <- Enum.sort_by(room["RoomTeams"] || [], & &1["position"])}
@@ -228,6 +235,13 @@ defmodule CabWeb.BallotsLive do
           </div>
         </form>
 
+        <div
+          :if={!@privileged && room["status"] in ["pending", "judging"]}
+          class="card__pad f-help"
+        >
+          Ballot pending — results appear here once submitted and confirmed.
+        </div>
+
         <div :if={room["status"] in ["completed", "confirmed"]} class="card__pad">
           <div
             :for={room_team <- Enum.sort_by(room["RoomTeams"] || [], & &1["rank"])}
@@ -238,7 +252,7 @@ defmodule CabWeb.BallotsLive do
           </div>
           <div class="f-row" style="margin-top:10px;">
             <button
-              :if={room["status"] == "completed"}
+              :if={@privileged && room["status"] == "completed"}
               class="btn btn--primary btn--sm"
               phx-click="confirm"
               phx-value-room-id={room["id"]}
@@ -246,7 +260,7 @@ defmodule CabWeb.BallotsLive do
               Confirm ballot
             </button>
             <button
-              :if={room["status"] == "completed"}
+              :if={@privileged && room["status"] == "completed"}
               class="btn btn--soft btn--sm"
               phx-click="reopen"
               phx-value-room-id={room["id"]}
@@ -254,7 +268,7 @@ defmodule CabWeb.BallotsLive do
               Reopen (edit scores)
             </button>
             <button
-              :if={room["status"] == "confirmed"}
+              :if={@privileged && room["status"] == "confirmed"}
               class="btn btn--soft btn--sm"
               phx-click="unconfirm"
               phx-value-room-id={room["id"]}
@@ -267,6 +281,7 @@ defmodule CabWeb.BallotsLive do
 
       <div class="f-row" style="margin-top:6px;">
         <button
+          :if={@privileged}
           class="btn btn--primary"
           phx-click="complete_round"
           disabled={not all_confirmed?(@rooms) or round_completed?(@round)}

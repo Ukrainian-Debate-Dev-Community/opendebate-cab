@@ -23,9 +23,25 @@ defmodule CabWeb.LiveAuth do
   end
 
   @doc """
+  Does `user` hold organiser-level privileges for the engine event
+  (admin / org owner / organiser)? The engine is the authority
+  (`GET /events/:id/access`); this only decides what UI to render —
+  every action is still authorised server-side by the engine.
+  """
+  def privileged?(user, event_id) do
+    with {:ok, actor} <- actor(user),
+         {:ok, %{"isPrivileged" => privileged}} <- Cab.EngineApi.event_access(actor, event_id) do
+      privileged
+    else
+      _ -> false
+    end
+  end
+
+  @doc """
   Resolves the acting engine user id for `user`.
   """
-  def actor(nil), do: {:error, "please sign in first (dev user switcher in the top bar, or GitHub)"}
+  def actor(nil),
+    do: {:error, "please sign in first (dev user switcher in the top bar, or GitHub)"}
 
   def actor(user) do
     case Accounts.ensure_node_user(user) do

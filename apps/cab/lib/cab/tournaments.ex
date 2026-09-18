@@ -72,7 +72,12 @@ defmodule Cab.Tournaments do
       teams =
         Enum.map(teams, fn team ->
           member_ids = Enum.map(team["speakers"], & &1["participant_id"])
-          Map.put(team, "checked_in", member_ids != [] and Enum.all?(member_ids, &(&1 in checked)))
+
+          Map.put(
+            team,
+            "checked_in",
+            member_ids != [] and Enum.all?(member_ids, &(&1 in checked))
+          )
         end)
 
       {:ok, teams}
@@ -80,7 +85,12 @@ defmodule Cab.Tournaments do
   end
 
   def set_team_checkin(actor, event_id, team, status) do
-    EngineApi.check_in(actor, event_id, Enum.map(team["speakers"], & &1["participant_id"]), status)
+    EngineApi.check_in(
+      actor,
+      event_id,
+      Enum.map(team["speakers"], & &1["participant_id"]),
+      status
+    )
   end
 
   # ---------------------------------------------------------------

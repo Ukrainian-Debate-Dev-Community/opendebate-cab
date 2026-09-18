@@ -160,14 +160,22 @@ defmodule CabWeb.Ui do
             <a
               :for={user <- @dev_users}
               href={"/dev/switch-user?username=#{user.username}&return_to=#{@return_to}"}
-              style={@current_user && @current_user.username == user.username &&
-                "font-weight:800;color:var(--violet-700);"}
+              style={
+                @current_user && @current_user.username == user.username &&
+                  "font-weight:800;color:var(--violet-700);"
+              }
             >
               {user.username}
             </a>
             <form action="/dev/switch-user" method="get">
               <input type="hidden" name="return_to" value={@return_to} />
-              <input class="input" type="text" name="username" placeholder="new user…" style="flex:1;" />
+              <input
+                class="input"
+                type="text"
+                name="username"
+                placeholder="new user…"
+                style="flex:1;"
+              />
               <button class="btn btn--soft btn--sm" type="submit">Go</button>
             </form>
           </div>

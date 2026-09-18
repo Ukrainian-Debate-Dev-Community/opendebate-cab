@@ -198,6 +198,14 @@ defmodule Cab.EngineApi do
     Engine.get(actor, "/api/events/#{event_id}") |> unwrap()
   end
 
+  @doc """
+  Does the actor hold event privileges (admin / org owner /
+  organiser)? Returns `{:ok, %{"isPrivileged" => boolean}}`.
+  """
+  def event_access(actor, event_id) do
+    Engine.get(actor, "/api/events/#{event_id}/access") |> unwrap()
+  end
+
   def update_event(actor, event_id, attrs) do
     Engine.put(actor, "/api/events/#{event_id}", attrs) |> unwrap()
   end
@@ -427,7 +435,8 @@ defmodule Cab.EngineApi do
     username = shadow_username(display_name)
 
     with {:ok, engine_user_id} <- provision_error(Core.Engine.provision_user(username)),
-         {:ok, participant} <- add_participant(actor, event_id, display_name, role, engine_user_id) do
+         {:ok, participant} <-
+           add_participant(actor, event_id, display_name, role, engine_user_id) do
       {:ok, participant}
     end
   end
@@ -457,7 +466,9 @@ defmodule Cab.EngineApi do
   end
 
   defp provision_error({:ok, id}), do: {:ok, id}
-  defp provision_error({:error, reason}), do: {:error, "engine user provisioning failed: #{inspect(reason)}"}
+
+  defp provision_error({:error, reason}),
+    do: {:error, "engine user provisioning failed: #{inspect(reason)}"}
 
   # ---------------------------------------------------------------
   # Response normalisation

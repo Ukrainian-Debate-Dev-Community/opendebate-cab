@@ -24,7 +24,8 @@ defmodule CabWeb.SetupLive do
         teams: [],
         participants: [],
         organizers: [],
-        notice: nil
+        notice: nil,
+        privileged: false
       )
 
     {:ok, load(socket)}
@@ -41,6 +42,7 @@ defmodule CabWeb.SetupLive do
         teams: teams,
         participants: participants,
         organizers: organizers,
+        privileged: LiveAuth.privileged?(socket.assigns.current_user, socket.assigns.event_id),
         error: nil
       )
     else
@@ -50,7 +52,8 @@ defmodule CabWeb.SetupLive do
 
   def handle_event("create_teams", %{"lines" => lines}, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
-         {:ok, count} <- Tournaments.create_teams_from_lines(actor, socket.assigns.event_id, lines) do
+         {:ok, count} <-
+           Tournaments.create_teams_from_lines(actor, socket.assigns.event_id, lines) do
       {:noreply, socket |> assign(notice: "created #{count} team(s)") |> load()}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
@@ -129,8 +132,10 @@ defmodule CabWeb.SetupLive do
 
       <.td_flow event_id={@event_id} rounds={@rounds} />
 
-      <.guide :if={@ready}>
-        You have <b>{length(@teams)} teams</b> and <b>{@judge_count} judge(s)</b> — enough to
+      <.guide :if={@privileged && @ready}>
+        You have <b>{length(@teams)} teams</b>
+        and <b>{@judge_count} judge(s)</b>
+        — enough to
         start Round 1.
         <:action>
           <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}/r/1/checkin"}>
@@ -138,14 +143,20 @@ defmodule CabWeb.SetupLive do
           </a>
         </:action>
       </.guide>
-      <.guide :if={!@ready}>
+      <.guide :if={@privileged && !@ready}>
         Add teams and judges below. So far: <b>{length(@teams)}</b> teams (need a multiple
         of 4) and <b>{@judge_count}</b> judge(s) (need 1 per room).
       </.guide>
 
-      <div class="cardgrid">
+      <.guide :if={!@privileged}>
+        Setup is for the event organisers — you are viewing the rosters read-only.
+      </.guide>
+
+      <div :if={@privileged} class="cardgrid">
         <div class="card">
-          <div class="card__head"><b>1 · Teams</b><span class="tag tag--info">{length(@teams)} so far</span></div>
+          <div class="card__head">
+            <b>1 · Teams</b><span class="tag tag--info">{length(@teams)} so far</span>
+          </div>
           <div class="card__pad">
             <span class="f-label">One team per line — Team name: Speaker1, Speaker2</span>
             <p class="f-help" style="margin:0 0 8px;">
@@ -161,7 +172,9 @@ defmodule CabWeb.SetupLive do
         </div>
 
         <div class="card">
-          <div class="card__head"><b>2 · Judges</b><span class="tag tag--info">{@judge_count} so far</span></div>
+          <div class="card__head">
+            <b>2 · Judges</b><span class="tag tag--info">{@judge_count} so far</span>
+          </div>
           <div class="card__pad">
             <span class="f-label">One judge name per line</span>
             <form phx-submit="add_judges">
@@ -173,7 +186,13 @@ defmodule CabWeb.SetupLive do
             <div style="margin-top:14px;">
               <span class="f-label">3 · Optional: co-organizer role</span>
               <form phx-submit="add_organizer" class="f-row">
-                <input class="input" type="text" name="user_id" placeholder="engine user id" style="width:130px;" />
+                <input
+                  class="input"
+                  type="text"
+                  name="user_id"
+                  placeholder="engine user id"
+                  style="width:130px;"
+                />
                 <select name="role">
                   <option value="organiser">organiser</option>
                   <option value="tab">tab</option>

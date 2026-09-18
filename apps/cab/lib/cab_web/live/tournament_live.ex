@@ -16,7 +16,8 @@ defmodule CabWeb.TournamentLive do
         rounds: [],
         team_standings: [],
         speaker_standings: [],
-        champion: nil
+        champion: nil,
+        privileged: false
       )
 
     {:ok, load(socket)}
@@ -36,6 +37,7 @@ defmodule CabWeb.TournamentLive do
         team_standings: team_standings,
         speaker_standings: speaker_standings,
         champion: champion,
+        privileged: LiveAuth.privileged?(socket.assigns.current_user, socket.assigns.event_id),
         error: nil
       )
     else
@@ -88,7 +90,10 @@ defmodule CabWeb.TournamentLive do
     >
       <:head_tag>
         <.status_tag :if={@event} status={@event["status"]} />
-        <a class="btn btn--soft btn--sm" href={~p"/t/#{@event_id}/setup"}>Setup</a>
+        <span :if={@privileged} class="tag tag--info">organiser</span>
+        <a :if={@privileged} class="btn btn--soft btn--sm" href={~p"/t/#{@event_id}/setup"}>
+          Setup
+        </a>
         <button class="btn btn--soft btn--sm" phx-click="refresh">Refresh</button>
       </:head_tag>
 
@@ -98,7 +103,9 @@ defmodule CabWeb.TournamentLive do
         <b>🏆</b> Champion: <b>{@champion}</b>
       </div>
 
-      <.guide :if={is_nil(@champion) && @current_round && @current_round["name"] == "Final"}>
+      <.guide :if={
+        @privileged && is_nil(@champion) && @current_round && @current_round["name"] == "Final"
+      }>
         The final room is set — enter and confirm its ballot to crown the champion.
         <:action>
           <a
@@ -110,10 +117,13 @@ defmodule CabWeb.TournamentLive do
         </:action>
       </.guide>
 
-      <.guide :if={is_nil(@champion) && @current_round && @current_round["name"] != "Final"}>
-        Next: run <b>{@current_round["name"]}</b> — check-in → draw + motion → ballots.
-        First time here? Add teams and judges in
-        <a href={~p"/t/#{@event_id}/setup"}>Setup</a> first.
+      <.guide :if={
+        @privileged && is_nil(@champion) && @current_round && @current_round["name"] != "Final"
+      }>
+        Next: run <b>{@current_round["name"]}</b>
+        — check-in → draw + motion → ballots.
+        First time here? Add teams and judges in <a href={~p"/t/#{@event_id}/setup"}>Setup</a>
+        first.
         <:action>
           <a
             class="btn btn--cta btn--sm"
@@ -124,7 +134,12 @@ defmodule CabWeb.TournamentLive do
         </:action>
       </.guide>
 
-      <.guide :if={is_nil(@champion) && prelims_done?(@rounds) && !has_final?(@rounds)}>
+      <.guide :if={!@privileged && is_nil(@champion)}>
+        You are viewing as a participant — the draw, motions and standings below update as
+        the organisers run the event.
+      </.guide>
+
+      <.guide :if={@privileged && is_nil(@champion) && prelims_done?(@rounds) && !has_final?(@rounds)}>
         All preliminary rounds are done — break the top 4 teams to the final.
         <:action>
           <button class="btn btn--cta btn--sm" phx-click="break_final">Break to final</button>
