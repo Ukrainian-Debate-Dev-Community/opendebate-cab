@@ -9,8 +9,6 @@ defmodule CabWeb.ClubLive do
 
   use CabWeb, :live_view
 
-  import CabWeb.Ui
-
   alias Cab.Clubs
   alias CabWeb.LiveAuth
 
@@ -205,7 +203,8 @@ defmodule CabWeb.ClubLive do
 
   def render(assigns) do
     ~H"""
-    <.shell
+    <Layouts.app
+      flash={@flash}
       current_user={@current_user}
       dev_routes={@dev_routes}
       dev_users={@dev_users}
@@ -261,7 +260,7 @@ defmodule CabWeb.ClubLive do
               {club.name}
             </button>
           </div>
-          <form phx-submit="create_club" class="f-row" style="margin-top:10px;">
+          <form phx-submit="create_club" id="create-club-form" class="f-row" style="margin-top:10px;">
             <input class="input" type="text" name="name" placeholder="New club name" />
             <button class="btn btn--soft btn--sm" type="submit">Create club</button>
           </form>
@@ -271,7 +270,7 @@ defmodule CabWeb.ClubLive do
       <div :if={@club && is_nil(@session)} class="card">
         <div class="card__head"><b>Open tonight's session</b></div>
         <div class="card__pad">
-          <form phx-submit="open_session">
+          <form phx-submit="open_session" id="open-session-form">
             <div class="f-row">
               <input
                 class="input"
@@ -346,6 +345,7 @@ defmodule CabWeb.ClubLive do
                 judge_of?(room, @current_user)
             }
             phx-submit="set_room_motion"
+            id={"room-motion-form-#{room["id"]}"}
             class="f-row"
             style="margin:10px 12px;"
           >
@@ -435,7 +435,7 @@ defmodule CabWeb.ClubLive do
           </table>
         </div>
       </div>
-    </.shell>
+    </Layouts.app>
     """
   end
 end

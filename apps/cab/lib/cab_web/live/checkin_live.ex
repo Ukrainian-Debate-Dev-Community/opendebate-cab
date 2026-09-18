@@ -76,7 +76,8 @@ defmodule CabWeb.CheckinLive do
     assigns = assign(assigns, :checked_count, Enum.count(assigns.teams, & &1["checked_in"]))
 
     ~H"""
-    <.shell
+    <Layouts.app
+      flash={@flash}
       current_user={@current_user}
       dev_routes={@dev_routes}
       dev_users={@dev_users}
@@ -86,7 +87,7 @@ defmodule CabWeb.CheckinLive do
       error={@error}
     >
       <:head_tag>
-        <a class="btn btn--soft btn--sm" href={~p"/t/#{@event_id}"}>Overview</a>
+        <.link class="btn btn--soft btn--sm" navigate={~p"/t/#{@event_id}"}>Overview</.link>
       </:head_tag>
 
       <.td_flow
@@ -100,15 +101,15 @@ defmodule CabWeb.CheckinLive do
       <.guide :if={@rooms != []}>
         Rooms for this round are made — continue to the draw and motion.
         <:action>
-          <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}/r/#{@sequence}/draw"}>
+          <.link class="btn btn--cta btn--sm" navigate={~p"/t/#{@event_id}/r/#{@sequence}/draw"}>
             Go to draw
-          </a>
+          </.link>
         </:action>
       </.guide>
       <.guide :if={@privileged && @rooms == [] && @teams == []}>
         No teams yet — add them on the Setup page first.
         <:action>
-          <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}/setup"}>Setup</a>
+          <.link class="btn btn--cta btn--sm" navigate={~p"/t/#{@event_id}/setup"}>Setup</.link>
         </:action>
       </.guide>
       <.guide :if={@privileged && @rooms == [] && @teams != [] && @checked_count < length(@teams)}>
@@ -159,7 +160,7 @@ defmodule CabWeb.CheckinLive do
           </tbody>
         </table>
       </div>
-    </.shell>
+    </Layouts.app>
     """
   end
 end

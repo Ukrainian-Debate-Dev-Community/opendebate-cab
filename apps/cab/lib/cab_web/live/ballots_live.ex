@@ -134,7 +134,8 @@ defmodule CabWeb.BallotsLive do
     assigns = assign(assigns, :next_round, next_round(assigns.rounds, assigns.sequence))
 
     ~H"""
-    <.shell
+    <Layouts.app
+      flash={@flash}
       current_user={@current_user}
       dev_routes={@dev_routes}
       dev_users={@dev_users}
@@ -148,7 +149,7 @@ defmodule CabWeb.BallotsLive do
         <span :if={@rooms != []} class="tag tag--info">
           {confirmed_count(@rooms)}/{length(@rooms)} confirmed
         </span>
-        <a class="btn btn--soft btn--sm" href={~p"/t/#{@event_id}"}>Overview</a>
+        <.link class="btn btn--soft btn--sm" navigate={~p"/t/#{@event_id}"}>Overview</.link>
       </:head_tag>
 
       <.td_flow
@@ -162,9 +163,9 @@ defmodule CabWeb.BallotsLive do
       <.guide :if={@privileged && @rooms == []}>
         No rooms in this round yet — make them on the check-in page.
         <:action>
-          <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}/r/#{@sequence}/checkin"}>
+          <.link class="btn btn--cta btn--sm" navigate={~p"/t/#{@event_id}/r/#{@sequence}/checkin"}>
             Check-in
-          </a>
+          </.link>
         </:action>
       </.guide>
       <.guide :if={@privileged && @rooms != [] && !all_confirmed?(@rooms)}>
@@ -180,20 +181,20 @@ defmodule CabWeb.BallotsLive do
       <.guide :if={@privileged && round_completed?(@round) && @next_round}>
         Round {@sequence} is done.
         <:action>
-          <a
+          <.link
             class="btn btn--cta btn--sm"
-            href={~p"/t/#{@event_id}/r/#{@next_round["sequence"]}/checkin"}
+            navigate={~p"/t/#{@event_id}/r/#{@next_round["sequence"]}/checkin"}
           >
             {if @next_round["name"] == "Final",
               do: "Final",
               else: "Start #{@next_round["name"]}"}
-          </a>
+          </.link>
         </:action>
       </.guide>
       <.guide :if={@privileged && round_completed?(@round) && is_nil(@next_round)}>
         Round {@sequence} is done — back to the overview to break or see standings.
         <:action>
-          <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}"}>Overview</a>
+          <.link class="btn btn--cta btn--sm" navigate={~p"/t/#{@event_id}"}>Overview</.link>
         </:action>
       </.guide>
 
@@ -203,7 +204,11 @@ defmodule CabWeb.BallotsLive do
           <.status_tag status={room["status"]} />
         </div>
 
-        <form :if={@privileged && room["status"] in ["pending", "judging"]} phx-submit="submit_ballot">
+        <form
+          :if={@privileged && room["status"] in ["pending", "judging"]}
+          phx-submit="submit_ballot"
+          id={"ballot-form-#{room["id"]}"}
+        >
           <input type="hidden" name="room_id" value={room["id"]} />
           <div
             :for={room_team <- Enum.sort_by(room["RoomTeams"] || [], & &1["position"])}
@@ -290,7 +295,7 @@ defmodule CabWeb.BallotsLive do
         </button>
         <span :if={round_completed?(@round)} class="tag tag--ok">round completed</span>
       </div>
-    </.shell>
+    </Layouts.app>
     """
   end
 

@@ -3,8 +3,6 @@ defmodule CabWeb.DashboardLive do
 
   use CabWeb, :live_view
 
-  import CabWeb.Ui
-
   alias Cab.EngineApi
   alias CabWeb.LiveAuth
 
@@ -45,7 +43,8 @@ defmodule CabWeb.DashboardLive do
 
   def render(assigns) do
     ~H"""
-    <.shell
+    <Layouts.app
+      flash={@flash}
       current_user={@current_user}
       dev_routes={@dev_routes}
       dev_users={@dev_users}
@@ -69,7 +68,12 @@ defmodule CabWeb.DashboardLive do
             <div class="kv"><span>format</span><b>BP — 4 teams per room</b></div>
             <div class="kv"><span>rounds</span><b>3 + final</b></div>
             <div class="kv"><span>you need</span><b>8 teams, 2 judges</b></div>
-            <form phx-submit="create_tournament" class="f-row" style="margin-top:10px;">
+            <form
+              phx-submit="create_tournament"
+              id="create-tournament-form"
+              class="f-row"
+              style="margin-top:10px;"
+            >
               <input class="input" type="text" name="name" placeholder="e.g. Friday Night Open" />
               <button class="btn btn--cta btn--sm" type="submit">Create</button>
             </form>
@@ -82,7 +86,7 @@ defmodule CabWeb.DashboardLive do
             <div class="kv"><span>one room</span><b>4 teams × 2 speakers</b></div>
             <div class="kv"><span>result</span><b>winner pick, saved to history</b></div>
             <div class="f-row" style="margin-top:10px;">
-              <a class="btn btn--primary btn--sm" href={~p"/club"}>Open</a>
+              <.link class="btn btn--primary btn--sm" navigate={~p"/club"}>Open</.link>
             </div>
           </div>
         </div>
@@ -105,7 +109,7 @@ defmodule CabWeb.DashboardLive do
               <td><.status_tag status={event["status"]} /></td>
               <td>{get_in(event, ["Organisation", "name"])}</td>
               <td>
-                <a class="btn btn--primary btn--sm" href={~p"/t/#{event["id"]}"}>Open</a>
+                <.link class="btn btn--primary btn--sm" navigate={~p"/t/#{event["id"]}"}>Open</.link>
               </td>
             </tr>
             <tr :if={@events == []}>
@@ -114,7 +118,7 @@ defmodule CabWeb.DashboardLive do
           </tbody>
         </table>
       </div>
-    </.shell>
+    </Layouts.app>
     """
   end
 end

@@ -12,18 +12,15 @@ defmodule CabWeb.Layouts do
   embed_templates "layouts/*"
 
   @doc """
-  Renders your app layout.
+  The cab app layout (design/cab2 chrome): top bar with brand,
+  context title and the dev user menu, then the page body with title,
+  guides and content. Every LiveView template begins with it:
 
-  This function is typically invoked from every template,
-  and it often contains your application menu, sidebar,
-  or similar.
-
-  ## Examples
-
-      <Layouts.app flash={@flash}>
-        <h1>Content</h1>
+      <Layouts.app flash={@flash} current_user={@current_user} ...>
+        content
       </Layouts.app>
 
+  Styling lives in `assets/css/app.css` under the `.cab` scope.
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
 
@@ -31,45 +28,93 @@ defmodule CabWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://phoenix.hexdocs.pm/scopes.html)"
 
+  attr :current_user, :any, default: nil
+  attr :dev_routes, :boolean, default: false
+  attr :dev_users, :list, default: []
+  attr :context, :any, default: nil, doc: "bar context title, e.g. tournament name"
+  attr :return_to, :string, default: "/"
+  attr :title, :string, required: true
+  attr :subtitle, :any, default: nil
+  attr :error, :any, default: nil, doc: "inline engine/validation error line"
+  attr :notice, :any, default: nil, doc: "inline success line"
+  slot :head_tag
   slot :inner_block, required: true
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
-      <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-        </a>
-      </div>
-      <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
-          <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-          </li>
-          <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
-          </li>
-          <li>
-            <.theme_toggle />
-          </li>
-          <li>
-            <a href="https://phoenix.hexdocs.pm/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
+    <div class="cab">
+      <div class="bar">
+        <.link navigate={~p"/"} class="brand"><span class="dot">C</span> cab</.link>
+        <span :if={@context} class="ctx">{@context}</span>
+        <details :if={@dev_routes} class="usermenu" id="user-menu">
+          <summary>
+            <span :if={@current_user} class="avatar">{initials(@current_user.username)}</span>
+            <span :if={@current_user}>{@current_user.username}</span>
+            <span :if={is_nil(@current_user)} class="tag tag--warn">
+              not signed in — pick a user
+            </span>
+            ▾
+          </summary>
+          <div class="userdrop">
+            <div class="dhead">switch user (dev only)</div>
+            <a
+              :for={user <- @dev_users}
+              href={"/dev/switch-user?username=#{user.username}&return_to=#{@return_to}"}
+              style={
+                @current_user && @current_user.username == user.username &&
+                  "font-weight:800;color:var(--violet-700);"
+              }
+            >
+              {user.username}
             </a>
-          </li>
-        </ul>
+            <form action="/dev/switch-user" method="get" id="dev-switch-user-form">
+              <input type="hidden" name="return_to" value={@return_to} />
+              <input
+                class="input"
+                type="text"
+                name="username"
+                placeholder="new user…"
+                style="flex:1;"
+              />
+              <button class="btn btn--soft btn--sm" type="submit">Go</button>
+            </form>
+          </div>
+        </details>
+        <span :if={!@dev_routes} class="usermenu" style="font-size:.82rem; font-weight:600;">
+          <span :if={@current_user}>{@current_user.username}</span>
+          <span :if={is_nil(@current_user)} class="text-muted">not signed in</span>
+        </span>
       </div>
-    </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
+      <div class="pubwrap">
+        <div class="rolehead">
+          <h1 class="h1">{@title}</h1>
+          {render_slot(@head_tag)}
+        </div>
+        <p :if={@subtitle} class="text-muted" style="margin:-8px 0 14px; font-size:.86rem;">
+          {@subtitle}
+        </p>
+        <div :if={@error} class="alert alert--warn" id="inline-error">
+          <b>!</b> <span>{@error}</span>
+        </div>
+        <div :if={@notice} class="alert alert--ok" id="inline-notice">
+          <b>✓</b> <span>{@notice}</span>
+        </div>
         {render_slot(@inner_block)}
       </div>
-    </main>
+    </div>
 
     <.flash_group flash={@flash} />
     """
+  end
+
+  defp initials(username) do
+    username
+    |> String.split(~r/[\s_-]+/, trim: true)
+    |> Enum.map(&String.first/1)
+    |> Enum.take(2)
+    |> Enum.join()
+    |> String.upcase()
   end
 
   @doc """

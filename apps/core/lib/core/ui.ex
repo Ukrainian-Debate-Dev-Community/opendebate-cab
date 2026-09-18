@@ -22,13 +22,13 @@ defmodule Core.Ui do
     ~H"""
     <div class="progressline" style={@style}>
       <%= for item <- @items do %>
-        <a
+        <.link
           :if={item[:href]}
           class={["pseg", item[:state], item[:sel] && "sel"]}
-          href={item[:href]}
+          navigate={item[:href]}
         >
           {item.label}
-        </a>
+        </.link>
         <span :if={!item[:href]} class={["pseg", item[:state], item[:sel] && "sel"]}>
           {item.label}
         </span>

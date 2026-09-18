@@ -20,9 +20,9 @@ defmodule CabWeb.DashboardLiveTest do
       })
     end)
 
-    {:ok, _view, html} = live(conn, ~p"/")
+    {:ok, view, html} = live(conn, ~p"/")
 
-    assert html =~ "My events"
+    assert has_element?(view, "#create-tournament-form")
     assert html =~ "Kyiv Open"
     assert html =~ "not signed in"
   end
@@ -32,8 +32,9 @@ defmodule CabWeb.DashboardLiveTest do
       Req.Test.transport_error(conn, :econnrefused)
     end)
 
-    {:ok, _view, html} = live(conn, ~p"/")
+    {:ok, view, html} = live(conn, ~p"/")
 
+    assert has_element?(view, "#inline-error")
     assert html =~ "engine unreachable"
   end
 end

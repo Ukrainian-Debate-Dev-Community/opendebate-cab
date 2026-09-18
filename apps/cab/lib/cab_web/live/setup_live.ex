@@ -115,7 +115,8 @@ defmodule CabWeb.SetupLive do
       )
 
     ~H"""
-    <.shell
+    <Layouts.app
+      flash={@flash}
       current_user={@current_user}
       dev_routes={@dev_routes}
       dev_users={@dev_users}
@@ -127,7 +128,7 @@ defmodule CabWeb.SetupLive do
       notice={@notice}
     >
       <:head_tag>
-        <a class="btn btn--soft btn--sm" href={~p"/t/#{@event_id}"}>Overview</a>
+        <.link class="btn btn--soft btn--sm" navigate={~p"/t/#{@event_id}"}>Overview</.link>
       </:head_tag>
 
       <.td_flow event_id={@event_id} rounds={@rounds} />
@@ -138,9 +139,9 @@ defmodule CabWeb.SetupLive do
         — enough to
         start Round 1.
         <:action>
-          <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}/r/1/checkin"}>
+          <.link class="btn btn--cta btn--sm" navigate={~p"/t/#{@event_id}/r/1/checkin"}>
             Round 1 check-in
-          </a>
+          </.link>
         </:action>
       </.guide>
       <.guide :if={@privileged && !@ready}>
@@ -162,7 +163,7 @@ defmodule CabWeb.SetupLive do
             <p class="f-help" style="margin:0 0 8px;">
               Speakers are created automatically. Prefilled with 8 examples — edit or submit as-is.
             </p>
-            <form phx-submit="create_teams">
+            <form phx-submit="create_teams" id="teams-form">
               <textarea name="lines" rows="9" style="width:100%;">{@example_teams}</textarea>
               <div class="f-row" style="margin-top:8px;">
                 <button class="btn btn--primary btn--sm" type="submit">Create these teams</button>
@@ -177,7 +178,7 @@ defmodule CabWeb.SetupLive do
           </div>
           <div class="card__pad">
             <span class="f-label">One judge name per line</span>
-            <form phx-submit="add_judges">
+            <form phx-submit="add_judges" id="judges-form">
               <textarea name="names" rows="3" style="width:100%;">{@example_judges}</textarea>
               <div class="f-row" style="margin-top:8px;">
                 <button class="btn btn--primary btn--sm" type="submit">Add these judges</button>
@@ -185,7 +186,7 @@ defmodule CabWeb.SetupLive do
             </form>
             <div style="margin-top:14px;">
               <span class="f-label">3 · Optional: co-organizer role</span>
-              <form phx-submit="add_organizer" class="f-row">
+              <form phx-submit="add_organizer" id="organizer-form" class="f-row">
                 <input
                   class="input"
                   type="text"
@@ -261,7 +262,7 @@ defmodule CabWeb.SetupLive do
           </tbody>
         </table>
       </div>
-    </.shell>
+    </Layouts.app>
     """
   end
 end

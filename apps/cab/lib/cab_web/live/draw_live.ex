@@ -122,7 +122,8 @@ defmodule CabWeb.DrawLive do
     assigns = assign(assigns, slots: slot_options(assigns.rooms))
 
     ~H"""
-    <.shell
+    <Layouts.app
+      flash={@flash}
       current_user={@current_user}
       dev_routes={@dev_routes}
       dev_users={@dev_users}
@@ -133,7 +134,7 @@ defmodule CabWeb.DrawLive do
       notice={@notice}
     >
       <:head_tag>
-        <a class="btn btn--soft btn--sm" href={~p"/t/#{@event_id}"}>Overview</a>
+        <.link class="btn btn--soft btn--sm" navigate={~p"/t/#{@event_id}"}>Overview</.link>
       </:head_tag>
 
       <.td_flow
@@ -147,9 +148,9 @@ defmodule CabWeb.DrawLive do
       <.guide :if={@privileged && @rooms == []}>
         No rooms yet — make them on the check-in page first.
         <:action>
-          <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}/r/#{@sequence}/checkin"}>
+          <.link class="btn btn--cta btn--sm" navigate={~p"/t/#{@event_id}/r/#{@sequence}/checkin"}>
             Check-in
-          </a>
+          </.link>
         </:action>
       </.guide>
       <.guide :if={@privileged && @rooms != [] && is_nil(@motion)}>
@@ -164,15 +165,15 @@ defmodule CabWeb.DrawLive do
       <.guide :if={@rooms != [] && @motion && @motion["is_released"]}>
         Motion is out — the debate is on. Enter results when it ends.
         <:action>
-          <a class="btn btn--cta btn--sm" href={~p"/t/#{@event_id}/r/#{@sequence}/ballots"}>
+          <.link class="btn btn--cta btn--sm" navigate={~p"/t/#{@event_id}/r/#{@sequence}/ballots"}>
             Ballots
-          </a>
+          </.link>
         </:action>
       </.guide>
 
       <div :if={@privileged} class="motionline">
         <span class="tag tag--gold">R{@sequence} motion</span>
-        <form phx-submit="save_motion" class="f-row" style="flex:1;">
+        <form phx-submit="save_motion" id="motion-form" class="f-row" style="flex:1;">
           <input
             class="input"
             type="text"
@@ -241,7 +242,7 @@ defmodule CabWeb.DrawLive do
       <div :if={@privileged && length(@slots) > 1} class="card">
         <div class="card__head"><b>Fix the draw — swap two team slots</b></div>
         <div class="card__pad">
-          <form phx-submit="swap" class="f-row">
+          <form phx-submit="swap" id="swap-form" class="f-row">
             <select name="slot_a">
               <option :for={{id, label} <- @slots} value={id}>{label}</option>
             </select>
@@ -254,7 +255,7 @@ defmodule CabWeb.DrawLive do
           </form>
         </div>
       </div>
-    </.shell>
+    </Layouts.app>
     """
   end
 end

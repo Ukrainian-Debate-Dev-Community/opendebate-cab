@@ -79,7 +79,8 @@ defmodule CabWeb.TournamentLive do
     assigns = assign(assigns, :current_round, current_round(assigns.rounds))
 
     ~H"""
-    <.shell
+    <Layouts.app
+      flash={@flash}
       current_user={@current_user}
       dev_routes={@dev_routes}
       dev_users={@dev_users}
@@ -91,9 +92,9 @@ defmodule CabWeb.TournamentLive do
       <:head_tag>
         <.status_tag :if={@event} status={@event["status"]} />
         <span :if={@privileged} class="tag tag--info">organiser</span>
-        <a :if={@privileged} class="btn btn--soft btn--sm" href={~p"/t/#{@event_id}/setup"}>
+        <.link :if={@privileged} class="btn btn--soft btn--sm" navigate={~p"/t/#{@event_id}/setup"}>
           Setup
-        </a>
+        </.link>
         <button class="btn btn--soft btn--sm" phx-click="refresh">Refresh</button>
       </:head_tag>
 
@@ -108,12 +109,12 @@ defmodule CabWeb.TournamentLive do
       }>
         The final room is set — enter and confirm its ballot to crown the champion.
         <:action>
-          <a
+          <.link
             class="btn btn--cta btn--sm"
-            href={~p"/t/#{@event_id}/r/#{@current_round["sequence"]}/ballots"}
+            navigate={~p"/t/#{@event_id}/r/#{@current_round["sequence"]}/ballots"}
           >
             Final ballot
-          </a>
+          </.link>
         </:action>
       </.guide>
 
@@ -122,15 +123,16 @@ defmodule CabWeb.TournamentLive do
       }>
         Next: run <b>{@current_round["name"]}</b>
         — check-in → draw + motion → ballots.
-        First time here? Add teams and judges in <a href={~p"/t/#{@event_id}/setup"}>Setup</a>
+        First time here? Add teams and judges in
+        <.link navigate={~p"/t/#{@event_id}/setup"}>Setup</.link>
         first.
         <:action>
-          <a
+          <.link
             class="btn btn--cta btn--sm"
-            href={~p"/t/#{@event_id}/r/#{@current_round["sequence"]}/checkin"}
+            navigate={~p"/t/#{@event_id}/r/#{@current_round["sequence"]}/checkin"}
           >
             Run {@current_round["name"]}
-          </a>
+          </.link>
         </:action>
       </.guide>
 
@@ -161,24 +163,24 @@ defmodule CabWeb.TournamentLive do
               <td><b>{round["name"]}</b></td>
               <td><.status_tag status={round["status"]} /></td>
               <td>
-                <a
+                <.link
                   class="btn btn--soft btn--sm"
-                  href={~p"/t/#{@event_id}/r/#{round["sequence"]}/checkin"}
+                  navigate={~p"/t/#{@event_id}/r/#{round["sequence"]}/checkin"}
                 >
                   Check-in
-                </a>
-                <a
+                </.link>
+                <.link
                   class="btn btn--soft btn--sm"
-                  href={~p"/t/#{@event_id}/r/#{round["sequence"]}/draw"}
+                  navigate={~p"/t/#{@event_id}/r/#{round["sequence"]}/draw"}
                 >
                   Draw
-                </a>
-                <a
+                </.link>
+                <.link
                   class="btn btn--soft btn--sm"
-                  href={~p"/t/#{@event_id}/r/#{round["sequence"]}/ballots"}
+                  navigate={~p"/t/#{@event_id}/r/#{round["sequence"]}/ballots"}
                 >
                   Ballots
-                </a>
+                </.link>
               </td>
             </tr>
           </tbody>
@@ -227,7 +229,7 @@ defmodule CabWeb.TournamentLive do
           </tbody>
         </table>
       </div>
-    </.shell>
+    </Layouts.app>
     """
   end
 end
