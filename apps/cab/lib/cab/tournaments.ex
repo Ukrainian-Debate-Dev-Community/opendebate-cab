@@ -61,6 +61,151 @@ defmodule Cab.Tournaments do
   defp round_marker(sequence), do: "Round #{sequence}"
 
   # ---------------------------------------------------------------
+  # Standings (gateway-built). The engine's calculated endpoint knows
+  # only total points over ALL rounds; BP needs the precedence metrics,
+  # per-round cells, prelim-only counting (elimination results decide
+  # advancement, never standings) and the side/pullup metadata the
+  # power-paired draw consumes. One builder feeds all of it.
+  # ---------------------------------------------------------------
+
+  @semi_name "SF"
+  @grand_final_name "GF"
+
+  @elim_round_names [@semi_name, @grand_final_name, "Final"]
+
+  @doc "Is this an elimination round (SF / GF / legacy Final)?"
+  def elim_round?(round), do: round["name"] in @elim_round_names
+
+  @doc """
+  BP team standings built from the raw room results of the PRELIMINARY
+  rounds only. Entries are sorted by the BP precedence
+  points → firsts → seconds → thirds → name. (Speaks-sum is not in the
+  precedence: the engine exposes no raw speaker scores — deferred per
+  the gap map.) Each entry:
+
+      %{id, name, eliminated, points, firsts, seconds, thirds, fourths,
+        side_counts: %{1 => n, 2 => n, 3 => n, 4 => n},
+        rounds: %{sequence => %{rank, points, position}}}
+  """
+  def standings(actor, event_id) do
+    with {:ok, teams} <- EngineApi.list_teams(actor, event_id),
+         {:ok, rounds} <- EngineApi.list_rounds(actor, event_id),
+         {:ok, round_rooms} <- prelim_round_rooms(actor, rounds) do
+      {:ok, build_standings(teams, round_rooms)}
+    end
+  end
+
+  @doc "Preliminary rounds (ordered) each paired with its rooms."
+  def prelim_round_rooms(actor, rounds) do
+    rounds
+    |> Enum.reject(&elim_round?/1)
+    |> Enum.sort_by(& &1["sequence"])
+    |> Enum.reduce_while({:ok, []}, fn round, {:ok, acc} ->
+      case EngineApi.list_rooms(actor, round["id"]) do
+        {:ok, rooms} -> {:cont, {:ok, acc ++ [{round, rooms}]}}
+        {:error, message} -> {:halt, {:error, message}}
+      end
+    end)
+  end
+
+  @doc """
+  Pure core of `standings/2`: folds `[{round, rooms}]` (prelims only)
+  into sorted standings entries. Swing teams never earn standings.
+  """
+  def build_standings(teams, round_rooms) do
+    base =
+      teams
+      |> Enum.reject(& &1["is_swing"])
+      |> Map.new(fn team ->
+        {team["id"],
+         %{
+           id: team["id"],
+           name: team["name"],
+           eliminated: team["is_eliminated"] == true,
+           points: 0,
+           firsts: 0,
+           seconds: 0,
+           thirds: 0,
+           fourths: 0,
+           side_counts: %{1 => 0, 2 => 0, 3 => 0, 4 => 0},
+           rounds: %{}
+         }}
+      end)
+
+    round_rooms
+    |> Enum.reduce(base, fn {round, rooms}, acc ->
+      Enum.reduce(rooms, acc, fn room, acc ->
+        room_teams = room["RoomTeams"] || []
+        size = length(room_teams)
+
+        Enum.reduce(room_teams, acc, fn room_team, acc ->
+          team_id = get_in(room_team, ["Team", "id"])
+
+          case acc do
+            %{^team_id => entry} ->
+              Map.put(acc, team_id, apply_result(entry, round["sequence"], room_team, size))
+
+            _ ->
+              acc
+          end
+        end)
+      end)
+    end)
+    |> Map.values()
+    |> Enum.sort_by(&{-&1.points, -&1.firsts, -&1.seconds, -&1.thirds, &1.name})
+  end
+
+  defp apply_result(entry, sequence, room_team, size) do
+    position = room_team["position"]
+    rank = room_team["rank"]
+
+    entry =
+      update_in(entry, [:side_counts, position], &((&1 || 0) + 1))
+
+    case rank do
+      nil ->
+        put_in(entry, [:rounds, sequence], %{rank: nil, points: nil, position: position})
+
+      rank ->
+        points = size - rank
+
+        %{entry | points: entry.points + points}
+        |> bump_place(rank)
+        |> put_in([:rounds, sequence], %{rank: rank, points: points, position: position})
+    end
+  end
+
+  defp bump_place(entry, 1), do: %{entry | firsts: entry.firsts + 1}
+  defp bump_place(entry, 2), do: %{entry | seconds: entry.seconds + 1}
+  defp bump_place(entry, 3), do: %{entry | thirds: entry.thirds + 1}
+  defp bump_place(entry, 4), do: %{entry | fourths: entry.fourths + 1}
+  defp bump_place(entry, _rank), do: entry
+
+  @doc "Points a standings entry earned in rounds strictly before `sequence`."
+  def points_before(entry, sequence) do
+    entry.rounds
+    |> Enum.filter(fn {seq, cell} -> seq < sequence and is_integer(cell.points) end)
+    |> Enum.map(fn {_seq, cell} -> cell.points end)
+    |> Enum.sum()
+  end
+
+  @doc """
+  The entry's position labels (OG/OO/CG/CO) in rounds strictly before
+  `sequence`, in round order.
+  """
+  def side_history(entry, sequence) do
+    entry.rounds
+    |> Enum.filter(fn {seq, cell} -> seq < sequence and cell.position != nil end)
+    |> Enum.sort_by(fn {seq, _cell} -> seq end)
+    |> Enum.map(fn {_seq, cell} -> position_label(cell.position) end)
+  end
+
+  @position_labels %{1 => "OG", 2 => "OO", 3 => "CG", 4 => "CO"}
+
+  @doc "Short BP label for a table position (1..4 → OG/OO/CG/CO)."
+  def position_label(position), do: Map.get(@position_labels, position, "#{position}")
+
+  # ---------------------------------------------------------------
   # Check-in (team level: a team is checked in when all speakers are)
   # ---------------------------------------------------------------
 

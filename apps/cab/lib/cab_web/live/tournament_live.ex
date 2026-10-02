@@ -27,7 +27,7 @@ defmodule CabWeb.TournamentLive do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, event} <- EngineApi.get_event(actor, socket.assigns.event_id),
          {:ok, rounds} <- EngineApi.list_rounds(actor, socket.assigns.event_id),
-         {:ok, team_standings} <- EngineApi.team_standings(actor, socket.assigns.event_id),
+         {:ok, team_standings} <- Tournaments.standings(actor, socket.assigns.event_id),
          {:ok, speaker_standings} <- EngineApi.speaker_standings(actor, socket.assigns.event_id),
          {:ok, champion} <- Tournaments.champion(actor, socket.assigns.event_id) do
       assign(socket,
@@ -75,8 +75,31 @@ defmodule CabWeb.TournamentLive do
 
   defp has_final?(rounds), do: Enum.any?(rounds, &(&1["name"] == "Final"))
 
+  # "2 (2nd)" cell for one prelim round of a standings entry.
+  defp round_cell(entry, sequence) do
+    case entry.rounds[sequence] do
+      %{rank: rank, points: points} when is_integer(rank) -> "#{points} (#{ordinal(rank)})"
+      _ -> "—"
+    end
+  end
+
+  defp ordinal(1), do: "1st"
+  defp ordinal(2), do: "2nd"
+  defp ordinal(3), do: "3rd"
+  defp ordinal(rank), do: "#{rank}th"
+
+  defp prelim_sequences(rounds) do
+    rounds
+    |> Enum.reject(&Tournaments.elim_round?/1)
+    |> Enum.map(& &1["sequence"])
+    |> Enum.sort()
+  end
+
   def render(assigns) do
-    assigns = assign(assigns, :current_round, current_round(assigns.rounds))
+    assigns =
+      assigns
+      |> assign(:current_round, current_round(assigns.rounds))
+      |> assign(:prelim_sequences, prelim_sequences(assigns.rounds))
 
     ~H"""
     <Layouts.app
@@ -195,16 +218,29 @@ defmodule CabWeb.TournamentLive do
               <th>#</th>
               <th>Team</th>
               <th>Pts</th>
+              <th>1sts</th>
+              <th>2nds</th>
+              <th :for={seq <- @prelim_sequences}>R{seq}</th>
             </tr>
           </thead>
           <tbody>
             <tr :for={{team, index} <- Enum.with_index(@team_standings, 1)}>
               <td class="rank">{index}</td>
-              <td><b>{team["name"]}</b></td>
-              <td>{team["total_points"]}</td>
+              <td>
+                <b>{team.name}</b>
+                <span :if={team.eliminated} class="tag tag--muted">out</span>
+              </td>
+              <td><b>{team.points}</b></td>
+              <td>{team.firsts}</td>
+              <td>{team.seconds}</td>
+              <td :for={seq <- @prelim_sequences} class="text-muted">
+                {round_cell(team, seq)}
+              </td>
             </tr>
             <tr :if={@team_standings == []}>
-              <td colspan="3" class="text-muted">Standings appear once ballots are in.</td>
+              <td colspan={5 + length(@prelim_sequences)} class="text-muted">
+                Standings appear once ballots are in.
+              </td>
             </tr>
           </tbody>
         </table>
