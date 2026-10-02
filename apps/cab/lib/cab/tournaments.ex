@@ -476,6 +476,52 @@ defmodule Cab.Tournaments do
     ballot_payload(room, scores)
   end
 
+  # ---------------------------------------------------------------
+  # Draw lifecycle: rounds are created as engine `draft`; the draw is
+  # built privately, released explicitly (status -> in_progress), and
+  # can be deleted for a rebuild while every room is still pending.
+  # ---------------------------------------------------------------
+
+  @doc "Is this round still a draft (draw not yet released)?"
+  def draw_draft?(round), do: round != nil and round["status"] == "draft"
+
+  @doc """
+  Releases the draw: round status draft -> in_progress. From that
+  moment participants see the rooms.
+  """
+  def release_draw(actor, round) do
+    if draw_draft?(round) do
+      EngineApi.update_round(actor, round["id"], %{status: "in_progress"})
+    else
+      {:error, "the draw is already released"}
+    end
+  end
+
+  @doc """
+  Deletes every (pending) room of a draft round so the draw can be
+  rebuilt. Refuses once any room has gone live.
+  """
+  def delete_draw(actor, round, rooms) do
+    cond do
+      not draw_draft?(round) ->
+        {:error, "the draw is already released — it can no longer be deleted"}
+
+      rooms == [] ->
+        {:error, "no rooms to delete"}
+
+      Enum.any?(rooms, &(&1["status"] != "pending")) ->
+        {:error, "a room is already past pending — the draw can no longer be deleted"}
+
+      true ->
+        Enum.reduce_while(rooms, {:ok, 0}, fn room, {:ok, count} ->
+          case EngineApi.delete_room(actor, room["id"]) do
+            {:ok, _} -> {:cont, {:ok, count + 1}}
+            {:error, message} -> {:halt, {:error, message}}
+          end
+        end)
+    end
+  end
+
   @doc """
   Elimination ballot: the judge orders the four teams — no speaker
   scores are taken. `ranks_by_room_team_id` must be a permutation of

@@ -103,6 +103,27 @@ defmodule CabWeb.DrawLive do
     end
   end
 
+  def handle_event("release_draw", _params, socket) do
+    with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
+         {:ok, _} <- Tournaments.release_draw(actor, socket.assigns.round) do
+      {:noreply,
+       socket |> assign(notice: "draw released — participants can see it now") |> load()}
+    else
+      {:error, message} -> {:noreply, assign(socket, error: message)}
+    end
+  end
+
+  def handle_event("delete_draw", _params, socket) do
+    with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
+         {:ok, count} <-
+           Tournaments.delete_draw(actor, socket.assigns.round, socket.assigns.rooms) do
+      {:noreply,
+       socket |> assign(notice: "draw deleted (#{count} room(s)) — make rooms again") |> load()}
+    else
+      {:error, message} -> {:noreply, assign(socket, error: message)}
+    end
+  end
+
   def handle_event("save_motion", %{"text" => text}, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <-
@@ -198,6 +219,7 @@ defmodule CabWeb.DrawLive do
     assigns =
       assigns
       |> assign(slots: slot_options(assigns.rooms))
+      |> assign(draft: Tournaments.draw_draft?(assigns.round))
       |> assign(
         transparent:
           assigns.privileged and assigns.round != nil and
@@ -236,8 +258,16 @@ defmodule CabWeb.DrawLive do
           </.link>
         </:action>
       </.guide>
-      <.guide :if={@privileged && @rooms != [] && is_nil(@motion)}>
-        Rooms are set. Write the motion below and save it, then release it to the speakers.
+      <.guide :if={@privileged && @rooms != [] && @draft}>
+        The draw is a <b>draft</b>
+        — participants cannot see it yet. Fix it with swaps
+        (or delete it and make rooms again), then release it.
+        <:action>
+          <button class="btn btn--cta btn--sm" phx-click="release_draw">Release draw</button>
+        </:action>
+      </.guide>
+      <.guide :if={@privileged && @rooms != [] && !@draft && is_nil(@motion)}>
+        Draw is out. Write the motion below and save it, then release it to the speakers.
       </.guide>
       <.guide :if={@privileged && @rooms != [] && @motion && !@motion["is_released"]}>
         Motion saved but still hidden. Release it when the teams are seated.
@@ -291,8 +321,18 @@ defmodule CabWeb.DrawLive do
         </span>
       </div>
 
-      <div class="section-title">Draw</div>
-      <div class="table-card card scroll-x">
+      <div class="section-title">
+        Draw <span :if={@draft && @rooms != []} class="tag tag--muted">draft — organisers only</span>
+        <span :if={!@draft && @round} class="tag tag--ok">released</span>
+      </div>
+
+      <div :if={!@privileged && @draft} class="card">
+        <div class="card__pad f-help">
+          The organisers are preparing the draw — it appears here the moment it is released.
+        </div>
+      </div>
+
+      <div :if={@privileged || !@draft} class="table-card card scroll-x">
         <table class="tbl drawtbl">
           <thead>
             <tr>
@@ -330,6 +370,17 @@ defmodule CabWeb.DrawLive do
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div :if={@privileged && @draft && @rooms != []} class="f-row" style="margin-top:6px;">
+        <button
+          class="btn btn--soft btn--sm"
+          phx-click="delete_draw"
+          data-confirm="Delete every room of this draft draw?"
+        >
+          Delete draw
+        </button>
+        <span class="f-help">removes the pending rooms so you can make rooms again</span>
       </div>
 
       <div :if={@privileged && length(@slots) > 1} class="card">

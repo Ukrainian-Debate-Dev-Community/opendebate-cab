@@ -159,7 +159,13 @@ defmodule CabWeb.BallotsLive do
   end
 
   def render(assigns) do
-    assigns = assign(assigns, :next_round, next_round(assigns.rounds, assigns.sequence))
+    draft_hidden = !assigns.privileged && Tournaments.draw_draft?(assigns.round)
+
+    assigns =
+      assigns
+      |> assign(:next_round, next_round(assigns.rounds, assigns.sequence))
+      |> assign(:draft_hidden, draft_hidden)
+      |> assign(:visible_rooms, if(draft_hidden, do: [], else: assigns.rooms))
 
     ~H"""
     <Layouts.app
@@ -174,8 +180,8 @@ defmodule CabWeb.BallotsLive do
       notice={@notice}
     >
       <:head_tag>
-        <span :if={@rooms != []} class="tag tag--info">
-          {confirmed_count(@rooms)}/{length(@rooms)} confirmed
+        <span :if={@visible_rooms != []} class="tag tag--info">
+          {confirmed_count(@visible_rooms)}/{length(@visible_rooms)} confirmed
         </span>
         <.link class="btn btn--soft btn--sm" navigate={~p"/t/#{@event_id}"}>Overview</.link>
       </:head_tag>
@@ -241,7 +247,12 @@ defmodule CabWeb.BallotsLive do
         </:action>
       </.guide>
 
-      <div :for={room <- @rooms} class="card" style="max-width:680px;">
+      <.guide :if={@draft_hidden}>
+        The organisers are preparing the draw — rooms and ballots appear here once it is
+        released.
+      </.guide>
+
+      <div :for={room <- @visible_rooms} class="card" style="max-width:680px;">
         <div class="card__head">
           <b>Room #{room["id"]}</b>
           <.status_tag status={room["status"]} />

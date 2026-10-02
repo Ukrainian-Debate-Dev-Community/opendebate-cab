@@ -206,6 +206,16 @@ defmodule Cab.EngineApiTest do
              )
   end
 
+  test "delete_room DELETEs the room" do
+    stub(fn conn, _params ->
+      assert conn.method == "DELETE"
+      assert conn.request_path == "/api/rooms/71"
+      Req.Test.json(conn, %{"status" => "success", "message" => "Room deleted"})
+    end)
+
+    assert {:ok, _} = EngineApi.delete_room(9, 71)
+  end
+
   test "swap_teams PATCHes the round swap endpoint" do
     stub(fn conn, params ->
       assert conn.method == "PATCH"

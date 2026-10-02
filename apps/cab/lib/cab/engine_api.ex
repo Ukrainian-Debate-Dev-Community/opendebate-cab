@@ -360,6 +360,14 @@ defmodule Cab.EngineApi do
     Engine.get(actor, "/api/rounds/#{round_id}/rooms") |> unwrap()
   end
 
+  @doc """
+  Deletes a room (engine refuses while judging/completed/confirmed —
+  i.e. only pending rooms go). Used by the delete-draw rebuild loop.
+  """
+  def delete_room(actor, room_id) do
+    Engine.delete(actor, "/api/rooms/#{room_id}") |> unwrap()
+  end
+
   def swap_teams(actor, round_id, room_team_id_a, room_team_id_b) do
     Engine.patch(actor, "/api/rounds/#{round_id}/rooms/swap-teams", %{
       room_team_id_a: room_team_id_a,
