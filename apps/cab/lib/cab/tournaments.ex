@@ -243,51 +243,144 @@ defmodule Cab.Tournaments do
   # ---------------------------------------------------------------
 
   @doc """
-  Pairs checked-in, non-eliminated teams into rooms of #{@teams_per_room}
-  (ordered by current standings so later rounds approximate power
-  pairing) and creates them with one judge as chair per room.
+  Power-pairs checked-in, non-eliminated teams into rooms of
+  #{@teams_per_room} and creates them with one judge as chair per
+  room. Room count follows the team count (20 teams → 5 rooms).
+  First round: random fold. Later rounds: brackets by points, pullups
+  for odd brackets, fold within bracket, sides rotated against each
+  team's prior-position history (see `pair_teams/2`).
   """
-  def generate_rooms(actor, event_id, round) do
+  def generate_rooms(actor, event_id, round, opts \\ []) do
     with {:ok, teams} <- teams_with_checkin(actor, event_id),
          {:ok, participants} <- EngineApi.list_participants(actor, event_id),
-         {:ok, standings} <- EngineApi.team_standings(actor, event_id),
+         {:ok, entries} <- standings(actor, event_id),
          {:ok, existing_rooms} <- EngineApi.list_rooms(actor, round["id"]) do
+      eligible_ids =
+        teams
+        |> Enum.filter(& &1["checked_in"])
+        |> Enum.reject(& &1["is_eliminated"])
+        |> MapSet.new(& &1["id"])
+
+      eligible = Enum.filter(entries, &(&1.id in eligible_ids))
+
+      judges =
+        participants
+        |> Enum.filter(&(&1["role"] == "adjudicator"))
+        |> Enum.reject(& &1["is_eliminated"])
+
+      room_count = div(length(eligible), @teams_per_room)
+
       cond do
         existing_rooms != [] ->
           {:error, "round already has #{length(existing_rooms)} room(s)"}
 
+        eligible == [] or rem(length(eligible), @teams_per_room) != 0 ->
+          {:error,
+           "need a multiple of #{@teams_per_room} checked-in teams (have #{length(eligible)})"}
+
+        length(judges) < room_count ->
+          {:error, "need at least #{room_count} judges (have #{length(judges)})"}
+
         true ->
-          eligible =
-            teams
-            |> Enum.filter(& &1["checked_in"])
-            |> Enum.reject(& &1["is_eliminated"])
-
-          points = Map.new(standings, &{&1["id"], &1["total_points"]})
-
-          ordered =
-            Enum.sort_by(eligible, fn t -> {-(points[t["id"]] || 0), t["id"]} end)
-
-          judges =
-            participants
-            |> Enum.filter(&(&1["role"] == "adjudicator"))
-            |> Enum.reject(& &1["is_eliminated"])
-
-          room_count = div(length(ordered), @teams_per_room)
-
-          cond do
-            ordered == [] or rem(length(ordered), @teams_per_room) != 0 ->
-              {:error,
-               "need a multiple of #{@teams_per_room} checked-in teams (have #{length(ordered)})"}
-
-            length(judges) < room_count ->
-              {:error, "need at least #{room_count} judges (have #{length(judges)})"}
-
-            true ->
-              motion_id = round_motion_id(actor, event_id, round["sequence"])
-              create_rooms(actor, round["id"], ordered, judges, motion_id)
-          end
+          motion_id = round_motion_id(actor, event_id, round["sequence"])
+          room_specs = pair_teams(eligible, opts)
+          create_rooms(actor, round["id"], room_specs, judges, motion_id)
       end
     end
+  end
+
+  @doc """
+  Pure power-pairing over standings `entries` (already in standings
+  order; length a multiple of #{@teams_per_room}).
+
+  - No ranked results yet (round 1): shuffle, one bracket.
+  - Otherwise: walk point groups downwards; a group not divisible by
+    #{@teams_per_room} is topped up with pullups from the teams below.
+  - Fold within each bracket of m rooms: room r seats bracket seeds
+    r, 2m-r+1, 2m+r, 4m-r+1 (so a bracket of 8 folds to 1/4/5/8 and
+    2/3/6/7).
+  - Positions (OG/OO/CG/CO): the permutation minimising repeats
+    against each team's `side_counts` history.
+
+  Returns `[%{bracket, teams: [%{entry, position, pullup}]}]`,
+  strongest bracket first. Options: `:shuffle` (round-1 shuffler,
+  injectable for tests).
+  """
+  def pair_teams(entries, opts \\ []) do
+    shuffle = Keyword.get(opts, :shuffle, &Enum.shuffle/1)
+
+    ranked? =
+      Enum.any?(entries, fn entry ->
+        Enum.any?(entry.rounds, fn {_seq, cell} -> cell.rank != nil end)
+      end)
+
+    brackets =
+      if ranked? do
+        brackets(entries)
+      else
+        [%{level: 0, teams: Enum.map(shuffle.(entries), &{&1, false})}]
+      end
+
+    brackets
+    |> Enum.flat_map(&fold_bracket/1)
+    |> Enum.map(&assign_positions/1)
+  end
+
+  # Walk the standings top-down: a bracket is one point group plus the
+  # pullups needed to make it divisible by rooms of 4.
+  defp brackets([]), do: []
+
+  defp brackets([top | _] = entries) do
+    level = top.points
+    natives = Enum.take_while(entries, &(&1.points == level))
+    short = rem(@teams_per_room - rem(length(natives), @teams_per_room), @teams_per_room)
+    rest = Enum.drop(entries, length(natives))
+    pullups = Enum.take(rest, short)
+
+    bracket = %{
+      level: level,
+      teams: Enum.map(natives, &{&1, false}) ++ Enum.map(pullups, &{&1, true})
+    }
+
+    [bracket | brackets(Enum.drop(rest, short))]
+  end
+
+  defp fold_bracket(%{level: level, teams: teams}) do
+    m = div(length(teams), @teams_per_room)
+
+    for r <- 1..m do
+      seeds = [r, 2 * m - r + 1, 2 * m + r, 4 * m - r + 1]
+      %{bracket: level, teams: Enum.map(seeds, &Enum.at(teams, &1 - 1))}
+    end
+  end
+
+  @position_permutations for a <- 1..4,
+                             b <- 1..4,
+                             c <- 1..4,
+                             d <- 1..4,
+                             Enum.sort([a, b, c, d]) == [1, 2, 3, 4],
+                             do: [a, b, c, d]
+
+  # Choose the OG/OO/CG/CO permutation that costs the least against
+  # the four teams' prior position histories (deterministic tie-break).
+  defp assign_positions(%{bracket: level, teams: teams}) do
+    positions =
+      Enum.min_by(@position_permutations, fn permutation ->
+        teams
+        |> Enum.zip(permutation)
+        |> Enum.map(fn {{entry, _pullup}, position} -> entry.side_counts[position] || 0 end)
+        |> Enum.sum()
+      end)
+
+    %{
+      bracket: level,
+      teams:
+        teams
+        |> Enum.zip(positions)
+        |> Enum.map(fn {{entry, pullup}, position} ->
+          %{entry: entry, position: position, pullup: pullup}
+        end)
+    }
   end
 
   defp round_motion_id(actor, event_id, sequence) do
@@ -297,15 +390,14 @@ defmodule Cab.Tournaments do
     end
   end
 
-  defp create_rooms(actor, round_id, ordered_teams, judges, motion_id) do
-    ordered_teams
-    |> Enum.chunk_every(@teams_per_room)
+  defp create_rooms(actor, round_id, room_specs, judges, motion_id) do
+    room_specs
     |> Enum.with_index()
-    |> Enum.reduce_while({:ok, 0}, fn {chunk, index}, {:ok, count} ->
+    |> Enum.reduce_while({:ok, 0}, fn {spec, index}, {:ok, count} ->
       team_slots =
-        chunk
-        |> Enum.with_index(1)
-        |> Enum.map(fn {team, position} -> %{team_id: team["id"], position: position} end)
+        Enum.map(spec.teams, fn %{entry: entry, position: position} ->
+          %{team_id: entry.id, position: position}
+        end)
 
       chair = Enum.at(judges, index)
       adjudicators = [%{participant_id: chair["id"], role: "chair"}]

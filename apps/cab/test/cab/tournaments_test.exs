@@ -162,6 +162,93 @@ defmodule Cab.TournamentsTest do
     end
   end
 
+  describe "pair_teams/2" do
+    defp entry(id, points, opts \\ []) do
+      %{
+        id: id,
+        name: "T#{id}",
+        eliminated: false,
+        points: points,
+        firsts: 0,
+        seconds: 0,
+        thirds: 0,
+        fourths: 0,
+        side_counts: Keyword.get(opts, :side_counts, %{1 => 0, 2 => 0, 3 => 0, 4 => 0}),
+        rounds: Keyword.get(opts, :rounds, %{1 => %{rank: 1, points: points, position: 1}})
+      }
+    end
+
+    defp room_team_ids(room), do: Enum.map(room.teams, & &1.entry.id)
+
+    test "round 1 (no ranked results): shuffles into one level-0 bracket" do
+      entries = for id <- 1..8, do: entry(id, 0, rounds: %{})
+
+      rooms = Tournaments.pair_teams(entries, shuffle: &Enum.reverse/1)
+
+      assert length(rooms) == 2
+      assert Enum.map(rooms, & &1.bracket) == [0, 0]
+      # reversed seeds 8..1 folded (m=2): rooms seat seeds 1/4/5/8 and 2/3/6/7
+      assert room_team_ids(Enum.at(rooms, 0)) == [8, 5, 4, 1]
+      assert room_team_ids(Enum.at(rooms, 1)) == [7, 6, 3, 2]
+      refute Enum.any?(rooms, fn room -> Enum.any?(room.teams, & &1.pullup) end)
+    end
+
+    test "brackets by points with pullups for odd brackets (20 teams -> 5 rooms)" do
+      points =
+        List.duplicate(9, 3) ++
+          List.duplicate(6, 5) ++
+          List.duplicate(3, 4) ++
+          List.duplicate(2, 4) ++ List.duplicate(0, 4)
+
+      entries = points |> Enum.with_index(1) |> Enum.map(fn {p, id} -> entry(id, p) end)
+
+      rooms = Tournaments.pair_teams(entries)
+
+      assert length(rooms) == 5
+      # 3 nines + 1 pulled-up six; then 4 sixes; the pullup is flagged
+      assert Enum.map(rooms, & &1.bracket) == [9, 6, 3, 2, 0]
+
+      [top | _] = rooms
+      pullups = Enum.filter(top.teams, & &1.pullup)
+      assert Enum.map(pullups, & &1.entry.points) == [6]
+
+      all_ids = rooms |> Enum.flat_map(&room_team_ids/1) |> Enum.sort()
+      assert all_ids == Enum.to_list(1..20)
+
+      # every room's positions are a permutation of 1..4
+      for room <- rooms do
+        assert room.teams |> Enum.map(& &1.position) |> Enum.sort() == [1, 2, 3, 4]
+      end
+    end
+
+    test "folds within a bracket of 8: seeds 1/4/5/8 and 2/3/6/7" do
+      entries = for id <- 1..8, do: entry(id, 4)
+
+      [room_a, room_b] = Tournaments.pair_teams(entries)
+
+      assert room_team_ids(room_a) == [1, 4, 5, 8]
+      assert room_team_ids(room_b) == [2, 3, 6, 7]
+    end
+
+    test "rotates sides against each team's history" do
+      # each team has sat everywhere except one position — the draw
+      # must give each its missing side (total cost 0)
+      missing = %{1 => 4, 2 => 3, 3 => 2, 4 => 1}
+
+      entries =
+        for id <- 1..4 do
+          counts = Map.new(1..4, fn p -> {p, if(p == missing[id], do: 0, else: 1)} end)
+          entry(id, 2, side_counts: counts)
+        end
+
+      [room] = Tournaments.pair_teams(entries)
+
+      for %{entry: entry, position: position} <- room.teams do
+        assert position == missing[entry.id]
+      end
+    end
+  end
+
   describe "winner_ballot_payload/2" do
     test "ranks the chosen team first" do
       room = %{
