@@ -242,6 +242,29 @@ defmodule Cab.Tournaments do
     )
   end
 
+  @doc "Toggles one participant's (e.g. a judge's) check-in."
+  def set_participant_checkin(actor, event_id, participant_id, status) do
+    EngineApi.check_in(actor, event_id, [participant_id], status)
+  end
+
+  @doc """
+  One-click roll call: checks in every non-eliminated participant
+  (speakers and judges) in a single bulk engine call.
+  """
+  def check_in_everyone(actor, event_id) do
+    with {:ok, participants} <- EngineApi.list_participants(actor, event_id) do
+      ids =
+        participants
+        |> Enum.reject(& &1["is_eliminated"])
+        |> Enum.map(& &1["id"])
+
+      case ids do
+        [] -> {:error, "no participants to check in yet"}
+        ids -> EngineApi.check_in(actor, event_id, ids, true)
+      end
+    end
+  end
+
   # ---------------------------------------------------------------
   # Room generation (no engine auto-generate for rooms; explicit POST)
   # ---------------------------------------------------------------
@@ -271,6 +294,7 @@ defmodule Cab.Tournaments do
         participants
         |> Enum.filter(&(&1["role"] == "adjudicator"))
         |> Enum.reject(& &1["is_eliminated"])
+        |> Enum.filter(& &1["checked_in"])
 
       room_count = div(length(eligible), @teams_per_room)
 
@@ -283,7 +307,9 @@ defmodule Cab.Tournaments do
            "need a multiple of #{@teams_per_room} checked-in teams (have #{length(eligible)})"}
 
         length(judges) < room_count ->
-          {:error, "need at least #{room_count} judges (have #{length(judges)})"}
+          {:error,
+           "need at least #{room_count} checked-in judges (have #{length(judges)}) — " <>
+             "check judges in on the check-in page"}
 
         true ->
           motion_id = round_motion_id(actor, event_id, round["sequence"])

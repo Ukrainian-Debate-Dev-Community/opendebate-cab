@@ -74,6 +74,9 @@ run_round = fn n, first? ->
     for team <- teams_ci do
       Walk.check!("check in #{team["name"]}", Tournaments.set_team_checkin(actor, event_id, team, true))
     end
+
+    # judges are availability-gated too — bulk roll call covers them
+    Walk.check!("check in everyone (judges incl.)", Tournaments.check_in_everyone(actor, event_id))
   end
 
   Walk.check!("set motion R#{n}", Tournaments.set_round_motion(actor, event_id, n, "THW test motion #{n} (#{stamp})"))
