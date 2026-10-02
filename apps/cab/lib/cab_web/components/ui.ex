@@ -28,7 +28,7 @@ defmodule CabWeb.Ui do
     ~H"""
     <.statusline items={round_items(@event_id, @rounds, @seq)} />
     <.statusline
-      :if={@seq && current_round_name(@rounds, @seq) != "Final"}
+      :if={@seq && not elim_at?(@rounds, @seq)}
       items={step_items(@event_id, @seq, @steps_done, @active)}
       style="margin-top:6px;"
     />
@@ -39,19 +39,33 @@ defmodule CabWeb.Ui do
     items =
       Enum.map(rounds, fn round ->
         %{
-          label: if(round["name"] == "Final", do: "Final", else: "R#{round["sequence"]}"),
+          label:
+            if(Cab.Tournaments.elim_round?(round),
+              do: round["name"],
+              else: "R#{round["sequence"]}"
+            ),
           state: round_state(round, rounds),
           sel: seq == round["sequence"],
           href: round_link(event_id, round)
         }
       end)
 
-    # The upcoming-Final placeholder only applies to multi-round
-    # tournaments; one-round events (club sessions) have no final.
-    if Enum.any?(rounds, &(&1["name"] == "Final")) or length(rounds) < 2 do
-      items
-    else
-      items ++ [%{label: "Final"}]
+    # Upcoming-break placeholders only apply to multi-round
+    # tournaments; one-round events (club sessions) have no break.
+    has_gf? = Enum.any?(rounds, &(&1["name"] in ["GF", "Final"]))
+    has_sf? = Enum.any?(rounds, &(&1["name"] == "SF"))
+
+    cond do
+      has_gf? or length(rounds) < 2 -> items
+      has_sf? -> items ++ [%{label: "GF"}]
+      true -> items ++ [%{label: "Break"}]
+    end
+  end
+
+  defp elim_at?(rounds, seq) do
+    case Enum.find(rounds, &(&1["sequence"] == seq)) do
+      nil -> false
+      round -> Cab.Tournaments.elim_round?(round)
     end
   end
 
@@ -92,16 +106,11 @@ defmodule CabWeb.Ui do
     Enum.find(rounds, &(&1["status"] != "completed")) == round
   end
 
-  defp current_round_name(rounds, seq) do
-    case Enum.find(rounds, &(&1["sequence"] == seq)) do
-      nil -> nil
-      round -> round["name"]
+  defp round_link(event_id, %{"sequence" => seq} = round) do
+    if Cab.Tournaments.elim_round?(round) do
+      ~p"/t/#{event_id}/r/#{seq}/draw"
+    else
+      ~p"/t/#{event_id}/r/#{seq}/checkin"
     end
   end
-
-  defp round_link(event_id, %{"name" => "Final", "sequence" => seq}),
-    do: ~p"/t/#{event_id}/r/#{seq}/ballots"
-
-  defp round_link(event_id, %{"sequence" => seq}),
-    do: ~p"/t/#{event_id}/r/#{seq}/checkin"
 end

@@ -480,17 +480,115 @@ defmodule Cab.Tournaments do
 
   def final_name, do: @final_name
 
+  @break_size 8
+  @semi_advancers 2
+
+  def semi_name, do: @semi_name
+  def grand_final_name, do: @grand_final_name
+  def break_size, do: @break_size
+
+  @doc """
+  Breaks the top #{@break_size} teams (standings builder precedence)
+  into one "#{@semi_name}" round of two rooms seeded 1/4/5/8 and
+  2/3/6/7, sides rotated against each team's history. The big-event
+  break path; small tournaments can keep `break_to_final/2`.
+  Returns `{:ok, %{round, breaking}}` with the ranked breaking entries
+  for the break announcement.
+  """
+  def break_to_semis(actor, event_id) do
+    with {:ok, rounds} <- EngineApi.list_rounds(actor, event_id),
+         :ok <- ensure_no_elim_round(rounds),
+         {:ok, entries} <- standings(actor, event_id),
+         {:ok, participants} <- EngineApi.list_participants(actor, event_id) do
+      breaking = Enum.take(entries, @break_size)
+      judges = elim_judges(participants)
+
+      cond do
+        length(breaking) < @break_size ->
+          {:error, "not enough ranked teams to break (need #{@break_size})"}
+
+        length(judges) < 2 ->
+          {:error, "need at least 2 judges to chair the semifinals"}
+
+        true ->
+          room_specs =
+            %{level: 0, teams: Enum.map(breaking, &{&1, false})}
+            |> fold_bracket()
+            |> Enum.map(&assign_positions/1)
+
+          with {:ok, round} <-
+                 EngineApi.create_round(actor, event_id, @semi_name, next_sequence(rounds)),
+               {:ok, _count} <- create_rooms(actor, round["id"], room_specs, judges, nil) do
+            {:ok, %{round: round, breaking: breaking}}
+          end
+      end
+    end
+  end
+
+  @doc """
+  Seeds the Grand Final from the two confirmed semifinal rooms: the
+  top #{@semi_advancers} of each room advance into one
+  "#{@grand_final_name}" room. Returns `{:ok, round}`.
+  """
+  def make_grand_final(actor, event_id) do
+    with {:ok, rounds} <- EngineApi.list_rounds(actor, event_id),
+         :ok <- ensure_no_round(rounds, @grand_final_name),
+         {:ok, semi} <- find_round(rounds, @semi_name),
+         {:ok, semi_rooms} <- EngineApi.list_rooms(actor, semi["id"]),
+         {:ok, entries} <- standings(actor, event_id),
+         {:ok, participants} <- EngineApi.list_participants(actor, event_id) do
+      confirmed = Enum.filter(semi_rooms, &(&1["status"] == "confirmed"))
+
+      # GF seeding: both winners first, then both runners-up
+      advancing_ids =
+        Enum.flat_map(1..@semi_advancers, fn rank ->
+          Enum.flat_map(confirmed, fn room ->
+            (room["RoomTeams"] || [])
+            |> Enum.filter(&(&1["rank"] == rank))
+            |> Enum.map(&get_in(&1, ["Team", "id"]))
+          end)
+        end)
+
+      by_id = Map.new(entries, &{&1.id, &1})
+      advancing = advancing_ids |> Enum.map(&by_id[&1]) |> Enum.reject(&is_nil/1)
+      judges = elim_judges(participants)
+
+      cond do
+        length(confirmed) != 2 ->
+          {:error, "both semifinal ballots must be confirmed first"}
+
+        length(advancing) != @teams_per_room ->
+          {:error, "could not resolve the 4 advancing teams from the semifinal results"}
+
+        judges == [] ->
+          {:error, "no judges available to chair the grand final"}
+
+        true ->
+          [room_spec] = [
+            %{bracket: 0, teams: Enum.map(advancing, &{&1, false})} |> assign_positions()
+          ]
+
+          with {:ok, round} <-
+                 EngineApi.create_round(actor, event_id, @grand_final_name, next_sequence(rounds)),
+               {:ok, _count} <- create_rooms(actor, round["id"], [room_spec], judges, nil) do
+            {:ok, round}
+          end
+      end
+    end
+  end
+
   @doc """
   Creates the final round (sequence = max + 1) with one room of the
-  top-#{@teams_per_room} teams from the calculated standings.
+  top-#{@teams_per_room} teams — the small-tournament break kept for
+  events below a #{@break_size}-team break.
   """
   def break_to_final(actor, event_id) do
     with {:ok, rounds} <- EngineApi.list_rounds(actor, event_id),
-         :ok <- ensure_no_final(rounds),
-         {:ok, standings} <- EngineApi.team_standings(actor, event_id),
+         :ok <- ensure_no_elim_round(rounds),
+         {:ok, entries} <- standings(actor, event_id),
          {:ok, participants} <- EngineApi.list_participants(actor, event_id) do
-      top = Enum.take(standings, @teams_per_room)
-      judges = Enum.filter(participants, &(&1["role"] == "adjudicator"))
+      top = Enum.take(entries, @teams_per_room)
+      judges = elim_judges(participants)
 
       cond do
         length(top) < @teams_per_room ->
@@ -500,27 +598,44 @@ defmodule Cab.Tournaments do
           {:error, "no judges available to chair the final"}
 
         true ->
-          sequence = (rounds |> Enum.map(& &1["sequence"]) |> Enum.max(fn -> 0 end)) + 1
+          [room_spec] = [%{bracket: 0, teams: Enum.map(top, &{&1, false})} |> assign_positions()]
 
-          team_slots =
-            top
-            |> Enum.with_index(1)
-            |> Enum.map(fn {team, position} -> %{team_id: team["id"], position: position} end)
-
-          adjudicators = [%{participant_id: hd(judges)["id"], role: "chair"}]
-
-          with {:ok, round} <- EngineApi.create_round(actor, event_id, @final_name, sequence),
-               {:ok, _} <- EngineApi.create_room(actor, round["id"], team_slots, adjudicators) do
+          with {:ok, round} <-
+                 EngineApi.create_round(actor, event_id, @final_name, next_sequence(rounds)),
+               {:ok, _count} <- create_rooms(actor, round["id"], [room_spec], judges, nil) do
             {:ok, round}
           end
       end
     end
   end
 
-  defp ensure_no_final(rounds) do
-    if Enum.any?(rounds, &(&1["name"] == @final_name)),
-      do: {:error, "a final has already been created"},
+  defp elim_judges(participants) do
+    participants
+    |> Enum.filter(&(&1["role"] == "adjudicator"))
+    |> Enum.reject(& &1["is_eliminated"])
+  end
+
+  defp next_sequence(rounds),
+    do: (rounds |> Enum.map(& &1["sequence"]) |> Enum.max(fn -> 0 end)) + 1
+
+  defp find_round(rounds, name) do
+    case Enum.find(rounds, &(&1["name"] == name)) do
+      nil -> {:error, "no #{name} round yet"}
+      round -> {:ok, round}
+    end
+  end
+
+  defp ensure_no_round(rounds, name) do
+    if Enum.any?(rounds, &(&1["name"] == name)),
+      do: {:error, "#{name} has already been created"},
       else: :ok
+  end
+
+  defp ensure_no_elim_round(rounds) do
+    case Enum.find(rounds, &elim_round?/1) do
+      nil -> :ok
+      round -> {:error, "the break has already happened (#{round["name"]} exists)"}
+    end
   end
 
   @doc """
@@ -541,12 +656,17 @@ defmodule Cab.Tournaments do
   end
 
   @doc """
-  The champion is the winner of the round named "#{@final_name}".
+  The champion is the winner of the "#{@grand_final_name}" round (or
+  the legacy "#{@final_name}" round for small tournaments).
   Returns `{:ok, team_name | nil}`.
   """
   def champion(actor, event_id) do
     with {:ok, rounds} <- EngineApi.list_rounds(actor, event_id) do
-      case Enum.find(rounds, &(&1["name"] == @final_name)) do
+      final =
+        Enum.find(rounds, &(&1["name"] == @grand_final_name)) ||
+          Enum.find(rounds, &(&1["name"] == @final_name))
+
+      case final do
         nil -> {:ok, nil}
         final -> round_winner(actor, final)
       end

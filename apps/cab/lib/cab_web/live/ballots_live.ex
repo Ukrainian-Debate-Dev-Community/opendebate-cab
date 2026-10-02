@@ -183,10 +183,14 @@ defmodule CabWeb.BallotsLive do
         <:action>
           <.link
             class="btn btn--cta btn--sm"
-            navigate={~p"/t/#{@event_id}/r/#{@next_round["sequence"]}/checkin"}
+            navigate={
+              if Tournaments.elim_round?(@next_round),
+                do: ~p"/t/#{@event_id}/r/#{@next_round["sequence"]}/draw",
+                else: ~p"/t/#{@event_id}/r/#{@next_round["sequence"]}/checkin"
+            }
           >
-            {if @next_round["name"] == "Final",
-              do: "Final",
+            {if Tournaments.elim_round?(@next_round),
+              do: @next_round["name"],
               else: "Start #{@next_round["name"]}"}
           </.link>
         </:action>

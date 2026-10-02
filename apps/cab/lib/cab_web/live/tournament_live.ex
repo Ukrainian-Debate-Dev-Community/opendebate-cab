@@ -45,6 +45,30 @@ defmodule CabWeb.TournamentLive do
     end
   end
 
+  def handle_event("break_semis", _params, socket) do
+    with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
+         {:ok, %{round: round}} <- Tournaments.break_to_semis(actor, socket.assigns.event_id) do
+      {:noreply,
+       push_navigate(socket,
+         to: ~p"/t/#{socket.assigns.event_id}/r/#{round["sequence"]}/draw"
+       )}
+    else
+      {:error, message} -> {:noreply, assign(socket, error: message)}
+    end
+  end
+
+  def handle_event("make_gf", _params, socket) do
+    with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
+         {:ok, round} <- Tournaments.make_grand_final(actor, socket.assigns.event_id) do
+      {:noreply,
+       push_navigate(socket,
+         to: ~p"/t/#{socket.assigns.event_id}/r/#{round["sequence"]}/draw"
+       )}
+    else
+      {:error, message} -> {:noreply, assign(socket, error: message)}
+    end
+  end
+
   def handle_event("break_final", _params, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, round} <- Tournaments.break_to_final(actor, socket.assigns.event_id) do
@@ -63,17 +87,30 @@ defmodule CabWeb.TournamentLive do
 
   defp current_round(rounds), do: Enum.find(rounds, &(&1["status"] != "completed"))
 
-  # A final only makes sense for multi-round tournaments; one-round
-  # events (club sessions) never see break-to-final chrome.
+  # A break only makes sense for multi-round tournaments; one-round
+  # events (club sessions) never see break chrome.
   defp breakable?(rounds), do: length(prelims(rounds)) >= 2
 
   defp prelims_done?(rounds) do
     breakable?(rounds) and Enum.all?(prelims(rounds), &(&1["status"] == "completed"))
   end
 
-  defp prelims(rounds), do: Enum.reject(rounds, &(&1["name"] == "Final"))
+  defp prelims(rounds), do: Enum.reject(rounds, &Tournaments.elim_round?/1)
 
-  defp has_final?(rounds), do: Enum.any?(rounds, &(&1["name"] == "Final"))
+  defp has_elim?(rounds), do: Enum.any?(rounds, &Tournaments.elim_round?/1)
+
+  defp semi(rounds), do: Enum.find(rounds, &(&1["name"] == Tournaments.semi_name()))
+
+  defp has_gf?(rounds) do
+    Enum.any?(rounds, &(&1["name"] in [Tournaments.grand_final_name(), "Final"]))
+  end
+
+  defp semis_done?(rounds) do
+    case semi(rounds) do
+      nil -> false
+      round -> round["status"] == "completed"
+    end
+  end
 
   # "2 (2nd)" cell for one prelim round of a standings entry.
   defp round_cell(entry, sequence) do
@@ -128,9 +165,10 @@ defmodule CabWeb.TournamentLive do
       </div>
 
       <.guide :if={
-        @privileged && is_nil(@champion) && @current_round && @current_round["name"] == "Final"
+        @privileged && is_nil(@champion) && @current_round &&
+          @current_round["name"] in [Tournaments.grand_final_name(), "Final"]
       }>
-        The final room is set — enter and confirm its ballot to crown the champion.
+        The grand final room is set — enter and confirm its ballot to crown the champion.
         <:action>
           <.link
             class="btn btn--cta btn--sm"
@@ -142,7 +180,24 @@ defmodule CabWeb.TournamentLive do
       </.guide>
 
       <.guide :if={
-        @privileged && is_nil(@champion) && @current_round && @current_round["name"] != "Final"
+        @privileged && is_nil(@champion) && @current_round &&
+          @current_round["name"] == Tournaments.semi_name()
+      }>
+        Semifinals are on — run the draw and motion, enter and confirm both ballots,
+        complete the round, then seed the grand final from here.
+        <:action>
+          <.link
+            class="btn btn--cta btn--sm"
+            navigate={~p"/t/#{@event_id}/r/#{@current_round["sequence"]}/draw"}
+          >
+            Semifinal draw
+          </.link>
+        </:action>
+      </.guide>
+
+      <.guide :if={
+        @privileged && is_nil(@champion) && @current_round &&
+          !Tournaments.elim_round?(@current_round)
       }>
         Next: run <b>{@current_round["name"]}</b>
         — check-in → draw + motion → ballots.
@@ -164,12 +219,57 @@ defmodule CabWeb.TournamentLive do
         the organisers run the event.
       </.guide>
 
-      <.guide :if={@privileged && is_nil(@champion) && prelims_done?(@rounds) && !has_final?(@rounds)}>
-        All preliminary rounds are done — break the top 4 teams to the final.
+      <.guide :if={@privileged && is_nil(@champion) && prelims_done?(@rounds) && !has_elim?(@rounds)}>
+        All preliminary rounds are done — break. {if length(@team_standings) >=
+                                                       Tournaments.break_size(),
+                                                     do: "Top 8 → two semifinals → grand final,",
+                                                     else: "Fewer than 8 ranked teams:"} or seat the top 4 straight into a final.
         <:action>
-          <button class="btn btn--cta btn--sm" phx-click="break_final">Break to final</button>
+          <button
+            :if={length(@team_standings) >= Tournaments.break_size()}
+            class="btn btn--cta btn--sm"
+            phx-click="break_semis"
+          >
+            Break top 8 → semifinals
+          </button>
+          <button class="btn btn--soft btn--sm" phx-click="break_final">
+            Break top 4 → final
+          </button>
         </:action>
       </.guide>
+
+      <.guide :if={@privileged && semis_done?(@rounds) && !has_gf?(@rounds)}>
+        Semifinals are complete — seed the grand final from their results
+        (top 2 of each room advance).
+        <:action>
+          <button class="btn btn--cta btn--sm" phx-click="make_gf">Create grand final</button>
+        </:action>
+      </.guide>
+
+      <div :if={semi(@rounds)}>
+        <div class="section-title">Break — top {Tournaments.break_size()}</div>
+        <div class="table-card card scroll-x">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Break rank</th>
+                <th>Team</th>
+                <th>Pts</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={
+                {team, index} <-
+                  Enum.with_index(Enum.take(@team_standings, Tournaments.break_size()), 1)
+              }>
+                <td class="rank">{index}</td>
+                <td><b>{team.name}</b></td>
+                <td>{team.points}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <div class="section-title">Rounds</div>
       <div class="table-card card scroll-x">
