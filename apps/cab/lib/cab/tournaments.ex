@@ -12,6 +12,10 @@ defmodule Cab.Tournaments do
   @teams_per_room 4
   @speakers_per_team 2
 
+  @final_name "Final"
+  @break_size 8
+  @semi_advancers 2
+
   def teams_per_room, do: @teams_per_room
 
   # ---------------------------------------------------------------
@@ -71,7 +75,7 @@ defmodule Cab.Tournaments do
   @semi_name "SF"
   @grand_final_name "GF"
 
-  @elim_round_names [@semi_name, @grand_final_name, "Final"]
+  @elim_round_names [@semi_name, @grand_final_name, @final_name]
 
   @doc "Is this an elimination round (SF / GF / legacy Final)?"
   def elim_round?(round), do: round["name"] in @elim_round_names
@@ -472,16 +476,53 @@ defmodule Cab.Tournaments do
     ballot_payload(room, scores)
   end
 
+  @doc """
+  Elimination ballot: the judge orders the four teams — no speaker
+  scores are taken. `ranks_by_room_team_id` must be a permutation of
+  1..#{@teams_per_room}. The engine requires a full scoresheet, so a
+  flat synthetic speaker score is submitted with the explicit ranks;
+  it is display-irrelevant because the standings builder never counts
+  elimination rounds. Returns `{:ok, team_rankings, speaker_scores}`.
+  """
+  def elim_ballot_payload(room, ranks_by_room_team_id) do
+    room_teams = Enum.sort_by(room["RoomTeams"] || [], & &1["position"])
+    ranks = Enum.map(room_teams, &ranks_by_room_team_id[&1["id"]])
+
+    if Enum.sort(ranks) != Enum.to_list(1..length(room_teams)) do
+      {:error, "order all #{length(room_teams)} teams (1st..#{length(room_teams)}th, no repeats)"}
+    else
+      team_rankings =
+        Enum.map(room_teams, fn room_team ->
+          %{room_team_id: room_team["id"], rank: ranks_by_room_team_id[room_team["id"]]}
+        end)
+
+      speaker_scores =
+        Enum.flat_map(room_teams, fn room_team ->
+          Enum.map(room_team["RoomSpeakers"] || [], &%{room_speaker_id: &1["id"], score: 75})
+        end)
+
+      {:ok, team_rankings, speaker_scores}
+    end
+  end
+
+  @doc """
+  How many teams advance from a room of this elimination round:
+  1 in the grand final (and the legacy Final), #{@semi_advancers} in
+  a semifinal. nil for preliminary rounds.
+  """
+  def advance_count(round) do
+    cond do
+      round["name"] in [@grand_final_name, @final_name] -> 1
+      round["name"] == @semi_name -> @semi_advancers
+      true -> nil
+    end
+  end
+
   # ---------------------------------------------------------------
   # Final / champion
   # ---------------------------------------------------------------
 
-  @final_name "Final"
-
   def final_name, do: @final_name
-
-  @break_size 8
-  @semi_advancers 2
 
   def semi_name, do: @semi_name
   def grand_final_name, do: @grand_final_name
@@ -516,9 +557,16 @@ defmodule Cab.Tournaments do
             |> fold_bracket()
             |> Enum.map(&assign_positions/1)
 
+          non_breaking =
+            entries
+            |> Enum.drop(@break_size)
+            |> Enum.reject(& &1.eliminated)
+            |> Enum.map(& &1.id)
+
           with {:ok, round} <-
                  EngineApi.create_round(actor, event_id, @semi_name, next_sequence(rounds)),
-               {:ok, _count} <- create_rooms(actor, round["id"], room_specs, judges, nil) do
+               {:ok, _count} <- create_rooms(actor, round["id"], room_specs, judges, nil),
+               {:ok, _} <- eliminate_if_any(actor, event_id, non_breaking) do
             {:ok, %{round: round, breaking: breaking}}
           end
       end
@@ -568,9 +616,18 @@ defmodule Cab.Tournaments do
             %{bracket: 0, teams: Enum.map(advancing, &{&1, false})} |> assign_positions()
           ]
 
+          # the semifinal losers are out for good — flag them so no
+          # stray draw can seat them again
+          losers =
+            confirmed
+            |> Enum.flat_map(&(&1["RoomTeams"] || []))
+            |> Enum.filter(&(&1["rank"] != nil and &1["rank"] > @semi_advancers))
+            |> Enum.map(&get_in(&1, ["Team", "id"]))
+
           with {:ok, round} <-
                  EngineApi.create_round(actor, event_id, @grand_final_name, next_sequence(rounds)),
-               {:ok, _count} <- create_rooms(actor, round["id"], [room_spec], judges, nil) do
+               {:ok, _count} <- create_rooms(actor, round["id"], [room_spec], judges, nil),
+               {:ok, _} <- eliminate_if_any(actor, event_id, losers) do
             {:ok, round}
           end
       end
@@ -600,14 +657,26 @@ defmodule Cab.Tournaments do
         true ->
           [room_spec] = [%{bracket: 0, teams: Enum.map(top, &{&1, false})} |> assign_positions()]
 
+          non_breaking =
+            entries
+            |> Enum.drop(@teams_per_room)
+            |> Enum.reject(& &1.eliminated)
+            |> Enum.map(& &1.id)
+
           with {:ok, round} <-
                  EngineApi.create_round(actor, event_id, @final_name, next_sequence(rounds)),
-               {:ok, _count} <- create_rooms(actor, round["id"], [room_spec], judges, nil) do
+               {:ok, _count} <- create_rooms(actor, round["id"], [room_spec], judges, nil),
+               {:ok, _} <- eliminate_if_any(actor, event_id, non_breaking) do
             {:ok, round}
           end
       end
     end
   end
+
+  defp eliminate_if_any(_actor, _event_id, []), do: {:ok, :noop}
+
+  defp eliminate_if_any(actor, event_id, team_ids),
+    do: EngineApi.eliminate_teams(actor, event_id, team_ids, true)
 
   defp elim_judges(participants) do
     participants

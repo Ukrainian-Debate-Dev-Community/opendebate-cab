@@ -249,6 +249,51 @@ defmodule Cab.TournamentsTest do
     end
   end
 
+  describe "elim_ballot_payload/2" do
+    defp elim_room do
+      %{
+        "RoomTeams" =>
+          for position <- 1..4 do
+            %{
+              "id" => position * 10,
+              "position" => position,
+              "RoomSpeakers" => [%{"id" => position * 100 + 1}, %{"id" => position * 100 + 2}]
+            }
+          end
+      }
+    end
+
+    test "builds explicit rankings with flat synthetic speaker scores" do
+      ranks = %{10 => 2, 20 => 1, 30 => 4, 40 => 3}
+
+      assert {:ok, rankings, scores} = Tournaments.elim_ballot_payload(elim_room(), ranks)
+
+      assert rankings == [
+               %{room_team_id: 10, rank: 2},
+               %{room_team_id: 20, rank: 1},
+               %{room_team_id: 30, rank: 4},
+               %{room_team_id: 40, rank: 3}
+             ]
+
+      assert length(scores) == 8
+      assert Enum.all?(scores, &(&1.score == 75))
+    end
+
+    test "rejects non-permutations and missing places" do
+      assert {:error, _} =
+               Tournaments.elim_ballot_payload(elim_room(), %{10 => 1, 20 => 1, 30 => 3, 40 => 4})
+
+      assert {:error, _} = Tournaments.elim_ballot_payload(elim_room(), %{10 => 1})
+    end
+
+    test "advance_count: 2 in SF, 1 in GF/Final, nil in prelims" do
+      assert Tournaments.advance_count(%{"name" => "SF"}) == 2
+      assert Tournaments.advance_count(%{"name" => "GF"}) == 1
+      assert Tournaments.advance_count(%{"name" => "Final"}) == 1
+      assert Tournaments.advance_count(%{"name" => "Round 2"}) == nil
+    end
+  end
+
   describe "winner_ballot_payload/2" do
     test "ranks the chosen team first" do
       room = %{

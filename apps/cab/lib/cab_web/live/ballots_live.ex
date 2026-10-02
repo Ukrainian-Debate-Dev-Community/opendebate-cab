@@ -69,6 +69,21 @@ defmodule CabWeb.BallotsLive do
     end
   end
 
+  def handle_event("submit_elim_ballot", %{"room_id" => room_id, "ranks" => ranks}, socket) do
+    room = Enum.find(socket.assigns.rooms, &(to_string(&1["id"]) == room_id))
+
+    with true <- room != nil,
+         {:ok, parsed} <- parse_ranks(ranks),
+         {:ok, team_rankings, speaker_scores} <- Tournaments.elim_ballot_payload(room, parsed),
+         {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
+         {:ok, _} <- EngineApi.submit_scores(actor, room["id"], team_rankings, speaker_scores) do
+      {:noreply, socket |> assign(notice: "result submitted for room ##{room_id}") |> load()}
+    else
+      false -> {:noreply, assign(socket, error: "unknown room")}
+      {:error, message} -> {:noreply, assign(socket, error: message)}
+    end
+  end
+
   def handle_event("confirm", %{"room-id" => room_id}, socket) do
     room_action(socket, room_id, &EngineApi.confirm_room/2, "ballot confirmed")
   end
@@ -99,6 +114,19 @@ defmodule CabWeb.BallotsLive do
       {:error, message} -> {:noreply, assign(socket, error: message)}
     end
   end
+
+  defp parse_ranks(ranks) do
+    Enum.reduce_while(ranks, {:ok, %{}}, fn {key, value}, {:ok, acc} ->
+      with {team_id, ""} <- Integer.parse(key),
+           {rank, ""} <- Integer.parse(String.trim(value)) do
+        {:cont, {:ok, Map.put(acc, team_id, rank)}}
+      else
+        _ -> {:halt, {:error, "pick a place for every team"}}
+      end
+    end)
+  end
+
+  defp elim?(round), do: round != nil and Tournaments.elim_round?(round)
 
   defp parse_scores(scores) do
     Enum.reduce_while(scores, {:ok, %{}}, fn {key, value}, {:ok, acc} ->
@@ -168,9 +196,20 @@ defmodule CabWeb.BallotsLive do
           </.link>
         </:action>
       </.guide>
-      <.guide :if={@privileged && @rooms != [] && !all_confirmed?(@rooms)}>
+      <.guide :if={@privileged && @rooms != [] && !all_confirmed?(@rooms) && !elim?(@round)}>
         Enter 8 speaker scores per room (50–100) and submit — team places are computed from
         the totals. Then <b>confirm</b> each ballot to lock it.
+      </.guide>
+      <.guide :if={@privileged && @rooms != [] && !all_confirmed?(@rooms) && elim?(@round)}>
+        Elimination round: order the four teams per room — no speaker scores. {if Tournaments.advance_count(
+                                                                                    @round
+                                                                                  ) == 1,
+                                                                                  do:
+                                                                                    "The 1st place wins the tournament.",
+                                                                                  else:
+                                                                                    "The top 2 advance."} Then
+        <b>confirm</b>
+        each result to lock it.
       </.guide>
       <.guide :if={@privileged && all_confirmed?(@rooms) && !round_completed?(@round)}>
         All ballots confirmed — complete the round.
@@ -209,7 +248,7 @@ defmodule CabWeb.BallotsLive do
         </div>
 
         <form
-          :if={@privileged && room["status"] in ["pending", "judging"]}
+          :if={@privileged && !elim?(@round) && room["status"] in ["pending", "judging"]}
           phx-submit="submit_ballot"
           id={"ballot-form-#{room["id"]}"}
         >
@@ -244,6 +283,37 @@ defmodule CabWeb.BallotsLive do
           </div>
         </form>
 
+        <form
+          :if={@privileged && elim?(@round) && room["status"] in ["pending", "judging"]}
+          phx-submit="submit_elim_ballot"
+          id={"elim-ballot-form-#{room["id"]}"}
+        >
+          <input type="hidden" name="room_id" value={room["id"]} />
+          <div
+            :for={room_team <- Enum.sort_by(room["RoomTeams"] || [], & &1["position"])}
+            class="ballot-team"
+          >
+            <div>
+              <h4>{get_in(room_team, ["Team", "name"])}</h4>
+              <div class="f-help">{position_name(room_team["position"])}</div>
+            </div>
+            <span class="tag tag--info">{position_name(room_team["position"]) |> abbrev()}</span>
+            <select name={"ranks[#{room_team["id"]}]"} required>
+              <option value="">place…</option>
+              <option value="1">1st</option>
+              <option value="2">2nd</option>
+              <option value="3">3rd</option>
+              <option value="4">4th</option>
+            </select>
+          </div>
+          <div class="f-row" style="padding:14px 18px;">
+            <button class="btn btn--cta" type="submit">Submit result</button>
+            <span class="f-help">
+              no speaker scores in elimination rounds — the order decides who advances
+            </span>
+          </div>
+        </form>
+
         <div
           :if={!@privileged && room["status"] in ["pending", "judging"]}
           class="card__pad f-help"
@@ -258,6 +328,18 @@ defmodule CabWeb.BallotsLive do
           >
             <span>{ordinal(room_team["rank"])}</span>
             <b>{get_in(room_team, ["Team", "name"])}</b>
+            <span
+              :if={elim?(@round) && room_team["rank"] <= Tournaments.advance_count(@round)}
+              class="tag tag--ok"
+            >
+              {if Tournaments.advance_count(@round) == 1, do: "champion", else: "advancing"}
+            </span>
+            <span
+              :if={elim?(@round) && room_team["rank"] > Tournaments.advance_count(@round)}
+              class="tag tag--muted"
+            >
+              eliminated
+            </span>
           </div>
           <div class="f-row" style="margin-top:10px;">
             <button
