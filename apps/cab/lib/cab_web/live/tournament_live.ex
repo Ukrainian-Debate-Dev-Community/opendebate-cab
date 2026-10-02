@@ -81,6 +81,16 @@ defmodule CabWeb.TournamentLive do
     end
   end
 
+  def handle_event("complete_event", _params, socket) do
+    with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
+         {:ok, _} <-
+           EngineApi.update_event(actor, socket.assigns.event_id, %{status: "completed"}) do
+      {:noreply, load(socket)}
+    else
+      {:error, message} -> {:noreply, assign(socket, error: message)}
+    end
+  end
+
   def handle_event("refresh", _params, socket) do
     {:noreply, load(socket)}
   end
@@ -133,10 +143,20 @@ defmodule CabWeb.TournamentLive do
   end
 
   def render(assigns) do
+    full_tab = assigns.privileged or (assigns.event && assigns.event["status"] == "completed")
+
     assigns =
       assigns
       |> assign(:current_round, current_round(assigns.rounds))
       |> assign(:prelim_sequences, prelim_sequences(assigns.rounds))
+      |> assign(:full_tab, full_tab)
+      |> assign(
+        :public_standings,
+        if(full_tab,
+          do: [],
+          else: Enum.sort_by(assigns.team_standings, &{-&1.points, &1.name})
+        )
+      )
 
     ~H"""
     <Layouts.app
@@ -310,8 +330,43 @@ defmodule CabWeb.TournamentLive do
         </table>
       </div>
 
+      <.guide :if={@privileged && @champion && @event && @event["status"] != "completed"}>
+        Champion crowned — complete the tournament to release the full tab to everyone.
+        <:action>
+          <button class="btn btn--cta btn--sm" phx-click="complete_event">
+            Complete tournament
+          </button>
+        </:action>
+      </.guide>
+
       <div class="section-title">Team standings</div>
-      <div class="table-card card scroll-x">
+
+      <div :if={!@full_tab} class="alert alert--info">
+        Mid-tournament view: sorted by points, then alphabetically — true rankings and the
+        speaker tab are published when the tournament completes.
+      </div>
+
+      <div :if={!@full_tab} class="table-card card scroll-x">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>Pts</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr :for={team <- @public_standings}>
+              <td><b>{team.name}</b></td>
+              <td>{team.points}</td>
+            </tr>
+            <tr :if={@public_standings == []}>
+              <td colspan="2" class="text-muted">Standings appear once ballots are in.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div :if={@full_tab} class="table-card card scroll-x">
         <table class="tbl">
           <thead>
             <tr>
@@ -346,8 +401,8 @@ defmodule CabWeb.TournamentLive do
         </table>
       </div>
 
-      <div class="section-title">Speaker standings</div>
-      <div class="table-card card scroll-x">
+      <div :if={@full_tab} class="section-title">Speaker standings</div>
+      <div :if={@full_tab} class="table-card card scroll-x">
         <table class="tbl">
           <thead>
             <tr>
