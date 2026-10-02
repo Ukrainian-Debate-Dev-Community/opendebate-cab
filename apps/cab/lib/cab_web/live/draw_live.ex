@@ -20,6 +20,7 @@ defmodule CabWeb.DrawLive do
         round: nil,
         rooms: [],
         motion: nil,
+        annotations: %{},
         notice: nil,
         privileged: false
       )
@@ -34,18 +35,63 @@ defmodule CabWeb.DrawLive do
          {:ok, rounds} <- EngineApi.list_rounds(actor, event_id),
          {:ok, round} <- Tournaments.round_by_sequence(actor, event_id, sequence),
          {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]),
-         {:ok, motion} <- Tournaments.round_motion(actor, event_id, sequence) do
+         {:ok, motion} <- Tournaments.round_motion(actor, event_id, sequence),
+         {:ok, entries} <- Tournaments.standings(actor, event_id) do
       assign(socket,
         rounds: rounds,
         round: round,
         rooms: rooms,
         motion: motion,
+        annotations: annotate(rooms, entries, sequence),
         privileged: LiveAuth.privileged?(socket.assigns.current_user, event_id),
         error: nil
       )
     else
       {:error, message} -> assign(socket, error: message)
     end
+  end
+
+  # Draw-transparency metadata per room (organiser view): the bracket
+  # point level, each team's points before this round, its pullup flag
+  # (fewer points than the room's bracket) and prior side history.
+  defp annotate(rooms, entries, sequence) do
+    by_id = Map.new(entries, &{&1.id, &1})
+
+    Map.new(rooms, fn room ->
+      infos =
+        Map.new(room["RoomTeams"] || [], fn room_team ->
+          team_id = get_in(room_team, ["Team", "id"])
+
+          info =
+            case by_id[team_id] do
+              nil ->
+                nil
+
+              entry ->
+                %{
+                  points: Tournaments.points_before(entry, sequence),
+                  history: Tournaments.side_history(entry, sequence)
+                }
+            end
+
+          {team_id, info}
+        end)
+
+      level =
+        infos
+        |> Map.values()
+        |> Enum.reject(&is_nil/1)
+        |> Enum.map(& &1.points)
+        |> Enum.max(fn -> 0 end)
+
+      infos =
+        Map.new(infos, fn
+          {id, nil} -> {id, nil}
+          {id, info} -> {id, Map.put(info, :pullup, info.points < level)}
+        end)
+
+      {room["id"], %{level: level, teams: infos}}
+    end)
   end
 
   def handle_event("swap", %{"slot_a" => a, "slot_b" => b}, socket) do
@@ -97,11 +143,41 @@ defmodule CabWeb.DrawLive do
     end
   end
 
-  defp team_cell(room, position) do
-    case Enum.find(room["RoomTeams"] || [], &(&1["position"] == position)) do
-      nil -> "—"
-      room_team -> get_in(room_team, ["Team", "name"])
-    end
+  defp room_team_at(room, position),
+    do: Enum.find(room["RoomTeams"] || [], &(&1["position"] == position))
+
+  attr :room, :map, required: true
+  attr :position, :integer, required: true
+  attr :annotations, :map, required: true
+  attr :transparent, :boolean, required: true
+
+  # One team slot: the name, plus (organiser, prelim rounds) the
+  # transparency line — points coming in, pullup mark, side history.
+  defp team_slot(assigns) do
+    room_team = room_team_at(assigns.room, assigns.position)
+
+    info =
+      assigns.transparent && room_team &&
+        get_in(assigns.annotations, [
+          assigns.room["id"],
+          :teams,
+          get_in(room_team, ["Team", "id"])
+        ])
+
+    assigns = assign(assigns, room_team: room_team, info: info)
+
+    ~H"""
+    <span :if={is_nil(@room_team)}>—</span>
+    <span :if={@room_team}>
+      {get_in(@room_team, ["Team", "name"])}
+      <span :if={@info && @info.pullup} class="tag tag--warn" title="pulled up from a lower bracket">
+        PU
+      </span>
+      <span :if={@info} class="f-help" style="display:block;">
+        {@info.points} pts{if @info.history != [], do: " · " <> Enum.join(@info.history, " ")}
+      </span>
+    </span>
+    """
   end
 
   defp judges_cell(room) do
@@ -119,7 +195,14 @@ defmodule CabWeb.DrawLive do
   end
 
   def render(assigns) do
-    assigns = assign(assigns, slots: slot_options(assigns.rooms))
+    assigns =
+      assigns
+      |> assign(slots: slot_options(assigns.rooms))
+      |> assign(
+        transparent:
+          assigns.privileged and assigns.round != nil and
+            not Tournaments.elim_round?(assigns.round)
+      )
 
     ~H"""
     <Layouts.app
@@ -214,6 +297,7 @@ defmodule CabWeb.DrawLive do
           <thead>
             <tr>
               <th>Room</th>
+              <th :if={@transparent}>Bracket</th>
               <th>OG</th>
               <th>OO</th>
               <th>CG</th>
@@ -225,15 +309,24 @@ defmodule CabWeb.DrawLive do
           <tbody>
             <tr :for={room <- @rooms}>
               <td class="room"><b>#{room["id"]}</b></td>
-              <td>{team_cell(room, 1)}</td>
-              <td>{team_cell(room, 2)}</td>
-              <td>{team_cell(room, 3)}</td>
-              <td>{team_cell(room, 4)}</td>
+              <td :if={@transparent}>
+                <span class="tag tag--info">{get_in(@annotations, [room["id"], :level])} pts</span>
+              </td>
+              <td :for={position <- 1..4}>
+                <.team_slot
+                  room={room}
+                  position={position}
+                  annotations={@annotations}
+                  transparent={@transparent}
+                />
+              </td>
               <td>{judges_cell(room)}</td>
               <td><.status_tag status={room["status"]} /></td>
             </tr>
             <tr :if={@rooms == []}>
-              <td colspan="7" class="text-muted">Waiting for rooms.</td>
+              <td colspan={if @transparent, do: 8, else: 7} class="text-muted">
+                Waiting for rooms.
+              </td>
             </tr>
           </tbody>
         </table>
