@@ -11,6 +11,8 @@ defmodule CabWeb.DrawLive do
   @positions %{1 => "OG", 2 => "OO", 3 => "CG", 4 => "CO"}
 
   def mount(%{"id" => id, "n" => n}, _session, socket) do
+    if connected?(socket), do: Tournaments.subscribe(id)
+
     socket =
       assign(socket,
         page_title: "Draw R#{n}",
@@ -97,7 +99,7 @@ defmodule CabWeb.DrawLive do
   def handle_event("swap", %{"slot_a" => a, "slot_b" => b}, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <- EngineApi.swap_teams(actor, socket.assigns.round["id"], a, b) do
-      {:noreply, socket |> assign(notice: "teams swapped") |> load()}
+      {:noreply, changed(socket, "teams swapped")}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
     end
@@ -106,8 +108,7 @@ defmodule CabWeb.DrawLive do
   def handle_event("release_draw", _params, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <- Tournaments.release_draw(actor, socket.assigns.round) do
-      {:noreply,
-       socket |> assign(notice: "draw released — participants can see it now") |> load()}
+      {:noreply, changed(socket, "draw released — participants can see it now")}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
     end
@@ -117,8 +118,7 @@ defmodule CabWeb.DrawLive do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, count} <-
            Tournaments.delete_draw(actor, socket.assigns.round, socket.assigns.rooms) do
-      {:noreply,
-       socket |> assign(notice: "draw deleted (#{count} room(s)) — make rooms again") |> load()}
+      {:noreply, changed(socket, "draw deleted (#{count} room(s)) — make rooms again")}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
     end
@@ -133,7 +133,7 @@ defmodule CabWeb.DrawLive do
              socket.assigns.sequence,
              text
            ) do
-      {:noreply, socket |> assign(notice: "motion saved") |> load()}
+      {:noreply, changed(socket, "motion saved")}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
     end
@@ -147,10 +147,20 @@ defmodule CabWeb.DrawLive do
              socket.assigns.event_id,
              socket.assigns.sequence
            ) do
-      {:noreply, socket |> assign(notice: "motion released") |> load()}
+      {:noreply, changed(socket, "motion released")}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
     end
+  end
+
+  def handle_info({:tournament_changed, _event_id}, socket) do
+    {:noreply, load(socket)}
+  end
+
+  # successful mutation: tell every other live page, then reload ours
+  defp changed(socket, notice) do
+    Tournaments.broadcast_change(socket.assigns.event_id)
+    socket |> assign(notice: notice) |> load()
   end
 
   defp slot_options(rooms) do

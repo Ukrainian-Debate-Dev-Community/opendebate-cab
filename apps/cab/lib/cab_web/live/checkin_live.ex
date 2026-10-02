@@ -9,6 +9,8 @@ defmodule CabWeb.CheckinLive do
   alias CabWeb.LiveAuth
 
   def mount(%{"id" => id, "n" => n}, _session, socket) do
+    if connected?(socket), do: Tournaments.subscribe(id)
+
     socket =
       assign(socket,
         page_title: "Check-in R#{n}",
@@ -61,7 +63,7 @@ defmodule CabWeb.CheckinLive do
          {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <-
            Tournaments.set_team_checkin(actor, socket.assigns.event_id, team, !team["checked_in"]) do
-      {:noreply, load(socket)}
+      {:noreply, changed(socket, nil)}
     else
       false -> {:noreply, assign(socket, error: "unknown team")}
       {:error, message} -> {:noreply, assign(socket, error: message)}
@@ -80,7 +82,7 @@ defmodule CabWeb.CheckinLive do
              judge["id"],
              !judge["checked_in"]
            ) do
-      {:noreply, load(socket)}
+      {:noreply, changed(socket, nil)}
     else
       false -> {:noreply, assign(socket, error: "unknown judge")}
       {:error, message} -> {:noreply, assign(socket, error: message)}
@@ -90,7 +92,7 @@ defmodule CabWeb.CheckinLive do
   def handle_event("check_in_all", _params, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <- Tournaments.check_in_everyone(actor, socket.assigns.event_id) do
-      {:noreply, socket |> assign(notice: "everyone checked in") |> load()}
+      {:noreply, changed(socket, "everyone checked in")}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
     end
@@ -100,6 +102,8 @@ defmodule CabWeb.CheckinLive do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _count} <-
            Tournaments.generate_rooms(actor, socket.assigns.event_id, socket.assigns.round) do
+      Tournaments.broadcast_change(socket.assigns.event_id)
+
       {:noreply,
        push_navigate(socket,
          to: ~p"/t/#{socket.assigns.event_id}/r/#{socket.assigns.sequence}/draw"
@@ -107,6 +111,16 @@ defmodule CabWeb.CheckinLive do
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
     end
+  end
+
+  def handle_info({:tournament_changed, _event_id}, socket) do
+    {:noreply, load(socket)}
+  end
+
+  # successful mutation: tell every other live page, then reload ours
+  defp changed(socket, notice) do
+    Tournaments.broadcast_change(socket.assigns.event_id)
+    socket |> assign(notice: notice) |> load()
   end
 
   def render(assigns) do

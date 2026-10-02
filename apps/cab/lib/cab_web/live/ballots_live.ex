@@ -20,6 +20,8 @@ defmodule CabWeb.BallotsLive do
   }
 
   def mount(%{"id" => id, "n" => n}, _session, socket) do
+    if connected?(socket), do: Tournaments.subscribe(id)
+
     socket =
       assign(socket,
         page_title: "Ballots R#{n}",
@@ -62,7 +64,7 @@ defmodule CabWeb.BallotsLive do
          {:ok, team_rankings, speaker_scores} <- Tournaments.ballot_payload(room, parsed),
          {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <- EngineApi.submit_scores(actor, room["id"], team_rankings, speaker_scores) do
-      {:noreply, socket |> assign(notice: "ballot submitted for room ##{room_id}") |> load()}
+      {:noreply, changed(socket, "ballot submitted for room ##{room_id}")}
     else
       false -> {:noreply, assign(socket, error: "unknown room")}
       {:error, message} -> {:noreply, assign(socket, error: message)}
@@ -77,7 +79,7 @@ defmodule CabWeb.BallotsLive do
          {:ok, team_rankings, speaker_scores} <- Tournaments.elim_ballot_payload(room, parsed),
          {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <- EngineApi.submit_scores(actor, room["id"], team_rankings, speaker_scores) do
-      {:noreply, socket |> assign(notice: "result submitted for room ##{room_id}") |> load()}
+      {:noreply, changed(socket, "result submitted for room ##{room_id}")}
     else
       false -> {:noreply, assign(socket, error: "unknown room")}
       {:error, message} -> {:noreply, assign(socket, error: message)}
@@ -100,7 +102,7 @@ defmodule CabWeb.BallotsLive do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <-
            EngineApi.update_round(actor, socket.assigns.round["id"], %{status: "completed"}) do
-      {:noreply, socket |> assign(notice: "round completed") |> load()}
+      {:noreply, changed(socket, "round completed")}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
     end
@@ -109,10 +111,20 @@ defmodule CabWeb.BallotsLive do
   defp room_action(socket, room_id, fun, notice) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <- fun.(actor, room_id) do
-      {:noreply, socket |> assign(notice: notice) |> load()}
+      {:noreply, changed(socket, notice)}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
     end
+  end
+
+  def handle_info({:tournament_changed, _event_id}, socket) do
+    {:noreply, load(socket)}
+  end
+
+  # successful mutation: tell every other live page, then reload ours
+  defp changed(socket, notice) do
+    Tournaments.broadcast_change(socket.assigns.event_id)
+    socket |> assign(notice: notice) |> load()
   end
 
   defp parse_ranks(ranks) do

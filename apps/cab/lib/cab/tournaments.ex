@@ -19,6 +19,23 @@ defmodule Cab.Tournaments do
   def teams_per_room, do: @teams_per_room
 
   # ---------------------------------------------------------------
+  # Live updates: one PubSub topic per engine event. Every mutating
+  # LiveView action broadcasts; subscribed pages re-run load/1.
+  # ---------------------------------------------------------------
+
+  @doc "Subscribes the caller to live changes of this event."
+  def subscribe(event_id) do
+    Phoenix.PubSub.subscribe(Cab.PubSub, topic(event_id))
+  end
+
+  @doc "Announces a change so every subscribed LiveView refreshes."
+  def broadcast_change(event_id) do
+    Phoenix.PubSub.broadcast(Cab.PubSub, topic(event_id), {:tournament_changed, event_id})
+  end
+
+  defp topic(event_id), do: "event:#{event_id}"
+
+  # ---------------------------------------------------------------
   # Rounds / motions
   # ---------------------------------------------------------------
 

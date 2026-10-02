@@ -9,6 +9,8 @@ defmodule CabWeb.TournamentLive do
   alias CabWeb.LiveAuth
 
   def mount(%{"id" => id}, _session, socket) do
+    if connected?(socket), do: Tournaments.subscribe(id)
+
     socket =
       assign(socket,
         event_id: id,
@@ -48,6 +50,8 @@ defmodule CabWeb.TournamentLive do
   def handle_event("break_semis", _params, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, %{round: round}} <- Tournaments.break_to_semis(actor, socket.assigns.event_id) do
+      Tournaments.broadcast_change(socket.assigns.event_id)
+
       {:noreply,
        push_navigate(socket,
          to: ~p"/t/#{socket.assigns.event_id}/r/#{round["sequence"]}/draw"
@@ -60,6 +64,8 @@ defmodule CabWeb.TournamentLive do
   def handle_event("make_gf", _params, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, round} <- Tournaments.make_grand_final(actor, socket.assigns.event_id) do
+      Tournaments.broadcast_change(socket.assigns.event_id)
+
       {:noreply,
        push_navigate(socket,
          to: ~p"/t/#{socket.assigns.event_id}/r/#{round["sequence"]}/draw"
@@ -72,6 +78,8 @@ defmodule CabWeb.TournamentLive do
   def handle_event("break_final", _params, socket) do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, round} <- Tournaments.break_to_final(actor, socket.assigns.event_id) do
+      Tournaments.broadcast_change(socket.assigns.event_id)
+
       {:noreply,
        push_navigate(socket,
          to: ~p"/t/#{socket.assigns.event_id}/r/#{round["sequence"]}/ballots"
@@ -85,6 +93,7 @@ defmodule CabWeb.TournamentLive do
     with {:ok, actor} <- LiveAuth.actor(socket.assigns.current_user),
          {:ok, _} <-
            EngineApi.update_event(actor, socket.assigns.event_id, %{status: "completed"}) do
+      Tournaments.broadcast_change(socket.assigns.event_id)
       {:noreply, load(socket)}
     else
       {:error, message} -> {:noreply, assign(socket, error: message)}
@@ -92,6 +101,10 @@ defmodule CabWeb.TournamentLive do
   end
 
   def handle_event("refresh", _params, socket) do
+    {:noreply, load(socket)}
+  end
+
+  def handle_info({:tournament_changed, _event_id}, socket) do
     {:noreply, load(socket)}
   end
 
