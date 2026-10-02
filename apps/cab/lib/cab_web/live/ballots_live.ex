@@ -282,7 +282,7 @@ defmodule CabWeb.BallotsLive do
                   min="50"
                   max="100"
                   step="0.5"
-                  value="75"
+                  placeholder="50–100"
                   required
                 />
               </div>

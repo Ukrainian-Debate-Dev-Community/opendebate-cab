@@ -420,10 +420,14 @@ defmodule Cab.Tournaments do
   @doc """
   Builds the engine ballot payload for `room` from a map of
   `room_speaker_id => score`. Team ranks are derived from the sum of
-  each team's speaker scores (ties broken by table position).
+  each team's speaker scores. Per BP rules tied team totals are
+  rejected (the adjudicator must order all teams strictly); the club
+  winner-pick path opts out with `allow_ties: true`, where ties break
+  by table position.
   Returns `{:ok, team_rankings, speaker_scores}` or `{:error, msg}`.
   """
-  def ballot_payload(room, scores_by_speaker_id) do
+  def ballot_payload(room, scores_by_speaker_id, opts \\ []) do
+    allow_ties = Keyword.get(opts, :allow_ties, false)
     room_teams = Enum.sort_by(room["RoomTeams"] || [], & &1["position"])
 
     speakers =
@@ -434,31 +438,52 @@ defmodule Cab.Tournaments do
     missing =
       Enum.filter(speakers, fn sp -> not is_number(scores_by_speaker_id[sp["id"]]) end)
 
-    if missing != [] do
-      {:error, "please enter a numeric score for every speaker (#{length(missing)} missing)"}
-    else
-      speaker_scores =
-        Enum.map(speakers, fn sp ->
-          %{room_speaker_id: sp["id"], score: scores_by_speaker_id[sp["id"]]}
-        end)
+    totals =
+      Enum.map(room_teams, fn rt ->
+        total =
+          (rt["RoomSpeakers"] || [])
+          |> Enum.map(&(scores_by_speaker_id[&1["id"]] || 0))
+          |> Enum.sum()
 
-      team_rankings =
-        room_teams
-        |> Enum.map(fn rt ->
-          total =
-            (rt["RoomSpeakers"] || [])
-            |> Enum.map(&(scores_by_speaker_id[&1["id"]] || 0))
-            |> Enum.sum()
+        {rt, total}
+      end)
 
-          {rt, total}
-        end)
-        |> Enum.sort_by(fn {rt, total} -> {-total, rt["position"]} end)
-        |> Enum.with_index(1)
-        |> Enum.map(fn {{rt, _total}, rank} -> %{room_team_id: rt["id"], rank: rank} end)
+    tied =
+      totals
+      |> Enum.frequencies_by(fn {_rt, total} -> total end)
+      |> Enum.filter(fn {_total, count} -> count > 1 end)
+      |> Enum.map(fn {total, _count} -> total end)
 
-      {:ok, team_rankings, speaker_scores}
+    cond do
+      missing != [] ->
+        {:error, "please enter a numeric score for every speaker (#{length(missing)} missing)"}
+
+      not allow_ties and tied != [] ->
+        {:error,
+         "two teams have the same total (#{Enum.map_join(tied, ", ", &format_total/1)}) — " <>
+           "BP requires a strict order of all four teams, adjust the scores"}
+
+      true ->
+        speaker_scores =
+          Enum.map(speakers, fn sp ->
+            %{room_speaker_id: sp["id"], score: scores_by_speaker_id[sp["id"]]}
+          end)
+
+        team_rankings =
+          totals
+          |> Enum.sort_by(fn {rt, total} -> {-total, rt["position"]} end)
+          |> Enum.with_index(1)
+          |> Enum.map(fn {{rt, _total}, rank} -> %{room_team_id: rt["id"], rank: rank} end)
+
+        {:ok, team_rankings, speaker_scores}
     end
   end
+
+  defp format_total(total) when is_float(total) do
+    if total == Float.round(total), do: "#{trunc(total)}", else: "#{total}"
+  end
+
+  defp format_total(total), do: "#{total}"
 
   @doc """
   Winner-pick ballot for the club flow: the chosen team is ranked 1
@@ -473,7 +498,8 @@ defmodule Cab.Tournaments do
       end)
       |> Map.new()
 
-    ballot_payload(room, scores)
+    # club winner-pick keeps flat scores on purpose — ties allowed
+    ballot_payload(room, scores, allow_ties: true)
   end
 
   # ---------------------------------------------------------------

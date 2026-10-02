@@ -50,11 +50,19 @@ defmodule Cab.TournamentsTest do
       assert %{room_speaker_id: 11, score: 70} in speaker_scores
     end
 
-    test "breaks ties by table position" do
+    test "rejects tied team totals (BP strict ordering)" do
+      scores = %{11 => 75, 12 => 75, 21 => 75, 22 => 75}
+
+      assert {:error, message} = Tournaments.ballot_payload(room(), scores)
+      assert message =~ "strict order"
+      assert message =~ "150"
+    end
+
+    test "with allow_ties (club path) ties break by table position" do
       scores = %{11 => 75, 12 => 75, 21 => 75, 22 => 75}
 
       assert {:ok, [%{room_team_id: 1, rank: 1}, %{room_team_id: 2, rank: 2}], _} =
-               Tournaments.ballot_payload(room(), scores)
+               Tournaments.ballot_payload(room(), scores, allow_ties: true)
     end
 
     test "reports missing scores" do

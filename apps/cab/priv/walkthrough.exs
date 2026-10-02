@@ -95,12 +95,17 @@ run_round = fn n, first? ->
 
   Enum.with_index(rooms, 1)
   |> Enum.each(fn {room, index} ->
-    speakers = for rt <- room["RoomTeams"], sp <- rt["RoomSpeakers"], do: sp["id"]
-
+    # strictly ordered team totals (BP rejects ties): team t's speakers
+    # score base + 3t and base + 3t + 1
     scores =
-      speakers
+      room["RoomTeams"]
+      |> Enum.sort_by(& &1["position"])
       |> Enum.with_index()
-      |> Map.new(fn {id, i} -> {id, 70 + rem(i * 3 + n + index, 11)} end)
+      |> Enum.flat_map(fn {rt, t} ->
+        base = 70 + rem(n + index, 3) + t * 3
+        rt["RoomSpeakers"] |> Enum.with_index() |> Enum.map(fn {sp, i} -> {sp["id"], base + i} end)
+      end)
+      |> Map.new()
 
     {:ok, rankings, speaker_scores} = Tournaments.ballot_payload(room, scores)
     Walk.check!("submit ballot room #{room["id"]}", EngineApi.submit_scores(actor, room["id"], rankings, speaker_scores))
@@ -138,10 +143,14 @@ final = Walk.check!("break_to_final", Tournaments.break_to_final(actor, event_id
 bottom_ids = standings |> Enum.drop(4) |> Enum.map(& &1["id"])
 Walk.check!("eliminate bottom 4 teams", EngineApi.eliminate_teams(actor, event_id, bottom_ids, true))
 
-final_speakers = for rt <- final_room["RoomTeams"], sp <- rt["RoomSpeakers"], do: sp["id"]
-
 final_scores =
-  final_speakers |> Enum.with_index() |> Map.new(fn {id, i} -> {id, 80 + rem(i * 5, 15)} end)
+  final_room["RoomTeams"]
+  |> Enum.sort_by(& &1["position"])
+  |> Enum.with_index()
+  |> Enum.flat_map(fn {rt, t} ->
+    rt["RoomSpeakers"] |> Enum.with_index() |> Enum.map(fn {sp, i} -> {sp["id"], 80 + t * 3 + i} end)
+  end)
+  |> Map.new()
 
 {:ok, final_rankings, final_speaker_scores} = Tournaments.ballot_payload(final_room, final_scores)
 
