@@ -17,24 +17,10 @@ defmodule CabWeb.Router do
     plug :accepts, ["json"]
   end
 
-  # Server-to-server API for the uadebate.com portal (static bearer token).
-  pipeline :public_api do
-    plug :accepts, ["json"]
-    plug CabWeb.Plugs.PortalApiAuth
-  end
-
   scope "/", CabWeb do
     pipe_through :browser
 
-    live_session :app, on_mount: {CabWeb.LiveAuth, :current_user} do
-      live "/", DashboardLive
-      live "/club", ClubLive
-      live "/t/:id", TournamentLive
-      live "/t/:id/setup", SetupLive
-      live "/t/:id/r/:n/checkin", CheckinLive
-      live "/t/:id/r/:n/draw", DrawLive
-      live "/t/:id/r/:n/ballots", BallotsLive
-    end
+    get "/", PageController, :home
   end
 
   scope "/auth", CabWeb do
@@ -43,12 +29,6 @@ defmodule CabWeb.Router do
     get "/logout", AuthController, :logout
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
-  end
-
-  scope "/api/public", CabWeb do
-    pipe_through :public_api
-
-    get "/tournaments", PublicApiController, :tournaments
   end
 
   # Enable LiveDashboard in development

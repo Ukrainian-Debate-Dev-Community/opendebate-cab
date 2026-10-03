@@ -20,48 +20,4 @@ defmodule CabWeb.UserAuth do
     end
   end
 
-  @doc """
-  Plug skeleton guarding event-scoped routes by elevation role.
-
-      plug :require_elevation, "organiser"
-
-  Expects an authenticated `:current_user` and an `"event_id"` path
-  param naming the engine event. Admins pass unconditionally.
-  """
-  def require_elevation(conn, role) when is_binary(role) do
-    user = conn.assigns[:current_user]
-    event_id = parse_event_id(conn.params["event_id"])
-
-    cond do
-      is_nil(user) ->
-        conn
-        |> put_flash(:error, "Please sign in.")
-        |> redirect(to: "/")
-        |> halt()
-
-      user.is_admin ->
-        conn
-
-      event_id && Cab.Events.elevated?(user.id, event_id, role) ->
-        conn
-
-      true ->
-        conn
-        |> put_status(:forbidden)
-        |> Phoenix.Controller.put_view(html: CabWeb.ErrorHTML, json: CabWeb.ErrorJSON)
-        |> Phoenix.Controller.render(:"403")
-        |> halt()
-    end
-  end
-
-  defp parse_event_id(nil), do: nil
-
-  defp parse_event_id(value) when is_binary(value) do
-    case Integer.parse(value) do
-      {id, ""} -> id
-      _ -> nil
-    end
-  end
-
-  defp parse_event_id(value) when is_integer(value), do: value
 end

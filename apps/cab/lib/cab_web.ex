@@ -86,8 +86,6 @@ defmodule CabWeb do
       import Phoenix.HTML
       # Core UI components
       import CabWeb.CoreComponents
-      # Shared design-system components from the core app
-      import Core.Ui
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

@@ -12,15 +12,16 @@ defmodule CabWeb.Layouts do
   embed_templates "layouts/*"
 
   @doc """
-  The cab app layout (design/cab2 chrome): top bar with brand,
-  context title and the dev user menu, then the page body with title,
-  guides and content. Every LiveView template begins with it:
+  Renders your app layout.
 
-      <Layouts.app flash={@flash} current_user={@current_user} ...>
-        content
+  This function is typically invoked from every template,
+  and it often contains your application menu, sidebar,
+  or similar:
+
+      <Layouts.app flash={@flash}>
+        <h1>Content</h1>
       </Layouts.app>
 
-  Styling lives in `assets/css/app.css` under the `.cab` scope.
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
 
@@ -28,70 +29,22 @@ defmodule CabWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://phoenix.hexdocs.pm/scopes.html)"
 
-  attr :current_user, :any, default: nil
-  attr :dev_routes, :boolean, default: false
-  attr :dev_users, :list, default: []
-  attr :context, :any, default: nil, doc: "bar context title, e.g. tournament name"
-  attr :return_to, :string, default: "/"
-  attr :title, :string, required: true
-  attr :subtitle, :any, default: nil
-  attr :error, :any, default: nil, doc: "inline engine/validation error line"
-  attr :notice, :any, default: nil, doc: "inline success line"
-  slot :head_tag
   slot :inner_block, required: true
 
   def app(assigns) do
     ~H"""
-    <div class="cab">
-      <div class="bar">
-        <.link navigate={~p"/"} class="brand"><span class="dot">C</span> cab</.link>
-        <span :if={@context} class="ctx">{@context}</span>
-        <span class="usermenu" style="font-size:.82rem; font-weight:600;">
-          <span :if={@current_user} class="avatar" style="margin-right:6px;">
-            {initials(@current_user.username)}
-          </span>
-          <span :if={@current_user}>{@current_user.username}</span>
-          <span :if={is_nil(@current_user)} class="text-muted">not signed in</span>
-        </span>
-      </div>
+    <header class="px-4 sm:px-6 lg:px-8 py-3 border-b border-base-300">
+      <.link navigate={~p"/"} class="font-semibold">cab</.link>
+    </header>
 
-      <.live_component
-        :if={@dev_routes}
-        module={CabWeb.DevPanel}
-        id="dev-panel"
-        current_user={@current_user}
-        return_to={@return_to}
-      />
-
-      <div class={["pubwrap", @dev_routes && "with-devpanel"]}>
-        <div class="rolehead">
-          <h1 class="h1">{@title}</h1>
-          {render_slot(@head_tag)}
-        </div>
-        <p :if={@subtitle} class="text-muted" style="margin:-8px 0 14px; font-size:.86rem;">
-          {@subtitle}
-        </p>
-        <div :if={@error} class="alert alert--warn" id="inline-error">
-          <b>!</b> <span>{@error}</span>
-        </div>
-        <div :if={@notice} class="alert alert--ok" id="inline-notice">
-          <b>✓</b> <span>{@notice}</span>
-        </div>
+    <main class="px-4 py-10 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl space-y-4">
         {render_slot(@inner_block)}
       </div>
-    </div>
+    </main>
 
     <.flash_group flash={@flash} />
     """
-  end
-
-  defp initials(username) do
-    username
-    |> String.split(~r/[\s_-]+/, trim: true)
-    |> Enum.map(&String.first/1)
-    |> Enum.take(2)
-    |> Enum.join()
-    |> String.upcase()
   end
 
   @doc """
