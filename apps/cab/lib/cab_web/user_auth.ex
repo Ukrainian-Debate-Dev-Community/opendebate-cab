@@ -19,5 +19,4 @@ defmodule CabWeb.UserAuth do
       |> halt()
     end
   end
-
 end
