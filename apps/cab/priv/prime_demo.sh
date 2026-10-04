@@ -70,6 +70,7 @@ echo "== open session + sign-ups (8 speak, 1 judge)"
 req me POST "/api/v1/clubs/$KYIV/sessions" '{"name":"Thursday practice"}'
 [ "$STATUS" = "201" ] || fail "open session: $STATUS"
 SESS=$(jq -r '.uuid' "$BODY")
+echo "   shared registration URL (give this to guests): $BASE/r/$SESS"
 for u in s1 s2 s3 s4 s5 s6 s7 s8; do
   req "$u" POST "/api/v1/sessions/$SESS/signups" '{"as":"speak"}'
   [ "$STATUS" = "201" ] || fail "signup $u: $STATUS"
@@ -94,8 +95,15 @@ PRIMED. Your world ($ME):
   Kyiv (head)    $BASE/c/$KYIV/owner
                  - 1 pending request (demo-nina): approve or decline
                  - session "Thursday practice" with sign-ups OPEN,
-                   8 speakers + 1 judge registered. Click CLOSE
-                   SIGN-UPS, then Make rooms (auto) or Compose rooms
+                   8 speakers + 1 judge registered.
+                 - guest registration (M6): the owner page's
+                   REGISTRATION section carries the shareable URL
+                   $BASE/r/$SESS
+                   - anyone opens it, registers by name, and gets a
+                   personal /l/<code> link that IS their access
+                   (issue, copy and revoke links from that section).
+                   Click CLOSE SIGN-UPS,
+                   then Make rooms (auto) or Compose rooms
                    (drag-and-drop chips into slots; a 1-speaker team
                    is an iron) -> per-room ballots (you have full
                    control; or act as the judge:
