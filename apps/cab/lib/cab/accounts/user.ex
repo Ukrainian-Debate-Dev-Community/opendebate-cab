@@ -17,9 +17,15 @@ defmodule Cab.Accounts.User do
 
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:username, :name, :email, :avatar_url, :node_user_id])
+    |> cast(attrs, [:username, :name, :email, :avatar_url])
     |> validate_required([:username])
     |> unique_constraint(:username)
+  end
+
+  # node_user_id links to the engine and is only ever set by the server
+  def node_changeset(user, node_user_id) do
+    user
+    |> Ecto.Changeset.change(node_user_id: node_user_id)
     |> unique_constraint(:node_user_id)
   end
 end

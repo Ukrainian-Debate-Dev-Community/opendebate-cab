@@ -49,8 +49,8 @@ defmodule Cab.Accounts do
         |> ensure_free_username()
         |> Repo.insert!()
 
-      %Identity{}
-      |> Identity.changeset(%{provider: provider, provider_uid: uid, user_id: user.id})
+      %Identity{user_id: user.id}
+      |> Identity.changeset(%{provider: provider, provider_uid: uid})
       |> Repo.insert!()
 
       user
@@ -89,7 +89,7 @@ defmodule Cab.Accounts do
 
   def set_node_user_id(%User{} = user, node_user_id) do
     user
-    |> User.changeset(%{node_user_id: node_user_id})
+    |> User.node_changeset(node_user_id)
     |> Repo.update()
   end
 

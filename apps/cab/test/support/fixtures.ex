@@ -12,14 +12,10 @@ defmodule Cab.Fixtures do
 
   def user_fixture(attrs \\ %{}) do
     unique = System.unique_integer([:positive])
+    {node_user_id, attrs} = Map.pop(attrs, :node_user_id, 1000 + unique)
 
-    %User{}
-    |> User.changeset(
-      Map.merge(
-        %{username: "user-#{unique}", node_user_id: 1000 + unique},
-        attrs
-      )
-    )
+    %User{node_user_id: node_user_id}
+    |> User.changeset(Map.merge(%{username: "user-#{unique}"}, attrs))
     |> Repo.insert!()
   end
 
@@ -46,9 +42,10 @@ defmodule Cab.Fixtures do
   def session_fixture(%Club{} = club, opts \\ []) do
     %Session{
       club_id: club.id,
-      opened_by_user_id: Keyword.get(opts, :opened_by_user_id)
+      opened_by_user_id: Keyword.get(opts, :opened_by_user_id),
+      engine_event_id: Keyword.get(opts, :engine_event_id, 11)
     }
-    |> Session.changeset(%{engine_event_id: Keyword.get(opts, :engine_event_id, 11)})
+    |> Session.changeset()
     |> Repo.insert!()
   end
 end

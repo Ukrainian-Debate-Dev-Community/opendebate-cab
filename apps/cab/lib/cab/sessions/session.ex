@@ -13,9 +13,10 @@ defmodule Cab.Sessions.Session do
     timestamps(type: :utc_datetime)
   end
 
-  def changeset(session, attrs) do
+  # all fields are server-derived; nothing is cast from params
+  def changeset(session) do
     session
-    |> cast(attrs, [:engine_event_id])
+    |> change()
     |> validate_required([:engine_event_id])
     |> put_uuid()
     |> unique_constraint(:uuid)

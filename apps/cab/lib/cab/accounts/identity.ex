@@ -11,9 +11,10 @@ defmodule Cab.Accounts.Identity do
     timestamps(type: :utc_datetime)
   end
 
+  # user_id is set programmatically on the struct, never cast from params
   def changeset(identity, attrs) do
     identity
-    |> cast(attrs, [:provider, :provider_uid, :user_id])
+    |> cast(attrs, [:provider, :provider_uid])
     |> validate_required([:provider, :provider_uid, :user_id])
     |> unique_constraint([:provider, :provider_uid])
   end

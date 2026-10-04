@@ -59,8 +59,8 @@ defmodule Cab.Sessions do
     with {:ok, actor} <- actor_for(head),
          {:ok, event} <- EngineApi.create_event(actor, club.engine_organisation_id, name),
          {:ok, _round} <- EngineApi.create_round(actor, event["id"], "Club round", 1) do
-      %Session{club_id: club.id, opened_by_user_id: head.id}
-      |> Session.changeset(%{engine_event_id: event["id"]})
+      %Session{club_id: club.id, opened_by_user_id: head.id, engine_event_id: event["id"]}
+      |> Session.changeset()
       |> Repo.insert()
     end
   end
