@@ -46,6 +46,17 @@ defmodule Cab.Sessions do
     end
   end
 
+  @doc "Session counts for the given club ids, as `%{club_id => count}` (front-page directory)."
+  def session_counts(club_ids) do
+    Repo.all(
+      from s in Session,
+        where: s.club_id in ^club_ids,
+        group_by: s.club_id,
+        select: {s.club_id, count(s.id)}
+    )
+    |> Map.new()
+  end
+
   # ---------------------------------------------------------------
   # Lifecycle
   # ---------------------------------------------------------------
@@ -952,6 +963,115 @@ defmodule Cab.Sessions do
 
   # no engine counterpart yet -> never participated
   def user_history(%User{}), do: []
+
+  @doc """
+  The user's past participations in ONE club (the P5 "my results"
+  rows), newest first — same shape as `user_history/1`.
+  """
+  def user_club_history(%Club{} = club, %User{node_user_id: node_user_id} = user)
+      when is_integer(node_user_id) do
+    club
+    |> club_user_history(user)
+    |> Enum.sort_by(& &1.date, {:desc, DateTime})
+  end
+
+  def user_club_history(%Club{}, %User{}), do: []
+
+  @doc """
+  The club standings (P7) computed from engine results across the
+  club's completed sessions: `%{members: rows, winners: rows}` where
+  members carry `%{name, played, wins, win_rate}` (played = placed in
+  a room as a speaker; win = rank-1 team of a confirmed ballot),
+  sorted by wins, and winners is the session-winners timeline
+  `%{date, name, session_uuid, winner}`, newest first. Engine trouble
+  degrades to empty lists — the pages stay up.
+  """
+  def club_standings(%Club{} = club) do
+    with sessions when sessions != [] <- list_for_club(club),
+         {:ok, actor} <- Clubs.club_actor(club),
+         {:ok, events} <-
+           EngineApi.list_organisation_events(actor, club.engine_organisation_id) do
+      names = Map.new(events, &{&1["id"], &1["name"]})
+
+      completed =
+        for event <- events, event["status"] == "completed", into: MapSet.new() do
+          event["id"]
+        end
+
+      rows =
+        sessions
+        |> Enum.filter(&MapSet.member?(completed, &1.engine_event_id))
+        |> Enum.map(&session_results(actor, &1, names))
+        |> Enum.reject(&is_nil/1)
+
+      %{
+        members: standings_members(rows),
+        winners: Enum.map(rows, &Map.take(&1, [:date, :name, :session_uuid, :winner]))
+      }
+    else
+      _ -> %{members: [], winners: []}
+    end
+  end
+
+  defp session_results(actor, session, names) do
+    with {:ok, participants} <- EngineApi.list_participants(actor, session.engine_event_id),
+         {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
+         {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
+      %{
+        date: session.inserted_at,
+        name: names[session.engine_event_id],
+        session_uuid: session.uuid,
+        winner: winner_from_rooms(rooms),
+        participants: participants,
+        rooms: rooms
+      }
+    else
+      _ -> nil
+    end
+  end
+
+  defp standings_members(rows) do
+    rows
+    |> Enum.flat_map(&session_speaker_results/1)
+    |> Enum.group_by(fn {identity, _won} -> identity end, fn {_identity, won} -> won end)
+    |> Enum.map(fn {{_key, name}, results} ->
+      played = length(results)
+      wins = Enum.count(results, & &1)
+      %{name: name, played: played, wins: wins, win_rate: round(wins * 100 / played)}
+    end)
+    |> Enum.sort_by(&{-&1.wins, -&1.win_rate, &1.name})
+  end
+
+  # one {identity, won?} per speaker per room; an iron (same
+  # participant on both slots) counts once. Identity keys on the
+  # engine user id so the same person aggregates across sessions.
+  defp session_speaker_results(row) do
+    by_id = Map.new(row.participants, &{&1["id"], &1})
+
+    for room <- row.rooms,
+        room_team <- room["RoomTeams"] || [],
+        participant_id <-
+          (room_team["RoomSpeakers"] || [])
+          |> Enum.map(&get_in(&1, ["EventParticipant", "id"]))
+          |> Enum.reject(&is_nil/1)
+          |> Enum.uniq() do
+      participant = by_id[participant_id] || %{}
+
+      identity =
+        {participant["user_id"] || {:participant, participant_id},
+         participant["display_name"] ||
+           get_in(
+             Enum.find(
+               room_team["RoomSpeakers"],
+               &(get_in(&1, ["EventParticipant", "id"]) == participant_id)
+             ),
+             ["EventParticipant", "display_name"]
+           ) || "?"}
+
+      won = room["status"] in ["completed", "confirmed"] and room_team["rank"] == 1
+      {identity, won}
+    end
+  end
 
   defp club_user_history(%Club{} = club, user) do
     case list_for_club(club) do

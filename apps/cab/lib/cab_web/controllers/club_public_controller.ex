@@ -2,56 +2,35 @@ defmodule CabWeb.ClubPublicController do
   use CabWeb, :controller
 
   alias Cab.{Clubs, Sessions}
-  alias Cab.Sessions.Session
 
-  plug CabWeb.ClubScope, [source: :club, require: :public] when action in [:show, :session]
+  plug CabWeb.ClubScope, [source: :club, require: :public] when action in [:show, :standings]
   plug CabWeb.ClubScope, [source: :club, require: :authenticated] when action == :join
 
-  # GET /c/:club_uuid — public tree: profile + history (rows link to
-  # the public session detail page)
+  # GET /c/:club_uuid — P4 club welcome: about card, recent sessions
+  # (-> P6), top-members teaser (-> P7)
   def show(conn, _params) do
     club = conn.assigns.club
-
-    history =
-      case Clubs.club_history(club) do
-        {:ok, history} -> history
-        {:error, _message} -> []
-      end
-
-    session_uuids =
-      Map.new(Sessions.list_for_club(club), &{&1.engine_event_id, &1.uuid})
+    standings = Sessions.club_standings(club)
 
     render(conn, :show,
-      history: history,
-      session_uuids: session_uuids,
+      recent: Enum.take(standings.winners, 5),
+      top_members: Enum.take(standings.members, 3),
       members: Clubs.list_members(club),
       page_title: club.name
     )
   end
 
-  # GET /c/:club_uuid/s/:session_uuid — the public session detail
-  # page: name/date, stage, rooms with teams and speakers, motions,
-  # confirmed results (ranks), winner
-  def session(conn, %{"session_uuid" => session_uuid}) do
+  # GET /c/:club_uuid/standings — P7 club standings: member stats
+  # across sessions + the session winners timeline (-> P6)
+  def standings(conn, _params) do
     club = conn.assigns.club
+    standings = Sessions.club_standings(club)
 
-    with %Session{} = session <- Sessions.get_for_club(club, session_uuid),
-         {:ok, state} <- Sessions.state(%{session | club: club}) do
-      render(conn, :session,
-        session: session,
-        state: state,
-        winner: Sessions.winner_from_rooms(state.rooms),
-        page_title: "#{club.name} · #{state.event["name"]}"
-      )
-    else
-      nil ->
-        conn |> send_resp(404, "not found") |> halt()
-
-      {:error, message} ->
-        conn
-        |> put_flash(:error, if(is_binary(message), do: message, else: "session unavailable"))
-        |> redirect(to: ~p"/c/#{club.uuid}")
-    end
+    render(conn, :standings,
+      members: standings.members,
+      winners: standings.winners,
+      page_title: "#{club.name} · standings"
+    )
   end
 
   # POST /c/:club_uuid/join — HTML twin of the join-requests API

@@ -57,9 +57,33 @@ defmodule CabWeb.UiTest do
       <.chrome account current_user={nil} here="cab" />
       """)
 
+    # every sign-in link lands on P1, never straight on a provider
     assert signed_out =~ "Sign in"
-    assert signed_out =~ ~s(href="/auth/github")
+    assert signed_out =~ ~s(href="/signin")
+    refute signed_out =~ "/auth/github"
     refute signed_out =~ "Sign out"
+  end
+
+  test "subnav renders tabs, the active state and attention counters" do
+    assigns = %{
+      tabs: [
+        %{key: "registration", label: "Registration", href: "/o?tab=registration", count: 1},
+        %{key: "requests", label: "Requests", href: "/o?tab=requests", count: 0},
+        %{key: "rooms", label: "Rooms", href: "/o?tab=rooms"}
+      ]
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.subnav tabs={@tabs} active="rooms" />
+      """)
+
+    assert html =~ ~s(class="subnav")
+    assert html =~ ~s(href="/o?tab=registration")
+    # the active tab carries .on; counters render only when > 0
+    assert html =~ ~r/class="on"[^>]*href="\/o\?tab=rooms"|href="\/o\?tab=rooms"[^>]*class="on"/
+    assert html =~ ~s(class="n">1</span>)
+    assert [_only_one] = String.split(html, ~s(class="n")) |> tl()
   end
 
   # ---------------------------------------------------------------

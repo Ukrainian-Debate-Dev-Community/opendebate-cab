@@ -9,13 +9,14 @@ defmodule CabWeb.UserAuth do
     assign(conn, :current_user, user_id && Accounts.get_user(user_id))
   end
 
+  # Every auth wall lands on P1 /signin — never straight to a provider.
   def require_authenticated_user(conn, _opts) do
     if conn.assigns[:current_user] do
       conn
     else
       conn
       |> put_flash(:error, "Please sign in.")
-      |> redirect(to: "/")
+      |> redirect(to: "/signin")
       |> halt()
     end
   end

@@ -71,7 +71,7 @@ defmodule CabWeb.Ui do
       </div>
       <span :if={@stage} class={["stage", to_string(@stage_kind)]}>{@stage}</span>
       <div :if={@seg != [] or @account} class="seg">
-        <.link :if={@account and is_nil(@current_user)} class="quiet" href={~p"/auth/github"}>
+        <.link :if={@account and is_nil(@current_user)} class="quiet" href={~p"/signin"}>
           Sign in
         </.link>
         <%= for seg <- @seg do %>
@@ -102,6 +102,26 @@ defmodule CabWeb.Ui do
     """
   end
 
+  @doc """
+  The owner console's section nav (P8): one row of tabs under the
+  chrome that chooses WHICH section is shown — actions never move
+  out of the chrome. `tabs` entries are `%{key, label, href}` with
+  an optional `count` rendered as the attention badge when > 0.
+  """
+  attr :id, :string, default: nil
+  attr :tabs, :list, required: true
+  attr :active, :string, required: true
+
+  def subnav(assigns) do
+    ~H"""
+    <div class="subnav" id={@id}>
+      <.link :for={tab <- @tabs} href={tab.href} class={tab.key == @active && "on"}>
+        {tab.label}<span :if={tab[:count] && tab.count > 0} class="n">{tab.count}</span>
+      </.link>
+    </div>
+    """
+  end
+
   # ---------------------------------------------------------------
   # 2 · Table / standings
   # ---------------------------------------------------------------
@@ -126,6 +146,11 @@ defmodule CabWeb.Ui do
   attr :rank, :boolean, default: false
   attr :check, :any, default: false
   attr :row_id, :any, default: nil, doc: "row -> dom id"
+
+  attr :row_class, :any,
+    default: nil,
+    doc: "row -> extra tr class (e.g. the viewer's \"me\" tint)"
+
   attr :empty, :string, default: "Nothing here yet."
 
   slot :col do
@@ -135,6 +160,7 @@ defmodule CabWeb.Ui do
     attr :float, :boolean
     attr :code, :boolean
     attr :center, :boolean
+    attr :class, :string, doc: "extra td class (the draw table's side color bands)"
   end
 
   def table(assigns) do
@@ -164,14 +190,23 @@ defmodule CabWeb.Ui do
             {@empty}
           </td>
         </tr>
-        <tr :for={{row, index} <- Enum.with_index(@rows, 1)} id={@row_id && @row_id.(row)}>
+        <tr
+          :for={{row, index} <- Enum.with_index(@rows, 1)}
+          id={@row_id && @row_id.(row)}
+          class={@row_class && @row_class.(row)}
+        >
           <td :if={@check != false} class="c">
             <input type="checkbox" checked={checked?(@check, row)} />
           </td>
           <td :if={@rank} class="rank">{index}</td>
           <td
             :for={col <- @col}
-            class={[col[:code] && "code", (col[:num] || col[:float]) && "num", col[:center] && "c"]}
+            class={[
+              col[:code] && "code",
+              (col[:num] || col[:float]) && "num",
+              col[:center] && "c",
+              col[:class]
+            ]}
           >
             {render_slot(col, row)}
           </td>

@@ -9,11 +9,15 @@ defmodule CabWeb.OwnerController do
 
   plug CabWeb.ClubScope, source: :club, require: :owner
 
-  # GET /c/:club_uuid/owner — approvals, open session, session controls
-  def show(conn, _params) do
+  @tabs ~w(registration requests tonight rooms members settings)
+
+  # GET /c/:club_uuid/owner — P8, the console: all head controls
+  # under a section nav (Registration | Requests | Tonight | Rooms |
+  # Members | Settings); ?tab= picks the section, the stage-driven
+  # chrome stays the same on every tab.
+  def show(conn, params) do
     club = conn.assigns.club
-    sessions = Sessions.list_for_club(club)
-    current = List.first(sessions)
+    current = List.first(Sessions.list_for_club(club))
 
     state =
       with %Session{} <- current,
@@ -23,15 +27,31 @@ defmodule CabWeb.OwnerController do
         _ -> nil
       end
 
+    join_requests = Clubs.list_join_requests(club)
+    links = (current && Links.list_for_session(current)) || []
+
     render(conn, :show,
-      join_requests: Clubs.list_join_requests(club),
+      join_requests: join_requests,
       members: Clubs.list_members(club),
-      sessions: sessions,
       current: current,
       state: state,
-      links: (current && Links.list_for_session(current)) || [],
+      links: links,
+      tab: tab(params["tab"], state, length(join_requests)),
       page_title: "#{club.name} · owner"
     )
+  end
+
+  # the smart default: pending requests pull attention first, then
+  # registration while sign-ups are open, rooms once they close
+  defp tab(param, _state, _pending) when param in @tabs, do: param
+
+  defp tab(_param, state, pending) do
+    cond do
+      pending > 0 -> "requests"
+      match?(%{stage: :signup}, state) -> "registration"
+      match?(%{stage: stage} when stage in [:closed, :running], state) -> "rooms"
+      true -> "tonight"
+    end
   end
 
   # POST /c/:club_uuid/owner/join-requests/:id/approve

@@ -29,9 +29,10 @@ defmodule CabWeb.ClubScopeTest do
       assert get(conn, "/c/not-a-uuid") |> response(404)
     end
 
-    test "member tree: 403 for anonymous and pending, 200 for approved",
+    test "member tree: /signin for anonymous, 403 for pending, 200 for approved",
          %{conn: conn, club: club} do
-      assert get(conn, ~p"/c/#{club.uuid}/member") |> response(403)
+      # the anonymous auth wall lands on P1
+      assert get(conn, ~p"/c/#{club.uuid}/member") |> redirected_to() == "/signin"
 
       pending = user_fixture()
       membership_fixture(pending, club, status: "pending")

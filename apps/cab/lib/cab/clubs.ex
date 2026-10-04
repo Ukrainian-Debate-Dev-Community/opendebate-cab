@@ -52,6 +52,11 @@ defmodule Cab.Clubs do
     end
   end
 
+  @doc "All clubs for the public front-page directory, alphabetical."
+  def list_clubs do
+    Repo.all(from c in Club, order_by: c.name)
+  end
+
   @doc "The head edits the club profile (name, city) — gateway row only."
   def update_club(%Club{} = club, attrs) do
     club |> Club.changeset(attrs) |> Repo.update()

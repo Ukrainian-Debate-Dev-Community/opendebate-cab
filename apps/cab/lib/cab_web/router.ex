@@ -19,10 +19,16 @@ defmodule CabWeb.Router do
     plug :fetch_current_user
   end
 
+  # THE CANONICAL EIGHT (design/v2-stages.md, 2026-10-04): every
+  # screen is one of P1-P8; every link/redirect lands on one of them.
   scope "/", CabWeb do
     pipe_through :browser
 
+    # P2 (anonymous front) / P3 (signed-in cabinet)
     get "/", PageController, :home
+
+    # P1 — the ONLY auth entry; /auth/:provider is just the hop
+    get "/signin", SigninController, :show
   end
 
   # Role-scoped HTML trees (tabbycat-style): the URL names the view,
@@ -31,14 +37,27 @@ defmodule CabWeb.Router do
   scope "/c/:club_uuid", CabWeb do
     pipe_through :browser
 
-    # public tree: profile + history + session detail; join is the
-    # HTML twin of the join-requests API action (redirect + flash)
+    # public tree: P4 club welcome + P7 standings; join is the HTML
+    # twin of the join-requests API action (redirect + flash)
     get "/", ClubPublicController, :show
-    get "/s/:session_uuid", ClubPublicController, :session
+    get "/standings", ClubPublicController, :standings
     post "/join", ClubPublicController, :join
 
-    # member tree: sessions, registration (ONE entry: form with role
-    # pills), cancel own registration, the room judge's ballot
+    # P6 — THE session page, public and stage-aware. Its actions are
+    # identity-gated, not tree-gated: a member judge, the head and a
+    # guest judge (session identity from /l/:code) all ballot here;
+    # anyone cancels only their OWN registration.
+    get "/s/:session_uuid", SessionPageController, :show
+
+    post "/s/:session_uuid/signups/:participant_id/remove",
+         SessionPageController,
+         :cancel_signup
+
+    get "/s/:session_uuid/rooms/:id/ballot", SessionPageController, :ballot
+    post "/s/:session_uuid/rooms/:id/ballot", SessionPageController, :submit_ballot
+
+    # member tree: P5 my-club page + registration (ONE entry: form
+    # with role pills) and cancel own registration
     get "/member", MemberController, :show
     get "/member/sessions/:session_uuid/register", MemberController, :register
     post "/member/sessions/:session_uuid/signups", MemberController, :signup
@@ -47,12 +66,9 @@ defmodule CabWeb.Router do
          MemberController,
          :cancel_signup
 
-    get "/member/rooms/:id/ballot", MemberController, :ballot
-    post "/member/rooms/:id/ballot", MemberController, :submit_ballot
-
-    # owner tree: approvals, club settings, open session, signups on
-    # behalf, rooms (auto + composed + rebuild), ballot, reopen,
-    # finish, cancel — the head controls everything from here
+    # owner tree: P8 console (?tab= section nav) with the ballot and
+    # compose sub-pages reachable from its Rooms tab — the head
+    # controls everything from here
     get "/owner", OwnerController, :show
     post "/owner/join-requests/:id/approve", OwnerController, :approve
     post "/owner/join-requests/:id/decline", OwnerController, :decline
@@ -85,9 +101,9 @@ defmodule CabWeb.Router do
 
   # M6 guest access (launch-timeline L2). /r/:session_uuid is the
   # PUBLIC shared registration URL the head gives out; /l/:code is a
-  # guest's permanent personal link — the code IS the identity, the
-  # controller plug resolves it per request and scopes the guest to
-  # that club+session only (never the signed-in member/owner trees).
+  # guest's permanent personal link — the code IS the identity:
+  # opening it signs the browser session in as the guest and lands
+  # on P6, where their cancel/ballot actions work by that identity.
   scope "/", CabWeb do
     pipe_through :browser
 
@@ -95,9 +111,6 @@ defmodule CabWeb.Router do
     post "/r/:session_uuid", GuestRegistrationController, :create
 
     get "/l/:code", GuestLinkController, :show
-    post "/l/:code/signups/:participant_id/remove", GuestLinkController, :cancel_signup
-    get "/l/:code/rooms/:id/ballot", GuestLinkController, :ballot
-    post "/l/:code/rooms/:id/ballot", GuestLinkController, :submit_ballot
   end
 
   # JSON API over the same contexts (club creation is the

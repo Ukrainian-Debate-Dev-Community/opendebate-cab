@@ -1,16 +1,13 @@
 defmodule CabWeb.MemberHTML do
   use CabWeb, :html
 
-  # this view's ballot/1 is the page; the kit component stays qualified
-  import CabWeb.Ui, except: [ballot: 1]
-  alias CabWeb.Ui
-
+  # P5 — my club page: tonight + my registration, my role, my results
   def show(assigns) do
     ~H"""
     <Layouts.app flash={@flash}>
       <.chrome
         crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-        here="tonight"
+        here="me"
         stage={stage_label(@state)}
         stage_kind={stage_kind(@state)}
       >
@@ -31,13 +28,6 @@ defmodule CabWeb.MemberHTML do
         >
           Cancel my registration
         </:seg>
-        <:seg
-          :if={@my_ballot_room}
-          href={~p"/c/#{@club.uuid}/member/rooms/#{@my_ballot_room["id"]}/ballot"}
-          primary
-        >
-          Fill ballot
-        </:seg>
       </.chrome>
 
       <div class="pbody">
@@ -48,52 +38,49 @@ defmodule CabWeb.MemberHTML do
             do: "judge",
             else: "speak"} tonight.
         </.banner>
-        <.banner :if={@state && @state.stage in [:closed, :running]} kind={:info}>
+        <.banner
+          :if={@state && @state.stage in [:closed, :running]}
+          kind={:info}
+          href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}
+          link="Open the session page →"
+        >
           Registration is closed for this session.
         </.banner>
 
-        <%= if @current && @state do %>
-          <.section title="Tonight">
-            <.table id="session-signups" rows={@state.signups} empty="Nobody signed up yet.">
-              <:col :let={participant} label="Name">{participant["display_name"]}</:col>
-              <:col :let={participant} label="Signed up as">{participant["role"]}</:col>
-            </.table>
-          </.section>
-
-          <.section :if={@state.rooms != []} title="Rooms">
-            <.table id="session-rooms" rows={@state.rooms}>
-              <:col :let={room} label="Room" code>R{room["id"]}</:col>
-              <:col :let={room} label="Status">
-                <.tag kind={room_kind(room["status"])}>{room["status"]}</.tag>
-              </:col>
-              <:col :let={room} label="Motion">
-                {(room["Motion"] && room["Motion"]["motion_text"]) || "—"}
-              </:col>
-              <:col :let={room} label="Teams">
-                <%= for rt <- Enum.sort_by(room["RoomTeams"] || [], & &1["position"]) do %>
-                  <span>
-                    {get_in(rt, ["Team", "name"])}
-                    <.tag :if={rt["rank"] == 1} kind={:ok}>won</.tag>
-                  </span>
-                <% end %>
-              </:col>
-            </.table>
-          </.section>
-        <% else %>
-          <.section title="Tonight" pad>
+        <.section title="Tonight" pad>
+          <%= if @current && @state do %>
+            <b>
+              <.link id="tonight-session" href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}>
+                {@state.event["name"]}
+              </.link>
+            </b>
+            {tonight_meta(@current, @state)}
+            <p>{my_state_line(@state, @my_signup)}</p>
+            <p>You are a {role_name(@club_role)} of this club.</p>
+          <% else %>
             No session is open.
             <p>Your club head opens sessions; sign-up appears here.</p>
-          </.section>
-        <% end %>
+            <p>You are a {role_name(@club_role)} of this club.</p>
+          <% end %>
+        </.section>
 
-        <.section title="History">
-          <.table id="sessions-list" rows={@sessions} empty="No sessions yet.">
-            <:col :let={session} label="Opened">
-              {Calendar.strftime(session.inserted_at, "%-d %b %Y")}
+        <.section title="My results in this club">
+          <.table id="my-results" rows={@my_results} empty="Your results will appear here.">
+            <:col :let={row} label="Date">
+              <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"}>
+                {Calendar.strftime(row.date, "%-d %b %Y")}
+              </.link>
             </:col>
-            <:col :let={session} label="Session" code>{session.uuid}</:col>
-            <:col :let={session}>
-              <.link href={~p"/c/#{@club.uuid}/s/#{session.uuid}"}>view</.link>
+            <:col :let={row} label="I was">{row.role}</:col>
+            <:col :let={row} label="Result">
+              <%= cond do %>
+                <% row.won -> %>
+                  <.tag kind={:ok}>won</.tag>
+                <% row.role == "judge" -> %>
+                  <.tag kind={:mut}>judged</.tag>
+                <% true -> %>
+                  —
+              <% end %>
             </:col>
           </.table>
         </.section>
@@ -110,7 +97,7 @@ defmodule CabWeb.MemberHTML do
       <.chrome
         crumbs={[
           {@club.name, ~p"/c/#{@club.uuid}"},
-          {"tonight", ~p"/c/#{@club.uuid}/member"}
+          {"me", ~p"/c/#{@club.uuid}/member"}
         ]}
         here="register"
         stage="sign-up open"
@@ -144,36 +131,27 @@ defmodule CabWeb.MemberHTML do
     """
   end
 
-  def ballot(assigns) do
-    ~H"""
-    <Layouts.app flash={@flash}>
-      <.chrome
-        crumbs={[
-          {@club.name, ~p"/c/#{@club.uuid}"},
-          {"tonight", ~p"/c/#{@club.uuid}/member"}
-        ]}
-        here={"ballot R#{@room["id"]}"}
-      >
-        <:seg form={"ballot-#{@room["id"]}"} primary>Submit ballot</:seg>
-      </.chrome>
+  defp tonight_meta(current, state) do
+    date =
+      case current.scheduled_at do
+        %DateTime{} = at -> Calendar.strftime(at, "%-d %b · %H:%M")
+        _ -> Calendar.strftime(current.inserted_at, "%-d %b")
+      end
 
-      <div class="pbody">
-        <.flash_banners flash={@flash} />
-
-        <.section title={"Room R#{@room["id"]} · ballot"}>
-          <Ui.ballot
-            id={"ballot-#{@room["id"]}"}
-            room={"R#{@room["id"]}"}
-            motion={@room["Motion"] && @room["Motion"]["motion_text"]}
-            teams={@teams}
-            error={@error}
-            action={~p"/c/#{@club.uuid}/member/rooms/#{@room["id"]}/ballot"}
-          />
-        </.section>
-      </div>
-    </Layouts.app>
-    """
+    "· #{date} · #{length(state.signups)} registered"
   end
+
+  defp my_state_line(%{stage: :signup}, nil),
+    do: "You are not registered yet. Registration closes when the head makes rooms."
+
+  defp my_state_line(%{stage: :signup}, _my_signup),
+    do: "Cancel from the chrome if your plans change."
+
+  defp my_state_line(_state, nil), do: "You are not registered for this session."
+  defp my_state_line(_state, _my_signup), do: "See the session page for your room."
+
+  defp role_name(:owner), do: "head"
+  defp role_name(_role), do: "member"
 
   defp stage_label(nil), do: nil
   defp stage_label(%{stage: :signup}), do: "sign-up open"
@@ -186,8 +164,4 @@ defmodule CabWeb.MemberHTML do
   defp stage_kind(%{stage: :closed}), do: :warn
   defp stage_kind(%{stage: :running}), do: :warn
   defp stage_kind(%{stage: :done}), do: :off
-
-  defp room_kind(status) when status in ["confirmed", "completed"], do: :ok
-  defp room_kind("pending"), do: :mut
-  defp room_kind(_status), do: :warn
 end

@@ -30,7 +30,7 @@ defmodule CabWeb.ClubScope do
   """
 
   import Plug.Conn
-  import Phoenix.Controller, only: [json: 2, get_format: 1]
+  import Phoenix.Controller, only: [json: 2, get_format: 1, put_flash: 3, redirect: 2]
 
   alias Cab.{Clubs, Sessions}
 
@@ -127,10 +127,18 @@ defmodule CabWeb.ClubScope do
   defp covers?(:member, :member), do: true
   defp covers?(_role, _required), do: false
 
+  # HTML auth walls land on P1 /signin (the only auth entry); the
+  # API keeps its plain 401.
   defp unauthenticated(conn) do
     case get_format(conn) do
-      "json" -> halt_with(conn, 401, "unauthenticated")
-      _ -> halt_with(conn, 403, "forbidden")
+      "json" ->
+        halt_with(conn, 401, "unauthenticated")
+
+      _ ->
+        conn
+        |> put_flash(:error, "Please sign in.")
+        |> redirect(to: "/signin")
+        |> halt()
     end
   end
 

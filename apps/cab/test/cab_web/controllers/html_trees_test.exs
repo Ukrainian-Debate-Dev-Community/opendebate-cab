@@ -25,11 +25,22 @@ defmodule CabWeb.HtmlTreesTest do
     %{conn: conn, head: head, club: club}
   end
 
-  test "public page shows profile and history", %{conn: conn, club: club} do
+  test "P4 club welcome: about, recent sessions, top members, join CTA", %{
+    conn: conn,
+    club: club
+  } do
+    session = session_fixture(club, engine_event_id: 11)
+
     stub(fn conn, _params ->
       case conn.request_path do
         "/api/events/organisation/3" ->
           ok(conn, [%{"id" => 11, "name" => "Night 1", "status" => "completed"}])
+
+        "/api/events/11/participants" ->
+          ok(conn, [
+            %{"id" => 41, "user_id" => 44, "role" => "speaker", "display_name" => "Anna K"},
+            %{"id" => 42, "user_id" => 45, "role" => "speaker", "display_name" => "Bo S"}
+          ])
 
         "/api/events/11/rounds" ->
           ok(conn, [%{"id" => 21, "sequence" => 1}])
@@ -39,7 +50,18 @@ defmodule CabWeb.HtmlTreesTest do
             %{
               "id" => 71,
               "status" => "confirmed",
-              "RoomTeams" => [%{"id" => 1, "rank" => 1, "Team" => %{"name" => "Winners"}}]
+              "RoomTeams" => [
+                %{
+                  "id" => 1,
+                  "rank" => 1,
+                  "position" => 1,
+                  "Team" => %{"name" => "Winners"},
+                  "RoomSpeakers" => [
+                    %{"id" => 201, "EventParticipant" => %{"id" => 41}},
+                    %{"id" => 202, "EventParticipant" => %{"id" => 42}}
+                  ]
+                }
+              ]
             }
           ])
       end
@@ -47,19 +69,30 @@ defmodule CabWeb.HtmlTreesTest do
 
     html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
     assert html =~ club.name
+
+    # recent sessions: date -> P6, session name, winner
+    assert html =~ ~s(id="recent-sessions")
     assert html =~ "Night 1"
     assert html =~ "Winners"
+    assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
+
+    # top members teaser + the P7 link
+    assert html =~ ~s(id="top-members")
+    assert html =~ "Anna K"
+    assert html =~ "Standings"
+    assert html =~ ~s(href="/c/#{club.uuid}/standings")
 
     # assembled from the kit: chrome + sections of table/cards
     assert html =~ ~s(class="chrome")
     assert html =~ ~s(class="section")
-    assert html =~ ~s(class="t" id="club-history")
     assert html =~ ~s(class="stage ok")
 
-    # anonymous: quiet Sign in + the gold conversion routes to sign-in
+    # anonymous: quiet Sign in + the gold conversion routes to P1
     assert html =~ "Sign in"
     assert html =~ "Request to join"
     assert html =~ ~s(class="go")
+    assert html =~ ~s(href="/signin")
+    refute html =~ "/auth/github"
     refute html =~ "Member area"
   end
 
@@ -137,27 +170,15 @@ defmodule CabWeb.HtmlTreesTest do
 
   test "public page as a member swaps the join segment for the member area",
        %{conn: conn, club: club, head: head} do
-    stub(fn conn, _params ->
-      case conn.request_path do
-        "/api/events/organisation/3" -> ok(conn, [])
-      end
-    end)
-
     html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}") |> html_response(200)
     assert html =~ "Member area"
-    assert html =~ "Owner area"
+    assert html =~ "Owner console"
     refute html =~ "Request to join"
   end
 
   test "browser join request posts the HTML twin and lands back with a flash",
        %{conn: conn, club: club} do
     user = user_fixture()
-
-    stub(fn conn, _params ->
-      case conn.request_path do
-        "/api/events/organisation/3" -> ok(conn, [])
-      end
-    end)
 
     # the public page's gold segment points at the in-tree twin
     html = conn |> log_in(user) |> get(~p"/c/#{club.uuid}") |> html_response(200)
@@ -175,13 +196,13 @@ defmodule CabWeb.HtmlTreesTest do
     assert redirected_to(dup) == "/c/#{club.uuid}"
     assert Phoenix.Flash.get(dup.assigns.flash, :error) =~ "already a member or pending"
 
-    # anonymous visitors have no join action
+    # anonymous visitors hit the auth wall -> P1
     anon =
       conn
       |> Plug.Conn.put_private(:plug_skip_csrf_protection, true)
       |> post(~p"/c/#{club.uuid}/join")
 
-    assert response(anon, 403)
+    assert redirected_to(anon) == "/signin"
   end
 
   test "owner page lists join requests; approve flips them",
@@ -246,6 +267,7 @@ defmodule CabWeb.HtmlTreesTest do
   defp stub_empty_signup_stage do
     stub(fn conn, _params ->
       case conn.request_path do
+        "/api/events/organisation/3" -> ok(conn, [])
         "/api/events/11" -> ok(conn, %{"id" => 11, "status" => "scheduled"})
         "/api/events/11/rounds" -> ok(conn, [%{"id" => 21, "sequence" => 1}])
         "/api/events/11/participants" -> ok(conn, [])
@@ -261,6 +283,9 @@ defmodule CabWeb.HtmlTreesTest do
 
     stub(fn conn, params ->
       case {conn.method, conn.request_path} do
+        {"GET", "/api/events/organisation/3"} ->
+          ok(conn, [])
+
         {"GET", "/api/events/11"} ->
           ok(conn, %{"id" => 11, "status" => "scheduled"})
 
@@ -300,7 +325,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "registered"
   end
 
-  test "member page: ONE gold Register segment while :signup — the twin segs are gone",
+  test "member page (P5): ONE gold Register segment, tonight card, my results only",
        %{conn: conn, club: club} do
     member = user_fixture(%{node_user_id: 44})
     membership_fixture(member, club)
@@ -315,10 +340,16 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(class="stage ok")
     assert html =~ "sign-up open"
 
-    # the M4 twin segs are GONE
-    refute html =~ "I speak tonight"
-    refute html =~ "I judge"
-    refute html =~ "signups?as="
+    # my page only: tonight card (-> P6), my role, my results
+    assert html =~ ~s(id="tonight-session")
+    assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
+    assert html =~ "You are a member of this club."
+    assert html =~ ~s(id="my-results")
+
+    # everything not about ME moved out (roster and rooms live on P6)
+    refute html =~ ~s(id="session-signups")
+    refute html =~ ~s(id="session-rooms")
+    refute html =~ ~s(id="sessions-list")
 
     # member templates never reference owner segments
     refute html =~ "Make rooms"
@@ -336,6 +367,9 @@ defmodule CabWeb.HtmlTreesTest do
 
     stub(fn conn, _params ->
       case {conn.method, conn.request_path} do
+        {"GET", "/api/events/organisation/3"} ->
+          ok(conn, [])
+
         {"GET", "/api/events/11"} ->
           ok(conn, %{"id" => 11, "status" => "scheduled"})
 
@@ -394,18 +428,39 @@ defmodule CabWeb.HtmlTreesTest do
     assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~ "closed"
   end
 
-  test "owner page shows role-scoped chrome segments and the session form",
+  test "owner console (P8): section nav + stage chrome; no session defaults to Tonight",
        %{conn: conn, club: club, head: head} do
     html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
 
-    # no session yet: the gold segment and the form both open one
+    # the section nav row under the chrome
+    assert html =~ ~s(id="owner-subnav")
+    assert html =~ "Registration"
+    assert html =~ "Requests"
+    assert html =~ "Tonight"
+    assert html =~ "Rooms"
+    assert html =~ "Members"
+    assert html =~ "Settings"
+    assert html =~ ~s(href="/c/#{club.uuid}/owner?tab=members")
+
+    # no session yet: the gold segment and the Tonight tab's form both open one
     assert html =~ "Open session"
     assert html =~ ~s(class="go")
     assert html =~ ~s(id="open-session-form")
     assert html =~ ~s(class="form")
-    assert html =~ ~s(id="members-list")
-    assert html =~ ~s(id="join-requests")
     refute html =~ "Make rooms"
+
+    # the tab only chooses the section: members and requests live on theirs
+    refute html =~ ~s(id="members-list")
+    refute html =~ ~s(id="join-requests")
+
+    members = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner?tab=members")
+    assert html_response(members, 200) =~ ~s(id="members-list")
+
+    requests = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner?tab=requests")
+    assert html_response(requests, 200) =~ ~s(id="join-requests")
+
+    settings = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner?tab=settings")
+    assert html_response(settings, 200) =~ ~s(id="club-settings-form")
   end
 
   # a running session: judging room 71 chaired by engine user
@@ -492,21 +547,22 @@ defmodule CabWeb.HtmlTreesTest do
     }
   end
 
-  test "the room judge sees Fill ballot and gets the ballot page in the member tree",
+  test "P6 running: the room judge sees Fill ballot and gets the session-tree ballot page",
        %{conn: conn, club: club} do
     judge = user_fixture(%{node_user_id: 44})
     membership_fixture(judge, club)
-    session_fixture(club, engine_event_id: 11)
+    session = session_fixture(club, engine_event_id: 11)
     stub_running_session(running_room(44))
 
-    home = conn |> log_in(judge) |> get(~p"/c/#{club.uuid}/member") |> html_response(200)
+    page = conn |> log_in(judge) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}")
+    home = html_response(page, 200)
     assert home =~ "Fill ballot"
-    assert home =~ "/c/#{club.uuid}/member/rooms/71/ballot"
+    assert home =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
 
     html =
       conn
       |> log_in(judge)
-      |> get(~p"/c/#{club.uuid}/member/rooms/71/ballot")
+      |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
       |> html_response(200)
 
     # the kit's scored ballot, prefilled from the room
@@ -519,20 +575,26 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ "Submit ballot"
     assert html =~ ~s(form="ballot-71")
     assert html =~ ~s(class="go")
-    assert html =~ ~s(action="/c/#{club.uuid}/member/rooms/71/ballot")
+    assert html =~ ~s(action="/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
   end
 
   test "a member who is not the room judge gets no ballot page", %{conn: conn, club: club} do
     speaker = user_fixture(%{node_user_id: 55})
     membership_fixture(speaker, club)
-    session_fixture(club, engine_event_id: 11)
+    session = session_fixture(club, engine_event_id: 11)
     stub_running_session(running_room(44))
 
-    home = conn |> log_in(speaker) |> get(~p"/c/#{club.uuid}/member") |> html_response(200)
-    refute home =~ "Fill ballot"
+    home = conn |> log_in(speaker) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}")
+    refute html_response(home, 200) =~ "Fill ballot"
 
-    conn = conn |> log_in(speaker) |> get(~p"/c/#{club.uuid}/member/rooms/71/ballot")
-    assert response(conn, 403)
+    denied =
+      conn |> log_in(speaker) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
+
+    assert response(denied, 403)
+
+    # anonymous hits the auth wall -> P1
+    anon = get(conn, ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
+    assert redirected_to(anon) == "/signin"
   end
 
   test "the owner tree serves the same ballot per open room", %{
@@ -563,14 +625,17 @@ defmodule CabWeb.HtmlTreesTest do
   test "ballot POST redirects with a flash; a tie re-renders amber", %{conn: conn, club: club} do
     judge = user_fixture(%{node_user_id: 44})
     membership_fixture(judge, club)
-    session_fixture(club, engine_event_id: 11)
+    session = session_fixture(club, engine_event_id: 11)
     stub_running_session(running_room(44), self())
 
     # og total 151 == oo total 151 -> amber re-render naming the total
     tied =
       conn
       |> log_in(judge)
-      |> post(~p"/c/#{club.uuid}/member/rooms/71/ballot", ballot_params(["76", "75"]))
+      |> post(
+        ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot",
+        ballot_params(["76", "75"])
+      )
 
     assert html_response(tied, 422) =~ "share the total 151"
     assert html_response(tied, 422) =~ ~s(class="bsum tied")
@@ -579,9 +644,12 @@ defmodule CabWeb.HtmlTreesTest do
     done =
       conn
       |> log_in(judge)
-      |> post(~p"/c/#{club.uuid}/member/rooms/71/ballot", ballot_params(["78", "75.5"]))
+      |> post(
+        ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot",
+        ballot_params(["78", "75.5"])
+      )
 
-    assert redirected_to(done) == "/c/#{club.uuid}/member"
+    assert redirected_to(done) == "/c/#{club.uuid}/s/#{session.uuid}"
     assert Phoenix.Flash.get(done.assigns.flash, :info) =~ "ballot submitted"
     assert_received {:scores, params}
     assert [%{"room_team_id" => 101, "rank" => 1} | _rest] = params["teamRankings"]
@@ -627,36 +695,60 @@ defmodule CabWeb.HtmlTreesTest do
     end)
   end
 
-  test "owner page at sign-up: gold Close sign-ups + quiet Cancel, signup controls, settings",
+  test "owner page at sign-up: gold Close sign-ups + quiet Cancel; tabs split the controls",
        %{conn: conn, club: club, head: head} do
     member = user_fixture(%{node_user_id: 444, username: "benched"})
     membership_fixture(member, club)
     session = session_fixture(club, engine_event_id: 11)
     stub_signup_stage(signup_stage_signups())
 
+    # sign-up stage with no pending requests defaults to Registration
     html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
 
     # chrome: gold Close sign-ups + quiet cancel; composition waits
-    # for the :closed stage
+    # for the :closed stage. The chrome holds on every tab.
     assert html =~ "Close sign-ups"
     assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/close-signups"
     assert html =~ "Cancel session"
     assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/cancel"
+    assert html =~ ~s(id="shared-registration-url")
     refute html =~ "Make rooms"
     refute html =~ "Compose rooms"
     refute html =~ "Reopen sign-ups"
     refute html =~ "Delete rooms"
 
-    # tonight: a remove link per signup + the on-behalf form listing
-    # only members who are not signed up yet
-    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/1/remove"
-    assert html =~ ~s(id="add-signup-form")
-    assert html =~ "benched"
+    # tonight tab: a remove link per signup + the on-behalf form
+    # listing only members who are not signed up yet
+    tonight =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner?tab=tonight")
+      |> html_response(200)
 
-    # club settings form + roster remove links (not on the head's row)
-    assert html =~ ~s(id="club-settings-form")
-    assert html =~ "/c/#{club.uuid}/owner/members/#{member.id}/remove"
-    refute html =~ "/c/#{club.uuid}/owner/members/#{head.id}/remove"
+    assert tonight =~ "Close sign-ups"
+    assert tonight =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/1/remove"
+    assert tonight =~ ~s(id="add-signup-form")
+    assert tonight =~ "benched"
+    assert tonight =~ "8 speakers · 1 judge"
+
+    # members tab: roster remove links (not on the head's row)
+    members =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner?tab=members")
+      |> html_response(200)
+
+    assert members =~ "/c/#{club.uuid}/owner/members/#{member.id}/remove"
+    refute members =~ "/c/#{club.uuid}/owner/members/#{head.id}/remove"
+
+    # settings tab: the club settings form
+    settings =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner?tab=settings")
+      |> html_response(200)
+
+    assert settings =~ ~s(id="club-settings-form")
   end
 
   test "owner page at :closed: Make rooms + Compose rooms + Reopen sign-ups",

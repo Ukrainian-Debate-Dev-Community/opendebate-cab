@@ -194,15 +194,19 @@ defmodule CabWeb.GuestLinksTest do
       %{guest: guest, session: session, link: link}
     end
 
-    test "shows the guest view with their role; revoked and unknown codes are 404",
-         %{conn: conn, link: link} do
+    test "redirects to P6 with the guest identity; revoked and unknown codes are 404",
+         %{conn: conn, club: club, session: session, link: link} do
       stub_stage([guest_signup(41, 777)])
 
-      html = conn |> get(~p"/l/#{link.code}") |> html_response(200)
+      conn = get(conn, ~p"/l/#{link.code}")
+      assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
+      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "anyone with it acts as you"
+
+      # P6 greets the guest with their registration + cancel action
+      html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
       assert html =~ "You are registered to speak tonight."
       assert html =~ "Cancel my registration"
-      assert html =~ "anyone with it acts as you"
-      assert html =~ link.code
+      assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove"
 
       assert conn |> get("/l/#{Cab.Links.Link.generate_code()}") |> response(404)
 
@@ -215,11 +219,11 @@ defmodule CabWeb.GuestLinksTest do
       stub_stage([guest_signup(41, 777)])
 
       conn = get(conn, ~p"/l/#{link.code}")
-      assert html_response(conn, 200)
+      assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
       # the browser session now carries the guest identity ...
       assert Plug.Conn.get_session(conn, :user_id) == guest.id
 
-      # ... which opens NOTHING beyond the scoped guest view
+      # ... which opens NOTHING beyond P6's public view
       assert conn |> get(~p"/c/#{club.uuid}/member") |> response(403)
       assert conn |> get(~p"/c/#{club.uuid}/owner") |> response(403)
 
@@ -227,7 +231,8 @@ defmodule CabWeb.GuestLinksTest do
       assert json_response(denied, 403)["error"] == "forbidden"
     end
 
-    test "guest cancels their own registration while :signup", %{conn: conn, link: link} do
+    test "guest cancels their own registration through P6 while :signup",
+         %{conn: conn, club: club, session: session, link: link} do
       test_pid = self()
 
       stub_stage([guest_signup(41, 777)], [], fn conn, _params ->
@@ -241,17 +246,30 @@ defmodule CabWeb.GuestLinksTest do
         end
       end)
 
-      conn = conn |> anon() |> post(~p"/l/#{link.code}/signups/41/remove")
-      assert redirected_to(conn) == "/l/#{link.code}"
+      conn = get(conn, ~p"/l/#{link.code}")
+
+      conn =
+        conn |> anon() |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove")
+
+      assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "registration cancelled"
       assert_received :removed
     end
 
-    test "guest cannot cancel someone else's signup", %{conn: conn, link: link} do
+    test "guest cannot cancel someone else's signup",
+         %{conn: conn, club: club, session: session, link: link} do
       stub_stage([guest_signup(41, 777), guest_signup(42, 888, "speaker", "Other")])
 
-      conn = conn |> anon() |> post(~p"/l/#{link.code}/signups/42/remove")
+      conn = get(conn, ~p"/l/#{link.code}")
+      conn = conn |> anon() |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/signups/42/remove")
       assert response(conn, 403)
+    end
+
+    test "anonymous cancel hits the auth wall", %{conn: conn, club: club, session: session} do
+      stub_stage([guest_signup(41, 777)])
+
+      conn = conn |> anon() |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove")
+      assert redirected_to(conn) == "/signin"
     end
   end
 
@@ -324,8 +342,8 @@ defmodule CabWeb.GuestLinksTest do
       %{guest: guest, session: session, link: link}
     end
 
-    test "the chair guest sees Fill ballot, gets the page and submits",
-         %{conn: conn, link: link} do
+    test "the chair guest sees Fill ballot on P6, gets the page and submits",
+         %{conn: conn, club: club, session: session, link: link} do
       test_pid = self()
 
       stub_stage(
@@ -347,18 +365,30 @@ defmodule CabWeb.GuestLinksTest do
         end
       )
 
-      home = conn |> get(~p"/l/#{link.code}") |> html_response(200)
-      assert home =~ "Fill ballot"
-      assert home =~ "/l/#{link.code}/rooms/71/ballot"
+      # the personal link lands on P6 with the guest identity
+      conn = get(conn, ~p"/l/#{link.code}")
+      assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
 
-      html = conn |> get(~p"/l/#{link.code}/rooms/71/ballot") |> html_response(200)
+      home = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
+      assert home =~ "Fill ballot"
+      assert home =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
+
+      html =
+        conn
+        |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
+        |> html_response(200)
+
       assert html =~ ~s(class="ballot")
       assert html =~ "THW trust guests"
-      assert html =~ ~s(action="/l/#{link.code}/rooms/71/ballot")
+      assert html =~ ~s(action="/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
       assert html =~ ~s(form="ballot-71")
 
-      done = conn |> anon() |> post(~p"/l/#{link.code}/rooms/71/ballot", ballot_params())
-      assert redirected_to(done) == "/l/#{link.code}"
+      done =
+        conn
+        |> anon()
+        |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot", ballot_params())
+
+      assert redirected_to(done) == "/c/#{club.uuid}/s/#{session.uuid}"
       assert Phoenix.Flash.get(done.assigns.flash, :info) =~ "ballot submitted"
       assert_received {:scores, params}
       assert [%{"rank" => 1, "room_team_id" => 101} | _rest] = params["teamRankings"]
@@ -366,17 +396,23 @@ defmodule CabWeb.GuestLinksTest do
     end
 
     test "a guest who is not the chair gets 403; a foreign room is 404",
-         %{conn: conn, link: link} do
+         %{conn: conn, club: club, session: session, link: link} do
       stub_stage([guest_signup(41, 777)], [running_room(555)])
 
-      assert conn |> get(~p"/l/#{link.code}/rooms/71/ballot") |> response(403)
+      conn = get(conn, ~p"/l/#{link.code}")
+
+      assert conn
+             |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
+             |> response(403)
 
       assert conn
              |> anon()
-             |> post(~p"/l/#{link.code}/rooms/71/ballot", ballot_params())
+             |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot", ballot_params())
              |> response(403)
 
-      assert conn |> get(~p"/l/#{link.code}/rooms/99/ballot") |> response(404)
+      assert conn
+             |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/99/ballot")
+             |> response(404)
     end
   end
 
@@ -392,12 +428,14 @@ defmodule CabWeb.GuestLinksTest do
       link = link_fixture(guest, session)
       stub_stage([guest_signup(41, 777)])
 
+      # sign-up stage defaults to the Registration tab (1 guest badge)
       html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
 
       assert html =~ ~s(id="shared-registration-url")
       assert html =~ "/r/#{session.uuid}"
       assert html =~ ~s(data-copy=)
-      assert html =~ "1 guest registration"
+      assert html =~ "Guest registrations · 1"
+      assert html =~ ~s(class="n">1</span>)
 
       assert html =~ ~s(id="guest-links")
       assert html =~ "Greta Guest"
