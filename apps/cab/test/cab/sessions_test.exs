@@ -377,6 +377,72 @@ defmodule Cab.SessionsTest do
              )
   end
 
+  test "user_history lists finished participations with the winner flag",
+       %{club: club} do
+    speaker = user_fixture(%{node_user_id: 44})
+    membership_fixture(speaker, club)
+    judge = user_fixture(%{node_user_id: 77})
+    membership_fixture(judge, club)
+    session = session_fixture(club, engine_event_id: 11)
+
+    # an approved membership in a club without sessions adds nothing
+    other_club = club_fixture(user_fixture(%{node_user_id: 8}))
+    membership_fixture(speaker, other_club)
+
+    stub(fn conn, _params ->
+      case conn.request_path do
+        "/api/events/organisation/3" ->
+          ok(conn, [
+            %{"id" => 11, "name" => "Night 1", "status" => "completed"},
+            %{"id" => 12, "name" => "Open night", "status" => "scheduled"}
+          ])
+
+        "/api/events/11/participants" ->
+          ok(conn, [
+            %{"id" => 41, "user_id" => 44, "role" => "speaker"},
+            %{"id" => 42, "user_id" => 77, "role" => "adjudicator"}
+          ])
+
+        "/api/events/11/rounds" ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        "/api/rounds/21/rooms" ->
+          ok(conn, [
+            %{
+              "id" => 71,
+              "status" => "confirmed",
+              "RoomTeams" => [
+                %{
+                  "id" => 101,
+                  "rank" => 1,
+                  "RoomSpeakers" => [%{"id" => 201, "EventParticipant" => %{"id" => 41}}]
+                },
+                %{
+                  "id" => 102,
+                  "rank" => 2,
+                  "RoomSpeakers" => [%{"id" => 202, "EventParticipant" => %{"id" => 43}}]
+                }
+              ]
+            }
+          ])
+      end
+    end)
+
+    assert [row] = Sessions.user_history(speaker)
+    assert row.club == club.name
+    assert row.role == "speaker"
+    assert row.won == true
+    assert row.date == session.inserted_at
+
+    # the judge participated but never competes for the win
+    assert [judge_row] = Sessions.user_history(judge)
+    assert judge_row.role == "judge"
+    assert judge_row.won == false
+
+    # a user without an engine counterpart never participated
+    assert Sessions.user_history(user_fixture(%{node_user_id: nil})) == []
+  end
+
   test "finish completes round and event", %{head: head, club: club} do
     session = session_fixture(club, engine_event_id: 11)
     test_pid = self()

@@ -475,6 +475,82 @@ defmodule Cab.Sessions do
     end
   end
 
+  @doc """
+  The user's past participations across their approved clubs, newest
+  first: for every finished session of such a club where the user's
+  engine counterpart took part, `%{date, club, role, won}` — `date`
+  is the gateway session's `inserted_at`, `role` is "speaker" or
+  "judge", and `won` is true when their team took rank 1 of the
+  confirmed ballot (always false for judges).
+  """
+  def user_history(%User{node_user_id: node_user_id} = user) when is_integer(node_user_id) do
+    user
+    |> Clubs.list_user_memberships()
+    |> Enum.filter(&(&1.status == "approved"))
+    |> Enum.flat_map(&club_user_history(&1.club, user))
+    |> Enum.sort_by(& &1.date, {:desc, DateTime})
+  end
+
+  # no engine counterpart yet -> never participated
+  def user_history(%User{}), do: []
+
+  defp club_user_history(%Club{} = club, user) do
+    case list_for_club(club) do
+      [] ->
+        []
+
+      sessions ->
+        with {:ok, actor} <- Clubs.club_actor(club),
+             {:ok, events} <-
+               EngineApi.list_organisation_events(actor, club.engine_organisation_id) do
+          completed =
+            for event <- events, event["status"] == "completed", into: MapSet.new() do
+              event["id"]
+            end
+
+          sessions
+          |> Enum.filter(&MapSet.member?(completed, &1.engine_event_id))
+          |> Enum.map(&participation(actor, club, &1, user))
+          |> Enum.reject(&is_nil/1)
+        else
+          _ -> []
+        end
+    end
+  end
+
+  defp participation(actor, club, session, user) do
+    with {:ok, participants} <- EngineApi.list_participants(actor, session.engine_event_id),
+         %{} = me <- Enum.find(participants, &(&1["user_id"] == user.node_user_id)) do
+      %{
+        date: session.inserted_at,
+        club: club.name,
+        role: if(me["role"] == "adjudicator", do: "judge", else: "speaker"),
+        won: me["role"] != "adjudicator" and won?(actor, session, me)
+      }
+    else
+      _ -> nil
+    end
+  end
+
+  # did this participant's team take rank 1 of a confirmed ballot?
+  defp won?(actor, session, me) do
+    with {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
+         {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
+      rooms
+      |> Enum.filter(&(&1["status"] in ["completed", "confirmed"]))
+      |> Enum.flat_map(&(&1["RoomTeams"] || []))
+      |> Enum.any?(fn room_team ->
+        room_team["rank"] == 1 and
+          Enum.any?(
+            room_team["RoomSpeakers"] || [],
+            &(get_in(&1, ["EventParticipant", "id"]) == me["id"])
+          )
+      end)
+    else
+      _ -> false
+    end
+  end
+
   defp session_club(%Session{} = session) do
     case session.club do
       %Club{} = club -> club

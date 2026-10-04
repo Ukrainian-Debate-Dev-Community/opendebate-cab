@@ -38,14 +38,19 @@ defmodule CabWeb.PageHTML do
           </.section>
 
           <.section title="My sessions">
-            <%!-- TODO(M3): past participations need per-event engine
-                 lookups the contexts don't expose yet — the section
-                 ships with the table's empty state until then. --%>
-            <.table id="my-sessions" rows={[]} empty="Past sessions will appear here.">
-              <:col :let={row} label="Date">{row}</:col>
-              <:col :let={row} label="Club">{row}</:col>
-              <:col :let={row} label="I was">{row}</:col>
-              <:col :let={row} label="Result">{row}</:col>
+            <.table id="my-sessions" rows={@history} empty="Past sessions will appear here.">
+              <:col :let={row} label="Date">
+                {Calendar.strftime(row.date, "%-d %b %Y")}
+              </:col>
+              <:col :let={row} label="Club">{row.club}</:col>
+              <:col :let={row} label="I was">{row.role}</:col>
+              <:col :let={row} label="Result">
+                <%= if row.won do %>
+                  <.tag kind={:ok}>won</.tag>
+                <% else %>
+                  —
+                <% end %>
+              </:col>
             </.table>
           </.section>
         </div>

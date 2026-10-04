@@ -17,6 +17,7 @@ defmodule CabWeb.PageController do
           memberships: memberships,
           member_counts: Clubs.member_counts(Enum.map(memberships, & &1.club_id)),
           open_club: find_open_club(memberships),
+          history: Sessions.user_history(user),
           page_title: "my cabinet"
         )
     end

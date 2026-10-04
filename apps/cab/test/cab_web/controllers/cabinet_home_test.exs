@@ -50,8 +50,71 @@ defmodule CabWeb.CabinetHomeTest do
     # member counts: head + anna = 2
     assert html =~ ~r/class="num">\s*2\s*</
 
-    # my sessions ships with the table's empty state (M3 fills it)
+    # my sessions: no participations yet -> the table's empty state
     assert html =~ ~s(id="my-sessions")
     assert html =~ "Past sessions will appear here."
+  end
+
+  test "my sessions lists past participations with role and winner tag", %{conn: conn} do
+    user = user_fixture(%{username: "bo", node_user_id: 44})
+    head = user_fixture(%{node_user_id: 9})
+    club = club_fixture(head, %{name: "Kyiv Debate Club", engine_organisation_id: 3})
+    membership_fixture(user, club)
+    session_fixture(club, engine_event_id: 11)
+
+    Req.Test.stub(Core.Engine, fn req ->
+      case req.request_path do
+        "/api/events/organisation/3" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => [%{"id" => 11, "name" => "Night 1", "status" => "completed"}]
+          })
+
+        # find_open_club peeks at the latest session's stage
+        "/api/events/11" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{"id" => 11, "status" => "completed"}
+          })
+
+        "/api/events/11/participants" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => [%{"id" => 41, "user_id" => 44, "role" => "speaker"}]
+          })
+
+        "/api/events/11/rounds" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => [%{"id" => 21, "sequence" => 1}]
+          })
+
+        "/api/rounds/21/rooms" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => [
+              %{
+                "id" => 71,
+                "status" => "confirmed",
+                "RoomTeams" => [
+                  %{
+                    "id" => 101,
+                    "rank" => 1,
+                    "RoomSpeakers" => [%{"id" => 201, "EventParticipant" => %{"id" => 41}}]
+                  }
+                ]
+              }
+            ]
+          })
+      end
+    end)
+
+    html = conn |> log_in(user) |> get(~p"/") |> html_response(200)
+
+    assert html =~ ~s(id="my-sessions")
+    refute html =~ "Past sessions will appear here."
+    assert html =~ "Kyiv Debate Club"
+    assert html =~ "speaker"
+    assert html =~ "won"
   end
 end
