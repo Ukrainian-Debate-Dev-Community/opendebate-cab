@@ -33,7 +33,15 @@ defmodule CabWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    {render_slot(@inner_block)}
+    <main class="page-main">
+      {render_slot(@inner_block)}
+    </main>
+    <footer class="footer">
+      <div class="in">
+        <span><b>cab</b> · NGO Debate Federation of Ukraine</span>
+        <a href="https://uadebate.com">uadebate.com</a>
+      </div>
+    </footer>
     """
   end
 

@@ -126,9 +126,19 @@
 body { font-family:-apple-system,"Inter","Segoe UI",system-ui,sans-serif;
        background:var(--bg); color:var(--ink); font-size:15px; line-height:1.5; }
 
-/* ---- page body: a chrome bar and a stack of sections ---- */
+/* ---- page scheme: chrome · content (grows) · footer, full height ---- */
+body { min-height:100vh; display:flex; flex-direction:column; }
+main.page-main { flex:1 0 auto; width:100%; }
 .pbody { max-width:920px; margin:0 auto; padding:18px 18px 26px;
          display:flex; flex-direction:column; gap:18px; }
+.footer { flex-shrink:0; display:flex; align-items:center; height:34px;
+          border-top:1px solid var(--line); background:#fff;
+          font-size:.72rem; color:var(--muted); }
+.footer .in { width:100%; max-width:920px; margin:0 auto; padding:0 18px;
+              display:flex; align-items:center; gap:14px; }
+.footer b { color:var(--brand); font-weight:800; }
+.footer a { color:var(--muted); text-decoration:none; margin-left:auto; }
+.footer a:hover { color:var(--brand); }
 
 /* ================================================================
    1 · CHROME / ACTION BAR — thin strip, actions are SEGMENTS of it
