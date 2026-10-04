@@ -43,9 +43,19 @@ defmodule Cab.Fixtures do
     %Session{
       club_id: club.id,
       opened_by_user_id: Keyword.get(opts, :opened_by_user_id),
-      engine_event_id: Keyword.get(opts, :engine_event_id, 11)
+      engine_event_id: Keyword.get(opts, :engine_event_id, 11),
+      scheduled_at: Keyword.get(opts, :scheduled_at),
+      signups_closed_at: Keyword.get(opts, :signups_closed_at)
     }
     |> Session.changeset()
     |> Repo.insert!()
+  end
+
+  @doc "A session whose sign-ups the head already closed (stage :closed while no rooms exist)."
+  def closed_session_fixture(%Club{} = club, opts \\ []) do
+    session_fixture(
+      club,
+      Keyword.put_new(opts, :signups_closed_at, DateTime.utc_now(:second))
+    )
   end
 end

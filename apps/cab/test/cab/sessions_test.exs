@@ -15,6 +15,19 @@ defmodule Cab.SessionsTest do
 
   defp ok(conn, data), do: Req.Test.json(conn, %{"status" => "success", "data" => data})
 
+  # the standard state read (event + round + participants + rooms)
+  # that every gated lifecycle call now makes first; returns nil for
+  # anything else so callers can chain their own stubs with ||
+  defp state_stub(conn, participants, rooms \\ []) do
+    case {conn.method, conn.request_path} do
+      {"GET", "/api/events/11"} -> ok(conn, %{"id" => 11, "status" => "scheduled"})
+      {"GET", "/api/events/11/rounds"} -> ok(conn, [%{"id" => 21, "sequence" => 1}])
+      {"GET", "/api/events/11/participants"} -> ok(conn, participants)
+      {"GET", "/api/rounds/21/rooms"} -> ok(conn, rooms)
+      _ -> nil
+    end
+  end
+
   defp claims(conn) do
     ["Bearer " <> token] = Plug.Conn.get_req_header(conn, "authorization")
     signer = Joken.Signer.create("HS256", "test-engine-secret")
@@ -47,32 +60,72 @@ defmodule Cab.SessionsTest do
     assert Sessions.get_for_club(club, session.uuid).id == session.id
   end
 
-  test "signup registers self as speaker or adjudicator", %{club: club} do
+  test "signup registers self as speaker or adjudicator while :signup", %{club: club} do
     user = user_fixture(%{node_user_id: 44, name: "Ann B"})
     session = session_fixture(club, engine_event_id: 11)
 
     stub(fn conn, params ->
-      assert conn.request_path == "/api/events/11/participants"
+      state_stub(conn, []) ||
+        case {conn.method, conn.request_path} do
+          {"POST", "/api/events/11/participants"} ->
+            assert params == %{
+                     "display_name" => "Ann B",
+                     "role" => "adjudicator",
+                     "user_id" => 44
+                   }
 
-      assert params == %{
-               "display_name" => "Ann B",
-               "role" => "adjudicator",
-               "user_id" => 44
-             }
-
-      ok(conn, %{"id" => 41, "role" => "adjudicator"})
+            ok(conn, %{"id" => 41, "role" => "adjudicator"})
+        end
     end)
 
     assert {:ok, %{"id" => 41}} = Sessions.signup(user, session, "judge")
   end
 
-  test "state/1 derives the stage from engine data", %{club: club} do
+  test "signup is 409-gated once sign-ups close", %{club: club} do
+    user = user_fixture(%{node_user_id: 44})
+    closed = closed_session_fixture(club, engine_event_id: 11)
+
+    stub(fn conn, _params -> state_stub(conn, []) end)
+
+    assert {:error, :conflict, message} = Sessions.signup(user, closed, "speak")
+    assert message =~ "sign-ups are not open (session is closed)"
+  end
+
+  test "close_signups / reopen_signups flip the registration window", %{club: club} do
     session = session_fixture(club, engine_event_id: 11)
 
-    for {event_status, rooms, expected} <- [
-          {"scheduled", [], :signup},
-          {"scheduled", [%{"id" => 71, "status" => "pending"}], :running},
-          {"completed", [%{"id" => 71, "status" => "confirmed"}], :done}
+    stub(fn conn, _params -> state_stub(conn, []) end)
+
+    assert {:ok, closed} = Sessions.close_signups(session)
+    assert %DateTime{} = closed.signups_closed_at
+
+    # already closed -> conflict
+    assert {:error, :conflict, message} = Sessions.close_signups(%{closed | club: club})
+    assert message =~ "session is closed"
+
+    assert {:ok, reopened} = Sessions.reopen_signups(%{closed | club: club})
+    assert reopened.signups_closed_at == nil
+
+    # reopen only while closed
+    assert {:error, :conflict, message} = Sessions.reopen_signups(%{reopened | club: club})
+    assert message =~ "session is signup"
+
+    # rooms made -> neither close nor reopen
+    stub(fn conn, _params -> state_stub(conn, [], [%{"id" => 71, "status" => "pending"}]) end)
+
+    assert {:error, :conflict, _} = Sessions.close_signups(%{reopened | club: club})
+  end
+
+  test "state/1 derives the stage from engine data + the registration window", %{club: club} do
+    open_session = session_fixture(club, engine_event_id: 11)
+    closed_session = closed_session_fixture(club, engine_event_id: 11)
+
+    for {session, event_status, rooms, expected} <- [
+          {open_session, "scheduled", [], :signup},
+          {closed_session, "scheduled", [], :closed},
+          {open_session, "scheduled", [%{"id" => 71, "status" => "pending"}], :running},
+          {closed_session, "scheduled", [%{"id" => 71, "status" => "pending"}], :running},
+          {closed_session, "completed", [%{"id" => 71, "status" => "confirmed"}], :done}
         ] do
       stub(fn conn, _params ->
         case conn.request_path do
@@ -91,7 +144,7 @@ defmodule Cab.SessionsTest do
 
   test "make_rooms pairs attendance into inline temporary teams with judge chairs",
        %{head: head, club: club} do
-    session = session_fixture(club, engine_event_id: 11)
+    session = closed_session_fixture(club, engine_event_id: 11)
 
     speakers =
       for id <- 1..8 do
@@ -102,33 +155,21 @@ defmodule Cab.SessionsTest do
 
     proposals =
       for n <- 0..3 do
-        %{
-          "name" => "Random Team #{n + 1}",
-          "participant_ids" => [2 * n + 1, 2 * n + 2],
-          "participants" => [
-            %{"display_name" => "Speaker #{2 * n + 1}"},
-            %{"display_name" => "Speaker #{2 * n + 2}"}
-          ]
-        }
+        %{"name" => "Random Team #{n + 1}", "participant_ids" => [2 * n + 1, 2 * n + 2]}
       end
 
     test_pid = self()
 
     stub(fn conn, params ->
-      case {conn.method, conn.request_path} do
-        {"GET", "/api/events/11/rounds"} ->
-          ok(conn, [%{"id" => 21, "sequence" => 1}])
+      state_stub(conn, speakers ++ judges) ||
+        case {conn.method, conn.request_path} do
+          {"GET", "/api/events/11/teams/auto-generate"} ->
+            ok(conn, %{"total_free_speakers" => 8, "proposed_teams" => proposals})
 
-        {"GET", "/api/events/11/participants"} ->
-          ok(conn, speakers ++ judges)
-
-        {"GET", "/api/events/11/teams/auto-generate"} ->
-          ok(conn, %{"total_free_speakers" => 8, "proposed_teams" => proposals})
-
-        {"POST", "/api/rounds/21/rooms"} ->
-          send(test_pid, {:room, params})
-          ok(conn, %{"id" => 71})
-      end
+          {"POST", "/api/rounds/21/rooms"} ->
+            send(test_pid, {:room, params})
+            ok(conn, %{"id" => 71})
+        end
     end)
 
     assert {:ok, 1} = Sessions.make_rooms(head, session)
@@ -147,26 +188,73 @@ defmodule Cab.SessionsTest do
            ] = room_params["teams"]
   end
 
-  test "make_rooms refuses partial rooms and missing judges", %{head: head, club: club} do
-    session = session_fixture(club, engine_event_id: 11)
+  test "make_rooms irons the odd attendance: pairs first, singles last",
+       %{head: head, club: club} do
+    session = closed_session_fixture(club, engine_event_id: 11)
 
-    stub(fn conn, _params ->
-      case conn.request_path do
-        "/api/events/11/rounds" -> ok(conn, [%{"id" => 21, "sequence" => 1}])
-        "/api/events/11/participants" -> ok(conn, [%{"id" => 1, "role" => "speaker"}])
+    # 7 speakers + 1 judge -> one room of 3 pairs + 1 iron single
+    speakers =
+      for id <- 1..7 do
+        %{"id" => id, "role" => "speaker", "display_name" => "Speaker #{id}"}
       end
+
+    judges = [%{"id" => 99, "role" => "adjudicator", "display_name" => "Judge"}]
+
+    proposals = [
+      %{"name" => "Random Team 1", "participant_ids" => [1, 2]},
+      %{"name" => "Random Team 2", "participant_ids" => [3, 4]},
+      %{"name" => "Random Team 3", "participant_ids" => [5, 6]},
+      %{"name" => "Random Team 4", "participant_ids" => [7]}
+    ]
+
+    test_pid = self()
+
+    stub(fn conn, params ->
+      state_stub(conn, speakers ++ judges) ||
+        case {conn.method, conn.request_path} do
+          {"GET", "/api/events/11/teams/auto-generate"} ->
+            ok(conn, %{"total_free_speakers" => 7, "proposed_teams" => proposals})
+
+          {"POST", "/api/rounds/21/rooms"} ->
+            send(test_pid, {:room, params})
+            ok(conn, %{"id" => 71})
+        end
     end)
 
-    assert {:error, "need speakers in multiples of 8" <> _} = Sessions.make_rooms(head, session)
+    assert {:ok, 1} = Sessions.make_rooms(head, session)
+    assert_received {:room, room_params}
+
+    assert [
+             %{"participant_ids" => [1, 2], "position" => 1},
+             %{"participant_ids" => [3, 4], "position" => 2},
+             %{"participant_ids" => [5, 6], "position" => 3},
+             %{"name" => "Speaker", "participant_ids" => [7], "position" => 4}
+           ] = room_params["teams"]
+  end
+
+  test "make_rooms is gated on :closed and refuses thin attendance",
+       %{head: head, club: club} do
+    open_session = session_fixture(club, engine_event_id: 11)
 
     stub(fn conn, _params ->
-      case conn.request_path do
-        "/api/events/11/rounds" ->
-          ok(conn, [%{"id" => 21, "sequence" => 1}])
+      state_stub(conn, for(id <- 1..8, do: %{"id" => id, "role" => "speaker"}))
+    end)
 
-        "/api/events/11/participants" ->
-          ok(conn, for(id <- 1..8, do: %{"id" => id, "role" => "speaker"}))
-      end
+    # the graph gate: sign-ups close -> rooms by attendance
+    assert {:error, :conflict, message} = Sessions.make_rooms(head, open_session)
+    assert message =~ "rooms are composed after sign-ups close (session is signup)"
+
+    session = closed_session_fixture(club, engine_event_id: 11)
+
+    stub(fn conn, _params ->
+      state_stub(conn, [%{"id" => 1, "role" => "speaker"}])
+    end)
+
+    assert {:error, "rooms need 4-8 speakers (have 1 signed up)"} =
+             Sessions.make_rooms(head, session)
+
+    stub(fn conn, _params ->
+      state_stub(conn, for(id <- 1..8, do: %{"id" => id, "role" => "speaker"}))
     end)
 
     assert {:error, "need at least 1 judge(s)" <> _} = Sessions.make_rooms(head, session)
@@ -191,7 +279,7 @@ defmodule Cab.SessionsTest do
   end
 
   test "pairing_proposal returns the auto-pair result without side effects", %{club: club} do
-    session = session_fixture(club, engine_event_id: 11)
+    session = closed_session_fixture(club, engine_event_id: 11)
     {speakers, judges} = signup_cast()
 
     proposals =
@@ -209,41 +297,50 @@ defmodule Cab.SessionsTest do
       end
     end)
 
-    state = %{stage: :signup, signups: speakers ++ judges}
+    state = %{stage: :closed, signups: speakers ++ judges}
 
     assert {:ok, [room]} = Sessions.pairing_proposal(session, state)
     assert room.judge_participant_id == 99
     assert room.teams == [[1, 2], [3, 4], [5, 6], [7, 8]]
     assert_received :proposed
 
-    # attendance must fill whole rooms, with a judge per room
-    assert :unavailable =
+    # odd attendance irons: 7 speakers -> 3 pairs + 1 single, last
+    assert {:ok, [room]} =
              Sessions.pairing_proposal(session, %{
-               stage: :signup,
+               stage: :closed,
                signups: Enum.take(speakers, 7) ++ judges
              })
 
-    assert :unavailable = Sessions.pairing_proposal(session, %{stage: :signup, signups: speakers})
+    assert room.teams == [[1, 2], [3, 4], [5, 6], [7]]
+
+    # a judge per room; 4 speakers minimum; only while :closed
+    assert :unavailable = Sessions.pairing_proposal(session, %{stage: :closed, signups: speakers})
+
+    assert :unavailable =
+             Sessions.pairing_proposal(session, %{
+               stage: :closed,
+               signups: Enum.take(speakers, 3) ++ judges
+             })
+
+    assert :unavailable =
+             Sessions.pairing_proposal(session, %{stage: :signup, signups: speakers ++ judges})
+
     assert :unavailable = Sessions.pairing_proposal(session, %{stage: :running, signups: []})
   end
 
-  test "make_rooms/3 creates rooms exactly as composed", %{head: head, club: club} do
-    session = session_fixture(club, engine_event_id: 11)
+  test "make_rooms/3 creates rooms exactly as composed, irons included",
+       %{head: head, club: club} do
+    session = closed_session_fixture(club, engine_event_id: 11)
     {speakers, judges} = signup_cast()
     test_pid = self()
 
     stub(fn conn, params ->
-      case {conn.method, conn.request_path} do
-        {"GET", "/api/events/11/rounds"} ->
-          ok(conn, [%{"id" => 21, "sequence" => 1}])
-
-        {"GET", "/api/events/11/participants"} ->
-          ok(conn, speakers ++ judges)
-
-        {"POST", "/api/rounds/21/rooms"} ->
-          send(test_pid, {:room, params})
-          ok(conn, %{"id" => 71})
-      end
+      state_stub(conn, speakers ++ judges) ||
+        case {conn.method, conn.request_path} do
+          {"POST", "/api/rounds/21/rooms"} ->
+            send(test_pid, {:room, params})
+            ok(conn, %{"id" => 71})
+        end
     end)
 
     composition = [
@@ -263,19 +360,47 @@ defmodule Cab.SessionsTest do
              %{"participant_ids" => [3, 6], "position" => 3},
              %{"participant_ids" => [4, 5], "position" => 4}
            ] = room_params["teams"]
+
+    # a 1-speaker team is a declared iron — valid composition, the
+    # single speaker goes in alone (speakers 4 and 5 sit out)
+    iron_composition = [
+      %{
+        "judge_participant_id" => 99,
+        "teams" => [[8, 1], [2, 7], [3, 6], [5]]
+      }
+    ]
+
+    assert {:ok, 1} = Sessions.make_rooms(head, session, iron_composition)
+    assert_received {:room, room_params}
+
+    assert [
+             %{"participant_ids" => [8, 1], "position" => 1},
+             %{"participant_ids" => [2, 7], "position" => 2},
+             %{"participant_ids" => [3, 6], "position" => 3},
+             %{"participant_ids" => [5], "position" => 4}
+           ] = room_params["teams"]
+  end
+
+  test "make_rooms/3 is gated on :closed", %{head: head, club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+    {speakers, judges} = signup_cast()
+
+    stub(fn conn, _params -> state_stub(conn, speakers ++ judges) end)
+
+    composition = [
+      %{"judge_participant_id" => 99, "teams" => [[1, 2], [3, 4], [5, 6], [7, 8]]}
+    ]
+
+    assert {:error, :conflict, message} = Sessions.make_rooms(head, session, composition)
+    assert message =~ "rooms are composed after sign-ups close"
   end
 
   test "make_rooms/3 validates the composition against the signups",
        %{head: head, club: club} do
-    session = session_fixture(club, engine_event_id: 11)
+    session = closed_session_fixture(club, engine_event_id: 11)
     {speakers, judges} = signup_cast()
 
-    stub(fn conn, _params ->
-      case {conn.method, conn.request_path} do
-        {"GET", "/api/events/11/rounds"} -> ok(conn, [%{"id" => 21, "sequence" => 1}])
-        {"GET", "/api/events/11/participants"} -> ok(conn, speakers ++ judges)
-      end
-    end)
+    stub(fn conn, _params -> state_stub(conn, speakers ++ judges) end)
 
     compose = fn judge, teams ->
       [%{"judge_participant_id" => judge, "teams" => teams}]
@@ -297,11 +422,26 @@ defmodule Cab.SessionsTest do
 
     assert message =~ "placed more than once"
 
-    # shape: 4 teams of 2, judge required, non-empty list
+    # shape: 4 teams of 1-2 (irons allowed, empties not), judge
+    # required, non-empty list
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6]]))
 
-    assert message =~ "4 teams of 2"
+    assert message =~ "4 teams of 1-2"
+
+    assert {:error, %{rooms: message}} =
+             Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6], []]))
+
+    assert message =~ "4 teams of 1-2"
+
+    assert {:error, %{rooms: message}} =
+             Sessions.make_rooms(
+               head,
+               session,
+               compose.(99, [[1, 2], [3, 4], [5, 6], [7, 8, 1]])
+             )
+
+    assert message =~ "4 teams of 1-2"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, [%{"teams" => full}])
@@ -314,11 +454,10 @@ defmodule Cab.SessionsTest do
     # integer-strings (the HTML compose form) parse fine — but then
     # the engine call runs, so stub the room POST too
     stub(fn conn, _params ->
-      case {conn.method, conn.request_path} do
-        {"GET", "/api/events/11/rounds"} -> ok(conn, [%{"id" => 21, "sequence" => 1}])
-        {"GET", "/api/events/11/participants"} -> ok(conn, speakers ++ judges)
-        {"POST", "/api/rounds/21/rooms"} -> ok(conn, %{"id" => 71})
-      end
+      state_stub(conn, speakers ++ judges) ||
+        case {conn.method, conn.request_path} do
+          {"POST", "/api/rounds/21/rooms"} -> ok(conn, %{"id" => 71})
+        end
     end)
 
     strings =
@@ -336,9 +475,12 @@ defmodule Cab.SessionsTest do
     test_pid = self()
 
     stub(fn conn, params ->
-      assert conn.request_path == "/api/events/11/participants"
-      send(test_pid, {:added, claims(conn), params})
-      ok(conn, %{"id" => 41, "role" => params["role"]})
+      state_stub(conn, []) ||
+        case {conn.method, conn.request_path} do
+          {"POST", "/api/events/11/participants"} ->
+            send(test_pid, {:added, claims(conn), params})
+            ok(conn, %{"id" => 41, "role" => params["role"]})
+        end
     end)
 
     assert {:ok, %{"id" => 41}} = Sessions.signup_for(head, session, member.username, "speak")

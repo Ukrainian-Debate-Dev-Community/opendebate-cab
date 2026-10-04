@@ -32,6 +32,12 @@ defmodule CabWeb.BallotForm do
           {participant["display_name"] || "?", participant["id"]}
         end)
 
+      # a 1-speaker (iron) team carries the same participant on both
+      # engine slots: both position rows prefill that speaker, iron
+      # pre-checked on the second; the dropdown lists them once
+      options = Enum.uniq(speakers)
+      iron_team? = length(speakers) > 1 and length(options) == 1
+
       rows =
         @roles[side]
         |> Enum.with_index()
@@ -41,9 +47,11 @@ defmodule CabWeb.BallotForm do
 
           %{
             role: role,
-            speakers: speakers,
+            speakers: options,
             selected: submitted["speaker"] || default,
-            iron: iron?(submitted["iron"]),
+            iron:
+              iron?(submitted["iron"]) or
+                (is_nil(ballot_params) and iron_team? and index == 1),
             score: submitted["score"]
           }
         end)

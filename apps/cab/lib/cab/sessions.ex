@@ -20,6 +20,8 @@ defmodule Cab.Sessions do
 
   @teams_per_room 4
   @speakers_per_team 2
+  @min_room_speakers 4
+  @max_room_speakers 8
 
   # ---------------------------------------------------------------
   # Rows
@@ -52,29 +54,111 @@ defmodule Cab.Sessions do
   Opens a session: a one-round event in the club's engine organisation,
   ready for sign-ups, plus the gateway row. Motions are NOT set here —
   each room's judge sets their own room's motion once rooms are made.
+  `scheduled_at` is the optional planned start (UTC) — see
+  `parse_schedule/2` for the form's date/time pair.
   """
-  def open(%User{} = head, %Club{} = club, name) do
+  def open(%User{} = head, %Club{} = club, name, scheduled_at \\ nil) do
     name = presence(name) || "Club session #{Date.utc_today()}"
 
     with {:ok, actor} <- actor_for(head),
          {:ok, event} <- EngineApi.create_event(actor, club.engine_organisation_id, name),
          {:ok, _round} <- EngineApi.create_round(actor, event["id"], "Club round", 1) do
-      %Session{club_id: club.id, opened_by_user_id: head.id, engine_event_id: event["id"]}
+      %Session{
+        club_id: club.id,
+        opened_by_user_id: head.id,
+        engine_event_id: event["id"],
+        scheduled_at: scheduled_at
+      }
       |> Session.changeset()
       |> Repo.insert()
     end
   end
 
   @doc """
-  1-click self-registration: the member registers themselves for this
-  session as "speak" or "judge". Their engine counterpart is ensured
-  lazily; the engine enforces one registration per user per event.
+  Parses the open-session form's optional date ("YYYY-MM-DD") and time
+  ("HH:MM") into a `scheduled_at` UTC datetime. No date -> `{:ok, nil}`
+  (a time alone is ignored); malformed input -> `{:error, message}`.
+  """
+  def parse_schedule(date, time) do
+    case presence(date) do
+      nil ->
+        {:ok, nil}
+
+      date_string ->
+        with {:ok, date} <- parse_date(date_string),
+             {:ok, time} <- parse_time(presence(time)) do
+          DateTime.new(date, time, "Etc/UTC")
+        end
+    end
+  end
+
+  defp parse_date(string) do
+    case Date.from_iso8601(string) do
+      {:ok, date} -> {:ok, date}
+      _ -> {:error, "date must be YYYY-MM-DD"}
+    end
+  end
+
+  defp parse_time(nil), do: {:ok, ~T[00:00:00]}
+
+  defp parse_time(string) do
+    case Time.from_iso8601(string <> ":00") do
+      {:ok, time} -> {:ok, time}
+      _ -> {:error, "time must be HH:MM"}
+    end
+  end
+
+  @doc """
+  The head explicitly closes sign-ups (flow-2's "sign-ups close" edge):
+  only possible while `:signup`; rooms are then composed from the
+  final attendance. Returns `{:ok, session}` or
+  `{:error, :conflict, message}` — the 409 gate.
+  """
+  def close_signups(%Session{} = session) do
+    with {:ok, state} <- state(session) do
+      case state.stage do
+        :signup ->
+          session
+          |> Ecto.Changeset.change(signups_closed_at: DateTime.utc_now(:second))
+          |> Repo.update()
+
+        stage ->
+          {:error, :conflict, "sign-ups can only be closed while open (session is #{stage})"}
+      end
+    end
+  end
+
+  @doc """
+  The head reopens sign-ups: only possible while `:closed` (no rooms
+  yet). Returns `{:ok, session}` or `{:error, :conflict, message}`.
+  """
+  def reopen_signups(%Session{} = session) do
+    with {:ok, state} <- state(session) do
+      case state.stage do
+        :closed ->
+          session
+          |> Ecto.Changeset.change(signups_closed_at: nil)
+          |> Repo.update()
+
+        stage ->
+          {:error, :conflict, "sign-ups can only reopen while closed (session is #{stage})"}
+      end
+    end
+  end
+
+  @doc """
+  Registration: the member registers themselves for this session as
+  "speak" or "judge" — only while the session is `:signup` (409 gate
+  once sign-ups close). Their engine counterpart is ensured lazily;
+  the engine enforces one registration per user per event.
   """
   def signup(%User{} = user, %Session{} = session, kind) when kind in ["speak", "judge"] do
     role = if kind == "speak", do: "speaker", else: "adjudicator"
     display_name = presence(user.name) || user.username
 
-    with {:ok, actor} <- actor_for(user) do
+    with {:ok, state} <- state(session),
+         :ok <- require_stage(state, :signup),
+         {:ok, actor} <- actor_for(user) do
       EngineApi.add_participant(actor, session.engine_event_id, display_name, role, actor)
     end
   end
@@ -90,7 +174,9 @@ defmodule Cab.Sessions do
     role = if kind == "speak", do: "speaker", else: "adjudicator"
     club = session_club(session)
 
-    with {:ok, member} <- approved_member(club, username),
+    with {:ok, state} <- state(session),
+         :ok <- require_stage(state, :signup),
+         {:ok, member} <- approved_member(club, username),
          {:ok, member_actor} <- actor_for(member),
          {:ok, head_actor} <- actor_for(head) do
       display_name = presence(member.name) || member.username
@@ -155,9 +241,11 @@ defmodule Cab.Sessions do
 
   @doc """
   The session as the pages and the JSON API see it, composed from
-  engine state: `%{event, round, signups, rooms, stage}` where stage
-  is `:signup` (no rooms yet), `:running` (rooms made) or `:done`
-  (event completed). Reads run as the club head's node user.
+  engine state plus the gateway's registration window:
+  `%{event, round, signups, rooms, stage}` where stage is `:signup`
+  (no rooms, sign-ups open), `:closed` (no rooms, sign-ups closed),
+  `:running` (rooms made) or `:done` (event completed). Reads run as
+  the club head's node user.
   """
   def state(%Session{} = session) do
     club = session_club(session)
@@ -173,132 +261,185 @@ defmodule Cab.Sessions do
          round: round,
          signups: signups,
          rooms: rooms,
-         stage: stage(event, rooms)
+         stage: stage(event, rooms, session)
        }}
     end
   end
 
-  defp stage(%{"status" => "completed"}, _rooms), do: :done
-  defp stage(_event, []), do: :signup
-  defp stage(_event, _rooms), do: :running
+  defp stage(%{"status" => "completed"}, _rooms, _session), do: :done
+  defp stage(_event, [], %Session{signups_closed_at: nil}), do: :signup
+  defp stage(_event, [], %Session{}), do: :closed
+  defp stage(_event, _rooms, _session), do: :running
+
+  # the lifecycle gates: sign-ups while :signup, composition while
+  # :closed — anything else is a 409 for the API, a flash for HTML
+  defp require_stage(%{stage: stage}, stage), do: :ok
+
+  defp require_stage(%{stage: actual}, :signup),
+    do: {:error, :conflict, "sign-ups are not open (session is #{actual})"}
+
+  defp require_stage(%{stage: actual}, :closed),
+    do: {:error, :conflict, "rooms are composed after sign-ups close (session is #{actual})"}
 
   @doc """
   The pairing PROPOSAL the head sees before making rooms: the
-  engine's auto-pair result, computed WITHOUT side effects (nothing
-  is persisted). Available while `state.stage == :signup` and the
-  attendance fills whole rooms (speakers in multiples of
-  #{@speakers_per_team * @teams_per_room}, one judge per room);
-  `:unavailable` otherwise.
+  engine's auto-pair order re-chunked into iron-capable rooms,
+  computed WITHOUT side effects (nothing is persisted). Available
+  while `state.stage == :closed` (rooms are composed from the final
+  attendance) with at least #{@min_room_speakers} speakers and a
+  judge; `:unavailable` otherwise.
 
   Returns `{:ok, rooms}` where each room is
-  `%{judge_participant_id: id, teams: [[pid, pid] x #{@teams_per_room}]}`.
-  Reads run as the club head's node user, like `state/1`.
+  `%{judge_participant_id: id, teams: [[pid] | [pid, pid] x #{@teams_per_room}]}`
+  — pairs first, singles (declared irons) last.
   """
-  def pairing_proposal(%Session{} = session, %{stage: :signup, signups: signups}) do
-    speakers = Enum.filter(signups, &(&1["role"] == "speaker"))
-    judges = Enum.filter(signups, &(&1["role"] == "adjudicator"))
-    room_size = @speakers_per_team * @teams_per_room
-    room_count = div(length(speakers), room_size)
-
-    with true <- room_count >= 1 and rem(length(speakers), room_size) == 0,
-         true <- length(judges) >= room_count,
-         {:ok, actor} <- Clubs.club_actor(session_club(session)),
-         {:ok, %{"proposed_teams" => proposals}} <-
-           EngineApi.propose_teams(actor, session.engine_event_id),
-         true <- length(proposals) == room_count * @teams_per_room do
-      rooms =
-        proposals
-        |> Enum.chunk_every(@teams_per_room)
-        |> Enum.zip(judges)
-        |> Enum.map(fn {chunk, judge} ->
-          %{
-            judge_participant_id: judge["id"],
-            teams: Enum.map(chunk, & &1["participant_ids"])
-          }
-        end)
-
-      {:ok, rooms}
-    else
-      _ -> :unavailable
+  def pairing_proposal(%Session{} = session, %{stage: :closed} = state) do
+    case auto_composition(session, state) do
+      {:ok, rooms} -> {:ok, rooms}
+      {:error, _message} -> :unavailable
     end
   end
 
   def pairing_proposal(%Session{}, _state), do: :unavailable
 
   @doc """
-  Rooms by attendance (ported from v1-mvp): pairs the signed-up
-  speakers into teams of #{@speakers_per_team} via the engine's
-  auto-generate proposal, then creates one room per #{@teams_per_room}
-  teams with signed-up judges as chairs. Requires speakers in
-  multiples of #{@speakers_per_team * @teams_per_room} and one judge
-  per room. Returns `{:ok, rooms_created}`.
+  The auto-pair composition (nothing persisted): the engine's random
+  speaking order chunked into `room_count` rooms (default
+  `floor(speakers / #{@max_room_speakers})`, min 1) of
+  #{@teams_per_room} teams each. Teams hold 1-#{@speakers_per_team}
+  speakers — a 1-speaker team is a declared iron — so a room holds
+  #{@min_room_speakers}-#{@max_room_speakers} speakers; pairs come
+  first, singles last. Speakers beyond the rooms' capacity stay
+  unallocated (the head composes explicitly to choose who sits out).
+  """
+  def auto_composition(%Session{} = session, %{signups: signups}, room_count \\ nil) do
+    speakers = Enum.filter(signups, &(&1["role"] == "speaker"))
+    judges = Enum.filter(signups, &(&1["role"] == "adjudicator"))
+    attendance = length(speakers)
+    rooms = room_count || max(div(attendance, @max_room_speakers), 1)
+
+    cond do
+      attendance < @min_room_speakers ->
+        {:error,
+         "rooms need #{@min_room_speakers}-#{@max_room_speakers} speakers " <>
+           "(have #{attendance} signed up)"}
+
+      rooms > div(attendance, @min_room_speakers) ->
+        {:error,
+         "#{rooms} room(s) need at least #{rooms * @min_room_speakers} speakers " <>
+           "(have #{attendance})"}
+
+      length(judges) < rooms ->
+        {:error, "need at least #{rooms} judge(s) (have #{length(judges)})"}
+
+      true ->
+        with {:ok, order} <- speaking_order(session, speakers) do
+          {:ok,
+           order
+           |> Enum.take(min(attendance, rooms * @max_room_speakers))
+           |> chunk_rooms(rooms)
+           |> Enum.zip(judges)
+           |> Enum.map(fn {teams, judge} ->
+             %{judge_participant_id: judge["id"], teams: teams}
+           end)}
+        end
+    end
+  end
+
+  # the engine's auto-generate proposal flattened to a random speaking
+  # order (free-speaker aware); signups it skipped go last
+  defp speaking_order(session, speakers) do
+    with {:ok, actor} <- Clubs.club_actor(session_club(session)),
+         {:ok, %{"proposed_teams" => proposals}} <-
+           EngineApi.propose_teams(actor, session.engine_event_id) do
+      signed = MapSet.new(speakers, & &1["id"])
+
+      proposed =
+        proposals
+        |> Enum.flat_map(& &1["participant_ids"])
+        |> Enum.filter(&MapSet.member?(signed, &1))
+
+      {:ok, proposed ++ (Enum.map(speakers, & &1["id"]) -- proposed)}
+    end
+  end
+
+  # spreads the placed speakers evenly over the rooms, then cuts each
+  # room into 4 teams: pairs first, singles (irons) last
+  defp chunk_rooms(placed, rooms) do
+    base = div(length(placed), rooms)
+    extra = rem(length(placed), rooms)
+
+    {chunks, _rest} =
+      Enum.map_reduce(0..(rooms - 1), placed, fn index, rest ->
+        size = base + if(index < extra, do: 1, else: 0)
+        {room, rest} = Enum.split(rest, size)
+        {room_teams(room), rest}
+      end)
+
+    chunks
+  end
+
+  defp room_teams(room_speakers) do
+    pairs = length(room_speakers) - @teams_per_room
+    {paired, singles} = Enum.split(room_speakers, pairs * @speakers_per_team)
+    Enum.chunk_every(paired, @speakers_per_team) ++ Enum.map(singles, &[&1])
+  end
+
+  @doc """
+  Rooms by attendance, the gold one-click path: the auto composition
+  (`auto_composition/3`) created for real — only while `:closed` (the
+  graph gate: sign-ups close -> rooms by attendance), 409-style
+  `{:error, :conflict, message}` otherwise. Returns `{:ok, rooms_created}`.
 
   Teams go in INLINE as temporary teams (the engine purges them with
   the room on `delete_rooms/2` and they never lock speakers), which
   is what makes the delete-and-recompose loop possible.
   """
   def make_rooms(%User{} = head, %Session{} = session) do
-    with {:ok, actor} <- actor_for(head),
-         {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
-         {:ok, participants} <- EngineApi.list_participants(actor, session.engine_event_id) do
-      speakers = Enum.filter(participants, &(&1["role"] == "speaker"))
-      judges = Enum.filter(participants, &(&1["role"] == "adjudicator"))
-      room_size = @speakers_per_team * @teams_per_room
-      room_count = div(length(speakers), room_size)
-
-      cond do
-        speakers == [] or rem(length(speakers), room_size) != 0 ->
-          {:error,
-           "need speakers in multiples of #{room_size} to fill rooms " <>
-             "(have #{length(speakers)} signed up)"}
-
-        length(judges) < room_count ->
-          {:error, "need at least #{room_count} judge(s) (have #{length(judges)})"}
-
-        true ->
-          with {:ok, %{"proposed_teams" => proposals}} <-
-                 EngineApi.propose_teams(actor, session.engine_event_id) do
-            specs =
-              Enum.map(proposals, fn proposal ->
-                %{name: team_name(proposal), participant_ids: proposal["participant_ids"]}
-              end)
-
-            create_session_rooms(actor, round, dedupe_names(specs), judges)
-          end
-      end
+    with {:ok, state} <- state(session),
+         :ok <- require_stage(state, :closed),
+         {:ok, rooms} <- auto_composition(session, state),
+         {:ok, actor} <- actor_for(head) do
+      create_composition(actor, state, rooms)
     end
   end
 
   @doc """
   EXPLICIT room composition: the head says who goes where.
   `rooms_spec` is a list of
-  `%{"judge_participant_id" => id, "teams" => [[pid, pid] x #{@teams_per_room}]}`
-  (atom keys and integer-strings accepted). Validated against the
-  signups: every pid a signed-up speaker placed at most once, every
-  judge a signed-up judge chairing at most one room, #{@teams_per_room}
-  teams of #{@speakers_per_team} per room. Returns `{:ok, rooms_created}`
-  or a changeset-style `{:error, %{rooms: message}}`.
+  `%{"judge_participant_id" => id, "teams" => [[pid] | [pid, pid] x #{@teams_per_room}]}`
+  (atom keys and integer-strings accepted) — a 1-speaker team is a
+  declared iron. Only while `:closed`, like `make_rooms/2`. Validated
+  against the signups: every pid a signed-up speaker placed at most
+  once, every judge a signed-up judge chairing at most one room,
+  #{@teams_per_room} teams of 1-#{@speakers_per_team} per room.
+  Returns `{:ok, rooms_created}`, `{:error, :conflict, message}` or a
+  changeset-style `{:error, %{rooms: message}}`.
   """
   def make_rooms(%User{} = head, %Session{} = session, rooms_spec) do
-    with {:ok, actor} <- actor_for(head),
-         {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
-         {:ok, participants} <- EngineApi.list_participants(actor, session.engine_event_id),
-         {:ok, rooms} <- parse_composition(rooms_spec, participants) do
-      by_id = Map.new(participants, &{&1["id"], &1})
-
-      specs =
-        rooms
-        |> Enum.flat_map(& &1.teams)
-        |> Enum.map(fn pids ->
-          %{
-            name: Enum.map_join(pids, " & ", &first_name(by_id[&1]["display_name"])),
-            participant_ids: pids
-          }
-        end)
-
-      judges = Enum.map(rooms, &by_id[&1.judge_participant_id])
-      create_session_rooms(actor, round, dedupe_names(specs), judges)
+    with {:ok, state} <- state(session),
+         :ok <- require_stage(state, :closed),
+         {:ok, rooms} <- parse_composition(rooms_spec, state.signups),
+         {:ok, actor} <- actor_for(head) do
+      create_composition(actor, state, rooms)
     end
+  end
+
+  defp create_composition(actor, state, rooms) do
+    by_id = Map.new(state.signups, &{&1["id"], &1})
+
+    specs =
+      rooms
+      |> Enum.flat_map(& &1.teams)
+      |> Enum.map(fn pids ->
+        %{
+          name: Enum.map_join(pids, " & ", &first_name(by_id[&1]["display_name"])),
+          participant_ids: pids
+        }
+      end)
+
+    judges = Enum.map(rooms, &by_id[&1.judge_participant_id])
+    create_session_rooms(actor, state.round, dedupe_names(specs), judges)
   end
 
   defp parse_composition(rooms_spec, participants)
@@ -344,7 +485,7 @@ defmodule Cab.Sessions do
       |> composition_field(:teams)
       |> List.wrap()
       |> Enum.map(fn
-        pair when is_list(pair) -> Enum.map(pair, &composition_int/1)
+        team when is_list(team) -> Enum.map(team, &composition_int/1)
         _other -> [nil]
       end)
 
@@ -353,15 +494,17 @@ defmodule Cab.Sessions do
         {:halt, {:error, %{rooms: "every room needs a judge_participant_id"}}}
 
       length(teams) != @teams_per_room or
-          Enum.any?(teams, fn pair ->
-            length(pair) != @speakers_per_team or Enum.any?(pair, &(not is_integer(&1)))
+          Enum.any?(teams, fn team ->
+            length(team) not in 1..@speakers_per_team or
+                Enum.any?(team, &(not is_integer(&1)))
           end) ->
         {:halt,
          {:error,
           %{
             rooms:
               "every room needs #{@teams_per_room} teams of " <>
-                "#{@speakers_per_team} speaker participant ids"
+                "1-#{@speakers_per_team} speaker participant ids " <>
+                "(a 1-speaker team is an iron)"
           }}}
 
       true ->
@@ -389,17 +532,6 @@ defmodule Cab.Sessions do
   end
 
   defp composition_int(_value), do: nil
-
-  # "Ann & Bohdan" from the proposal's participants; falls back to the
-  # engine's "Random Team N" name.
-  defp team_name(%{"participants" => participants} = proposal) do
-    case Enum.map(participants || [], &first_name(&1["display_name"])) do
-      [] -> proposal["name"]
-      names -> Enum.join(names, " & ")
-    end
-  end
-
-  defp team_name(proposal), do: proposal["name"]
 
   defp first_name(nil), do: "?"
   defp first_name(display_name), do: display_name |> String.split() |> hd()
@@ -781,16 +913,24 @@ defmodule Cab.Sessions do
          last_round when not is_nil(last_round) <-
            Enum.max_by(rounds, & &1["sequence"], fn -> nil end),
          {:ok, rooms} <- EngineApi.list_rooms(actor, last_round["id"]) do
-      rooms
-      |> Enum.filter(&(&1["status"] in ["completed", "confirmed"]))
-      |> Enum.flat_map(&(&1["RoomTeams"] || []))
-      |> Enum.find(&(&1["rank"] == 1))
-      |> case do
-        nil -> nil
-        winner -> get_in(winner, ["Team", "name"])
-      end
+      winner_from_rooms(rooms)
     else
       _ -> nil
+    end
+  end
+
+  @doc """
+  The winning team's name from a session's rooms: the rank-1 team of
+  a confirmed (or completed) ballot, or `nil` while none exists.
+  """
+  def winner_from_rooms(rooms) do
+    rooms
+    |> Enum.filter(&(&1["status"] in ["completed", "confirmed"]))
+    |> Enum.flat_map(&(&1["RoomTeams"] || []))
+    |> Enum.find(&(&1["rank"] == 1))
+    |> case do
+      nil -> nil
+      winner -> get_in(winner, ["Team", "name"])
     end
   end
 
@@ -843,6 +983,8 @@ defmodule Cab.Sessions do
       %{
         date: session.inserted_at,
         club: club.name,
+        club_uuid: club.uuid,
+        session_uuid: session.uuid,
         role: if(me["role"] == "adjudicator", do: "judge", else: "speaker"),
         won: me["role"] != "adjudicator" and won?(actor, session, me)
       }
