@@ -3,6 +3,7 @@ defmodule CabWeb.OwnerHTML do
 
   # this view's ballot/1 is the page; the kit component stays qualified
   import CabWeb.Ui, except: [ballot: 1]
+  alias Cab.Links
   alias CabWeb.Ui
 
   def show(assigns) do
@@ -137,6 +138,54 @@ defmodule CabWeb.OwnerHTML do
         </.section>
 
         <%= if @current && @state do %>
+          <.section title="Registration">
+            <div class="pad">
+              <.copy_banner id="shared-registration-url" url={url(~p"/r/#{@current.uuid}")}>
+                Share to register guests — no account needed
+              </.copy_banner>
+              <p>
+                {length(@links)} guest registration{if length(@links) != 1, do: "s"} through links.
+                Personal links below are each guest's ONLY access — share one only with its guest.
+              </p>
+            </div>
+            <.table id="guest-links" rows={@links} empty="No guest links issued yet.">
+              <:col :let={link} label="Guest">
+                {link.user.name}
+                <.sub>{link.user.username}</.sub>
+              </:col>
+              <:col :let={link} label="Role">{Links.role_in(link, @state.signups) || "—"}</:col>
+              <:col :let={link} label="Personal link" code>
+                {url(~p"/l/#{link.code}")}
+              </:col>
+              <:col :let={link}>
+                <.copy text={url(~p"/l/#{link.code}")} />
+              </:col>
+              <:col :let={link}>
+                <.link href={~p"/c/#{@club.uuid}/owner/links/#{link.id}/revoke"} method="post">
+                  revoke
+                </.link>
+              </:col>
+            </.table>
+          </.section>
+
+          <.section :if={@state.stage == :signup} title="Issue a guest link">
+            <.form_for
+              id="issue-link-form"
+              action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/links"}
+              description="Register a guest by hand — their personal link lands in the banner above."
+            >
+              <:block name={:name} type={:text} label="Guest name" required />
+              <:block
+                name={:as}
+                type={:select}
+                label="Signs up to"
+                value="speak"
+                options={[{"speak", "speak"}, {"judge", "judge"}]}
+              />
+              <:submit note="The guest appears in tonight's list right away.">Issue link</:submit>
+            </.form_for>
+          </.section>
+
           <.section title="Tonight">
             <.table id="session-signups" rows={@state.signups} empty="Nobody signed up yet.">
               <:col :let={participant} label="Name">{participant["display_name"]}</:col>

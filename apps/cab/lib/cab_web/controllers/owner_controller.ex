@@ -1,8 +1,9 @@
 defmodule CabWeb.OwnerController do
   use CabWeb, :controller
 
-  alias Cab.{Clubs, Sessions}
+  alias Cab.{Clubs, Links, Sessions}
   alias Cab.Clubs.Membership
+  alias Cab.Links.Link
   alias Cab.Sessions.Session
   alias CabWeb.BallotForm
 
@@ -28,6 +29,7 @@ defmodule CabWeb.OwnerController do
       sessions: sessions,
       current: current,
       state: state,
+      links: (current && Links.list_for_session(current)) || [],
       page_title: "#{club.name} · owner"
     )
   end
@@ -125,6 +127,35 @@ defmodule CabWeb.OwnerController do
         error -> error
       end
     end)
+  end
+
+  # POST /c/:club_uuid/owner/sessions/:session_uuid/links — the head
+  # issues a guest registration + personal link by hand; the personal
+  # URL lands in the flash so the head can pass it on
+  def issue_link(conn, %{"session_uuid" => session_uuid} = params) do
+    with_session(conn, session_uuid, fn session ->
+      case Links.register_guest(session, params["name"], params["as"] || "") do
+        {:ok, link} ->
+          {:ok, "guest link for #{link.user.name}: #{url(~p"/l/#{link.code}")}"}
+
+        error ->
+          error
+      end
+    end)
+  end
+
+  # POST /c/:club_uuid/owner/links/:id/revoke — the personal URL
+  # stops working immediately (any signup stays; remove it above)
+  def revoke_link(conn, %{"id" => id}) do
+    with {id, ""} <- Integer.parse(id),
+         %Link{} = link <- Links.get_link(id),
+         true <- link.club_id == conn.assigns.club.id,
+         {:ok, _link} <- Links.revoke(link) do
+      back(conn, info: "guest link revoked — it stops working immediately")
+    else
+      {:error, message} -> back(conn, error: error_message(message))
+      _ -> conn |> send_resp(404, "not found") |> halt()
+    end
   end
 
   # POST /c/:club_uuid/owner/sessions/:session_uuid/signups/:participant_id/remove
@@ -403,5 +434,6 @@ defmodule CabWeb.OwnerController do
 
   defp error_message(message) when is_binary(message), do: message
   defp error_message(%{rooms: message}), do: message
+  defp error_message(%{name: message}), do: message
   defp error_message(other), do: inspect(other)
 end
