@@ -21,7 +21,7 @@ defmodule CabWeb.ClubPublicHTML do
         </:seg>
         <:seg
           :if={@club_role == :public and @current_user}
-          href={~p"/api/v1/clubs/#{@club.uuid}/join-requests"}
+          href={~p"/c/#{@club.uuid}/join"}
           method="post"
           primary
         >

@@ -31,8 +31,10 @@ defmodule CabWeb.Router do
   scope "/c/:club_uuid", CabWeb do
     pipe_through :browser
 
-    # public tree: profile + history
+    # public tree: profile + history; join is the HTML twin of the
+    # join-requests API action (redirect + flash, never JSON)
     get "/", ClubPublicController, :show
+    post "/join", ClubPublicController, :join
 
     # member tree: sessions, signup, the room judge's ballot
     get "/member", MemberController, :show

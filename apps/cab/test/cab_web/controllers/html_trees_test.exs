@@ -77,6 +77,41 @@ defmodule CabWeb.HtmlTreesTest do
     refute html =~ "Request to join"
   end
 
+  test "browser join request posts the HTML twin and lands back with a flash",
+       %{conn: conn, club: club} do
+    user = user_fixture()
+
+    stub(fn conn, _params ->
+      case conn.request_path do
+        "/api/events/organisation/3" -> ok(conn, [])
+      end
+    end)
+
+    # the public page's gold segment points at the in-tree twin
+    html = conn |> log_in(user) |> get(~p"/c/#{club.uuid}") |> html_response(200)
+    assert html =~ ~s(href="/c/#{club.uuid}/join")
+    refute html =~ "/api/v1/clubs"
+
+    sent = conn |> log_in(user) |> post(~p"/c/#{club.uuid}/join")
+    assert redirected_to(sent) == "/c/#{club.uuid}"
+    assert Phoenix.Flash.get(sent.assigns.flash, :info) =~ "club head will approve"
+    assert [request] = Cab.Clubs.list_join_requests(club)
+    assert request.user_id == user.id
+
+    # a duplicate is still a redirect + flash, never JSON
+    dup = conn |> log_in(user) |> post(~p"/c/#{club.uuid}/join")
+    assert redirected_to(dup) == "/c/#{club.uuid}"
+    assert Phoenix.Flash.get(dup.assigns.flash, :error) =~ "already a member or pending"
+
+    # anonymous visitors have no join action
+    anon =
+      conn
+      |> Plug.Conn.put_private(:plug_skip_csrf_protection, true)
+      |> post(~p"/c/#{club.uuid}/join")
+
+    assert response(anon, 403)
+  end
+
   test "owner page lists join requests; approve flips them",
        %{conn: conn, club: club, head: head} do
     user = user_fixture(%{username: "wannabe"})
