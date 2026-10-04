@@ -90,26 +90,35 @@ req lviv-head PATCH "/api/v1/join-requests/$rid" '{"action":"approve"}'
 
 cat <<EOF
 
-PRIMED. Your world ($ME):
-  cabinet        $BASE/
-  Kyiv (head)    $BASE/c/$KYIV/owner
-                 - 1 pending request (demo-nina): approve or decline
+PRIMED. Your world ($ME) — the canonical eight:
+  P1 sign-in     $BASE/signin
+  P2/P3 home     $BASE/   (front page signed out, cabinet signed in)
+  P4 Kyiv        $BASE/c/$KYIV
+  P7 standings   $BASE/c/$KYIV/standings
+  P8 Kyiv owner  $BASE/c/$KYIV/owner
+                 - section tabs: Registration | Requests | Tonight |
+                   Rooms | Members | Settings (?tab=..., counters
+                   pull you to pending work)
+                 - 1 pending request (demo-nina): the Requests tab
                  - session "Thursday practice" with sign-ups OPEN,
-                   8 speakers + 1 judge registered.
-                 - guest registration (M6): the owner page's
-                   REGISTRATION section carries the shareable URL
+                   8 speakers + 1 judge registered (Tonight tab)
+                 - guest registration (M6): the Registration tab
+                   carries the shareable URL
                    $BASE/r/$SESS
                    - anyone opens it, registers by name, and gets a
-                   personal /l/<code> link that IS their access
-                   (issue, copy and revoke links from that section).
+                   personal /l/<code> link that signs them in and
+                   lands on the session page (issue, copy and revoke
+                   links from that tab).
                    Click CLOSE SIGN-UPS,
                    then Make rooms (auto) or Compose rooms
                    (drag-and-drop chips into slots; a 1-speaker team
                    is an iron) -> per-room ballots (you have full
                    control; or act as the judge:
                    $BASE/dev/switch-user?username=demo-j1)
-                 - Finish session -> winner in history -> click the
-                   history row for the public session page
+                 - Finish session -> the session page (P6) shows the
+                   winner; standings (P7) pick it up
+  P6 session     $BASE/c/$KYIV/s/$SESS
+  P5 member page $BASE/c/$KYIV/member (as an approved member)
   Lviv (public)  $BASE/c/$LVIV
                  - Request to join, then approve yourself as the head:
                    $BASE/dev/switch-user?username=demo-lviv-head
