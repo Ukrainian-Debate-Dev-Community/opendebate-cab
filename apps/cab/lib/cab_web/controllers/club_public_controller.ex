@@ -15,6 +15,10 @@ defmodule CabWeb.ClubPublicController do
         {:error, _message} -> []
       end
 
-    render(conn, :show, history: history, page_title: club.name)
+    render(conn, :show,
+      history: history,
+      members: Clubs.list_members(club),
+      page_title: club.name
+    )
   end
 end

@@ -120,6 +120,27 @@ defmodule Cab.Clubs do
     )
   end
 
+  @doc "The user's memberships (pending ones included) with clubs, oldest first."
+  def list_user_memberships(%User{} = user) do
+    Repo.all(
+      from m in Membership,
+        where: m.user_id == ^user.id,
+        order_by: m.inserted_at,
+        preload: [:club]
+    )
+  end
+
+  @doc "Approved-member counts for the given club ids, as `%{club_id => count}`."
+  def member_counts(club_ids) do
+    Repo.all(
+      from m in Membership,
+        where: m.club_id in ^club_ids and m.status == "approved",
+        group_by: m.club_id,
+        select: {m.club_id, count(m.id)}
+    )
+    |> Map.new()
+  end
+
   @doc "Pending join requests with users, oldest first."
   def list_join_requests(%Club{} = club) do
     Repo.all(

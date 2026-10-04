@@ -49,6 +49,32 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ club.name
     assert html =~ "Night 1"
     assert html =~ "Winners"
+
+    # assembled from the kit: chrome + sections of table/cards
+    assert html =~ ~s(class="chrome")
+    assert html =~ ~s(class="section")
+    assert html =~ ~s(class="t" id="club-history")
+    assert html =~ ~s(class="stage ok")
+
+    # anonymous: quiet Sign in + the gold conversion routes to sign-in
+    assert html =~ "Sign in"
+    assert html =~ "Request to join"
+    assert html =~ ~s(class="go")
+    refute html =~ "Member area"
+  end
+
+  test "public page as a member swaps the join segment for the member area",
+       %{conn: conn, club: club, head: head} do
+    stub(fn conn, _params ->
+      case conn.request_path do
+        "/api/events/organisation/3" -> ok(conn, [])
+      end
+    end)
+
+    html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}") |> html_response(200)
+    assert html =~ "Member area"
+    assert html =~ "Owner area"
+    refute html =~ "Request to join"
   end
 
   test "owner page lists join requests; approve flips them",
@@ -135,9 +161,35 @@ defmodule CabWeb.HtmlTreesTest do
     end)
 
     html = conn |> log_in(member) |> get(~p"/c/#{club.uuid}/member") |> html_response(200)
-    assert html =~ "signup-speak-form"
-    assert html =~ "signup-judge-form"
-    assert html =~ "stage: signup"
+
+    # the two sign-up actions are chrome segments; the speak one is gold
+    assert html =~ "I speak tonight"
+    assert html =~ "I judge"
+    assert html =~ "signups?as=speak"
+    assert html =~ "signups?as=judge"
+    assert html =~ ~s(data-method="post")
+    assert html =~ ~s(class="stage ok")
+    assert html =~ "sign-up open"
+
+    # member templates never reference owner segments
+    refute html =~ "Make rooms"
+    refute html =~ "Open session"
+    refute html =~ "Finish session"
+    refute html =~ "/owner"
+  end
+
+  test "owner page shows role-scoped chrome segments and the session form",
+       %{conn: conn, club: club, head: head} do
+    html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
+
+    # no session yet: the gold segment and the form both open one
+    assert html =~ "Open session"
+    assert html =~ ~s(class="go")
+    assert html =~ ~s(id="open-session-form")
+    assert html =~ ~s(class="form")
+    assert html =~ ~s(id="members-list")
+    assert html =~ ~s(id="join-requests")
+    refute html =~ "Make rooms"
   end
 
   test "signup for another club's session is 404", %{conn: conn, club: club} do

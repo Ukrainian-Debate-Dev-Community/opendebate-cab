@@ -33,17 +33,7 @@ defmodule CabWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="px-4 sm:px-6 lg:px-8 py-3 border-b border-base-300">
-      <.link navigate={~p"/"} class="font-semibold">cab</.link>
-    </header>
-
-    <main class="px-4 py-10 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
-        {render_slot(@inner_block)}
-      </div>
-    </main>
-
-    <.flash_group flash={@flash} />
+    {render_slot(@inner_block)}
     """
   end
 
