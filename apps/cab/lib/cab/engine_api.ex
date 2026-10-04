@@ -43,6 +43,9 @@ defmodule Cab.EngineApi do
     scheduled|in_progress|completed — owner/organiser
   - `GET /events/organisation/:organisationId` — any authed
   - `GET /events/:eventId/access` -> data{isPrivileged}
+  - `DELETE /events/:eventId` — owner/organiser; archives (soft) by
+    default, `?hard=true` is admin-only. Archived events drop out of
+    all paranoid listings.
 
   ### Organizers (event roles)
   - `GET /events/:eventId/organizers`
@@ -63,6 +66,12 @@ defmodule Cab.EngineApi do
     — bulk, owner/organiser
   - `PATCH /events/:eventId/eliminations` {status, team_ids[]?,
     participant_ids[]?} — owner/organiser (adjudicators not eliminable)
+  - `DELETE /events/:eventId/participants/:pid` — owner/organiser;
+    archives. 409 while a TeamMember row or a RoomAdjudicator seat
+    exists for the participant — NOTE these checks do not join the
+    (paranoid) Team/Room, so a participant who was EVER paired stays
+    unremovable even after their team/room was archived. Removal is
+    therefore a sign-up-stage operation.
 
   ### Teams
   - `GET /events/:eventId/teams` -> data [{id,name,is_temporary,
@@ -80,6 +89,18 @@ defmodule Cab.EngineApi do
   - `POST /events/:eventId/rounds` {name, sequence, is_hidden?} -> 201
   - `PUT /rounds/:roundId` {name?,sequence?,status?,is_hidden?}
   - `PATCH /events/:eventId/rounds/release-all` — un-hides all rounds
+
+  ### Teams vs rooms lifecycle (verified for the rebuild loop)
+  - POST rooms accepts `{name, participant_ids, position}` entries
+    which create TEMPORARY teams inline; `DELETE /rooms/:roomId`
+    purges those temporary teams together with the (pending) room.
+  - Temporary teams never lock speakers: both auto-generate's
+    free-speaker check and createTeam's one-permanent-team-per-event
+    rule only count `is_temporary: false` teams, joined through the
+    paranoid Team model (archived teams don't count either).
+  - The team-name-unique-per-event index is partial
+    (`where archived_at is null`), so names can be reused after a
+    rebuild. => club pairing uses inline temporary teams.
 
   ### Rooms (no auto-generate endpoint — rooms are created explicitly)
   - `GET /rounds/:roundId/rooms` -> data [{id,status,Format,
@@ -210,6 +231,11 @@ defmodule Cab.EngineApi do
     Engine.put(actor, "/api/events/#{event_id}", attrs) |> unwrap()
   end
 
+  @doc "Archives an event (soft delete; owner/organiser)."
+  def delete_event(actor, event_id) do
+    Engine.delete(actor, "/api/events/#{event_id}") |> unwrap()
+  end
+
   # ---------------------------------------------------------------
   # Organizers
   # ---------------------------------------------------------------
@@ -284,6 +310,15 @@ defmodule Cab.EngineApi do
 
   def list_participants(actor, event_id) do
     Engine.get(actor, "/api/events/#{event_id}/participants") |> unwrap()
+  end
+
+  @doc """
+  Removes (archives) an event participant. Owner/organiser-only in
+  the engine; 409 while the participant is attached to a team or
+  seated as a room adjudicator — see the module audit.
+  """
+  def delete_participant(actor, event_id, participant_id) do
+    Engine.delete(actor, "/api/events/#{event_id}/participants/#{participant_id}") |> unwrap()
   end
 
   def check_in(actor, event_id, participant_ids, status \\ true) do

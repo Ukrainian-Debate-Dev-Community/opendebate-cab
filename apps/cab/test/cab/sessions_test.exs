@@ -89,7 +89,7 @@ defmodule Cab.SessionsTest do
     end
   end
 
-  test "make_rooms pairs attendance into teams and rooms with judge chairs",
+  test "make_rooms pairs attendance into inline temporary teams with judge chairs",
        %{head: head, club: club} do
     session = session_fixture(club, engine_event_id: 11)
 
@@ -125,10 +125,6 @@ defmodule Cab.SessionsTest do
         {"GET", "/api/events/11/teams/auto-generate"} ->
           ok(conn, %{"total_free_speakers" => 8, "proposed_teams" => proposals})
 
-        {"POST", "/api/events/11/teams"} ->
-          send(test_pid, {:team, params["name"], params["participant_ids"]})
-          ok(conn, %{"id" => 50 + hd(params["participant_ids"])})
-
         {"POST", "/api/rounds/21/rooms"} ->
           send(test_pid, {:room, params})
           ok(conn, %{"id" => 71})
@@ -137,16 +133,17 @@ defmodule Cab.SessionsTest do
 
     assert {:ok, 1} = Sessions.make_rooms(head, session)
 
-    assert_received {:team, "Speaker & Speaker", [1, 2]}
     assert_received {:room, room_params}
     assert room_params["format_id"] == 1
     assert [%{"participant_id" => 99, "role" => "chair"}] = room_params["adjudicators"]
 
+    # teams go in inline (temporary — purged with the room on a
+    # rebuild); colliding first-name names get a suffix
     assert [
-             %{"team_id" => 51, "position" => 1},
-             %{"team_id" => 53, "position" => 2},
-             %{"team_id" => 55, "position" => 3},
-             %{"team_id" => 57, "position" => 4}
+             %{"name" => "Speaker & Speaker", "participant_ids" => [1, 2], "position" => 1},
+             %{"name" => "Speaker & Speaker 2", "participant_ids" => [3, 4], "position" => 2},
+             %{"name" => "Speaker & Speaker 3", "participant_ids" => [5, 6], "position" => 3},
+             %{"name" => "Speaker & Speaker 4", "participant_ids" => [7, 8], "position" => 4}
            ] = room_params["teams"]
   end
 
@@ -173,6 +170,328 @@ defmodule Cab.SessionsTest do
     end)
 
     assert {:error, "need at least 1 judge(s)" <> _} = Sessions.make_rooms(head, session)
+  end
+
+  defp signup_cast do
+    speakers =
+      for id <- 1..8 do
+        %{
+          "id" => id,
+          "role" => "speaker",
+          "display_name" => "Speaker #{id}",
+          "user_id" => 400 + id
+        }
+      end
+
+    judges = [
+      %{"id" => 99, "role" => "adjudicator", "display_name" => "Judge", "user_id" => 499}
+    ]
+
+    {speakers, judges}
+  end
+
+  test "pairing_proposal returns the auto-pair result without side effects", %{club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+    {speakers, judges} = signup_cast()
+
+    proposals =
+      for n <- 0..3 do
+        %{"name" => "Random Team #{n + 1}", "participant_ids" => [2 * n + 1, 2 * n + 2]}
+      end
+
+    test_pid = self()
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11/teams/auto-generate"} ->
+          send(test_pid, :proposed)
+          ok(conn, %{"total_free_speakers" => 8, "proposed_teams" => proposals})
+      end
+    end)
+
+    state = %{stage: :signup, signups: speakers ++ judges}
+
+    assert {:ok, [room]} = Sessions.pairing_proposal(session, state)
+    assert room.judge_participant_id == 99
+    assert room.teams == [[1, 2], [3, 4], [5, 6], [7, 8]]
+    assert_received :proposed
+
+    # attendance must fill whole rooms, with a judge per room
+    assert :unavailable =
+             Sessions.pairing_proposal(session, %{
+               stage: :signup,
+               signups: Enum.take(speakers, 7) ++ judges
+             })
+
+    assert :unavailable = Sessions.pairing_proposal(session, %{stage: :signup, signups: speakers})
+    assert :unavailable = Sessions.pairing_proposal(session, %{stage: :running, signups: []})
+  end
+
+  test "make_rooms/3 creates rooms exactly as composed", %{head: head, club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+    {speakers, judges} = signup_cast()
+    test_pid = self()
+
+    stub(fn conn, params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, speakers ++ judges)
+
+        {"POST", "/api/rounds/21/rooms"} ->
+          send(test_pid, {:room, params})
+          ok(conn, %{"id" => 71})
+      end
+    end)
+
+    composition = [
+      %{
+        "judge_participant_id" => 99,
+        "teams" => [[8, 1], [2, 7], [3, 6], [4, 5]]
+      }
+    ]
+
+    assert {:ok, 1} = Sessions.make_rooms(head, session, composition)
+    assert_received {:room, room_params}
+    assert [%{"participant_id" => 99, "role" => "chair"}] = room_params["adjudicators"]
+
+    assert [
+             %{"participant_ids" => [8, 1], "position" => 1},
+             %{"participant_ids" => [2, 7], "position" => 2},
+             %{"participant_ids" => [3, 6], "position" => 3},
+             %{"participant_ids" => [4, 5], "position" => 4}
+           ] = room_params["teams"]
+  end
+
+  test "make_rooms/3 validates the composition against the signups",
+       %{head: head, club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+    {speakers, judges} = signup_cast()
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11/rounds"} -> ok(conn, [%{"id" => 21, "sequence" => 1}])
+        {"GET", "/api/events/11/participants"} -> ok(conn, speakers ++ judges)
+      end
+    end)
+
+    compose = fn judge, teams ->
+      [%{"judge_participant_id" => judge, "teams" => teams}]
+    end
+
+    full = [[1, 2], [3, 4], [5, 6], [7, 8]]
+
+    # a speaker cannot chair; a stranger cannot speak; nobody twice
+    assert {:error, %{rooms: message}} = Sessions.make_rooms(head, session, compose.(1, full))
+    assert message =~ "not a signed-up judge"
+
+    assert {:error, %{rooms: message}} =
+             Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6], [7, 999]]))
+
+    assert message =~ "999 is not a signed-up speaker"
+
+    assert {:error, %{rooms: message}} =
+             Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6], [7, 1]]))
+
+    assert message =~ "placed more than once"
+
+    # shape: 4 teams of 2, judge required, non-empty list
+    assert {:error, %{rooms: message}} =
+             Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6]]))
+
+    assert message =~ "4 teams of 2"
+
+    assert {:error, %{rooms: message}} =
+             Sessions.make_rooms(head, session, [%{"teams" => full}])
+
+    assert message =~ "judge_participant_id"
+
+    assert {:error, %{rooms: _}} = Sessions.make_rooms(head, session, [])
+    assert {:error, %{rooms: _}} = Sessions.make_rooms(head, session, "nope")
+
+    # integer-strings (the HTML compose form) parse fine — but then
+    # the engine call runs, so stub the room POST too
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11/rounds"} -> ok(conn, [%{"id" => 21, "sequence" => 1}])
+        {"GET", "/api/events/11/participants"} -> ok(conn, speakers ++ judges)
+        {"POST", "/api/rounds/21/rooms"} -> ok(conn, %{"id" => 71})
+      end
+    end)
+
+    strings =
+      compose.("99", [["1", "2"], ["3", "4"], ["5", "6"], ["7", "8"]])
+
+    assert {:ok, 1} = Sessions.make_rooms(head, session, strings)
+  end
+
+  test "signup_for signs an approved member up on the head's behalf",
+       %{head: head, club: club} do
+    member = user_fixture(%{node_user_id: 44, name: "Ann B"})
+    membership_fixture(member, club)
+    outsider = user_fixture(%{node_user_id: 55})
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    stub(fn conn, params ->
+      assert conn.request_path == "/api/events/11/participants"
+      send(test_pid, {:added, claims(conn), params})
+      ok(conn, %{"id" => 41, "role" => params["role"]})
+    end)
+
+    assert {:ok, %{"id" => 41}} = Sessions.signup_for(head, session, member.username, "speak")
+
+    # registered AS the head, FOR the member's engine user
+    assert_received {:added, %{"id" => 9}, params}
+
+    assert params == %{
+             "display_name" => "Ann B",
+             "role" => "speaker",
+             "user_id" => 44
+           }
+
+    # only approved members; only real kinds
+    assert {:error, message} = Sessions.signup_for(head, session, outsider.username, "speak")
+    assert message =~ "not an approved member"
+    assert {:error, message} = Sessions.signup_for(head, session, "who-dis", "judge")
+    assert message =~ "not an approved member"
+    assert {:error, message} = Sessions.signup_for(head, session, member.username, "watch")
+    assert message =~ ~s("speak" or "judge")
+  end
+
+  test "remove_signup: the head removes anyone, a member only themselves",
+       %{head: head, club: club} do
+    member = user_fixture(%{node_user_id: 44})
+    membership_fixture(member, club)
+    other = user_fixture(%{node_user_id: 55})
+    membership_fixture(other, club)
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    participants = [
+      %{"id" => 41, "user_id" => 44, "role" => "speaker", "display_name" => "m"},
+      %{"id" => 42, "user_id" => 55, "role" => "speaker", "display_name" => "o"}
+    ]
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, participants)
+
+        {"DELETE", "/api/events/11/participants/" <> pid} ->
+          send(test_pid, {:deleted, pid, claims(conn)})
+          Req.Test.json(conn, %{"status" => "success", "message" => "Participant archived."})
+      end
+    end)
+
+    # a member cannot remove someone else's signup
+    assert {:error, :forbidden} = Sessions.remove_signup(member, session, 42)
+    refute_received {:deleted, _pid, _claims}
+
+    # self-removal — the engine call still runs as the club head
+    # (participant deletion is owner-only in the engine)
+    assert :ok = Sessions.remove_signup(member, session, 41)
+    assert_received {:deleted, "41", %{"id" => 9}}
+
+    # the head removes anyone
+    assert :ok = Sessions.remove_signup(head, session, 42)
+    assert_received {:deleted, "42", %{"id" => 9}}
+
+    assert {:error, "participant 77 is not signed up" <> _} =
+             Sessions.remove_signup(head, session, 77)
+  end
+
+  test "delete_rooms removes pending rooms only", %{head: head, club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    rooms_stub = fn rooms ->
+      stub(fn conn, _params ->
+        case {conn.method, conn.request_path} do
+          {"GET", "/api/events/11/rounds"} ->
+            ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+          {"GET", "/api/rounds/21/rooms"} ->
+            ok(conn, rooms)
+
+          {"DELETE", "/api/rooms/" <> id} ->
+            send(test_pid, {:deleted_room, id})
+            Req.Test.json(conn, %{"status" => "success", "message" => "Room archived."})
+        end
+      end)
+    end
+
+    rooms_stub.([%{"id" => 71, "status" => "pending"}, %{"id" => 72, "status" => "pending"}])
+    assert {:ok, 2} = Sessions.delete_rooms(head, session)
+    assert_received {:deleted_room, "71"}
+    assert_received {:deleted_room, "72"}
+
+    rooms_stub.([%{"id" => 71, "status" => "pending"}, %{"id" => 72, "status" => "judging"}])
+    assert {:error, "only pending rooms" <> _} = Sessions.delete_rooms(head, session)
+    refute_received {:deleted_room, _id}
+
+    rooms_stub.([])
+    assert {:error, "this session has no rooms" <> _} = Sessions.delete_rooms(head, session)
+  end
+
+  test "reopen_room unconfirms a confirmed room first", %{head: head, club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    room_stub = fn status ->
+      stub(fn conn, _params ->
+        case {conn.method, conn.request_path} do
+          {"GET", "/api/events/11/rounds"} ->
+            ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+          {"GET", "/api/rounds/21/rooms"} ->
+            ok(conn, [%{"id" => 71, "status" => status}])
+
+          {"PATCH", "/api/rooms/71/" <> step} ->
+            send(test_pid, {:step, step})
+            Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
+        end
+      end)
+    end
+
+    room_stub.("confirmed")
+    assert :ok = Sessions.reopen_room(head, session, 71)
+    assert_received {:step, "unconfirm"}
+    assert_received {:step, "reopen"}
+
+    room_stub.("completed")
+    assert :ok = Sessions.reopen_room(head, session, 71)
+    assert_received {:step, "reopen"}
+    refute_received {:step, "unconfirm"}
+
+    room_stub.("pending")
+    assert {:error, message} = Sessions.reopen_room(head, session, 71)
+    assert message =~ "room is pending"
+
+    room_stub.("confirmed")
+
+    assert {:error, "room 72 is not part of this session"} =
+             Sessions.reopen_room(head, session, 72)
+  end
+
+  test "cancel archives the engine event and removes the gateway row",
+       %{head: head, club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"DELETE", "/api/events/11"} ->
+          send(test_pid, :event_deleted)
+          Req.Test.json(conn, %{"status" => "success", "message" => "Event archived."})
+      end
+    end)
+
+    assert {:ok, _deleted} = Sessions.cancel(head, session)
+    assert_received :event_deleted
+    assert Sessions.get_by_uuid(session.uuid) == nil
   end
 
   # Engine room: chair user 77, 4 teams at positions 1..4; team at

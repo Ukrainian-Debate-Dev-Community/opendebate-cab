@@ -143,4 +143,42 @@ defmodule Cab.ClubsTest do
       assert event["winner"] == "Winners"
     end
   end
+
+  describe "update_club/2" do
+    test "edits name and city; the name stays required" do
+      head = user_fixture()
+      club = club_fixture(head, %{name: "Old Name", city: "Kyiv"})
+
+      assert {:ok, updated} = Clubs.update_club(club, %{"name" => "New Name", "city" => "Lviv"})
+      assert updated.name == "New Name"
+      assert updated.city == "Lviv"
+      assert updated.uuid == club.uuid
+
+      assert {:error, changeset} = Clubs.update_club(club, %{"name" => ""})
+      assert %{name: ["can't be blank"]} = errors_on(changeset)
+    end
+  end
+
+  describe "remove_member/2" do
+    test "removes a member row; never the head; 'no such member' otherwise" do
+      head = user_fixture()
+      club = club_fixture(head)
+      member = user_fixture()
+      membership_fixture(member, club)
+
+      assert {:ok, _} = Clubs.remove_member(club, member.id)
+      assert Clubs.role_for(club, member) == :public
+
+      assert {:error, "the club head cannot be removed"} = Clubs.remove_member(club, head.id)
+      assert Clubs.role_for(club, head) == :owner
+
+      assert {:error, "no such member" <> _} = Clubs.remove_member(club, member.id)
+
+      # a pending request can be removed too (same as declining)
+      pending = user_fixture()
+      {:ok, _} = Clubs.request_join(pending, club)
+      assert {:ok, _} = Clubs.remove_member(club, pending.id)
+      assert Clubs.list_join_requests(club) == []
+    end
+  end
 end

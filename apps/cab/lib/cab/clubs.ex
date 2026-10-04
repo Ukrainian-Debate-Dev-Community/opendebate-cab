@@ -52,6 +52,11 @@ defmodule Cab.Clubs do
     end
   end
 
+  @doc "The head edits the club profile (name, city) — gateway row only."
+  def update_club(%Club{} = club, attrs) do
+    club |> Club.changeset(attrs) |> Repo.update()
+  end
+
   @doc """
   The viewer's actual role in a club: `:owner` (head membership),
   `:member` (approved membership) or `:public`.
@@ -108,6 +113,20 @@ defmodule Cab.Clubs do
 
   def decline_join(%Membership{status: "pending"} = membership), do: Repo.delete(membership)
   def decline_join(%Membership{}), do: {:error, "join request is not pending"}
+
+  @doc """
+  The head removes a member: the gateway membership row goes away
+  (the engine shadow user and any past participations stay — history
+  is debate data and the engine owns it). The head's own row is
+  protected; removing a pending row is the same as declining it.
+  """
+  def remove_member(%Club{} = club, user_id) when is_integer(user_id) do
+    case Repo.get_by(Membership, club_id: club.id, user_id: user_id) do
+      nil -> {:error, "no such member in this club"}
+      %Membership{role: "head"} -> {:error, "the club head cannot be removed"}
+      membership -> Repo.delete(membership)
+    end
+  end
 
   @doc "Approved memberships with users, head first."
   def list_members(%Club{} = club) do

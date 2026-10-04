@@ -13,6 +13,11 @@ defmodule Cab.Accounts do
 
   def get_user(id), do: Repo.get(User, id)
 
+  def get_user_by_username(username) when is_binary(username),
+    do: Repo.get_by(User, username: username)
+
+  def get_user_by_username(_username), do: nil
+
   def list_users, do: Repo.all(from u in User, order_by: u.username)
 
   @doc """
