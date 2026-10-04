@@ -57,7 +57,7 @@ defmodule CabWeb.Layouts do
             <h6>Our organisation</h6>
             <p>
               Run by the NGO Debate Federation of Ukraine
-              (ГО «Дебатна Федерація України»).
+              (ВМГО «Дебатна Федерація України»).
             </p>
           </div>
         </div>
