@@ -7,6 +7,7 @@ defmodule Cab.Fixtures do
 
   alias Cab.Accounts.User
   alias Cab.Clubs.{Club, Membership}
+  alias Cab.Links.Link
   alias Cab.Repo
   alias Cab.Sessions.Session
 
@@ -49,6 +50,14 @@ defmodule Cab.Fixtures do
     }
     |> Session.changeset()
     |> Repo.insert!()
+  end
+
+  @doc "A guest's personal link for the session (code generated server-side)."
+  def link_fixture(%User{} = guest, %Session{} = session) do
+    %Link{user_id: guest.id, club_id: session.club_id, session_id: session.id}
+    |> Link.changeset()
+    |> Repo.insert!()
+    |> Map.put(:user, guest)
   end
 
   @doc "A session whose sign-ups the head already closed (stage :closed while no rooms exist)."
