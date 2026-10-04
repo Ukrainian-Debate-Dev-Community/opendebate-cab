@@ -38,8 +38,35 @@ defmodule CabWeb.Layouts do
     </main>
     <footer class="footer">
       <div class="in">
-        <span><b>cab</b> · NGO Debate Federation of Ukraine</span>
-        <a href="https://uadebate.com">uadebate.com</a>
+        <div class="cols">
+          <div>
+            <h6>cab runs on the uadebate platform</h6>
+            <p>
+              Open infrastructure for debate clubs and tournaments, built by the
+              NGO Debate Federation of Ukraine. Free for every Ukrainian club.
+            </p>
+          </div>
+          <div>
+            <h6>Find your club</h6>
+            <p>
+              Clubs across Ukraine run weekly practice rounds.
+              Pick one on <a href="https://uadebate.com">uadebate.com</a> and come debate.
+            </p>
+          </div>
+          <div>
+            <h6>Our organisation</h6>
+            <p>
+              Run by the NGO Debate Federation of Ukraine
+              (ГО «Дебатна Федерація України»).
+            </p>
+          </div>
+        </div>
+        <div class="links">
+          <a href="https://uadebate.com">uadebate.com</a>
+          <a href="https://dfu.uadebate.com">DFU</a>
+          <a href="mailto:support@uadebate.com">Support</a>
+          <a href="mailto:ngo.dfu@uadebate.com">Contact</a>
+        </div>
       </div>
     </footer>
     """
