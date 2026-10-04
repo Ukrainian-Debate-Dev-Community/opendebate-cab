@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# M1/M3/M4/M5/M6 acceptance: curl through the ENTIRE club lifecycle
-# REST flow against the live stack (engine :3100 + gateway :4000 —
+# M1/M3/M4/M5/M6/M7 acceptance: curl through the ENTIRE club lifecycle
+# REST flow against the live stack (engine :3100 + cab :4000 —
 # `make up`, dev DB migrated). Every step asserts the HTTP status and
 # a JSON field. Exits non-zero on the first failed assertion.
+# M7: HTML assertions target the canonical eight — /signin is the only
+# auth entry, /c/:club/s/:session (P6) is THE session page (guests
+# land there via /l/:code), /c/:club/standings is public.
 #
 #   platform/apps/cab/priv/walkthrough_rest.sh
 #
@@ -265,7 +268,7 @@ assert j1 GET "/api/v1/sessions/$SESSION" 200 '.event.name' "Walkthrough night $
 assert j1 GET "/api/v1/sessions/$SESSION" 200 \
   '.rooms[0].RoomTeams | map(select(.rank == 1)) | length' 1
 
-# the public page needs no identity at all ("&" arrives HTML-escaped)
+# the public P6 page needs no identity at all ("&" arrives HTML-escaped)
 : > "$JARS/anon"
 WINNER_HTML=$(printf '%s' "$WINNER_NAME" | sed 's/&/\&amp;/g')
 req anon GET "/c/$CLUB/s/$SESSION"
@@ -275,6 +278,32 @@ grep -q "$WINNER_HTML" "$BODY" || fail "session detail page misses the winner"
 grep -q "THW walk through REST $RUN" "$BODY" || fail "session detail page misses the motion"
 STEP=$((STEP + 1))
 printf 'ok %2d  %-5s %-55s %s  %s\n' "$STEP" GET "/c/$CLUB/s/$SESSION" 200 "name+winner+motion"
+
+# ----------------------------------------------------------------
+say "M7 pages: P1 /signin, the anonymous auth wall, P7 standings"
+# ----------------------------------------------------------------
+req anon GET "/signin"
+[ "$STATUS" = "200" ] || fail "GET /signin: status $STATUS, want 200"
+grep -q 'id="signin-github"' "$BODY" || fail "/signin misses the GitHub provider button"
+grep -q 'Continue with Google' "$BODY" || fail "/signin misses the Google (soon) button"
+html_ok "P1 provider buttons" GET "/signin" 200
+
+# every anonymous auth wall redirects to P1 — never to the provider
+WALL=$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE/c/$CLUB/member")
+case "$WALL" in */signin) : ;; *) fail "anon /c/.../member wall went to '$WALL', want /signin" ;; esac
+html_ok "anon member tree -> /signin" GET "/c/.../member" 302
+
+req anon GET "/c/$CLUB/standings"
+[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/standings: status $STATUS, want 200"
+grep -q 'id="standings-members"' "$BODY" || fail "standings page misses the members table"
+grep -q "$WINNER_HTML" "$BODY" || fail "standings page misses the session winner"
+html_ok "P7 standings + winner" GET "/c/$CLUB/standings" 200
+
+# the anonymous front page lists the club in the directory
+req anon GET "/"
+[ "$STATUS" = "200" ] || fail "GET / anonymous: status $STATUS, want 200"
+grep -q 'id="clubs-directory"' "$BODY" || fail "front page misses the clubs directory"
+html_ok "P2 clubs directory" GET "/" 200
 
 # ----------------------------------------------------------------
 say "iron run: 9 speakers, one 1-speaker team, iron ballot, winner"
@@ -377,15 +406,19 @@ say "two guests register: one speaker, one judge"
 register_guest g1 "Guest Greta" speak;  G1_LINK=$PERSONAL
 register_guest g2 "Guest Judy"  judge;  G2_LINK=$PERSONAL
 
-say "personal links work anonymously; the role is visible"
-req anon2 GET "$G1_LINK"
-[ "$STATUS" = "200" ] || fail "GET $G1_LINK anonymous: status $STATUS, want 200"
-grep -q "registered to speak" "$BODY" || fail "$G1_LINK misses the speaker role"
-html_ok "speaker link + role" GET "/l/<g1>" 200
-req anon2 GET "$G2_LINK"
-[ "$STATUS" = "200" ] || fail "GET $G2_LINK anonymous: status $STATUS, want 200"
-grep -q "registered to judge" "$BODY" || fail "$G2_LINK misses the judge role"
-html_ok "judge link + role" GET "/l/<g2>" 200
+say "personal links adopt the identity and land on P6; the role shows there"
+reqc anon2 GET "$G1_LINK"
+[ "$STATUS" = "302" ] || fail "GET $G1_LINK anonymous: status $STATUS, want 302 to P6"
+req anon2 GET "/c/$CLUB/s/$GSESSION"
+[ "$STATUS" = "200" ] || fail "GET P6 as guest g1: status $STATUS, want 200"
+grep -q "registered to speak" "$BODY" || fail "P6 misses the guest speaker role"
+html_ok "speaker link -> P6 + role" GET "/l/<g1> -> /c/.../s/..." 200
+reqc anon2 GET "$G2_LINK"
+[ "$STATUS" = "302" ] || fail "GET $G2_LINK anonymous: status $STATUS, want 302 to P6"
+req anon2 GET "/c/$CLUB/s/$GSESSION"
+[ "$STATUS" = "200" ] || fail "GET P6 as guest g2: status $STATUS, want 200"
+grep -q "registered to judge" "$BODY" || fail "P6 misses the guest judge role"
+html_ok "judge link -> P6 + role" GET "/l/<g2> -> /c/.../s/..." 200
 
 say "head lists the links; a guest link opens NOTHING beyond its scope"
 assert head GET "/api/v1/sessions/$GSESSION/links" 200 '.links | length' 2
@@ -393,7 +426,7 @@ G1_ID=$(jq -r '.links[] | select(.name == "Guest Greta") | .id' "$BODY")
 
 # visiting the personal link signs the browser session in as the guest
 reqc g1 GET "$G1_LINK"
-[ "$STATUS" = "200" ] || fail "GET $G1_LINK (g1): status $STATUS, want 200"
+[ "$STATUS" = "302" ] || fail "GET $G1_LINK (g1): status $STATUS, want 302 to P6"
 assert g1 GET "/api/v1/sessions/$GSESSION/links" 403 '.error' forbidden
 req g1 GET "/c/$CLUB/owner"
 [ "$STATUS" = "403" ] || fail "GET /c/$CLUB/owner as guest: status $STATUS, want 403"
@@ -401,10 +434,11 @@ html_ok "guest on owner tree -> 403" GET "/c/.../owner" 403
 req g1 GET "/c/$CLUB/member"
 [ "$STATUS" = "403" ] || fail "GET /c/$CLUB/member as guest: status $STATUS, want 403"
 html_ok "guest on member tree -> 403" GET "/c/.../member" 403
-# a room of ANOTHER session does not exist under this link
-req g2 GET "$G2_LINK/rooms/$IRON_ROOM/ballot"
-[ "$STATUS" = "404" ] || fail "foreign room under $G2_LINK: status $STATUS, want 404"
-html_ok "foreign-session room -> 404" GET "/l/<g2>/rooms/..." 404
+# a room of ANOTHER session does not exist on this session's P6 page
+reqc g2 GET "$G2_LINK"
+req g2 GET "/c/$CLUB/s/$GSESSION/rooms/$IRON_ROOM/ballot"
+[ "$STATUS" = "404" ] || fail "foreign room on P6: status $STATUS, want 404"
+html_ok "foreign-session room -> 404" GET "/c/.../s/<guest>/rooms/<iron>" 404
 
 say "revoke Greta's link -> 404; re-issue by hand via the API"
 assert s1 DELETE "/api/v1/links/$G1_ID" 403 '.error' forbidden
@@ -443,11 +477,16 @@ GPIDS=$(jq -r '.rooms[0].RoomTeams | sort_by(.position)[] | .RoomSpeakers
 set -- $GPIDS
 GWINNER=$(jq -r '.rooms[0].RoomTeams | sort_by(.position) | .[0].Team.name' "$BODY")
 
-say "the guest judge fills the ballot through the personal link"
-reqc g2 GET "$G2_LINK/rooms/$GROOM/ballot"
-[ "$STATUS" = "200" ] || fail "GET $G2_LINK/rooms/$GROOM/ballot: status $STATUS, want 200"
+say "the guest judge fills the ballot through P6 (identity from the link)"
+reqc g2 GET "$G2_LINK"
+[ "$STATUS" = "302" ] || fail "GET $G2_LINK (g2): status $STATUS, want 302 to P6"
+reqc g2 GET "/c/$CLUB/s/$GSESSION"
+[ "$STATUS" = "200" ] || fail "GET P6 as the guest judge: status $STATUS, want 200"
+grep -q "Fill ballot" "$BODY" || fail "P6 misses the guest judge's Fill ballot segment"
+reqc g2 GET "/c/$CLUB/s/$GSESSION/rooms/$GROOM/ballot"
+[ "$STATUS" = "200" ] || fail "GET P6 ballot page: status $STATUS, want 200"
 grep -q 'class="ballot"' "$BODY" || fail "guest ballot page misses the ballot"
-html_ok "guest ballot page" GET "/l/<g2>/rooms/$GROOM/ballot" 200
+html_ok "guest ballot page via P6" GET "/c/.../s/.../rooms/$GROOM/ballot" 200
 G2_TOK=$(csrf)
 # og totals highest -> rank 1; all totals distinct
 STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/g2" -c "$JARS/g2" \
@@ -460,9 +499,9 @@ STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/g2" -c "$JARS/g2" \
   --data-urlencode "ballot[cg][GW][speaker]=$6"  --data-urlencode "ballot[cg][GW][score]=74" \
   --data-urlencode "ballot[co][MO][speaker]=$7"  --data-urlencode "ballot[co][MO][score]=73" \
   --data-urlencode "ballot[co][OW][speaker]=$8"  --data-urlencode "ballot[co][OW][score]=72.5" \
-  "$BASE$G2_LINK/rooms/$GROOM/ballot")
+  "$BASE/c/$CLUB/s/$GSESSION/rooms/$GROOM/ballot")
 [ "$STATUS" = "302" ] || fail "guest ballot POST: status $STATUS, want 302"
-html_ok "guest ballot submitted" POST "/l/<g2>/rooms/$GROOM/ballot" 302
+html_ok "guest ballot submitted via P6" POST "/c/.../s/.../rooms/$GROOM/ballot" 302
 assert head GET "/api/v1/sessions/$GSESSION" 200 '.rooms[0].status' confirmed
 assert head GET "/api/v1/sessions/$GSESSION" 200 '.winner' "$GWINNER"
 
