@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# M1 acceptance: curl through the ENTIRE club lifecycle REST flow
+# M1/M3 acceptance: curl through the ENTIRE club lifecycle REST flow
 # against the live stack (engine :3100 + gateway :4000 — `make up`,
 # dev DB migrated). Every step asserts the HTTP status and a JSON
 # field. Exits non-zero on the first failed assertion.
@@ -119,18 +119,40 @@ say "head makes rooms from attendance"
 assert head POST "/api/v1/sessions/$SESSION/rooms" 201 '.rooms_created' 1
 assert j1 GET "/api/v1/sessions/$SESSION" 200 '.stage' running
 ROOM=$(jq -r '.rooms[0].id' "$BODY")
-WINNER_RT=$(jq -r '.rooms[0].RoomTeams | sort_by(.position) | .[1].id' "$BODY")
-WINNER_NAME=$(jq -r ".rooms[0].RoomTeams[] | select(.id == $WINNER_RT) | .Team.name" "$BODY")
-echo "room: $ROOM, picked winner room_team: $WINNER_RT ($WINNER_NAME)"
+# the ballot speaks in room order: og/oo/cg/co, speakers from dropdowns
+WINNER_NAME=$(jq -r '.rooms[0].RoomTeams | sort_by(.position) | .[1].Team.name' "$BODY")
+echo "room: $ROOM, top scores go to position 2 ($WINNER_NAME)"
+
+# 8 x {position, speaker_participant_id, iron, score}. Tie first:
+# every team totals 151 -> rejected. Then distinct totals, position
+# 2 highest -> rank 1 -> winner.
+TIE_SCORES=$(jq -c '[.rooms[0].RoomTeams | sort_by(.position)[]
+  | .position as $p | [.RoomSpeakers[].EventParticipant.id] as $ids
+  | {position:$p, speaker_participant_id:$ids[0], iron:false, score:76},
+    {position:$p, speaker_participant_id:$ids[1], iron:false, score:75}]' "$BODY")
+SCORES=$(jq -c '[.rooms[0].RoomTeams | sort_by(.position)[]
+  | .position as $p | [.RoomSpeakers[].EventParticipant.id] as $ids
+  | ({"1":76,"2":79,"3":75,"4":74}[$p|tostring]) as $base
+  | {position:$p, speaker_participant_id:$ids[0], iron:false, score:$base},
+    {position:$p, speaker_participant_id:$ids[1], iron:false, score:($base-0.5)}]' "$BODY")
 
 # ----------------------------------------------------------------
-say "the judge posts the motion, then the winner"
+say "the judge posts the motion, then the scored ballot"
 # ----------------------------------------------------------------
 assert j1 POST "/api/v1/rooms/$ROOM/motion" 200 '.motion.motion_text' \
   "THW walk through REST $RUN" \
   "{\"session_uuid\":\"$SESSION\",\"motion_text\":\"THW walk through REST $RUN\"}"
-assert j1 POST "/api/v1/rooms/$ROOM/winner" 200 '.status' confirmed \
-  "{\"session_uuid\":\"$SESSION\",\"room_team_id\":$WINNER_RT}"
+
+say "ballot permissions and tie rejection"
+assert s1 POST "/api/v1/rooms/$ROOM/ballot" 403 '.error' forbidden \
+  "{\"session_uuid\":\"$SESSION\",\"scores\":$SCORES}"
+assert j1 POST "/api/v1/rooms/$ROOM/ballot" 422 \
+  '.details.scores | contains("151")' true \
+  "{\"session_uuid\":\"$SESSION\",\"scores\":$TIE_SCORES}"
+
+say "the judge submits 8 speaks; ranks derive, the room confirms"
+assert j1 POST "/api/v1/rooms/$ROOM/ballot" 200 '.status' confirmed \
+  "{\"session_uuid\":\"$SESSION\",\"scores\":$SCORES}"
 
 # ----------------------------------------------------------------
 say "head finishes; history shows the winner"
