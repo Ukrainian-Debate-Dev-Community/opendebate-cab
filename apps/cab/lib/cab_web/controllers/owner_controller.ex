@@ -52,6 +52,27 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
+  # POST /c/:club_uuid/owner/club — the settings form's twin of
+  # PATCH /api/v1/clubs/:uuid
+  def update_club(conn, params) do
+    case Clubs.update_club(conn.assigns.club, Map.take(params, ["name", "city"])) do
+      {:ok, _club} -> back(conn, info: "club settings saved")
+      {:error, %Ecto.Changeset{}} -> back(conn, error: "the club needs a name")
+      {:error, message} -> back(conn, error: error_message(message))
+    end
+  end
+
+  # POST /c/:club_uuid/owner/members/:user_id/remove
+  def remove_member(conn, %{"user_id" => user_id}) do
+    with {user_id, ""} <- Integer.parse(user_id),
+         {:ok, _membership} <- Clubs.remove_member(conn.assigns.club, user_id) do
+      back(conn, info: "member removed")
+    else
+      {:error, message} -> back(conn, error: error_message(message))
+      _ -> conn |> send_resp(404, "not found") |> halt()
+    end
+  end
+
   # POST /c/:club_uuid/owner/sessions
   def open_session(conn, params) do
     case Sessions.open(conn.assigns.current_user, conn.assigns.club, params["name"]) do
@@ -60,14 +81,139 @@ defmodule CabWeb.OwnerController do
     end
   end
 
-  # POST /c/:club_uuid/owner/sessions/:session_uuid/rooms
-  def make_rooms(conn, %{"session_uuid" => session_uuid}) do
+  # POST /c/:club_uuid/owner/sessions/:session_uuid/signups — the
+  # head signs an approved member up on their behalf
+  def add_signup(conn, %{"session_uuid" => session_uuid} = params) do
     with_session(conn, session_uuid, fn session ->
-      case Sessions.make_rooms(conn.assigns.current_user, session) do
+      case Sessions.signup_for(
+             conn.assigns.current_user,
+             session,
+             params["username"],
+             params["as"]
+           ) do
+        {:ok, _participant} -> {:ok, "signed #{params["username"]} up to #{params["as"]}"}
+        error -> error
+      end
+    end)
+  end
+
+  # POST /c/:club_uuid/owner/sessions/:session_uuid/signups/:participant_id/remove
+  def remove_signup(conn, %{"session_uuid" => session_uuid, "participant_id" => participant_id}) do
+    with_session(conn, session_uuid, fn session ->
+      case Integer.parse(participant_id) do
+        {participant_id, ""} ->
+          case Sessions.remove_signup(conn.assigns.current_user, session, participant_id) do
+            :ok -> {:ok, "signup removed"}
+            error -> error
+          end
+
+        _ ->
+          {:error, "bad participant id"}
+      end
+    end)
+  end
+
+  # GET /c/:club_uuid/owner/sessions/:session_uuid/compose — the
+  # head says who goes where, prefilled from the auto-pair proposal
+  def compose(conn, %{"session_uuid" => session_uuid}) do
+    club = conn.assigns.club
+
+    with %Session{} = session <- Sessions.get_for_club(club, session_uuid),
+         {:ok, state} <- Sessions.state(%{session | club: club}) do
+      case Sessions.pairing_proposal(session, state) do
+        {:ok, proposal} ->
+          render(conn, :compose,
+            session: session,
+            state: state,
+            proposal: proposal,
+            page_title: "#{club.name} · compose rooms"
+          )
+
+        :unavailable ->
+          back(conn,
+            error:
+              "compose needs a full sign-up: speakers in multiples of 8 " <>
+                "and a judge per room, before any rooms exist"
+          )
+      end
+    else
+      nil -> conn |> send_resp(404, "not found") |> halt()
+      {:error, message} -> back(conn, error: error_message(message))
+    end
+  end
+
+  # POST /c/:club_uuid/owner/sessions/:session_uuid/rooms — the gold
+  # one-click auto path; with "rooms" params (the compose form) the
+  # head's explicit composition is used instead
+  def make_rooms(conn, %{"session_uuid" => session_uuid} = params) do
+    with_session(conn, session_uuid, fn session ->
+      result =
+        case params["rooms"] do
+          nil -> Sessions.make_rooms(conn.assigns.current_user, session)
+          rooms -> Sessions.make_rooms(conn.assigns.current_user, session, compose_spec(rooms))
+        end
+
+      case result do
         {:ok, count} -> {:ok, "#{count} room(s) created"}
         error -> error
       end
     end)
+  end
+
+  # the compose form posts rooms[i][judge|t1a..t4b]; the API takes
+  # the canonical {"judge_participant_id", "teams"} shape directly
+  defp compose_spec(%{} = rooms) do
+    rooms
+    |> Enum.sort_by(fn {index, _room} ->
+      case Integer.parse(index) do
+        {i, ""} -> i
+        _ -> 0
+      end
+    end)
+    |> Enum.map(fn {_index, room} ->
+      %{
+        "judge_participant_id" => room["judge"],
+        "teams" => for(t <- 1..4, do: [room["t#{t}a"], room["t#{t}b"]])
+      }
+    end)
+  end
+
+  defp compose_spec(other), do: other
+
+  # POST /c/:club_uuid/owner/sessions/:session_uuid/rooms/delete —
+  # rebuild: pending rooms go away so the head can recompose
+  def delete_rooms(conn, %{"session_uuid" => session_uuid}) do
+    with_session(conn, session_uuid, fn session ->
+      case Sessions.delete_rooms(conn.assigns.current_user, session) do
+        {:ok, count} -> {:ok, "#{count} room(s) deleted — compose or make rooms again"}
+        error -> error
+      end
+    end)
+  end
+
+  # POST /c/:club_uuid/owner/sessions/:session_uuid/cancel
+  def cancel_session(conn, %{"session_uuid" => session_uuid}) do
+    with_session(conn, session_uuid, fn session ->
+      case Sessions.cancel(conn.assigns.current_user, session) do
+        {:ok, _session} -> {:ok, "session cancelled"}
+        error -> error
+      end
+    end)
+  end
+
+  # POST /c/:club_uuid/owner/rooms/:id/reopen — the ballot is live again
+  def reopen(conn, %{"id" => id}) do
+    club = conn.assigns.club
+
+    with {room_id, ""} <- Integer.parse(id),
+         %Session{} = session <- List.first(Sessions.list_for_club(club)) do
+      case Sessions.reopen_room(conn.assigns.current_user, %{session | club: club}, room_id) do
+        :ok -> back(conn, info: "room R#{room_id} reopened — the ballot is live again")
+        {:error, message} -> back(conn, error: error_message(message))
+      end
+    else
+      _ -> conn |> send_resp(404, "not found") |> halt()
+    end
   end
 
   # POST /c/:club_uuid/owner/sessions/:session_uuid/finish
@@ -189,5 +335,6 @@ defmodule CabWeb.OwnerController do
   end
 
   defp error_message(message) when is_binary(message), do: message
+  defp error_message(%{rooms: message}), do: message
   defp error_message(other), do: inspect(other)
 end

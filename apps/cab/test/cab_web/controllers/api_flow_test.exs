@@ -313,6 +313,281 @@ defmodule CabWeb.ApiFlowTest do
     assert finished["status"] == "completed"
   end
 
+  test "GET session carries the pairing proposal while signing up",
+       %{conn: conn, club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11)
+
+    signups =
+      for id <- 1..8 do
+        %{"id" => id, "role" => "speaker", "display_name" => "S#{id}", "user_id" => 400 + id}
+      end ++ [%{"id" => 99, "role" => "adjudicator", "display_name" => "J", "user_id" => 499}]
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "status" => "scheduled"})
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, signups)
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [])
+
+        {"GET", "/api/events/11/teams/auto-generate"} ->
+          ok(conn, %{
+            "total_free_speakers" => 8,
+            "proposed_teams" =>
+              for n <- 0..3 do
+                %{"name" => "T#{n}", "participant_ids" => [2 * n + 1, 2 * n + 2]}
+              end
+          })
+      end
+    end)
+
+    state =
+      conn |> log_in(head) |> get(~p"/api/v1/sessions/#{session.uuid}") |> json_response(200)
+
+    assert state["stage"] == "signup"
+
+    assert %{"rooms" => [room]} = state["proposal"]
+    assert room["judge_participant_id"] == 99
+    assert room["teams"] == [[1, 2], [3, 4], [5, 6], [7, 8]]
+  end
+
+  test "signups on behalf and signup removal", %{conn: conn, club: club, head: head} do
+    member = user_fixture(%{node_user_id: 44})
+    membership_fixture(member, club)
+    target = user_fixture(%{node_user_id: 66})
+    membership_fixture(target, club)
+    session = session_fixture(club, engine_event_id: 11)
+
+    stub(fn conn, params ->
+      case {conn.method, conn.request_path} do
+        {"POST", "/api/events/11/participants"} ->
+          ok(conn, %{"id" => 43, "role" => params["role"]})
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [
+            %{"id" => 41, "user_id" => 44, "role" => "speaker"},
+            %{"id" => 43, "user_id" => 66, "role" => "speaker"}
+          ])
+
+        {"DELETE", "/api/events/11/participants/" <> _pid} ->
+          Req.Test.json(conn, %{"status" => "success", "message" => "Participant archived."})
+      end
+    end)
+
+    # username is a head-only switch
+    assert conn
+           |> log_in(member)
+           |> post(~p"/api/v1/sessions/#{session.uuid}/signups", %{
+             as: "speak",
+             username: target.username
+           })
+           |> json_response(403)
+
+    added =
+      conn
+      |> log_in(head)
+      |> post(~p"/api/v1/sessions/#{session.uuid}/signups", %{
+        as: "speak",
+        username: target.username
+      })
+      |> json_response(201)
+
+    assert added["participant_id"] == 43
+    assert added["username"] == target.username
+
+    # a member cannot remove someone else's signup, only their own
+    assert conn
+           |> log_in(member)
+           |> delete(~p"/api/v1/sessions/#{session.uuid}/signups/43")
+           |> json_response(403)
+
+    assert conn
+           |> log_in(member)
+           |> delete(~p"/api/v1/sessions/#{session.uuid}/signups/41")
+           |> json_response(200) == %{"participant_id" => 41, "status" => "removed"}
+
+    # the head removes anyone
+    assert conn
+           |> log_in(head)
+           |> delete(~p"/api/v1/sessions/#{session.uuid}/signups/43")
+           |> json_response(200) == %{"participant_id" => 43, "status" => "removed"}
+  end
+
+  test "explicit composition, rooms rebuild and ballot reopen are head-only",
+       %{conn: conn, club: club, head: head} do
+    member = user_fixture(%{node_user_id: 44})
+    membership_fixture(member, club)
+    session = session_fixture(club, engine_event_id: 11)
+
+    composition = %{
+      "rooms" => [
+        %{
+          "judge_participant_id" => 99,
+          "teams" => [[1, 2], [3, 4], [5, 6], [7, 8]]
+        }
+      ]
+    }
+
+    for {method, path, body} <- [
+          {:post, ~p"/api/v1/sessions/#{session.uuid}/rooms", composition},
+          {:delete, ~p"/api/v1/sessions/#{session.uuid}/rooms", nil},
+          {:patch, ~p"/api/v1/rooms/71/reopen", %{"session_uuid" => session.uuid}},
+          {:delete, ~p"/api/v1/sessions/#{session.uuid}", nil}
+        ] do
+      conn = log_in(conn, member)
+
+      response =
+        case {method, body} do
+          {:post, body} -> post(conn, path, body)
+          {:delete, nil} -> delete(conn, path)
+          {:patch, body} -> patch(conn, path, body)
+        end
+
+      assert json_response(response, 403)["error"] == "forbidden"
+    end
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(
+            conn,
+            for id <- 1..8 do
+              %{"id" => id, "role" => "speaker", "display_name" => "S#{id}"}
+            end ++ [%{"id" => 99, "role" => "adjudicator", "display_name" => "J"}]
+          )
+
+        {"POST", "/api/rounds/21/rooms"} ->
+          ok(conn, %{"id" => 71})
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [%{"id" => 71, "status" => "pending"}])
+
+        {"DELETE", "/api/rooms/71"} ->
+          Req.Test.json(conn, %{"status" => "success", "message" => "Room archived."})
+      end
+    end)
+
+    created =
+      conn
+      |> log_in(head)
+      |> post(~p"/api/v1/sessions/#{session.uuid}/rooms", composition)
+      |> json_response(201)
+
+    assert created["rooms_created"] == 1
+
+    # a bad composition is a 422 with the reason under details.rooms
+    bad = put_in(composition["rooms"], [%{"judge_participant_id" => 1, "teams" => [[1, 2]]}])
+
+    assert conn
+           |> log_in(head)
+           |> post(~p"/api/v1/sessions/#{session.uuid}/rooms", bad)
+           |> json_response(422)
+           |> get_in(["details", "rooms"]) =~ "4 teams of 2"
+
+    assert conn
+           |> log_in(head)
+           |> delete(~p"/api/v1/sessions/#{session.uuid}/rooms")
+           |> json_response(200) == %{"rooms_deleted" => 1}
+
+    # reopen: confirmed -> unconfirm + reopen -> judging
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [%{"id" => 71, "status" => "confirmed"}])
+
+        {"PATCH", "/api/rooms/71/" <> _step} ->
+          Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
+      end
+    end)
+
+    assert conn
+           |> log_in(head)
+           |> patch(~p"/api/v1/rooms/71/reopen", %{"session_uuid" => session.uuid})
+           |> json_response(200) == %{"room_id" => 71, "status" => "judging"}
+  end
+
+  test "session cancel removes the gateway row", %{conn: conn, club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11)
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"DELETE", "/api/events/11"} ->
+          Req.Test.json(conn, %{"status" => "success", "message" => "Event archived."})
+      end
+    end)
+
+    cancelled =
+      conn
+      |> log_in(head)
+      |> delete(~p"/api/v1/sessions/#{session.uuid}")
+      |> json_response(200)
+
+    assert cancelled == %{"uuid" => session.uuid, "status" => "cancelled"}
+
+    # the row is gone — the uuid no longer resolves
+    assert conn
+           |> log_in(head)
+           |> get(~p"/api/v1/sessions/#{session.uuid}")
+           |> json_response(404)
+  end
+
+  test "club management: PATCH profile and member removal", %{conn: conn, club: club, head: head} do
+    member = user_fixture(%{node_user_id: 44})
+    membership_fixture(member, club)
+
+    # member gets 403 on both
+    assert conn
+           |> log_in(member)
+           |> patch(~p"/api/v1/clubs/#{club.uuid}", %{name: "Nope"})
+           |> json_response(403)
+
+    assert conn
+           |> log_in(member)
+           |> delete(~p"/api/v1/clubs/#{club.uuid}/members/#{member.id}")
+           |> json_response(403)
+
+    updated =
+      conn
+      |> log_in(head)
+      |> patch(~p"/api/v1/clubs/#{club.uuid}", %{name: "Renamed Club", city: "Lviv"})
+      |> json_response(200)
+
+    assert updated["name"] == "Renamed Club"
+    assert updated["city"] == "Lviv"
+
+    # the roster carries user_id so removal is addressable
+    members =
+      conn |> log_in(head) |> get(~p"/api/v1/clubs/#{club.uuid}/members") |> json_response(200)
+
+    assert Enum.any?(members["members"], &(&1["user_id"] == member.id))
+
+    assert conn
+           |> log_in(head)
+           |> delete(~p"/api/v1/clubs/#{club.uuid}/members/#{member.id}")
+           |> json_response(200) == %{"user_id" => member.id, "status" => "removed"}
+
+    # the head's own row is protected
+    protected =
+      conn
+      |> log_in(head)
+      |> delete(~p"/api/v1/clubs/#{club.uuid}/members/#{head.id}")
+      |> json_response(422)
+
+    assert protected["error"] =~ "head cannot be removed"
+  end
+
   test "engine errors surface as 422 with the message", %{conn: conn, club: club, head: head} do
     stub(fn conn, _params ->
       conn

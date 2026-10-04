@@ -6,16 +6,46 @@ defmodule CabWeb.Api.RoomController do
 
   action_fallback CabWeb.Api.FallbackController
 
-  plug ClubScope, [source: :session, require: :owner] when action == :create
+  plug ClubScope, [source: :session, require: :owner] when action in [:create, :delete]
   # room routes carry no club in the URL (engine room ids), so the
   # club is resolved from the required "session_uuid" body field; the
   # engine additionally enforces chair rights on its side
   plug ClubScope, [source: :room_session, require: :member] when action in [:motion, :ballot]
+  plug ClubScope, [source: :room_session, require: :owner] when action == :reopen
 
-  # POST /api/v1/sessions/:uuid/rooms — attendance pairing
-  def create(conn, _params) do
-    with {:ok, count} <- Sessions.make_rooms(conn.assigns.current_user, conn.assigns.session) do
+  # POST /api/v1/sessions/:uuid/rooms — no body: attendance pairing
+  # (auto); {"rooms": [{"judge_participant_id", "teams": [[pid,pid] x4]}]}:
+  # the head's explicit composition
+  def create(conn, params) do
+    user = conn.assigns.current_user
+    session = conn.assigns.session
+
+    result =
+      case params["rooms"] do
+        nil -> Sessions.make_rooms(user, session)
+        rooms_spec -> Sessions.make_rooms(user, session, rooms_spec)
+      end
+
+    with {:ok, count} <- result do
       conn |> put_status(201) |> json(%{rooms_created: count})
+    end
+  end
+
+  # DELETE /api/v1/sessions/:uuid/rooms — rebuild: pending rooms (and
+  # their temporary teams) go away so the head can recompose
+  def delete(conn, _params) do
+    with {:ok, count} <- Sessions.delete_rooms(conn.assigns.current_user, conn.assigns.session) do
+      json(conn, %{rooms_deleted: count})
+    end
+  end
+
+  # PATCH /api/v1/rooms/:id/reopen {"session_uuid"} — head reopens a
+  # confirmed/completed ballot; the room is judging again
+  def reopen(conn, %{"id" => id}) do
+    with {:ok, room_id} <- room_id(id),
+         :ok <-
+           Sessions.reopen_room(conn.assigns.current_user, conn.assigns.session, room_id) do
+      json(conn, %{room_id: room_id, status: "judging"})
     end
   end
 

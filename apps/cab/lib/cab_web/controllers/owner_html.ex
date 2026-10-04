@@ -24,11 +24,25 @@ defmodule CabWeb.OwnerHTML do
         </:seg>
         <:seg
           :if={@state && @state.stage == :signup}
+          href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/compose"}
+        >
+          Compose rooms
+        </:seg>
+        <:seg
+          :if={@state && @state.stage == :signup}
           href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/rooms"}
           method="post"
           primary
         >
           Make rooms
+        </:seg>
+        <:seg
+          :if={deletable_rooms?(@state)}
+          href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/rooms/delete"}
+          method="post"
+          quiet
+        >
+          Delete rooms
         </:seg>
         <:seg
           :if={@state && @state.stage == :running}
@@ -37,6 +51,14 @@ defmodule CabWeb.OwnerHTML do
           primary
         >
           Finish session
+        </:seg>
+        <:seg
+          :if={@state && @state.stage in [:signup, :running]}
+          href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/cancel"}
+          method="post"
+          quiet
+        >
+          Cancel session
         </:seg>
       </.chrome>
 
@@ -98,7 +120,43 @@ defmodule CabWeb.OwnerHTML do
             <.table id="session-signups" rows={@state.signups} empty="Nobody signed up yet.">
               <:col :let={participant} label="Name">{participant["display_name"]}</:col>
               <:col :let={participant} label="Signed up as">{participant["role"]}</:col>
+              <:col :let={participant} :if={@state.stage == :signup}>
+                <.link
+                  href={
+                    ~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/signups/#{participant["id"]}/remove"
+                  }
+                  method="post"
+                >
+                  remove
+                </.link>
+              </:col>
             </.table>
+          </.section>
+
+          <.section
+            :if={@state.stage == :signup && addable_members(@members, @state.signups) != []}
+            title="Add a participant"
+          >
+            <.form_for
+              id="add-signup-form"
+              action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/signups"}
+              description="Sign an approved member up on their behalf."
+            >
+              <:block
+                name={:username}
+                type={:select}
+                label="Member"
+                options={addable_members(@members, @state.signups)}
+              />
+              <:block
+                name={:as}
+                type={:select}
+                label="Signs up to"
+                value="speak"
+                options={[{"speak", "speak"}, {"judge", "judge"}]}
+              />
+              <:submit note="They appear in tonight's list right away.">Add participant</:submit>
+            </.form_for>
           </.section>
 
           <.section :if={@state.rooms != []} title="Rooms">
@@ -124,6 +182,13 @@ defmodule CabWeb.OwnerHTML do
                   href={~p"/c/#{@club.uuid}/owner/rooms/#{room["id"]}/ballot"}
                 >
                   ballot
+                </.link>
+                <.link
+                  :if={room["status"] in ["confirmed", "completed"] && @state.stage == :running}
+                  href={~p"/c/#{@club.uuid}/owner/rooms/#{room["id"]}/reopen"}
+                  method="post"
+                >
+                  reopen
                 </.link>
               </:col>
             </.table>
@@ -159,12 +224,142 @@ defmodule CabWeb.OwnerHTML do
             <:col :let={membership} label="Since">
               {Calendar.strftime(membership.inserted_at, "%-d %b %Y")}
             </:col>
+            <:col :let={membership}>
+              <.link
+                :if={membership.role != "head"}
+                href={~p"/c/#{@club.uuid}/owner/members/#{membership.user_id}/remove"}
+                method="post"
+              >
+                remove
+              </.link>
+            </:col>
           </.table>
+        </.section>
+
+        <.section title="Club settings">
+          <.form_for
+            id="club-settings-form"
+            action={~p"/c/#{@club.uuid}/owner/club"}
+            description="Shown on the public club page."
+          >
+            <:block name={:name} type={:text} label="Club name" required value={@club.name} />
+            <:block name={:city} type={:text} label="City" value={@club.city} />
+            <:submit note="Takes effect immediately.">Save settings</:submit>
+          </.form_for>
         </.section>
       </div>
     </Layouts.app>
     """
   end
+
+  # GET .../owner/sessions/:session_uuid/compose — one form, one
+  # dropdown per slot, PREFILLED from the auto-pair proposal; the
+  # submit segment lives in the chrome (the ballot precedent)
+  def compose(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash}>
+      <.chrome
+        crumbs={[
+          {@club.name, ~p"/c/#{@club.uuid}"},
+          {"owner", ~p"/c/#{@club.uuid}/owner"}
+        ]}
+        here="compose rooms"
+        stage="sign-up open"
+        stage_kind={:ok}
+      >
+      </.chrome>
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+
+        <.section title="Room composition">
+          <.form_for
+            id="compose-rooms-form"
+            action={~p"/c/#{@club.uuid}/owner/sessions/#{@session.uuid}/rooms"}
+            title="Compose rooms"
+            description="Prefilled with the auto-pair proposal — move anyone anywhere. Every speaker speaks exactly once; every room gets its own judge."
+          >
+            <:block
+              :for={block <- compose_blocks(@proposal, @state.signups)}
+              name={block.name}
+              type={:select}
+              label={block.label}
+              options={block.options}
+              value={block.value}
+            />
+            <:submit note="Rooms are created exactly as laid out here.">Make these rooms</:submit>
+          </.form_for>
+        </.section>
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  @sides ~w(OG OO CG CO)
+
+  # one dropdown per slot: a judge + 8 speakers per room, prefilled
+  # from the proposal; options are tonight's signups by role
+  defp compose_blocks(proposal, signups) do
+    speaker_options =
+      for participant <- signups, participant["role"] == "speaker" do
+        {participant["display_name"], participant["id"]}
+      end
+
+    judge_options =
+      for participant <- signups, participant["role"] == "adjudicator" do
+        {participant["display_name"], participant["id"]}
+      end
+
+    proposal
+    |> Enum.with_index(1)
+    |> Enum.flat_map(fn {room, index} ->
+      judge = %{
+        name: "rooms[#{index}][judge]",
+        label: "Room #{index} · judge",
+        options: judge_options,
+        value: room.judge_participant_id
+      }
+
+      speakers =
+        room.teams
+        |> Enum.with_index(1)
+        |> Enum.flat_map(fn {[first, second], position} ->
+          side = Enum.at(@sides, position - 1)
+
+          [
+            %{
+              name: "rooms[#{index}][t#{position}a]",
+              label: "Room #{index} · #{side} · first speaker",
+              options: speaker_options,
+              value: first
+            },
+            %{
+              name: "rooms[#{index}][t#{position}b]",
+              label: "Room #{index} · #{side} · second speaker",
+              options: speaker_options,
+              value: second
+            }
+          ]
+        end)
+
+      [judge | speakers]
+    end)
+  end
+
+  # approved members not signed up tonight, as form options
+  defp addable_members(members, signups) do
+    signed = MapSet.new(signups, & &1["user_id"])
+
+    for membership <- members,
+        not MapSet.member?(signed, membership.user.node_user_id) do
+      {membership.user.username, membership.user.username}
+    end
+  end
+
+  defp deletable_rooms?(%{stage: :running, rooms: rooms}) when rooms != [],
+    do: Enum.all?(rooms, &(&1["status"] == "pending"))
+
+  defp deletable_rooms?(_state), do: false
 
   def ballot(assigns) do
     ~H"""

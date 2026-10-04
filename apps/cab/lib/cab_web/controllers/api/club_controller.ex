@@ -8,6 +8,7 @@ defmodule CabWeb.Api.ClubController do
 
   plug ClubScope, [source: :club, require: :public] when action == :show
   plug ClubScope, [source: :club, require: :member] when action == :members
+  plug ClubScope, [source: :club, require: :owner] when action in [:update, :remove_member]
 
   # GET /api/v1/clubs/:uuid — public profile + history (with winners)
   def show(conn, _params) do
@@ -31,11 +32,19 @@ defmodule CabWeb.Api.ClubController do
     end
   end
 
+  # PATCH /api/v1/clubs/:uuid {"name", "city"} — head edits the profile
+  def update(conn, params) do
+    with {:ok, club} <- Clubs.update_club(conn.assigns.club, Map.take(params, ["name", "city"])) do
+      json(conn, %{uuid: club.uuid, name: club.name, city: club.city})
+    end
+  end
+
   # GET /api/v1/clubs/:uuid/members — roster, members only
   def members(conn, _params) do
     members =
       Enum.map(Clubs.list_members(conn.assigns.club), fn membership ->
         %{
+          user_id: membership.user.id,
           username: membership.user.username,
           name: membership.user.name,
           role: membership.role
@@ -43,5 +52,21 @@ defmodule CabWeb.Api.ClubController do
       end)
 
     json(conn, %{members: members})
+  end
+
+  # DELETE /api/v1/clubs/:uuid/members/:user_id — head removes a
+  # member (gateway membership row only; the engine stays untouched)
+  def remove_member(conn, %{"user_id" => user_id}) do
+    with {:ok, user_id} <- parse_id(user_id),
+         {:ok, _membership} <- Clubs.remove_member(conn.assigns.club, user_id) do
+      json(conn, %{user_id: user_id, status: "removed"})
+    end
+  end
+
+  defp parse_id(id) do
+    case Integer.parse(id) do
+      {int, ""} -> {:ok, int}
+      _ -> {:error, "bad user id"}
+    end
   end
 end

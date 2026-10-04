@@ -407,6 +407,337 @@ defmodule CabWeb.HtmlTreesTest do
     assert_received :confirmed
   end
 
+  defp signup_stage_signups do
+    for id <- 1..8 do
+      %{"id" => id, "role" => "speaker", "display_name" => "Speaker #{id}", "user_id" => 400 + id}
+    end ++ [%{"id" => 99, "role" => "adjudicator", "display_name" => "Judge", "user_id" => 499}]
+  end
+
+  defp stub_signup_stage(signups, extra \\ fn _conn, _params -> nil end) do
+    stub(fn conn, params ->
+      case extra.(conn, params) do
+        nil ->
+          case {conn.method, conn.request_path} do
+            {"GET", "/api/events/11"} ->
+              ok(conn, %{"id" => 11, "status" => "scheduled"})
+
+            {"GET", "/api/events/11/rounds"} ->
+              ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+            {"GET", "/api/events/11/participants"} ->
+              ok(conn, signups)
+
+            {"GET", "/api/rounds/21/rooms"} ->
+              ok(conn, [])
+
+            {"GET", "/api/events/11/teams/auto-generate"} ->
+              ok(conn, %{
+                "total_free_speakers" => 8,
+                "proposed_teams" =>
+                  for n <- 0..3 do
+                    %{"name" => "T#{n + 1}", "participant_ids" => [2 * n + 1, 2 * n + 2]}
+                  end
+              })
+          end
+
+        response ->
+          response
+      end
+    end)
+  end
+
+  test "owner page at sign-up: compose/cancel segments, signup controls, club settings",
+       %{conn: conn, club: club, head: head} do
+    member = user_fixture(%{node_user_id: 444, username: "benched"})
+    membership_fixture(member, club)
+    session = session_fixture(club, engine_event_id: 11)
+    stub_signup_stage(signup_stage_signups())
+
+    html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
+
+    # chrome: gold auto path + compose + quiet cancel
+    assert html =~ "Make rooms"
+    assert html =~ "Compose rooms"
+    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/compose"
+    assert html =~ "Cancel session"
+    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/cancel"
+    refute html =~ "Delete rooms"
+
+    # tonight: a remove link per signup + the on-behalf form listing
+    # only members who are not signed up yet
+    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/1/remove"
+    assert html =~ ~s(id="add-signup-form")
+    assert html =~ "benched"
+
+    # club settings form + roster remove links (not on the head's row)
+    assert html =~ ~s(id="club-settings-form")
+    assert html =~ "/c/#{club.uuid}/owner/members/#{member.id}/remove"
+    refute html =~ "/c/#{club.uuid}/owner/members/#{head.id}/remove"
+  end
+
+  test "owner signs a member up on their behalf and removes a signup",
+       %{conn: conn, club: club, head: head} do
+    member = user_fixture(%{node_user_id: 444, username: "benched"})
+    membership_fixture(member, club)
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    stub_signup_stage(signup_stage_signups(), fn conn, params ->
+      case {conn.method, conn.request_path} do
+        {"POST", "/api/events/11/participants"} ->
+          send(test_pid, {:added, params})
+          ok(conn, %{"id" => 50, "role" => params["role"]})
+
+        {"DELETE", "/api/events/11/participants/3"} ->
+          send(test_pid, :removed)
+          Req.Test.json(conn, %{"status" => "success", "message" => "Participant archived."})
+
+        _other ->
+          nil
+      end
+    end)
+
+    added =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups", %{
+        username: "benched",
+        as: "judge"
+      })
+
+    assert redirected_to(added) == "/c/#{club.uuid}/owner"
+    assert Phoenix.Flash.get(added.assigns.flash, :info) =~ "benched"
+    assert_received {:added, %{"user_id" => 444, "role" => "adjudicator"}}
+
+    removed =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/3/remove")
+
+    assert redirected_to(removed) == "/c/#{club.uuid}/owner"
+    assert Phoenix.Flash.get(removed.assigns.flash, :info) =~ "signup removed"
+    assert_received :removed
+  end
+
+  test "compose page prefills the proposal; the form posts the composition",
+       %{conn: conn, club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    stub_signup_stage(signup_stage_signups(), fn conn, params ->
+      case {conn.method, conn.request_path} do
+        {"POST", "/api/rounds/21/rooms"} ->
+          send(test_pid, {:room, params})
+          ok(conn, %{"id" => 71})
+
+        _other ->
+          nil
+      end
+    end)
+
+    html =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/compose")
+      |> html_response(200)
+
+    # one dropdown per slot, judge included, prefilled from the proposal
+    assert html =~ ~s(id="compose-rooms-form")
+    assert html =~ ~s(name="rooms[1][judge]")
+    assert html =~ ~s(name="rooms[1][t1a]")
+    assert html =~ ~s(name="rooms[1][t4b]")
+    assert html =~ "Room 1 · OG · first speaker"
+    assert html =~ "Speaker 8"
+
+    # the head edits freely — swap OG and CO entirely
+    posted =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/rooms", %{
+        "rooms" => %{
+          "1" => %{
+            "judge" => "99",
+            "t1a" => "7",
+            "t1b" => "8",
+            "t2a" => "3",
+            "t2b" => "4",
+            "t3a" => "5",
+            "t3b" => "6",
+            "t4a" => "1",
+            "t4b" => "2"
+          }
+        }
+      })
+
+    assert redirected_to(posted) == "/c/#{club.uuid}/owner"
+    assert Phoenix.Flash.get(posted.assigns.flash, :info) =~ "1 room(s) created"
+    assert_received {:room, room_params}
+    assert [%{"participant_ids" => [7, 8], "position" => 1} | _rest] = room_params["teams"]
+
+    # an impossible composition bounces back with the reason
+    bounced =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/rooms", %{
+        "rooms" => %{
+          "1" => %{
+            "judge" => "99",
+            "t1a" => "1",
+            "t1b" => "1",
+            "t2a" => "3",
+            "t2b" => "4",
+            "t3a" => "5",
+            "t3b" => "6",
+            "t4a" => "7",
+            "t4b" => "8"
+          }
+        }
+      })
+
+    assert redirected_to(bounced) == "/c/#{club.uuid}/owner"
+    assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~ "placed more than once"
+
+    # compose is owner-tree only
+    member = user_fixture(%{node_user_id: 55})
+    membership_fixture(member, club)
+
+    denied =
+      conn |> log_in(member) |> get(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/compose")
+
+    assert response(denied, 403)
+  end
+
+  test "running stage: delete rooms while pending, reopen once confirmed",
+       %{conn: conn, club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    pending_room = %{running_room(44) | "status" => "pending"}
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "status" => "scheduled"})
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [pending_room])
+
+        {"DELETE", "/api/rooms/71"} ->
+          send(test_pid, :room_deleted)
+          Req.Test.json(conn, %{"status" => "success", "message" => "Room archived."})
+      end
+    end)
+
+    html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
+    assert html =~ "Delete rooms"
+    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/rooms/delete"
+    refute html =~ "reopen"
+
+    deleted =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/rooms/delete")
+
+    assert redirected_to(deleted) == "/c/#{club.uuid}/owner"
+    assert Phoenix.Flash.get(deleted.assigns.flash, :info) =~ "1 room(s) deleted"
+    assert_received :room_deleted
+
+    # confirmed room: no delete segment, a reopen link instead
+    confirmed_room = %{running_room(44) | "status" => "confirmed"}
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "status" => "scheduled"})
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [confirmed_room])
+
+        {"PATCH", "/api/rooms/71/" <> step} ->
+          send(test_pid, {:step, step})
+          Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
+      end
+    end)
+
+    html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
+    refute html =~ "Delete rooms"
+    assert html =~ "/c/#{club.uuid}/owner/rooms/71/reopen"
+
+    reopened = conn |> log_in(head) |> post(~p"/c/#{club.uuid}/owner/rooms/71/reopen")
+    assert redirected_to(reopened) == "/c/#{club.uuid}/owner"
+    assert Phoenix.Flash.get(reopened.assigns.flash, :info) =~ "reopened"
+    assert_received {:step, "unconfirm"}
+    assert_received {:step, "reopen"}
+  end
+
+  test "club settings save, member removal and session cancel redirect with flashes",
+       %{conn: conn, club: club, head: head} do
+    member = user_fixture(%{node_user_id: 55})
+    membership_fixture(member, club)
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"DELETE", "/api/events/11"} ->
+          send(test_pid, :event_deleted)
+          Req.Test.json(conn, %{"status" => "success", "message" => "Event archived."})
+      end
+    end)
+
+    saved =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/club", %{name: "Renamed", city: "Lviv"})
+
+    assert redirected_to(saved) == "/c/#{club.uuid}/owner"
+    assert Phoenix.Flash.get(saved.assigns.flash, :info) =~ "settings saved"
+    assert Cab.Clubs.get_by_uuid(club.uuid).name == "Renamed"
+
+    removed =
+      conn |> log_in(head) |> post(~p"/c/#{club.uuid}/owner/members/#{member.id}/remove")
+
+    assert redirected_to(removed) == "/c/#{club.uuid}/owner"
+    assert Phoenix.Flash.get(removed.assigns.flash, :info) =~ "member removed"
+    assert Cab.Clubs.role_for(club, member) == :public
+
+    # the head's own row bounces back with the reason
+    protected =
+      conn |> log_in(head) |> post(~p"/c/#{club.uuid}/owner/members/#{head.id}/remove")
+
+    assert Phoenix.Flash.get(protected.assigns.flash, :error) =~ "head cannot be removed"
+
+    cancelled =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/cancel")
+
+    assert redirected_to(cancelled) == "/c/#{club.uuid}/owner"
+    assert Phoenix.Flash.get(cancelled.assigns.flash, :info) =~ "session cancelled"
+    assert_received :event_deleted
+    assert Cab.Sessions.list_for_club(club) == []
+
+    # every one of these is owner-tree only
+    for path <- [
+          ~p"/c/#{club.uuid}/owner/club",
+          ~p"/c/#{club.uuid}/owner/members/#{member.id}/remove"
+        ] do
+      assert conn |> log_in(member) |> post(path) |> response(403)
+    end
+  end
+
   test "signup for another club's session is 404", %{conn: conn, club: club} do
     member = user_fixture()
     membership_fixture(member, club)

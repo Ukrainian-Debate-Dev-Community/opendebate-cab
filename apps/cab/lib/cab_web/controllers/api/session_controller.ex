@@ -8,7 +8,7 @@ defmodule CabWeb.Api.SessionController do
 
   plug ClubScope, [source: :club, require: :owner] when action == :create
   plug ClubScope, [source: :session, require: :member] when action == :show
-  plug ClubScope, [source: :session, require: :owner] when action == :finish
+  plug ClubScope, [source: :session, require: :owner] when action in [:finish, :delete]
 
   # POST /api/v1/clubs/:uuid/sessions {"name": optional}
   def create(conn, params) do
@@ -20,11 +20,19 @@ defmodule CabWeb.Api.SessionController do
     end
   end
 
-  # GET /api/v1/sessions/:uuid — stage derived from engine state
+  # GET /api/v1/sessions/:uuid — stage derived from engine state;
+  # while signing up (and attendance fills rooms) the state carries
+  # the pairing PROPOSAL — the auto-pair result, nothing persisted
   def show(conn, _params) do
     session = conn.assigns.session
 
     with {:ok, state} <- Sessions.state(session) do
+      proposal =
+        case Sessions.pairing_proposal(session, state) do
+          {:ok, rooms} -> %{rooms: rooms}
+          :unavailable -> nil
+        end
+
       json(conn, %{
         uuid: session.uuid,
         club_uuid: conn.assigns.club.uuid,
@@ -32,7 +40,8 @@ defmodule CabWeb.Api.SessionController do
         event: state.event,
         round: state.round,
         signups: state.signups,
-        rooms: state.rooms
+        rooms: state.rooms,
+        proposal: proposal
       })
     end
   end
@@ -41,6 +50,14 @@ defmodule CabWeb.Api.SessionController do
   def finish(conn, _params) do
     with :ok <- Sessions.finish(conn.assigns.current_user, conn.assigns.session) do
       json(conn, %{uuid: conn.assigns.session.uuid, status: "completed"})
+    end
+  end
+
+  # DELETE /api/v1/sessions/:uuid — head cancels: engine event
+  # archived, gateway row removed, club back to "no session"
+  def delete(conn, _params) do
+    with {:ok, _session} <- Sessions.cancel(conn.assigns.current_user, conn.assigns.session) do
+      json(conn, %{uuid: conn.assigns.session.uuid, status: "cancelled"})
     end
   end
 end

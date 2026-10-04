@@ -42,16 +42,30 @@ defmodule CabWeb.Router do
     get "/member/rooms/:id/ballot", MemberController, :ballot
     post "/member/rooms/:id/ballot", MemberController, :submit_ballot
 
-    # owner tree: approvals, open session, rooms, ballot, finish
+    # owner tree: approvals, club settings, open session, signups on
+    # behalf, rooms (auto + composed + rebuild), ballot, reopen,
+    # finish, cancel — the head controls everything from here
     get "/owner", OwnerController, :show
     post "/owner/join-requests/:id/approve", OwnerController, :approve
     post "/owner/join-requests/:id/decline", OwnerController, :decline
+    post "/owner/club", OwnerController, :update_club
+    post "/owner/members/:user_id/remove", OwnerController, :remove_member
     post "/owner/sessions", OwnerController, :open_session
+    post "/owner/sessions/:session_uuid/signups", OwnerController, :add_signup
+
+    post "/owner/sessions/:session_uuid/signups/:participant_id/remove",
+         OwnerController,
+         :remove_signup
+
+    get "/owner/sessions/:session_uuid/compose", OwnerController, :compose
     post "/owner/sessions/:session_uuid/rooms", OwnerController, :make_rooms
+    post "/owner/sessions/:session_uuid/rooms/delete", OwnerController, :delete_rooms
     post "/owner/sessions/:session_uuid/finish", OwnerController, :finish
+    post "/owner/sessions/:session_uuid/cancel", OwnerController, :cancel_session
     post "/owner/rooms/:id/motion", OwnerController, :motion
     get "/owner/rooms/:id/ballot", OwnerController, :ballot
     post "/owner/rooms/:id/ballot", OwnerController, :submit_ballot
+    post "/owner/rooms/:id/reopen", OwnerController, :reopen
   end
 
   # JSON API over the same contexts (club creation is the
@@ -60,18 +74,24 @@ defmodule CabWeb.Router do
     pipe_through :api
 
     get "/clubs/:uuid", ClubController, :show
+    patch "/clubs/:uuid", ClubController, :update
     get "/clubs/:uuid/members", ClubController, :members
+    delete "/clubs/:uuid/members/:user_id", ClubController, :remove_member
     post "/clubs/:uuid/join-requests", JoinRequestController, :create
     patch "/join-requests/:id", JoinRequestController, :update
 
     post "/clubs/:uuid/sessions", SessionController, :create
     get "/sessions/:uuid", SessionController, :show
+    delete "/sessions/:uuid", SessionController, :delete
     post "/sessions/:uuid/signups", SignupController, :create
+    delete "/sessions/:uuid/signups/:participant_id", SignupController, :delete
     post "/sessions/:uuid/rooms", RoomController, :create
+    delete "/sessions/:uuid/rooms", RoomController, :delete
     post "/sessions/:uuid/finish", SessionController, :finish
 
     post "/rooms/:id/motion", RoomController, :motion
     post "/rooms/:id/ballot", RoomController, :ballot
+    patch "/rooms/:id/reopen", RoomController, :reopen
   end
 
   scope "/auth", CabWeb do
