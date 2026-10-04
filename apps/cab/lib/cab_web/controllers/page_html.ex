@@ -51,6 +51,9 @@ defmodule CabWeb.PageHTML do
                   —
                 <% end %>
               </:col>
+              <:col :let={row}>
+                <.link href={~p"/c/#{row.club_uuid}/s/#{row.session_uuid}"}>view</.link>
+              </:col>
             </.table>
           </.section>
         </div>

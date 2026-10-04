@@ -15,19 +15,21 @@ defmodule CabWeb.MemberHTML do
         stage_kind={stage_kind(@state)}
       >
         <:seg
-          :if={@state && @state.stage == :signup}
-          href={~p"/c/#{@club.uuid}/member/sessions/#{@current.uuid}/signups?as=judge"}
-          method="post"
-        >
-          I judge
-        </:seg>
-        <:seg
-          :if={@state && @state.stage == :signup}
-          href={~p"/c/#{@club.uuid}/member/sessions/#{@current.uuid}/signups?as=speak"}
-          method="post"
+          :if={@state && @state.stage == :signup && is_nil(@my_signup)}
+          href={~p"/c/#{@club.uuid}/member/sessions/#{@current.uuid}/register"}
           primary
         >
-          I speak tonight
+          Register
+        </:seg>
+        <:seg
+          :if={@state && @state.stage == :signup && @my_signup}
+          href={
+            ~p"/c/#{@club.uuid}/member/sessions/#{@current.uuid}/signups/#{@my_signup["id"]}/remove"
+          }
+          method="post"
+          quiet
+        >
+          Cancel my registration
         </:seg>
         <:seg
           :if={@my_ballot_room}
@@ -40,6 +42,15 @@ defmodule CabWeb.MemberHTML do
 
       <div class="pbody">
         <.flash_banners flash={@flash} />
+
+        <.banner :if={@state && @my_signup} kind={:good}>
+          You are registered to {if @my_signup["role"] == "adjudicator",
+            do: "judge",
+            else: "speak"} tonight.
+        </.banner>
+        <.banner :if={@state && @state.stage in [:closed, :running]} kind={:info}>
+          Registration is closed for this session.
+        </.banner>
 
         <%= if @current && @state do %>
           <.section title="Tonight">
@@ -81,7 +92,52 @@ defmodule CabWeb.MemberHTML do
               {Calendar.strftime(session.inserted_at, "%-d %b %Y")}
             </:col>
             <:col :let={session} label="Session" code>{session.uuid}</:col>
+            <:col :let={session}>
+              <.link href={~p"/c/#{@club.uuid}/s/#{session.uuid}"}>view</.link>
+            </:col>
           </.table>
+        </.section>
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  # GET .../member/sessions/:session_uuid/register — the ONE
+  # registration entry: role pills, POSTing to the signups action
+  def register(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash}>
+      <.chrome
+        crumbs={[
+          {@club.name, ~p"/c/#{@club.uuid}"},
+          {"tonight", ~p"/c/#{@club.uuid}/member"}
+        ]}
+        here="register"
+        stage="sign-up open"
+        stage_kind={:ok}
+      >
+      </.chrome>
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+
+        <.section title="Registration">
+          <.form_for
+            id="register-form"
+            action={~p"/c/#{@club.uuid}/member/sessions/#{@session.uuid}/signups"}
+            title="Register for tonight"
+            description="One registration per member — pick your role."
+          >
+            <:block
+              name={:as}
+              type={:select}
+              label="I am tonight"
+              required
+              value="speak"
+              options={[{"Speaker", "speak"}, {"Judge", "judge"}]}
+            />
+            <:submit note="You appear in tonight's list right away.">Register</:submit>
+          </.form_for>
         </.section>
       </div>
     </Layouts.app>
@@ -121,11 +177,13 @@ defmodule CabWeb.MemberHTML do
 
   defp stage_label(nil), do: nil
   defp stage_label(%{stage: :signup}), do: "sign-up open"
+  defp stage_label(%{stage: :closed}), do: "sign-ups closed"
   defp stage_label(%{stage: :running}), do: "running"
   defp stage_label(%{stage: :done}), do: "done"
 
   defp stage_kind(nil), do: :off
   defp stage_kind(%{stage: :signup}), do: :ok
+  defp stage_kind(%{stage: :closed}), do: :warn
   defp stage_kind(%{stage: :running}), do: :warn
   defp stage_kind(%{stage: :done}), do: :off
 
