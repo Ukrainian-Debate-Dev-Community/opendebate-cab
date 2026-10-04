@@ -5,13 +5,14 @@
 #
 # Creates:
 #   Kyiv Debate Club  - YOU are head; 8 speakers + 1 judge approved and
-#                       signed up to an OPEN session; 1 join request
-#                       left pending for you to approve.
-#                       Your click path: approve nina -> I speak tonight
-#                       (you are the 8th... no - s1..s8 are signed, you
-#                       just Make rooms) -> Make rooms -> fill ballots
-#                       (as head: full control, or /dev/switch-user to
-#                       demo-j1) -> Finish session -> history.
+#                       registered to an OPEN session (sign-ups OPEN -
+#                       the M5 flow waits for YOU to close them); 1 join
+#                       request left pending for you to approve.
+#                       Your click path: approve nina -> Close sign-ups
+#                       -> Make rooms (or Compose rooms: drag chips
+#                       into slots) -> fill ballots (as head: full
+#                       control, or /dev/switch-user to demo-j1) ->
+#                       Finish session -> history -> session page.
 #   Lviv Debate Society - demo-lviv-head is head; you are NOT a member:
 #                       request to join from the public page, then
 #                       /dev/switch-user?username=demo-lviv-head to
@@ -92,11 +93,15 @@ PRIMED. Your world ($ME):
   cabinet        $BASE/
   Kyiv (head)    $BASE/c/$KYIV/owner
                  - 1 pending request (demo-nina): approve or decline
-                 - session "Thursday practice" open, 8 speakers + 1
-                   judge signed up -> Make rooms -> per-room ballots
-                   (you have full control; or act as the judge:
+                 - session "Thursday practice" with sign-ups OPEN,
+                   8 speakers + 1 judge registered. Click CLOSE
+                   SIGN-UPS, then Make rooms (auto) or Compose rooms
+                   (drag-and-drop chips into slots; a 1-speaker team
+                   is an iron) -> per-room ballots (you have full
+                   control; or act as the judge:
                    $BASE/dev/switch-user?username=demo-j1)
-                 - Finish session -> winner in history
+                 - Finish session -> winner in history -> click the
+                   history row for the public session page
   Lviv (public)  $BASE/c/$LVIV
                  - Request to join, then approve yourself as the head:
                    $BASE/dev/switch-user?username=demo-lviv-head
