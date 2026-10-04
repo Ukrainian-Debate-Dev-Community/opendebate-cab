@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# M1/M3 acceptance: curl through the ENTIRE club lifecycle REST flow
-# against the live stack (engine :3100 + gateway :4000 — `make up`,
-# dev DB migrated). Every step asserts the HTTP status and a JSON
-# field. Exits non-zero on the first failed assertion.
+# M1/M3/M4 acceptance: curl through the ENTIRE club lifecycle REST
+# flow against the live stack (engine :3100 + gateway :4000 —
+# `make up`, dev DB migrated). Every step asserts the HTTP status and
+# a JSON field. Exits non-zero on the first failed assertion.
 #
 #   platform/apps/cab/priv/walkthrough_rest.sh
 #
 # Cast: 1 head + 8 speakers + 1 judge (BP rooms hold 4 teams x 2
-# speakers, so pairing needs speakers in multiples of 8). Identities
-# are /dev/switch-user cookie jars; the club is seeded via
-# `mix cab.seed_club`.
+# speakers, so pairing needs speakers in multiples of 8) + x1, an
+# extra member for the head's full-control steps (signup on behalf,
+# member removal). Identities are /dev/switch-user cookie jars; the
+# club is seeded via `mix cab.seed_club`.
 
 set -u
 BASE="${BASE:-http://localhost:4000}"
@@ -50,13 +51,13 @@ curl -sf -o /dev/null --max-time 3 "$BASE/" || { echo "gateway not up — run: m
 # ----------------------------------------------------------------
 say "users via /dev/switch-user (cookie jar = identity)"
 # ----------------------------------------------------------------
-USERS="head j1 s1 s2 s3 s4 s5 s6 s7 s8"
+USERS="head j1 s1 s2 s3 s4 s5 s6 s7 s8 x1"
 for u in $USERS; do
   code=$(curl -s -o /dev/null -w '%{http_code}' -c "$JARS/$u" \
     "$BASE/dev/switch-user?username=wt-$RUN-$u")
   [ "$code" = "302" ] || fail "switch-user $u: status $code, want 302"
 done
-echo "ok     10 users signed in (wt-$RUN-*)"
+echo "ok     11 users signed in (wt-$RUN-*)"
 
 # ----------------------------------------------------------------
 say "seed club via mix task (club creation is NOT in the API)"
@@ -114,6 +115,44 @@ done
 assert j1 POST "/api/v1/sessions/$SESSION/signups" 201 '.role' adjudicator '{"as":"judge"}'
 
 # ----------------------------------------------------------------
+say "signups on behalf + removal (head full control)"
+# ----------------------------------------------------------------
+assert x1 POST "/api/v1/clubs/$CLUB/join-requests" 201 '.status' pending
+X1_REQ=$(jq -r '.id' "$BODY")
+assert head PATCH "/api/v1/join-requests/$X1_REQ" 200 '.status' approved '{"action":"approve"}'
+
+# only the head signs up others; the head may remove anyone
+assert s1 POST "/api/v1/sessions/$SESSION/signups" 403 '.error' forbidden \
+  "{\"as\":\"speak\",\"username\":\"wt-$RUN-x1\"}"
+assert head POST "/api/v1/sessions/$SESSION/signups" 201 '.role' speaker \
+  "{\"as\":\"speak\",\"username\":\"wt-$RUN-x1\"}"
+X1_PID=$(jq -r '.participant_id' "$BODY")
+assert s1 DELETE "/api/v1/sessions/$SESSION/signups/$X1_PID" 403 '.error' forbidden
+assert head DELETE "/api/v1/sessions/$SESSION/signups/$X1_PID" 200 '.status' removed
+
+# self-removal: s8 steps out and back in
+assert s8 GET "/api/v1/sessions/$SESSION" 200 '.stage' signup
+S8_PID=$(jq -r --arg name "wt-$RUN-s8" \
+  '.signups[] | select(.display_name == $name) | .id' "$BODY")
+assert s8 DELETE "/api/v1/sessions/$SESSION/signups/$S8_PID" 200 '.status' removed
+assert s8 POST "/api/v1/sessions/$SESSION/signups" 201 '.role' speaker '{"as":"speak"}'
+
+# ----------------------------------------------------------------
+say "pairing proposal (no side effects), explicit composition, rebuild"
+# ----------------------------------------------------------------
+assert head GET "/api/v1/sessions/$SESSION" 200 '.proposal.rooms | length' 1
+COMPOSE=$(jq -c '{rooms: .proposal.rooms}' "$BODY")
+
+assert s1 POST "/api/v1/sessions/$SESSION/rooms" 403 '.error' forbidden "$COMPOSE"
+assert head POST "/api/v1/sessions/$SESSION/rooms" 201 '.rooms_created' 1 "$COMPOSE"
+assert head GET "/api/v1/sessions/$SESSION" 200 '.stage' running
+
+say "rooms rebuild: delete pending rooms, session back to sign-up"
+assert s1 DELETE "/api/v1/sessions/$SESSION/rooms" 403 '.error' forbidden
+assert head DELETE "/api/v1/sessions/$SESSION/rooms" 200 '.rooms_deleted' 1
+assert head GET "/api/v1/sessions/$SESSION" 200 '.stage' signup
+
+# ----------------------------------------------------------------
 say "head makes rooms from attendance"
 # ----------------------------------------------------------------
 assert head POST "/api/v1/sessions/$SESSION/rooms" 201 '.rooms_created' 1
@@ -155,10 +194,49 @@ assert j1 POST "/api/v1/rooms/$ROOM/ballot" 200 '.status' confirmed \
   "{\"session_uuid\":\"$SESSION\",\"scores\":$SCORES}"
 
 # ----------------------------------------------------------------
+say "ballot reopen: head reopens, the judge resubmits"
+# ----------------------------------------------------------------
+assert s1 PATCH "/api/v1/rooms/$ROOM/reopen" 403 '.error' forbidden \
+  "{\"session_uuid\":\"$SESSION\"}"
+assert head PATCH "/api/v1/rooms/$ROOM/reopen" 200 '.status' judging \
+  "{\"session_uuid\":\"$SESSION\"}"
+assert j1 POST "/api/v1/rooms/$ROOM/ballot" 200 '.status' confirmed \
+  "{\"session_uuid\":\"$SESSION\",\"scores\":$SCORES}"
+
+# ----------------------------------------------------------------
 say "head finishes; history shows the winner"
 # ----------------------------------------------------------------
 assert head POST "/api/v1/sessions/$SESSION/finish" 200 '.status' completed
 assert j1 GET "/api/v1/sessions/$SESSION" 200 '.stage' done
 assert head GET "/api/v1/clubs/$CLUB" 200 '.history[0].winner' "$WINNER_NAME"
+
+# ----------------------------------------------------------------
+say "club management: profile PATCH + member removal (head only)"
+# ----------------------------------------------------------------
+assert s1 PATCH "/api/v1/clubs/$CLUB" 403 '.error' forbidden '{"name":"nope"}'
+assert head PATCH "/api/v1/clubs/$CLUB" 200 '.city' Lviv \
+  "{\"name\":\"BP Walkthrough $RUN (renamed)\",\"city\":\"Lviv\"}"
+assert head GET "/api/v1/clubs/$CLUB" 200 '.name' "BP Walkthrough $RUN (renamed)"
+
+assert head GET "/api/v1/clubs/$CLUB/members" 200 '.members | length' 11
+X1_UID=$(jq -r --arg name "wt-$RUN-x1" \
+  '.members[] | select(.username == $name) | .user_id' "$BODY")
+HEAD_UID=$(jq -r --arg name "wt-$RUN-head" \
+  '.members[] | select(.username == $name) | .user_id' "$BODY")
+assert s1 DELETE "/api/v1/clubs/$CLUB/members/$X1_UID" 403 '.error' forbidden
+assert head DELETE "/api/v1/clubs/$CLUB/members/$X1_UID" 200 '.status' removed
+assert head GET "/api/v1/clubs/$CLUB/members" 200 '.members | length' 10
+assert head DELETE "/api/v1/clubs/$CLUB/members/$HEAD_UID" 422 \
+  '.error | contains("head cannot be removed")' true
+
+# ----------------------------------------------------------------
+say "session cancel on a throwaway second session"
+# ----------------------------------------------------------------
+assert head POST "/api/v1/clubs/$CLUB/sessions" 201 '.uuid | length' 36 \
+  "{\"name\":\"Throwaway $RUN\"}"
+SESSION2=$(jq -r '.uuid' "$BODY")
+assert s1 DELETE "/api/v1/sessions/$SESSION2" 403 '.error' forbidden
+assert head DELETE "/api/v1/sessions/$SESSION2" 200 '.status' cancelled
+assert head GET "/api/v1/sessions/$SESSION2" 404 '.error' "not found"
 
 printf '\nWALKTHROUGH GREEN: %s steps, club %s\n' "$STEP" "$CLUB"
