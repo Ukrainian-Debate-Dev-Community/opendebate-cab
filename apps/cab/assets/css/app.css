@@ -150,9 +150,13 @@ main.page-main { flex:1 0 auto; width:100%; }
    ================================================================ */
 .chrome { display:flex; align-items:stretch; height:34px; background:#fff;
           font-size:.8rem; border-bottom:1px solid var(--line); }
+/* brand wordmarks (cab / dfu / uadebate) use the freeform script face */
+.wordmark { font-family:"Great Vibes", cursive; font-weight:400;
+            letter-spacing:.02em; }
 .chrome .cap { display:flex; align-items:center; padding:0 var(--px);
-               font-weight:800; letter-spacing:-.01em; color:#fff;
-               background:var(--brand); text-decoration:none; }
+               color:#fff; background:var(--brand); text-decoration:none;
+               font-family:"Great Vibes", cursive; font-size:1.25rem;
+               line-height:1; padding-bottom:3px; }
 .chrome .crumb { display:flex; align-items:center; gap:7px; padding:0 var(--px);
                  font-weight:600; min-width:0; }
 .chrome .crumb a { color:var(--ink); text-decoration:none; }
