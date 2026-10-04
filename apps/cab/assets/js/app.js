@@ -46,6 +46,83 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
+// ----------------------------------------------------------------
+// Design-system v2 widgets (vanilla JS, no LiveView) — ported from
+// design/components-v2.html: table sort, ballot math, elim count.
+// ----------------------------------------------------------------
+
+// table: client-side sort on th.sort + header select-all checkbox
+document.querySelectorAll("table.t").forEach(table => {
+  const headers = table.querySelectorAll("th.sort")
+  headers.forEach(th => {
+    th.addEventListener("click", () => {
+      const was = th.classList.contains("desc")
+      headers.forEach(x => x.classList.remove("asc", "desc"))
+      th.classList.add(was ? "asc" : "desc")
+      const tb = table.tBodies[0]
+      const idx = [...th.parentNode.children].indexOf(th)
+      ;[...tb.rows]
+        .sort((a, b) => {
+          const r = a.cells[idx].innerText.localeCompare(b.cells[idx].innerText, undefined, {numeric: true})
+          return was ? r : -r
+        })
+        .forEach(r => tb.appendChild(r))
+      ;[...tb.rows].forEach((r, i) => {
+        const rank = r.querySelector("td.rank")
+        if (rank) rank.innerText = i + 1
+      })
+    })
+  })
+  const all = table.querySelector("thead input[type=checkbox]")
+  if (all) {
+    all.addEventListener("click", () => {
+      table.querySelectorAll("tbody input[type=checkbox]").forEach(cb => (cb.checked = all.checked))
+    })
+  }
+})
+
+// scored ballot: live totals, derived ranks, tie detection
+document.querySelectorAll(".ballot [data-ballot]").forEach(grid => {
+  const msg = grid.closest(".ballot").querySelector(".bfoot")
+  const recalc = () => {
+    const teams = [...grid.querySelectorAll(".bteam")].map(t => ({
+      el: t,
+      sum: [...t.querySelectorAll("input[type=number]")].reduce((a, i) => a + (parseFloat(i.value) || 0), 0),
+    }))
+    const sums = teams.map(t => t.sum)
+    const tied = sums.some((s, i) => sums.indexOf(s) !== i)
+    const order = teams.slice().sort((a, b) => b.sum - a.sum)
+    const names = ["1st", "2nd", "3rd", "4th"]
+    teams.forEach(t => {
+      t.el.querySelector(".tot").textContent = t.sum.toFixed(1)
+      t.el.querySelector(".rk").textContent = names[order.indexOf(t)] || `${order.indexOf(t) + 1}th`
+      t.el.querySelector(".bsum").classList.toggle("tied", teams.some(o => o !== t && o.sum === t.sum))
+    })
+    if (!msg) return
+    msg.innerHTML = tied
+      ? '<span class="err">Two teams share a total - BP forbids ties. Adjust scores to submit.</span>'
+      : "All totals distinct - ballot valid. Submit lives in the chrome."
+  }
+  grid.addEventListener("input", recalc)
+  recalc()
+})
+
+// elim ballot: exactly N teams advance
+document.querySelectorAll(".ballot [data-advance]").forEach(grid => {
+  const msg = grid.closest(".ballot").querySelector(".bfoot")
+  const n = parseInt(grid.dataset.advance, 10)
+  const check = () => {
+    const ticked = grid.querySelectorAll("input:checked").length
+    if (!msg) return
+    msg.innerHTML =
+      ticked === n
+        ? `${ticked} of ${n} advancing - valid.`
+        : `<span class="err">${ticked} of ${n} advancing - tick exactly ${n} teams.</span>`
+  }
+  grid.addEventListener("input", check)
+  check()
+})
+
 // The lines below enable quality of life phoenix_live_reload
 // development features:
 //
