@@ -1,6 +1,10 @@
 defmodule CabWeb.MemberHTML do
   use CabWeb, :html
 
+  # this view's ballot/1 is the page; the kit component stays qualified
+  import CabWeb.Ui, except: [ballot: 1]
+  alias CabWeb.Ui
+
   def show(assigns) do
     ~H"""
     <Layouts.app flash={@flash}>
@@ -24,6 +28,13 @@ defmodule CabWeb.MemberHTML do
           primary
         >
           I speak tonight
+        </:seg>
+        <:seg
+          :if={@my_ballot_room}
+          href={~p"/c/#{@club.uuid}/member/rooms/#{@my_ballot_room["id"]}/ballot"}
+          primary
+        >
+          Fill ballot
         </:seg>
       </.chrome>
 
@@ -71,6 +82,37 @@ defmodule CabWeb.MemberHTML do
             </:col>
             <:col :let={session} label="Session" code>{session.uuid}</:col>
           </.table>
+        </.section>
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  def ballot(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash}>
+      <.chrome
+        crumbs={[
+          {@club.name, ~p"/c/#{@club.uuid}"},
+          {"tonight", ~p"/c/#{@club.uuid}/member"}
+        ]}
+        here={"ballot R#{@room["id"]}"}
+      >
+        <:seg form={"ballot-#{@room["id"]}"} primary>Submit ballot</:seg>
+      </.chrome>
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+
+        <.section title={"Room R#{@room["id"]} · ballot"}>
+          <Ui.ballot
+            id={"ballot-#{@room["id"]}"}
+            room={"R#{@room["id"]}"}
+            motion={@room["Motion"] && @room["Motion"]["motion_text"]}
+            teams={@teams}
+            error={@error}
+            action={~p"/c/#{@club.uuid}/member/rooms/#{@room["id"]}/ballot"}
+          />
         </.section>
       </div>
     </Layouts.app>

@@ -1,6 +1,10 @@
 defmodule CabWeb.OwnerHTML do
   use CabWeb, :html
 
+  # this view's ballot/1 is the page; the kit component stays qualified
+  import CabWeb.Ui, except: [ballot: 1]
+  alias CabWeb.Ui
+
   def show(assigns) do
     ~H"""
     <Layouts.app flash={@flash}>
@@ -114,6 +118,14 @@ defmodule CabWeb.OwnerHTML do
                   </span>
                 <% end %>
               </:col>
+              <:col :let={room}>
+                <.link
+                  :if={room["status"] in ["pending", "judging"]}
+                  href={~p"/c/#{@club.uuid}/owner/rooms/#{room["id"]}/ballot"}
+                >
+                  ballot
+                </.link>
+              </:col>
             </.table>
           </.section>
 
@@ -132,25 +144,6 @@ defmodule CabWeb.OwnerHTML do
                   hint="This room's judge announces it; rooms may debate different motions."
                 />
                 <:submit note="Visible to the room right away.">Set motion</:submit>
-              </.form_for>
-            </.section>
-
-            <.section title={"Room R#{room["id"]} · winner"}>
-              <.form_for
-                id={"winner-form-#{room["id"]}"}
-                action={~p"/c/#{@club.uuid}/owner/rooms/#{room["id"]}/winner"}
-                hidden={[{"session_uuid", @current.uuid}]}
-              >
-                <:block
-                  name={:room_team_id}
-                  type={:select}
-                  label="Winning team"
-                  required
-                  options={team_options(room)}
-                />
-                <:submit note="Recorded to the room's ballot and confirmed.">
-                  Record winner
-                </:submit>
               </.form_for>
             </.section>
           <% end %>
@@ -173,19 +166,43 @@ defmodule CabWeb.OwnerHTML do
     """
   end
 
+  def ballot(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash}>
+      <.chrome
+        crumbs={[
+          {@club.name, ~p"/c/#{@club.uuid}"},
+          {"owner", ~p"/c/#{@club.uuid}/owner"}
+        ]}
+        here={"ballot R#{@room["id"]}"}
+      >
+        <:seg form={"ballot-#{@room["id"]}"} primary>Submit ballot</:seg>
+      </.chrome>
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+
+        <.section title={"Room R#{@room["id"]} · ballot"}>
+          <Ui.ballot
+            id={"ballot-#{@room["id"]}"}
+            room={"R#{@room["id"]}"}
+            motion={@room["Motion"] && @room["Motion"]["motion_text"]}
+            teams={@teams}
+            error={@error}
+            action={~p"/c/#{@club.uuid}/owner/rooms/#{@room["id"]}/ballot"}
+          />
+        </.section>
+      </div>
+    </Layouts.app>
+    """
+  end
+
   defp no_open_session?(state), do: state == nil or state.stage == :done
 
   defp open_rooms(%{stage: :running, rooms: rooms}),
     do: Enum.reject(rooms, &(&1["status"] in ["confirmed", "completed"]))
 
   defp open_rooms(_state), do: []
-
-  defp team_options(room) do
-    room["RoomTeams"]
-    |> List.wrap()
-    |> Enum.sort_by(& &1["position"])
-    |> Enum.map(fn rt -> {get_in(rt, ["Team", "name"]), rt["id"]} end)
-  end
 
   defp stage_label(nil), do: nil
   defp stage_label(%{stage: :signup}), do: "sign-up open"

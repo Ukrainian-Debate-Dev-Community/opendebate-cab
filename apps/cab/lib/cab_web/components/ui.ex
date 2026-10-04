@@ -32,6 +32,10 @@ defmodule CabWeb.Ui do
   signed-in -> user name + Sign out; signed-out -> a quiet Sign in
   segment (placed before the action segments).
 
+  A segment with `form` renders as that form's submit button instead
+  of a link — the design's "submit lives in the chrome" rule for the
+  ballot pages (the ballot component itself carries no button).
+
       <.chrome crumbs={[{@club.name, ~p"/c/\#{@club.uuid}"}]} here="rooms"
                stage="running" stage_kind={:warn}>
         <:seg method="post" href={...} quiet>Delete rooms</:seg>
@@ -47,8 +51,9 @@ defmodule CabWeb.Ui do
   attr :current_user, :any, default: nil
 
   slot :seg do
-    attr :href, :any, required: true
+    attr :href, :any
     attr :method, :string, doc: "defaults to get; post renders a method link"
+    attr :form, :string, doc: "renders a submit button for this form id instead of a link"
     attr :primary, :boolean, doc: "the page's single gold segment"
     attr :quiet, :boolean, doc: "grey: destructive or exit"
   end
@@ -69,14 +74,25 @@ defmodule CabWeb.Ui do
         <.link :if={@account and is_nil(@current_user)} class="quiet" href={~p"/auth/github"}>
           Sign in
         </.link>
-        <.link
-          :for={seg <- @seg}
-          href={seg.href}
-          method={seg[:method] || "get"}
-          class={[seg[:primary] && "go", seg[:quiet] && "quiet"]}
-        >
-          {render_slot(seg)}
-        </.link>
+        <%= for seg <- @seg do %>
+          <%= if seg[:form] do %>
+            <button
+              type="submit"
+              form={seg[:form]}
+              class={[seg[:primary] && "go", seg[:quiet] && "quiet"]}
+            >
+              {render_slot(seg)}
+            </button>
+          <% else %>
+            <.link
+              href={seg.href}
+              method={seg[:method] || "get"}
+              class={[seg[:primary] && "go", seg[:quiet] && "quiet"]}
+            >
+              {render_slot(seg)}
+            </.link>
+          <% end %>
+        <% end %>
         <%= if @account and @current_user do %>
           <.link class="me" href={~p"/"}>{@current_user.username}</.link>
           <.link class="quiet" href={~p"/auth/logout"}>Sign out</.link>
@@ -394,13 +410,19 @@ defmodule CabWeb.Ui do
 
   `teams` is a list of `%{side: :og, name: "...", rows: [...]}` where
   each row is `%{role: "PM", speakers: [{label, value}], selected:
-  value, iron: boolean, score: number}`.
+  value, iron: boolean, score: number}`. A team may carry
+  `tied: true` — its total block renders the amber tied state.
+
+  Server errors re-render the same page: pass the message as `error`
+  and it replaces the footer line in the amber style, with the
+  offending teams marked tied.
   """
   attr :id, :string, default: nil
   attr :room, :string, default: nil
   attr :motion, :string, default: nil
   attr :teams, :list, required: true
-  attr :action, :string, default: nil, doc: "wired in M3; render-only until then"
+  attr :error, :string, default: nil, doc: "server-side validation message (amber footer)"
+  attr :action, :string, default: nil, doc: "POSTs to the in-tree ballot twin action"
 
   def ballot(assigns) do
     ~H"""
@@ -443,12 +465,18 @@ defmodule CabWeb.Ui do
               value={row[:score]}
             />
           </div>
-          <div class="bsum">
+          <div class={if team[:tied], do: "bsum tied", else: "bsum"}>
             <span>team total</span><span class="tot">—</span><span class="rk">—</span>
           </div>
         </div>
       </div>
-      <div class="bfoot">Enter all eight scores — ranks derive from team totals.</div>
+      <div class="bfoot">
+        <%= if @error do %>
+          <span class="err">{@error}</span>
+        <% else %>
+          Enter all eight scores — ranks derive from team totals.
+        <% end %>
+      </div>
     </form>
     """
   end

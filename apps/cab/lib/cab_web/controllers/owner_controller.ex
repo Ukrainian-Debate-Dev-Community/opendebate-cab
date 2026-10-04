@@ -4,6 +4,7 @@ defmodule CabWeb.OwnerController do
   alias Cab.{Clubs, Sessions}
   alias Cab.Clubs.Membership
   alias Cab.Sessions.Session
+  alias CabWeb.BallotForm
 
   plug CabWeb.ClubScope, source: :club, require: :owner
 
@@ -90,19 +91,61 @@ defmodule CabWeb.OwnerController do
     end
   end
 
-  # POST /c/:club_uuid/owner/rooms/:id/winner
-  def winner(conn, %{"id" => id, "session_uuid" => session_uuid} = params) do
-    with_session(conn, session_uuid, fn session ->
-      with {room_id, ""} <- Integer.parse(id),
-           {room_team_id, ""} <- Integer.parse(params["room_team_id"] || ""),
-           :ok <-
-             Sessions.pick_winner(conn.assigns.current_user, session, room_id, room_team_id) do
-        {:ok, "winner recorded"}
-      else
-        {:error, message} -> {:error, message}
-        _ -> {:error, "pick a team"}
+  # GET /c/:club_uuid/owner/rooms/:id/ballot — the head fills any
+  # open room's ballot (full-control doctrine)
+  def ballot(conn, %{"id" => id}) do
+    with_ballot_room(conn, id, fn conn, session, room ->
+      render_ballot(conn, session, room, nil, nil)
+    end)
+  end
+
+  # POST /c/:club_uuid/owner/rooms/:id/ballot — in-tree twin of the
+  # ballot API action: redirect + flash, re-render amber on errors
+  def submit_ballot(conn, %{"id" => id} = params) do
+    with_ballot_room(conn, id, fn conn, session, room ->
+      scores = BallotForm.scores_from_params(params["ballot"])
+
+      case Sessions.submit_ballot(conn.assigns.current_user, session, room["id"], scores) do
+        :ok ->
+          back(conn, info: "ballot submitted — the room is confirmed")
+
+        {:error, :forbidden} ->
+          conn |> send_resp(403, "forbidden") |> halt()
+
+        {:error, %{scores: message}} ->
+          conn
+          |> put_status(422)
+          |> render_ballot(session, room, params["ballot"], message)
+
+        {:error, message} ->
+          conn
+          |> put_status(422)
+          |> render_ballot(session, room, params["ballot"], error_message(message))
       end
     end)
+  end
+
+  defp render_ballot(conn, session, room, ballot_params, error) do
+    render(conn, :ballot,
+      session: session,
+      room: room,
+      teams: BallotForm.teams(room, ballot_params),
+      error: error,
+      page_title: "ballot · R#{room["id"]}"
+    )
+  end
+
+  defp with_ballot_room(conn, id, fun) do
+    club = conn.assigns.club
+
+    with {room_id, ""} <- Integer.parse(id),
+         %Session{} = session <- List.first(Sessions.list_for_club(club)),
+         {:ok, state} <- Sessions.state(%{session | club: club}),
+         %{} = room <- Enum.find(state.rooms, &(&1["id"] == room_id)) do
+      fun.(conn, session, room)
+    else
+      _ -> conn |> send_resp(404, "not found") |> halt()
+    end
   end
 
   # ---------------------------------------------------------------

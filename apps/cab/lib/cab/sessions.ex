@@ -5,7 +5,7 @@ defmodule Cab.Sessions do
   never duplicates it; `state/1` derives the stage from engine data
   on every read.
 
-  Engine-call sequences (teams pairing, winner ballot, finishing) are
+  Engine-call sequences (teams pairing, scored ballot, finishing) are
   ported from the proven v1-mvp `Cab.Clubs`/`Cab.Tournaments`.
   """
 
@@ -204,27 +204,61 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Records a room's winner: an ordered synthetic ballot (winner's
-  speakers 76, everyone else a flat 75; ranks winner-first then table
-  order), submitted and confirmed (ported from v1-mvp winner-pick).
+  Submits a room's scored BP ballot (ported from the proven v1-mvp
+  `Cab.Tournaments.ballot_payload/3`): 8 speaker scores — two per team
+  in og/oo/cg/co table order — team ranks DERIVE from team totals
+  (winner = rank 1, the judge never picks places), tied team totals
+  rejected because BP demands a strict order of all four teams.
 
-  The ballot is submitted as the acting user — the engine's chair
-  guard (with owner fall-through) applies. Confirming is
-  owner/organiser-only in the frozen engine, so the gateway confirms
-  as the club head after its own role check.
+  `scores` is a list of 8 entries, two per team `position` 1..4, each
+  `%{position, speaker_participant_id, iron, score}`: the participant
+  id comes from the ballot's who-spoke dropdown, `iron` marks a
+  stand-in covering a teammate's speech (same participant twice), and
+  scores are 50-100 in 0.5 steps.
+
+  Only the room's chair (the signed-up judge) or the club head may
+  submit — `{:error, :forbidden}` otherwise. The ballot goes in as
+  the acting user (the engine's chair guard with owner fall-through
+  applies) and is then confirmed as the club head, since confirm is
+  owner/organiser-only in the frozen engine.
+
+  Returns `:ok`, `{:error, :forbidden}`, a changeset-style
+  `{:error, %{scores: message}}` for invalid entries or tied totals,
+  or `{:error, message}`.
   """
-  def pick_winner(%User{} = user, %Session{} = session, room_id, winner_room_team_id) do
+  def submit_ballot(%User{} = user, %Session{} = session, room_id, scores) do
     club = session_club(session)
 
-    with {:ok, actor} <- actor_for(user),
+    with {:ok, entries} <- parse_ballot_entries(scores),
+         {:ok, actor} <- actor_for(user),
          {:ok, head_actor} <- Clubs.club_actor(club),
          {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
          {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]),
          {:ok, room} <- find_room(rooms, room_id),
-         {:ok, rankings, scores} <- winner_ballot(room, winner_room_team_id),
-         {:ok, _} <- EngineApi.submit_scores(actor, room["id"], rankings, scores),
+         :ok <- authorize_ballot(room, user, club),
+         {:ok, rankings, speaker_scores} <- ballot_payload(room, entries),
+         {:ok, _} <- EngineApi.submit_scores(actor, room["id"], rankings, speaker_scores),
          {:ok, _} <- EngineApi.confirm_room(head_actor, room["id"]) do
       :ok
+    end
+  end
+
+  @doc "Is this user the room's chair (the signed-up judge)?"
+  def room_chair?(room, %User{node_user_id: node_user_id}) do
+    is_integer(node_user_id) and
+      Enum.any?(room["RoomAdjudicators"] || [], fn adj ->
+        adj["role"] == "chair" and
+          get_in(adj, ["EventParticipant", "user_id"]) == node_user_id
+      end)
+  end
+
+  def room_chair?(_room, _user), do: false
+
+  defp authorize_ballot(room, %User{} = user, club) do
+    cond do
+      room_chair?(room, user) -> :ok
+      Clubs.role_for(club, user) == :owner -> :ok
+      true -> {:error, :forbidden}
     end
   end
 
@@ -235,27 +269,162 @@ defmodule Cab.Sessions do
     end
   end
 
-  defp winner_ballot(room, winner_room_team_id) do
-    room_teams = Enum.sort_by(room["RoomTeams"] || [], & &1["position"])
+  # ---------------------------------------------------------------
+  # Ballot payload (ranks derive from totals; no tied team totals)
+  # ---------------------------------------------------------------
 
-    if Enum.any?(room_teams, &(&1["id"] == winner_room_team_id)) do
-      scores =
-        Enum.flat_map(room_teams, fn rt ->
-          score = if rt["id"] == winner_room_team_id, do: 76, else: 75
-          Enum.map(rt["RoomSpeakers"] || [], &%{room_speaker_id: &1["id"], score: score})
-        end)
+  defp parse_ballot_entries(scores) when is_list(scores) do
+    parsed = Enum.map(scores, &parse_ballot_entry/1)
 
-      rankings =
-        room_teams
-        |> Enum.sort_by(&{if(&1["id"] == winner_room_team_id, do: 0, else: 1), &1["position"]})
-        |> Enum.with_index(1)
-        |> Enum.map(fn {rt, rank} -> %{room_team_id: rt["id"], rank: rank} end)
+    case Enum.find(parsed, &match?({:error, _}, &1)) do
+      {:error, message} ->
+        {:error, %{scores: message}}
 
-      {:ok, rankings, scores}
-    else
-      {:error, "that team is not in this room"}
+      nil ->
+        entries = Enum.map(parsed, fn {:ok, entry} -> entry end)
+        counts = Enum.frequencies_by(entries, & &1.position)
+
+        if map_size(counts) == 4 and Enum.all?(counts, fn {_pos, n} -> n == 2 end) do
+          {:ok, entries}
+        else
+          {:error,
+           %{scores: "a full ballot is 8 scores — two per team position 1..4 (og, oo, cg, co)"}}
+        end
     end
   end
+
+  defp parse_ballot_entries(_scores),
+    do: {:error, %{scores: "scores must be a list of 8 entries"}}
+
+  defp parse_ballot_entry(%{} = entry) do
+    position = ballot_field(entry, :position)
+    speaker = ballot_field(entry, :speaker_participant_id)
+    score = ballot_field(entry, :score)
+
+    cond do
+      position not in [1, 2, 3, 4] ->
+        {:error, "position must be 1..4 (og, oo, cg, co)"}
+
+      not is_integer(speaker) ->
+        {:error, "speaker_participant_id (integer) is required on every score"}
+
+      not valid_score?(score) ->
+        {:error, "score #{inspect(score)} is invalid — scores are 50-100 in 0.5 steps"}
+
+      true ->
+        {:ok,
+         %{
+           position: position,
+           speaker_participant_id: speaker,
+           iron: ballot_field(entry, :iron) == true,
+           score: score / 1
+         }}
+    end
+  end
+
+  defp parse_ballot_entry(_entry), do: {:error, "every score must be an object"}
+
+  defp ballot_field(entry, key) do
+    case Map.fetch(entry, key) do
+      {:ok, value} -> value
+      :error -> Map.get(entry, to_string(key))
+    end
+  end
+
+  defp valid_score?(score),
+    do: is_number(score) and score >= 50 and score <= 100 and trunc(score * 2) == score * 2
+
+  defp ballot_payload(room, entries) do
+    room_teams = Enum.sort_by(room["RoomTeams"] || [], & &1["position"])
+    by_position = Enum.group_by(entries, & &1.position)
+
+    with :ok <- full_room(room_teams),
+         {:ok, team_scores} <- assign_speaker_scores(room_teams, by_position) do
+      totals =
+        Enum.map(team_scores, fn {rt, scores} ->
+          {rt, scores |> Enum.map(& &1.score) |> Enum.sum()}
+        end)
+
+      tied =
+        totals
+        |> Enum.frequencies_by(fn {_rt, total} -> total end)
+        |> Enum.filter(fn {_total, count} -> count > 1 end)
+        |> Enum.map(fn {total, _count} -> total end)
+
+      if tied == [] do
+        rankings =
+          totals
+          |> Enum.sort_by(fn {rt, total} -> {-total, rt["position"]} end)
+          |> Enum.with_index(1)
+          |> Enum.map(fn {{rt, _total}, rank} -> %{room_team_id: rt["id"], rank: rank} end)
+
+        {:ok, rankings, Enum.flat_map(team_scores, fn {_rt, scores} -> scores end)}
+      else
+        {:error,
+         %{
+           scores:
+             "two teams share the total #{Enum.map_join(tied, ", ", &format_total/1)} — " <>
+               "BP forbids tied team totals, adjust the scores"
+         }}
+      end
+    end
+  end
+
+  defp full_room(room_teams) when length(room_teams) == @teams_per_room, do: :ok
+  defp full_room(_room_teams), do: {:error, "the room does not have #{@teams_per_room} teams"}
+
+  defp assign_speaker_scores(room_teams, by_position) do
+    Enum.reduce_while(room_teams, {:ok, []}, fn rt, {:ok, acc} ->
+      case team_speaker_scores(rt, Map.get(by_position, rt["position"], [])) do
+        {:ok, scores} -> {:cont, {:ok, acc ++ [{rt, scores}]}}
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
+  end
+
+  # Maps a team's two entries onto its two engine room-speaker slots:
+  # by participant id where possible, iron rows (same speaker twice)
+  # fall onto the teammate's remaining slot.
+  defp team_speaker_scores(rt, entries) do
+    slots = rt["RoomSpeakers"] || []
+    team_pids = Enum.map(slots, &get_in(&1, ["EventParticipant", "id"]))
+
+    cond do
+      length(slots) != length(entries) ->
+        {:error,
+         %{scores: "team at position #{rt["position"]} has #{length(slots)} speaker slot(s)"}}
+
+      stranger = Enum.find(entries, &(&1.speaker_participant_id not in team_pids)) ->
+        {:error,
+         %{
+           scores:
+             "participant #{stranger.speaker_participant_id} does not speak " <>
+               "at position #{rt["position"]}"
+         }}
+
+      true ->
+        {scores, _free} =
+          Enum.reduce(entries, {[], slots}, fn entry, {acc, free} ->
+            {slot, free} = take_slot(free, entry.speaker_participant_id)
+            {[%{room_speaker_id: slot["id"], score: entry.score} | acc], free}
+          end)
+
+        {:ok, Enum.reverse(scores)}
+    end
+  end
+
+  defp take_slot(free, participant_id) do
+    case Enum.split_with(free, &(get_in(&1, ["EventParticipant", "id"]) == participant_id)) do
+      {[slot | same], others} -> {slot, same ++ others}
+      {[], [slot | others]} -> {slot, others}
+    end
+  end
+
+  defp format_total(total) when is_float(total) do
+    if total == Float.round(total), do: "#{trunc(total)}", else: "#{total}"
+  end
+
+  defp format_total(total), do: "#{total}"
 
   @doc """
   Closes the session: round and event completed; results land in club

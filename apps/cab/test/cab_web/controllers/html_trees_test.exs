@@ -192,6 +192,186 @@ defmodule CabWeb.HtmlTreesTest do
     refute html =~ "Make rooms"
   end
 
+  # a running session: judging room 71 chaired by engine user
+  # `chair_user_id`, four teams, speakers 301..308
+  defp running_room(chair_user_id) do
+    %{
+      "id" => 71,
+      "status" => "judging",
+      "Motion" => %{"motion_text" => "THW fill ballots"},
+      "RoomAdjudicators" => [
+        %{
+          "id" => 1,
+          "role" => "chair",
+          "EventParticipant" => %{"id" => 90, "user_id" => chair_user_id}
+        }
+      ],
+      "RoomTeams" =>
+        for position <- 1..4 do
+          %{
+            "id" => 100 + position,
+            "position" => position,
+            "Team" => %{"name" => "Team #{position}"},
+            "RoomSpeakers" =>
+              for n <- [1, 2] do
+                %{
+                  "id" => 200 + position * 2 - 2 + n,
+                  "EventParticipant" => %{
+                    "id" => 300 + position * 2 - 2 + n,
+                    "display_name" => "Speaker #{position}.#{n}"
+                  }
+                }
+              end
+          }
+        end
+    }
+  end
+
+  defp stub_running_session(room, test_pid \\ nil) do
+    stub(fn conn, params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "status" => "scheduled"})
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [room])
+
+        {"POST", "/api/rooms/71/scores"} ->
+          if test_pid, do: send(test_pid, {:scores, params})
+          Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
+
+        {"PATCH", "/api/rooms/71/confirm"} ->
+          if test_pid, do: send(test_pid, :confirmed)
+          Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
+      end
+    end)
+  end
+
+  defp ballot_params(og_scores) do
+    %{
+      "ballot" => %{
+        "og" => %{
+          "PM" => %{"speaker" => "301", "score" => Enum.at(og_scores, 0)},
+          "DPM" => %{"speaker" => "302", "score" => Enum.at(og_scores, 1)}
+        },
+        "oo" => %{
+          "LO" => %{"speaker" => "303", "score" => "76"},
+          "DLO" => %{"speaker" => "304", "score" => "75"}
+        },
+        "cg" => %{
+          "MG" => %{"speaker" => "305", "score" => "74.5"},
+          "GW" => %{"speaker" => "306", "score" => "75"}
+        },
+        "co" => %{
+          "MO" => %{"speaker" => "307", "score" => "72.5"},
+          "OW" => %{"speaker" => "308", "score" => "75"}
+        }
+      }
+    }
+  end
+
+  test "the room judge sees Fill ballot and gets the ballot page in the member tree",
+       %{conn: conn, club: club} do
+    judge = user_fixture(%{node_user_id: 44})
+    membership_fixture(judge, club)
+    session_fixture(club, engine_event_id: 11)
+    stub_running_session(running_room(44))
+
+    home = conn |> log_in(judge) |> get(~p"/c/#{club.uuid}/member") |> html_response(200)
+    assert home =~ "Fill ballot"
+    assert home =~ "/c/#{club.uuid}/member/rooms/71/ballot"
+
+    html =
+      conn
+      |> log_in(judge)
+      |> get(~p"/c/#{club.uuid}/member/rooms/71/ballot")
+      |> html_response(200)
+
+    # the kit's scored ballot, prefilled from the room
+    assert html =~ ~s(class="ballot")
+    assert html =~ "THW fill ballots"
+    assert html =~ ~s(name="ballot[og][PM][speaker]")
+    assert html =~ "Speaker 1.1"
+    assert html =~ "Team 4"
+    # submit is the chrome's gold segment driving the ballot form
+    assert html =~ "Submit ballot"
+    assert html =~ ~s(form="ballot-71")
+    assert html =~ ~s(class="go")
+    assert html =~ ~s(action="/c/#{club.uuid}/member/rooms/71/ballot")
+  end
+
+  test "a member who is not the room judge gets no ballot page", %{conn: conn, club: club} do
+    speaker = user_fixture(%{node_user_id: 55})
+    membership_fixture(speaker, club)
+    session_fixture(club, engine_event_id: 11)
+    stub_running_session(running_room(44))
+
+    home = conn |> log_in(speaker) |> get(~p"/c/#{club.uuid}/member") |> html_response(200)
+    refute home =~ "Fill ballot"
+
+    conn = conn |> log_in(speaker) |> get(~p"/c/#{club.uuid}/member/rooms/71/ballot")
+    assert response(conn, 403)
+  end
+
+  test "the owner tree serves the same ballot per open room", %{
+    conn: conn,
+    club: club,
+    head: head
+  } do
+    member = user_fixture(%{node_user_id: 55})
+    membership_fixture(member, club)
+    session_fixture(club, engine_event_id: 11)
+    stub_running_session(running_room(44))
+
+    show = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
+    assert show =~ "/c/#{club.uuid}/owner/rooms/71/ballot"
+    refute show =~ "Record winner"
+
+    html =
+      conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner/rooms/71/ballot") |> html_response(200)
+
+    assert html =~ ~s(class="ballot")
+    assert html =~ ~s(action="/c/#{club.uuid}/owner/rooms/71/ballot")
+
+    # the owner tree stays owner-only
+    conn = conn |> log_in(member) |> get(~p"/c/#{club.uuid}/owner/rooms/71/ballot")
+    assert response(conn, 403)
+  end
+
+  test "ballot POST redirects with a flash; a tie re-renders amber", %{conn: conn, club: club} do
+    judge = user_fixture(%{node_user_id: 44})
+    membership_fixture(judge, club)
+    session_fixture(club, engine_event_id: 11)
+    stub_running_session(running_room(44), self())
+
+    # og total 151 == oo total 151 -> amber re-render naming the total
+    tied =
+      conn
+      |> log_in(judge)
+      |> post(~p"/c/#{club.uuid}/member/rooms/71/ballot", ballot_params(["76", "75"]))
+
+    assert html_response(tied, 422) =~ "share the total 151"
+    assert html_response(tied, 422) =~ ~s(class="bsum tied")
+    refute_received {:scores, _params}
+
+    done =
+      conn
+      |> log_in(judge)
+      |> post(~p"/c/#{club.uuid}/member/rooms/71/ballot", ballot_params(["78", "75.5"]))
+
+    assert redirected_to(done) == "/c/#{club.uuid}/member"
+    assert Phoenix.Flash.get(done.assigns.flash, :info) =~ "ballot submitted"
+    assert_received {:scores, params}
+    assert [%{"room_team_id" => 101, "rank" => 1} | _rest] = params["teamRankings"]
+    assert_received :confirmed
+  end
+
   test "signup for another club's session is 404", %{conn: conn, club: club} do
     member = user_fixture()
     membership_fixture(member, club)

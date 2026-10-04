@@ -34,11 +34,13 @@ defmodule CabWeb.Router do
     # public tree: profile + history
     get "/", ClubPublicController, :show
 
-    # member tree: sessions, signup
+    # member tree: sessions, signup, the room judge's ballot
     get "/member", MemberController, :show
     post "/member/sessions/:session_uuid/signups", MemberController, :signup
+    get "/member/rooms/:id/ballot", MemberController, :ballot
+    post "/member/rooms/:id/ballot", MemberController, :submit_ballot
 
-    # owner tree: approvals, open session, rooms, winner, finish
+    # owner tree: approvals, open session, rooms, ballot, finish
     get "/owner", OwnerController, :show
     post "/owner/join-requests/:id/approve", OwnerController, :approve
     post "/owner/join-requests/:id/decline", OwnerController, :decline
@@ -46,7 +48,8 @@ defmodule CabWeb.Router do
     post "/owner/sessions/:session_uuid/rooms", OwnerController, :make_rooms
     post "/owner/sessions/:session_uuid/finish", OwnerController, :finish
     post "/owner/rooms/:id/motion", OwnerController, :motion
-    post "/owner/rooms/:id/winner", OwnerController, :winner
+    get "/owner/rooms/:id/ballot", OwnerController, :ballot
+    post "/owner/rooms/:id/ballot", OwnerController, :submit_ballot
   end
 
   # JSON API over the same contexts (club creation is the
@@ -66,7 +69,7 @@ defmodule CabWeb.Router do
     post "/sessions/:uuid/finish", SessionController, :finish
 
     post "/rooms/:id/motion", RoomController, :motion
-    post "/rooms/:id/winner", RoomController, :winner
+    post "/rooms/:id/ballot", RoomController, :ballot
   end
 
   scope "/auth", CabWeb do

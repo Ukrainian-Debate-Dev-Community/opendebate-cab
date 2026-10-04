@@ -175,29 +175,59 @@ defmodule Cab.SessionsTest do
     assert {:error, "need at least 1 judge(s)" <> _} = Sessions.make_rooms(head, session)
   end
 
-  test "pick_winner submits the ordered synthetic ballot and confirms",
-       %{club: club} do
-    judge = user_fixture(%{node_user_id: 77})
-    session = session_fixture(club, engine_event_id: 11)
-
-    room = %{
+  # Engine room: chair user 77, 4 teams at positions 1..4; team at
+  # position p is room_team 100+p with room_speakers 200+2p-1/200+2p
+  # spoken by participants 300+2p-1/300+2p.
+  defp engine_room(chair_user_id \\ 77) do
+    %{
       "id" => 71,
       "status" => "judging",
+      "RoomAdjudicators" => [
+        %{
+          "id" => 1,
+          "role" => "chair",
+          "EventParticipant" => %{"id" => 90, "user_id" => chair_user_id}
+        }
+      ],
       "RoomTeams" =>
         for position <- 1..4 do
           %{
             "id" => 100 + position,
             "position" => position,
-            "RoomSpeakers" => [
-              %{"id" => 200 + position * 2 - 1},
-              %{"id" => 200 + position * 2}
-            ]
+            "Team" => %{"name" => "Team #{position}"},
+            "RoomSpeakers" =>
+              for n <- [1, 2] do
+                %{
+                  "id" => 200 + position * 2 - 2 + n,
+                  "EventParticipant" => %{"id" => 300 + position * 2 - 2 + n}
+                }
+              end
           }
         end
     }
+  end
 
-    test_pid = self()
+  # two entries per position; score = totals[position] split 60/40
+  defp ballot_scores(totals) do
+    Enum.flat_map(totals, fn {position, total} ->
+      [
+        %{
+          "position" => position,
+          "speaker_participant_id" => 300 + position * 2 - 1,
+          "iron" => false,
+          "score" => total - 75.0
+        },
+        %{
+          "position" => position,
+          "speaker_participant_id" => 300 + position * 2,
+          "iron" => false,
+          "score" => 75.0
+        }
+      ]
+    end)
+  end
 
+  defp stub_ballot_room(room, test_pid) do
     stub(fn conn, params ->
       case {conn.method, conn.request_path} do
         {"GET", "/api/events/11/rounds"} ->
@@ -207,59 +237,144 @@ defmodule Cab.SessionsTest do
           ok(conn, [room])
 
         {"POST", "/api/rooms/71/scores"} ->
-          # the ballot goes in as the judge (engine chair guard applies)
-          assert %{"id" => 77} = claims(conn)
-          send(test_pid, {:scores, params})
+          send(test_pid, {:scores, claims(conn), params})
           Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
 
         {"PATCH", "/api/rooms/71/confirm"} ->
-          # confirm is owner-only in the engine -> runs as the club head
-          assert %{"id" => 9} = claims(conn)
-          send(test_pid, :confirmed)
+          send(test_pid, {:confirmed, claims(conn)})
           Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
       end
     end)
+  end
 
-    # team at position 3 wins
-    assert :ok = Sessions.pick_winner(judge, session, 71, 103)
+  test "submit_ballot derives ranks from totals, submits as the judge and confirms as the head",
+       %{club: club} do
+    judge = user_fixture(%{node_user_id: 77})
+    session = session_fixture(club, engine_event_id: 11)
+    stub_ballot_room(engine_room(), self())
 
-    assert_received {:scores, params}
+    # totals: p2 157.5 > p1 151.5 > p3 149.5 > p4 147.5
+    scores =
+      ballot_scores([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
 
-    # winner first, then table order — a strict 1..4 permutation
+    assert :ok = Sessions.submit_ballot(judge, session, 71, scores)
+
+    # the ballot goes in as the judge (engine chair guard applies)
+    assert_received {:scores, %{"id" => 77}, params}
+
     assert params["teamRankings"] == [
-             %{"room_team_id" => 103, "rank" => 1},
+             %{"room_team_id" => 102, "rank" => 1},
              %{"room_team_id" => 101, "rank" => 2},
-             %{"room_team_id" => 102, "rank" => 3},
+             %{"room_team_id" => 103, "rank" => 3},
              %{"room_team_id" => 104, "rank" => 4}
            ]
 
-    # winner's speakers 76, everyone else 75
-    scores = Map.new(params["speakerScores"], &{&1["room_speaker_id"], &1["score"]})
-    assert scores[205] == 76 and scores[206] == 76
-    assert Enum.count(scores, fn {_id, score} -> score == 75 end) == 6
+    speaks = Map.new(params["speakerScores"], &{&1["room_speaker_id"], &1["score"]})
+    assert map_size(speaks) == 8
+    assert speaks[203] == 82.5 and speaks[204] == 75.0
+    assert speaks[201] == 76.5 and speaks[202] == 75.0
 
-    assert_received :confirmed
+    # confirm is owner-only in the engine -> runs as the club head
+    assert_received {:confirmed, %{"id" => 9}}
   end
 
-  test "pick_winner rejects a team not in the room", %{club: club} do
+  test "submit_ballot maps an iron speech onto the teammate's slot", %{club: club} do
+    judge = user_fixture(%{node_user_id: 77})
+    session = session_fixture(club, engine_event_id: 11)
+    stub_ballot_room(engine_room(), self())
+
+    # participant 301 speaks both OG speeches (iron) — second score
+    # lands on room_speaker 202, the teammate's slot
+    scores =
+      ballot_scores([{2, 157.5}, {3, 149.5}, {4, 147.5}]) ++
+        [
+          %{"position" => 1, "speaker_participant_id" => 301, "iron" => false, "score" => 76.5},
+          %{"position" => 1, "speaker_participant_id" => 301, "iron" => true, "score" => 75.0}
+        ]
+
+    assert :ok = Sessions.submit_ballot(judge, session, 71, scores)
+    assert_received {:scores, _claims, params}
+
+    speaks = Map.new(params["speakerScores"], &{&1["room_speaker_id"], &1["score"]})
+    assert speaks[201] == 76.5 and speaks[202] == 75.0
+  end
+
+  test "submit_ballot rejects tied team totals naming the total", %{club: club} do
+    judge = user_fixture(%{node_user_id: 77})
+    session = session_fixture(club, engine_event_id: 11)
+    stub_ballot_room(engine_room(), self())
+
+    scores = ballot_scores([{1, 151.0}, {2, 151.0}, {3, 149.5}, {4, 147.5}])
+
+    assert {:error, %{scores: message}} = Sessions.submit_ballot(judge, session, 71, scores)
+    assert message =~ "151"
+    assert message =~ "tied team totals"
+    refute_received {:scores, _claims, _params}
+  end
+
+  test "submit_ballot validates score bounds and the 0.5 step", %{club: club} do
     judge = user_fixture(%{node_user_id: 77})
     session = session_fixture(club, engine_event_id: 11)
 
-    stub(fn conn, _params ->
-      case conn.request_path do
-        "/api/events/11/rounds" ->
-          ok(conn, [%{"id" => 21, "sequence" => 1}])
+    for bad <- [49.5, 100.5, 75.3, nil, "76"] do
+      scores =
+        ballot_scores([{2, 157.5}, {3, 149.5}, {4, 147.5}]) ++
+          [
+            %{"position" => 1, "speaker_participant_id" => 301, "score" => bad},
+            %{"position" => 1, "speaker_participant_id" => 302, "score" => 75.0}
+          ]
 
-        "/api/rounds/21/rooms" ->
-          ok(conn, [%{"id" => 71, "RoomTeams" => [%{"id" => 101, "position" => 1}]}])
-      end
-    end)
+      assert {:error, %{scores: message}} = Sessions.submit_ballot(judge, session, 71, scores)
+      assert message =~ "50-100 in 0.5 steps"
+    end
 
-    assert {:error, "that team is not in this room"} =
-             Sessions.pick_winner(judge, session, 71, 999)
+    # not two entries per team
+    assert {:error, %{scores: message}} =
+             Sessions.submit_ballot(judge, session, 71, ballot_scores([{1, 151.5}, {2, 157.5}]))
+
+    assert message =~ "8 scores"
+  end
+
+  test "submit_ballot is judge-or-head only", %{club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11)
+    scores = ballot_scores([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
+
+    # a member who is neither the room's chair nor the head -> forbidden
+    outsider = user_fixture(%{node_user_id: 55})
+    membership_fixture(outsider, club)
+    stub_ballot_room(engine_room(77), self())
+
+    assert {:error, :forbidden} = Sessions.submit_ballot(outsider, session, 71, scores)
+    refute_received {:scores, _claims, _params}
+
+    # the head is not the chair but submits under full control
+    assert :ok = Sessions.submit_ballot(head, session, 71, scores)
+    assert_received {:scores, %{"id" => 9}, _params}
+    assert_received {:confirmed, %{"id" => 9}}
+  end
+
+  test "submit_ballot rejects foreign speakers and foreign rooms", %{club: club} do
+    judge = user_fixture(%{node_user_id: 77})
+    session = session_fixture(club, engine_event_id: 11)
+    stub_ballot_room(engine_room(), self())
+
+    scores =
+      ballot_scores([{2, 157.5}, {3, 149.5}, {4, 147.5}]) ++
+        [
+          %{"position" => 1, "speaker_participant_id" => 999, "score" => 76.5},
+          %{"position" => 1, "speaker_participant_id" => 302, "score" => 75.0}
+        ]
+
+    assert {:error, %{scores: message}} = Sessions.submit_ballot(judge, session, 71, scores)
+    assert message =~ "999 does not speak at position 1"
 
     assert {:error, "room 72 is not part of this session"} =
-             Sessions.pick_winner(judge, session, 72, 101)
+             Sessions.submit_ballot(
+               judge,
+               session,
+               72,
+               ballot_scores([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
+             )
   end
 
   test "finish completes round and event", %{head: head, club: club} do

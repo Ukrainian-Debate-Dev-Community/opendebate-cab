@@ -174,19 +174,35 @@ defmodule CabWeb.ApiFlowTest do
            |> json_response(403)
   end
 
-  test "motion and winner act on rooms scoped by session_uuid",
+  test "motion and ballot act on rooms scoped by session_uuid",
        %{conn: conn, club: club} do
     judge = user_fixture(%{node_user_id: 77})
     membership_fixture(judge, club)
+    speaker = user_fixture(%{node_user_id: 55})
+    membership_fixture(speaker, club)
     session = session_fixture(club, engine_event_id: 11)
 
     room = %{
       "id" => 71,
       "status" => "judging",
-      "RoomTeams" => [
-        %{"id" => 101, "position" => 1, "RoomSpeakers" => [%{"id" => 201}]},
-        %{"id" => 102, "position" => 2, "RoomSpeakers" => [%{"id" => 202}]}
-      ]
+      "RoomAdjudicators" => [
+        %{"id" => 1, "role" => "chair", "EventParticipant" => %{"id" => 90, "user_id" => 77}}
+      ],
+      "RoomTeams" =>
+        for position <- 1..4 do
+          %{
+            "id" => 100 + position,
+            "position" => position,
+            "Team" => %{"name" => "Team #{position}"},
+            "RoomSpeakers" =>
+              for n <- [1, 2] do
+                %{
+                  "id" => 200 + position * 2 - 2 + n,
+                  "EventParticipant" => %{"id" => 300 + position * 2 - 2 + n}
+                }
+              end
+          }
+        end
     }
 
     stub(fn conn, params ->
@@ -220,16 +236,56 @@ defmodule CabWeb.ApiFlowTest do
 
     assert motion["motion"]["motion_text"] == "THW test APIs"
 
-    winner =
+    scores = fn totals ->
+      Enum.flat_map(totals, fn {position, total} ->
+        [
+          %{
+            position: position,
+            speaker_participant_id: 300 + position * 2 - 1,
+            iron: false,
+            score: total - 75.0
+          },
+          %{
+            position: position,
+            speaker_participant_id: 300 + position * 2,
+            iron: false,
+            score: 75.0
+          }
+        ]
+      end)
+    end
+
+    # a plain member (not the room's judge, not the head) -> 403
+    assert conn
+           |> log_in(speaker)
+           |> post(~p"/api/v1/rooms/71/ballot", %{
+             session_uuid: session.uuid,
+             scores: scores.([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
+           })
+           |> json_response(403)
+
+    # tied team totals -> 422 naming the total
+    tied =
       conn
       |> log_in(judge)
-      |> post(~p"/api/v1/rooms/71/winner", %{
+      |> post(~p"/api/v1/rooms/71/ballot", %{
         session_uuid: session.uuid,
-        room_team_id: 102
+        scores: scores.([{1, 151.0}, {2, 151.0}, {3, 149.5}, {4, 147.5}])
+      })
+      |> json_response(422)
+
+    assert tied["details"]["scores"] =~ "151"
+
+    ballot =
+      conn
+      |> log_in(judge)
+      |> post(~p"/api/v1/rooms/71/ballot", %{
+        session_uuid: session.uuid,
+        scores: scores.([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
       })
       |> json_response(200)
 
-    assert winner["status"] == "confirmed"
+    assert ballot["status"] == "confirmed"
   end
 
   test "finish completes the session", %{conn: conn, club: club, head: head} do
