@@ -96,7 +96,8 @@ defmodule CabWeb.GuestRegistrationHTML do
         <.banner kind={:info}>Registration is closed for this session.</.banner>
 
         <.section title="Registration" pad>
-          Sign-ups for <b>{@state.event["name"]}</b> are no longer open.
+          Sign-ups for <b>{@state.event["name"]}</b>
+          are no longer open.
           <p>Ask the club head about the next session.</p>
         </.section>
       </div>

@@ -84,7 +84,12 @@ defmodule CabWeb.GuestLinkController do
     with_chaired_room(conn, id, fn conn, room ->
       scores = BallotForm.scores_from_params(params["ballot"])
 
-      case Sessions.submit_ballot(conn.assigns.current_user, conn.assigns.session, room["id"], scores) do
+      case Sessions.submit_ballot(
+             conn.assigns.current_user,
+             conn.assigns.session,
+             room["id"],
+             scores
+           ) do
         :ok ->
           conn
           |> put_flash(:info, "ballot submitted — the room is confirmed")

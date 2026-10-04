@@ -127,7 +127,8 @@ defmodule CabWeb.GuestLinksTest do
         |> post(~p"/r/#{session.uuid}", %{name: "Greta Guest", as: "speak"})
         |> html_response(200)
 
-      assert_received {:signup, %{"display_name" => "Greta Guest", "role" => "speaker", "user_id" => 777}}
+      assert_received {:signup,
+                       %{"display_name" => "Greta Guest", "role" => "speaker", "user_id" => 777}}
 
       assert [%Link{} = link] = Repo.all(Link)
       assert link.session_id == session.id
@@ -369,7 +370,12 @@ defmodule CabWeb.GuestLinksTest do
       stub_stage([guest_signup(41, 777)], [running_room(555)])
 
       assert conn |> get(~p"/l/#{link.code}/rooms/71/ballot") |> response(403)
-      assert conn |> anon() |> post(~p"/l/#{link.code}/rooms/71/ballot", ballot_params()) |> response(403)
+
+      assert conn
+             |> anon()
+             |> post(~p"/l/#{link.code}/rooms/71/ballot", ballot_params())
+             |> response(403)
+
       assert conn |> get(~p"/l/#{link.code}/rooms/99/ballot") |> response(404)
     end
   end
