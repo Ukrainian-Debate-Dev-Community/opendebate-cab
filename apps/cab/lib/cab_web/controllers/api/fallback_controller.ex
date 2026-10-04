@@ -21,6 +21,11 @@ defmodule CabWeb.Api.FallbackController do
     conn |> put_status(403) |> json(%{error: "forbidden"})
   end
 
+  # lifecycle gates (signups while :signup, composition while :closed)
+  def call(conn, {:error, :conflict, message}) do
+    conn |> put_status(409) |> json(%{error: message})
+  end
+
   # changeset-style error maps built by the contexts (field => message)
   def call(conn, {:error, %{} = details}) when not is_struct(details) do
     conn |> put_status(422) |> json(%{error: "validation failed", details: details})

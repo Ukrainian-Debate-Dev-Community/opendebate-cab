@@ -313,9 +313,72 @@ defmodule CabWeb.ApiFlowTest do
     assert finished["status"] == "completed"
   end
 
-  test "GET session carries the pairing proposal while signing up",
+  test "close-signups / reopen-signups flip the stage; the 409 gates hold",
        %{conn: conn, club: club, head: head} do
+    member = user_fixture(%{node_user_id: 44})
+    membership_fixture(member, club)
     session = session_fixture(club, engine_event_id: 11)
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} -> ok(conn, %{"id" => 11, "status" => "scheduled"})
+        {"GET", "/api/events/11/rounds"} -> ok(conn, [%{"id" => 21, "sequence" => 1}])
+        {"GET", "/api/events/11/participants"} -> ok(conn, [])
+        {"GET", "/api/rounds/21/rooms"} -> ok(conn, [])
+      end
+    end)
+
+    # head-only
+    assert conn
+           |> log_in(member)
+           |> post(~p"/api/v1/sessions/#{session.uuid}/close-signups")
+           |> json_response(403)
+
+    # rooms before close -> 409 (the graph gate)
+    assert conn
+           |> log_in(head)
+           |> post(~p"/api/v1/sessions/#{session.uuid}/rooms")
+           |> json_response(409)
+           |> Map.fetch!("error") =~ "after sign-ups close"
+
+    # reopen before close -> 409
+    assert conn
+           |> log_in(head)
+           |> post(~p"/api/v1/sessions/#{session.uuid}/reopen-signups")
+           |> json_response(409)
+
+    assert conn
+           |> log_in(head)
+           |> post(~p"/api/v1/sessions/#{session.uuid}/close-signups")
+           |> json_response(200) == %{"uuid" => session.uuid, "stage" => "closed"}
+
+    # signup after close -> 409; closing twice -> 409
+    assert conn
+           |> log_in(member)
+           |> post(~p"/api/v1/sessions/#{session.uuid}/signups", %{as: "speak"})
+           |> json_response(409)
+           |> Map.fetch!("error") =~ "sign-ups are not open"
+
+    assert conn
+           |> log_in(head)
+           |> post(~p"/api/v1/sessions/#{session.uuid}/close-signups")
+           |> json_response(409)
+
+    assert conn
+           |> log_in(head)
+           |> post(~p"/api/v1/sessions/#{session.uuid}/reopen-signups")
+           |> json_response(200) == %{"uuid" => session.uuid, "stage" => "signup"}
+
+    assert conn
+           |> log_in(head)
+           |> get(~p"/api/v1/sessions/#{session.uuid}")
+           |> json_response(200)
+           |> Map.fetch!("stage") == "signup"
+  end
+
+  test "GET session carries the pairing proposal while :closed",
+       %{conn: conn, club: club, head: head} do
+    session = closed_session_fixture(club, engine_event_id: 11)
 
     signups =
       for id <- 1..8 do
@@ -350,7 +413,9 @@ defmodule CabWeb.ApiFlowTest do
     state =
       conn |> log_in(head) |> get(~p"/api/v1/sessions/#{session.uuid}") |> json_response(200)
 
-    assert state["stage"] == "signup"
+    assert state["stage"] == "closed"
+    assert state["signups_closed_at"]
+    assert state["winner"] == nil
 
     assert %{"rooms" => [room]} = state["proposal"]
     assert room["judge_participant_id"] == 99
@@ -366,6 +431,15 @@ defmodule CabWeb.ApiFlowTest do
 
     stub(fn conn, params ->
       case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "status" => "scheduled"})
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [])
+
         {"POST", "/api/events/11/participants"} ->
           ok(conn, %{"id" => 43, "role" => params["role"]})
 
@@ -423,7 +497,7 @@ defmodule CabWeb.ApiFlowTest do
        %{conn: conn, club: club, head: head} do
     member = user_fixture(%{node_user_id: 44})
     membership_fixture(member, club)
-    session = session_fixture(club, engine_event_id: 11)
+    session = closed_session_fixture(club, engine_event_id: 11)
 
     composition = %{
       "rooms" => [
@@ -452,8 +526,12 @@ defmodule CabWeb.ApiFlowTest do
       assert json_response(response, 403)["error"] == "forbidden"
     end
 
+    # composition runs against the :closed state (no rooms yet)
     stub(fn conn, _params ->
       case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "status" => "scheduled"})
+
         {"GET", "/api/events/11/rounds"} ->
           ok(conn, [%{"id" => 21, "sequence" => 1}])
 
@@ -465,14 +543,11 @@ defmodule CabWeb.ApiFlowTest do
             end ++ [%{"id" => 99, "role" => "adjudicator", "display_name" => "J"}]
           )
 
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [])
+
         {"POST", "/api/rounds/21/rooms"} ->
           ok(conn, %{"id" => 71})
-
-        {"GET", "/api/rounds/21/rooms"} ->
-          ok(conn, [%{"id" => 71, "status" => "pending"}])
-
-        {"DELETE", "/api/rooms/71"} ->
-          Req.Test.json(conn, %{"status" => "success", "message" => "Room archived."})
       end
     end)
 
@@ -491,7 +566,21 @@ defmodule CabWeb.ApiFlowTest do
            |> log_in(head)
            |> post(~p"/api/v1/sessions/#{session.uuid}/rooms", bad)
            |> json_response(422)
-           |> get_in(["details", "rooms"]) =~ "4 teams of 2"
+           |> get_in(["details", "rooms"]) =~ "4 teams of 1-2"
+
+    # rebuild: the room (and its temporary teams) go away
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [%{"id" => 71, "status" => "pending"}])
+
+        {"DELETE", "/api/rooms/71"} ->
+          Req.Test.json(conn, %{"status" => "success", "message" => "Room archived."})
+      end
+    end)
 
     assert conn
            |> log_in(head)

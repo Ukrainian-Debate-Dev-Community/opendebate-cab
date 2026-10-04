@@ -31,14 +31,22 @@ defmodule CabWeb.Router do
   scope "/c/:club_uuid", CabWeb do
     pipe_through :browser
 
-    # public tree: profile + history; join is the HTML twin of the
-    # join-requests API action (redirect + flash, never JSON)
+    # public tree: profile + history + session detail; join is the
+    # HTML twin of the join-requests API action (redirect + flash)
     get "/", ClubPublicController, :show
+    get "/s/:session_uuid", ClubPublicController, :session
     post "/join", ClubPublicController, :join
 
-    # member tree: sessions, signup, the room judge's ballot
+    # member tree: sessions, registration (ONE entry: form with role
+    # pills), cancel own registration, the room judge's ballot
     get "/member", MemberController, :show
+    get "/member/sessions/:session_uuid/register", MemberController, :register
     post "/member/sessions/:session_uuid/signups", MemberController, :signup
+
+    post "/member/sessions/:session_uuid/signups/:participant_id/remove",
+         MemberController,
+         :cancel_signup
+
     get "/member/rooms/:id/ballot", MemberController, :ballot
     post "/member/rooms/:id/ballot", MemberController, :submit_ballot
 
@@ -51,6 +59,8 @@ defmodule CabWeb.Router do
     post "/owner/club", OwnerController, :update_club
     post "/owner/members/:user_id/remove", OwnerController, :remove_member
     post "/owner/sessions", OwnerController, :open_session
+    post "/owner/sessions/:session_uuid/close-signups", OwnerController, :close_signups
+    post "/owner/sessions/:session_uuid/reopen-signups", OwnerController, :reopen_signups
     post "/owner/sessions/:session_uuid/signups", OwnerController, :add_signup
 
     post "/owner/sessions/:session_uuid/signups/:participant_id/remove",
@@ -83,6 +93,8 @@ defmodule CabWeb.Router do
     post "/clubs/:uuid/sessions", SessionController, :create
     get "/sessions/:uuid", SessionController, :show
     delete "/sessions/:uuid", SessionController, :delete
+    post "/sessions/:uuid/close-signups", SessionController, :close_signups
+    post "/sessions/:uuid/reopen-signups", SessionController, :reopen_signups
     post "/sessions/:uuid/signups", SignupController, :create
     delete "/sessions/:uuid/signups/:participant_id", SignupController, :delete
     post "/sessions/:uuid/rooms", RoomController, :create
