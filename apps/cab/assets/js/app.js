@@ -187,6 +187,35 @@ document.querySelectorAll("form[data-dnd]").forEach(dnd => {
   refresh()
 })
 
+// copy affordance: [data-copy] buttons put their payload on the
+// clipboard (shared registration URL, personal guest links)
+document.addEventListener("click", e => {
+  const btn = e.target.closest("[data-copy]")
+  if (!btn) return
+  const done = ok => {
+    btn.classList.toggle("copied", ok)
+    btn.textContent = ok ? "copied" : "copy"
+    setTimeout(() => {
+      btn.classList.remove("copied")
+      btn.textContent = "copy"
+    }, 1500)
+  }
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(btn.dataset.copy).then(() => done(true), () => done(false))
+  } else {
+    const area = document.createElement("textarea")
+    area.value = btn.dataset.copy
+    area.style.position = "fixed"
+    area.style.opacity = "0"
+    document.body.appendChild(area)
+    area.select()
+    let ok = false
+    try { ok = document.execCommand("copy") } catch (_e) { ok = false }
+    area.remove()
+    done(ok)
+  }
+})
+
 // elim ballot: exactly N teams advance
 document.querySelectorAll(".ballot [data-advance]").forEach(grid => {
   const msg = grid.closest(".ballot").querySelector(".bfoot")

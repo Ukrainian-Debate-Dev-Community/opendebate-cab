@@ -389,6 +389,17 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .banner.bad  { background:var(--warn-bg); color:#8A3F1E; }
 .banner.bad a { color:var(--warn); }
 
+/* copy affordance: banner-borne share URLs + table-cell copy buttons */
+.banner code.url { font-family:ui-monospace,Menlo,monospace; font-size:.72rem;
+                   background:#fff; border:1px solid var(--line); border-radius:5px;
+                   padding:2px 8px; overflow-wrap:anywhere; min-width:0; }
+.banner .copy { margin-left:auto; }
+.copy { border:1px solid var(--line); background:#fff; border-radius:5px;
+        font:inherit; font-size:.66rem; font-weight:700; color:var(--brand);
+        padding:2px 9px; cursor:pointer; white-space:nowrap; }
+.copy:hover { background:var(--brand-50); }
+.copy.copied { color:var(--ok); border-color:var(--ok); background:var(--ok-bg); }
+
 .section > h4 { font-size:.66rem; letter-spacing:.12em; text-transform:uppercase;
                 color:var(--muted); font-weight:700; margin:0 2px 7px; }
 .card { border:1px solid var(--line); border-radius:var(--r); background:#fff;

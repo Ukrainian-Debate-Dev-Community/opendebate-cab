@@ -76,6 +76,28 @@ defmodule CabWeb.Router do
     get "/owner/rooms/:id/ballot", OwnerController, :ballot
     post "/owner/rooms/:id/ballot", OwnerController, :submit_ballot
     post "/owner/rooms/:id/reopen", OwnerController, :reopen
+
+    # owner registration surface (M6): issue a guest link by hand,
+    # revoke one — the shared /r/:session_uuid URL lives below
+    post "/owner/sessions/:session_uuid/links", OwnerController, :issue_link
+    post "/owner/links/:id/revoke", OwnerController, :revoke_link
+  end
+
+  # M6 guest access (launch-timeline L2). /r/:session_uuid is the
+  # PUBLIC shared registration URL the head gives out; /l/:code is a
+  # guest's permanent personal link — the code IS the identity, the
+  # controller plug resolves it per request and scopes the guest to
+  # that club+session only (never the signed-in member/owner trees).
+  scope "/", CabWeb do
+    pipe_through :browser
+
+    get "/r/:session_uuid", GuestRegistrationController, :new
+    post "/r/:session_uuid", GuestRegistrationController, :create
+
+    get "/l/:code", GuestLinkController, :show
+    post "/l/:code/signups/:participant_id/remove", GuestLinkController, :cancel_signup
+    get "/l/:code/rooms/:id/ballot", GuestLinkController, :ballot
+    post "/l/:code/rooms/:id/ballot", GuestLinkController, :submit_ballot
   end
 
   # JSON API over the same contexts (club creation is the
@@ -104,6 +126,12 @@ defmodule CabWeb.Router do
     post "/rooms/:id/motion", RoomController, :motion
     post "/rooms/:id/ballot", RoomController, :ballot
     patch "/rooms/:id/reopen", RoomController, :reopen
+
+    # guest links (head only): list, issue by hand, revoke. The
+    # public shared URL has no API twin — it IS an HTML flow.
+    get "/sessions/:uuid/links", LinkController, :index
+    post "/sessions/:uuid/links", LinkController, :create
+    delete "/links/:id", LinkController, :delete
   end
 
   scope "/auth", CabWeb do

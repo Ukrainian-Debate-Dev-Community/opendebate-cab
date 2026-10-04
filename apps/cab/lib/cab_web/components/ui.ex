@@ -637,6 +637,38 @@ defmodule CabWeb.Ui do
     """
   end
 
+  @doc """
+  The copy-to-clipboard affordance: a small button that writes `text`
+  to the clipboard (vanilla JS `[data-copy]` handler in app.js).
+  """
+  attr :text, :string, required: true
+
+  def copy(assigns) do
+    ~H"""
+    <button type="button" class="copy" data-copy={@text}>copy</button>
+    """
+  end
+
+  @doc """
+  A banner carrying a shareable URL with the copy affordance: label,
+  the full URL in mono, and the copy button. Used for the shared
+  registration URL (owner page) and the personal guest links.
+  """
+  attr :kind, :atom, default: :info, values: [:info, :good, :bad]
+  attr :url, :string, required: true
+  attr :id, :string, default: nil
+  slot :inner_block
+
+  def copy_banner(assigns) do
+    ~H"""
+    <div class={["banner", to_string(@kind)]} id={@id}>
+      <span :if={@inner_block != []}>{render_slot(@inner_block)}</span>
+      <code class="url">{@url}</code>
+      <.copy text={@url} />
+    </div>
+    """
+  end
+
   @doc "Flash messages rendered through the banner component."
   attr :flash, :map, required: true
 
