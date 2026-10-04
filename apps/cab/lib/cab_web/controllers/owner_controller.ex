@@ -73,12 +73,42 @@ defmodule CabWeb.OwnerController do
     end
   end
 
-  # POST /c/:club_uuid/owner/sessions
+  # POST /c/:club_uuid/owner/sessions — name + optional date/time
   def open_session(conn, params) do
-    case Sessions.open(conn.assigns.current_user, conn.assigns.club, params["name"]) do
-      {:ok, _session} -> back(conn, info: "session opened")
-      {:error, message} -> back(conn, error: message)
+    with {:ok, scheduled_at} <- Sessions.parse_schedule(params["date"], params["time"]),
+         {:ok, _session} <-
+           Sessions.open(
+             conn.assigns.current_user,
+             conn.assigns.club,
+             params["name"],
+             scheduled_at
+           ) do
+      back(conn, info: "session opened — sign-ups are live")
+    else
+      {:error, message} -> back(conn, error: error_message(message))
     end
+  end
+
+  # POST /c/:club_uuid/owner/sessions/:session_uuid/close-signups —
+  # flow-2's explicit edge: sign-ups close, rooms compose from the
+  # final attendance
+  def close_signups(conn, %{"session_uuid" => session_uuid}) do
+    with_session(conn, session_uuid, fn session ->
+      case Sessions.close_signups(session) do
+        {:ok, _session} -> {:ok, "sign-ups closed — make or compose rooms when ready"}
+        error -> error
+      end
+    end)
+  end
+
+  # POST /c/:club_uuid/owner/sessions/:session_uuid/reopen-signups
+  def reopen_signups(conn, %{"session_uuid" => session_uuid}) do
+    with_session(conn, session_uuid, fn session ->
+      case Sessions.reopen_signups(session) do
+        {:ok, _session} -> {:ok, "sign-ups reopened"}
+        error -> error
+      end
+    end)
   end
 
   # POST /c/:club_uuid/owner/sessions/:session_uuid/signups — the
@@ -114,33 +144,45 @@ defmodule CabWeb.OwnerController do
   end
 
   # GET /c/:club_uuid/owner/sessions/:session_uuid/compose — the
-  # head says who goes where, prefilled from the auto-pair proposal
-  def compose(conn, %{"session_uuid" => session_uuid}) do
+  # drag-and-drop allocation page (the ONLY allocation UI). Rooms
+  # count derives from attendance — floor(speakers/8) baseline — and
+  # "+ room" reloads with ?rooms=N up to attendance/4.
+  def compose(conn, %{"session_uuid" => session_uuid} = params) do
     club = conn.assigns.club
 
     with %Session{} = session <- Sessions.get_for_club(club, session_uuid),
          {:ok, state} <- Sessions.state(%{session | club: club}) do
-      case Sessions.pairing_proposal(session, state) do
-        {:ok, proposal} ->
+      case state.stage do
+        :closed ->
+          speakers = Enum.count(state.signups, &(&1["role"] == "speaker"))
+          max_rooms = max(div(speakers, 4), 1)
+          rooms = params["rooms"] |> rooms_param(max(div(speakers, 8), 1)) |> clamp(max_rooms)
+
           render(conn, :compose,
             session: session,
             state: state,
-            proposal: proposal,
+            rooms: rooms,
+            max_rooms: max_rooms,
             page_title: "#{club.name} · compose rooms"
           )
 
-        :unavailable ->
-          back(conn,
-            error:
-              "compose needs a full sign-up: speakers in multiples of 8 " <>
-                "and a judge per room, before any rooms exist"
-          )
+        _stage ->
+          back(conn, error: "close sign-ups first — rooms are composed from the final attendance")
       end
     else
       nil -> conn |> send_resp(404, "not found") |> halt()
       {:error, message} -> back(conn, error: error_message(message))
     end
   end
+
+  defp rooms_param(value, default) do
+    case is_binary(value) && Integer.parse(value) do
+      {rooms, ""} -> rooms
+      _ -> default
+    end
+  end
+
+  defp clamp(rooms, max_rooms), do: rooms |> max(1) |> min(max_rooms)
 
   # POST /c/:club_uuid/owner/sessions/:session_uuid/rooms — the gold
   # one-click auto path; with "rooms" params (the compose form) the
@@ -160,8 +202,10 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # the compose form posts rooms[i][judge|t1a..t4b]; the API takes
-  # the canonical {"judge_participant_id", "teams"} shape directly
+  # the dnd page posts rooms[i][og|oo|cg|co][1|2] + rooms[i][judge]
+  # (empty slots post ""); the API takes the canonical
+  # {"judge_participant_id", "teams"} shape directly. Rows left
+  # entirely empty (an unused "+ room" row) are dropped.
   defp compose_spec(%{} = rooms) do
     rooms
     |> Enum.sort_by(fn {index, _room} ->
@@ -172,13 +216,35 @@ defmodule CabWeb.OwnerController do
     end)
     |> Enum.map(fn {_index, room} ->
       %{
-        "judge_participant_id" => room["judge"],
-        "teams" => for(t <- 1..4, do: [room["t#{t}a"], room["t#{t}b"]])
+        "judge_participant_id" => presence(room["judge"]),
+        "teams" =>
+          for side <- ~w(og oo cg co) do
+            team = room[side] || %{}
+
+            ~w(1 2)
+            |> Enum.map(&presence(team[&1]))
+            |> Enum.reject(&is_nil/1)
+          end
       }
     end)
+    |> Enum.reject(&empty_room?/1)
   end
 
   defp compose_spec(other), do: other
+
+  defp empty_room?(%{"judge_participant_id" => nil, "teams" => teams}),
+    do: Enum.all?(teams, &(&1 == []))
+
+  defp empty_room?(_room), do: false
+
+  defp presence(value) when is_binary(value) do
+    case String.trim(value) do
+      "" -> nil
+      trimmed -> trimmed
+    end
+  end
+
+  defp presence(value), do: value
 
   # POST /c/:club_uuid/owner/sessions/:session_uuid/rooms/delete —
   # rebuild: pending rooms go away so the head can recompose
@@ -314,6 +380,7 @@ defmodule CabWeb.OwnerController do
       %Session{} = session ->
         case fun.(session) do
           {:ok, info} -> back(conn, info: info)
+          {:error, :conflict, message} -> back(conn, error: error_message(message))
           {:error, message} -> back(conn, error: error_message(message))
         end
 

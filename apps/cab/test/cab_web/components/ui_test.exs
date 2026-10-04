@@ -277,6 +277,54 @@ defmodule CabWeb.UiTest do
   # tag, banner, section
   # ---------------------------------------------------------------
 
+  test "dnd_table renders the tray of kind-marked chips, droppable slots and hidden inputs" do
+    assigns = %{
+      tray: [
+        %{id: 1, name: "Anna", kind: "spk"},
+        %{id: 2, name: "Bohdan", kind: "spk"},
+        %{id: 99, name: "Nadia", kind: "judge"}
+      ]
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.dnd_table id="compose" action="/rooms" rooms={2} tray={@tray} />
+      """)
+
+    # a plain form POSTing to the composition action — dnd is
+    # presentation, not transport
+    assert html =~ ~s(class="dnd")
+    assert html =~ ~s(action="/rooms")
+    assert html =~ ~s(method="post")
+    assert html =~ "data-dnd"
+    assert html =~ ~s(name="_csrf_token")
+
+    # tray: draggable chips with the kind mark; judges carry the blue class
+    assert html =~ "data-tray"
+    assert html =~ "data-tray-count"
+    assert length(String.split(html, ~s(draggable="true"))) == 4
+    assert html =~ ~s(data-id="1")
+    assert html =~ "Anna <span class=\"k\">SPK</span>"
+    assert html =~ "Nadia <span class=\"k\">JUDGE</span>"
+    assert html =~ ~s(class="chip judge")
+
+    # two rows x (4 team cells with side bands x 2 slots + judge slot
+    # + status tag), each slot mirroring a hidden input
+    for side <- ~w(og oo cg co), do: assert(html =~ ~s(class="team t-#{side}"))
+    assert length(String.split(html, ~s(class="slot"))) == 19
+    assert html =~ ~s(name="rooms[1][og][1]")
+    assert html =~ ~s(name="rooms[1][og][2]")
+    assert html =~ ~s(name="rooms[2][co][2]")
+    assert html =~ ~s(name="rooms[1][judge]")
+    assert html =~ ~s(name="rooms[2][judge]")
+    assert html =~ ~s(data-kind="judge")
+    assert html =~ ~s(class="status")
+    assert html =~ "iron"
+
+    # never dropdowns or swap controls for allocation
+    refute html =~ "<select"
+  end
+
   test "tag renders its three kinds" do
     assigns = %{}
 

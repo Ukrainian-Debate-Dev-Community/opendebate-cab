@@ -24,17 +24,32 @@ defmodule CabWeb.OwnerHTML do
         </:seg>
         <:seg
           :if={@state && @state.stage == :signup}
+          href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/close-signups"}
+          method="post"
+          primary
+        >
+          Close sign-ups
+        </:seg>
+        <:seg
+          :if={@state && @state.stage == :closed}
           href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/compose"}
         >
           Compose rooms
         </:seg>
         <:seg
-          :if={@state && @state.stage == :signup}
+          :if={@state && @state.stage == :closed}
           href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/rooms"}
           method="post"
           primary
         >
           Make rooms
+        </:seg>
+        <:seg
+          :if={@state && @state.stage == :closed}
+          href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-signups"}
+          method="post"
+        >
+          Reopen sign-ups
         </:seg>
         <:seg
           :if={deletable_rooms?(@state)}
@@ -53,7 +68,7 @@ defmodule CabWeb.OwnerHTML do
           Finish session
         </:seg>
         <:seg
-          :if={@state && @state.stage in [:signup, :running]}
+          :if={@state && @state.stage in [:signup, :closed, :running]}
           href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/cancel"}
           method="post"
           quiet
@@ -110,6 +125,12 @@ defmodule CabWeb.OwnerHTML do
               type={:text}
               label="Session name"
               hint="Shown to members on the club page; defaults to the date."
+            />
+            <:block
+              names={[:date, :time]}
+              type={:datetime}
+              label="Date and start time"
+              hint="Optional — when the session is planned to start (UTC)."
             />
             <:submit note="Members get the sign-up right away.">Open session</:submit>
           </.form_for>
@@ -214,6 +235,18 @@ defmodule CabWeb.OwnerHTML do
           <% end %>
         <% end %>
 
+        <.section title="History">
+          <.table id="sessions-list" rows={@sessions} empty="No sessions yet.">
+            <:col :let={session} label="Opened">
+              {Calendar.strftime(session.inserted_at, "%-d %b %Y")}
+            </:col>
+            <:col :let={session} label="Session" code>{session.uuid}</:col>
+            <:col :let={session}>
+              <.link href={~p"/c/#{@club.uuid}/s/#{session.uuid}"}>view</.link>
+            </:col>
+          </.table>
+        </.section>
+
         <.section title="Members">
           <.table id="members-list" rows={@members} empty="No members yet.">
             <:col :let={membership} label="Member">
@@ -252,9 +285,10 @@ defmodule CabWeb.OwnerHTML do
     """
   end
 
-  # GET .../owner/sessions/:session_uuid/compose — one form, one
-  # dropdown per slot, PREFILLED from the auto-pair proposal; the
-  # submit segment lives in the chrome (the ballot precedent)
+  # GET .../owner/sessions/:session_uuid/compose — the drag-and-drop
+  # allocation page: tray of signed-up chips over droppable room
+  # slots; the submit segment lives in the chrome (the ballot
+  # precedent) and "+ room" reloads with ?rooms=N (plain REST)
   def compose(assigns) do
     ~H"""
     <Layouts.app flash={@flash}>
@@ -264,86 +298,43 @@ defmodule CabWeb.OwnerHTML do
           {"owner", ~p"/c/#{@club.uuid}/owner"}
         ]}
         here="compose rooms"
-        stage="sign-up open"
-        stage_kind={:ok}
+        stage="sign-ups closed"
+        stage_kind={:warn}
       >
+        <:seg
+          :if={@rooms < @max_rooms}
+          href={~p"/c/#{@club.uuid}/owner/sessions/#{@session.uuid}/compose?rooms=#{@rooms + 1}"}
+        >
+          + room
+        </:seg>
+        <:seg form="compose-rooms-form" primary>Make these rooms</:seg>
       </.chrome>
 
       <div class="pbody">
         <.flash_banners flash={@flash} />
 
         <.section title="Room composition">
-          <.form_for
+          <.dnd_table
             id="compose-rooms-form"
             action={~p"/c/#{@club.uuid}/owner/sessions/#{@session.uuid}/rooms"}
-            title="Compose rooms"
-            description="Prefilled with the auto-pair proposal — move anyone anywhere. Every speaker speaks exactly once; every room gets its own judge."
-          >
-            <:block
-              :for={block <- compose_blocks(@proposal, @state.signups)}
-              name={block.name}
-              type={:select}
-              label={block.label}
-              options={block.options}
-              value={block.value}
-            />
-            <:submit note="Rooms are created exactly as laid out here.">Make these rooms</:submit>
-          </.form_for>
+            rooms={@rooms}
+            tray={dnd_tray(@state.signups)}
+          />
         </.section>
       </div>
     </Layouts.app>
     """
   end
 
-  @sides ~w(OG OO CG CO)
-
-  # one dropdown per slot: a judge + 8 speakers per room, prefilled
-  # from the proposal; options are tonight's signups by role
-  defp compose_blocks(proposal, signups) do
-    speaker_options =
-      for participant <- signups, participant["role"] == "speaker" do
-        {participant["display_name"], participant["id"]}
-      end
-
-    judge_options =
-      for participant <- signups, participant["role"] == "adjudicator" do
-        {participant["display_name"], participant["id"]}
-      end
-
-    proposal
-    |> Enum.with_index(1)
-    |> Enum.flat_map(fn {room, index} ->
-      judge = %{
-        name: "rooms[#{index}][judge]",
-        label: "Room #{index} · judge",
-        options: judge_options,
-        value: room.judge_participant_id
+  # tray chips from tonight's signups: speakers first, judges last
+  defp dnd_tray(signups) do
+    for participant <- Enum.sort_by(signups, &(&1["role"] == "adjudicator")) do
+      %{
+        id: participant["id"],
+        name: participant["display_name"],
+        kind: if(participant["role"] == "adjudicator", do: "judge", else: "spk")
       }
-
-      speakers =
-        room.teams
-        |> Enum.with_index(1)
-        |> Enum.flat_map(fn {[first, second], position} ->
-          side = Enum.at(@sides, position - 1)
-
-          [
-            %{
-              name: "rooms[#{index}][t#{position}a]",
-              label: "Room #{index} · #{side} · first speaker",
-              options: speaker_options,
-              value: first
-            },
-            %{
-              name: "rooms[#{index}][t#{position}b]",
-              label: "Room #{index} · #{side} · second speaker",
-              options: speaker_options,
-              value: second
-            }
-          ]
-        end)
-
-      [judge | speakers]
-    end)
+    end
   end
 
   # approved members not signed up tonight, as form options
@@ -401,11 +392,13 @@ defmodule CabWeb.OwnerHTML do
 
   defp stage_label(nil), do: nil
   defp stage_label(%{stage: :signup}), do: "sign-up open"
+  defp stage_label(%{stage: :closed}), do: "sign-ups closed"
   defp stage_label(%{stage: :running}), do: "running"
   defp stage_label(%{stage: :done}), do: "done"
 
   defp stage_kind(nil), do: :off
   defp stage_kind(%{stage: :signup}), do: :ok
+  defp stage_kind(%{stage: :closed}), do: :warn
   defp stage_kind(%{stage: :running}), do: :warn
   defp stage_kind(%{stage: :done}), do: :off
 

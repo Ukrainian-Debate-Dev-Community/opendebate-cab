@@ -521,6 +521,94 @@ defmodule CabWeb.Ui do
   defp side_label(side), do: @sides[side] || side |> to_string() |> String.upcase()
 
   # ---------------------------------------------------------------
+  # 5 · Drag-and-drop table (allocations)
+  # ---------------------------------------------------------------
+
+  @dnd_sides ~w(og oo cg co)
+
+  @doc """
+  The console allocation surface (tabbycat's draganddrop model) — the
+  ONLY allocation UI, never dropdowns or swap controls for
+  allocation: a tray of unallocated chips (name + SPK/JUDGE mark,
+  judges blue) above a table whose team cells are dashed drop slots
+  with the ballot's side color bands. Chip kinds gate targets,
+  dropping on an occupied slot swaps (the displaced chip returns to
+  the dragged chip's origin), dragging to the tray unassigns; each
+  row carries a live status — empty / incomplete / ready + iron xN
+  (a 1-speaker team is a declared iron).
+
+  Slots mirror hidden inputs named `rooms[N][og][1]` …
+  `rooms[N][judge]`, so the submit is the SAME plain POST the
+  composition endpoint takes — drag-and-drop is presentation, not
+  transport. The submit button lives in the chrome
+  (`<:seg form={id}>`), like the ballot. Behavior is the dnd widget
+  in assets/js/app.js (vanilla JS, no frameworks).
+
+  `tray` entries are `%{id, name, kind}` with kind "spk" | "judge".
+  """
+  attr :id, :string, required: true
+  attr :action, :string, required: true
+  attr :rooms, :integer, required: true, doc: "row count, derived from attendance"
+  attr :tray, :list, required: true
+
+  attr :note, :string,
+    default:
+      "Drag chips into slots; drop on an occupied slot to swap; drag back " <>
+        "to the tray to unassign. A team with one speaker becomes an iron."
+
+  def dnd_table(assigns) do
+    assigns = assign(assigns, :sides, @dnd_sides)
+
+    ~H"""
+    <form class="dnd" id={@id} action={@action} method="post" data-dnd>
+      <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+      <div class="tray" data-tray>
+        <span class="tlabel">Unallocated · <span data-tray-count>{length(@tray)}</span></span>
+        <span
+          :for={chip <- @tray}
+          class={["chip", chip.kind == "judge" && "judge"]}
+          draggable="true"
+          data-kind={chip.kind}
+          data-id={chip.id}
+        >
+          {chip.name} <span class="k">{if chip.kind == "judge", do: "JUDGE", else: "SPK"}</span>
+        </span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>OG</th>
+            <th>OO</th>
+            <th>CG</th>
+            <th>CO</th>
+            <th>Judge</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr :for={room <- 1..@rooms} data-room={room}>
+            <td class="room">R{room}</td>
+            <td :for={side <- @sides} class={"team t-#{side}"}>
+              <div :for={slot <- 1..2} class="slot" data-kind="spk">
+                <input type="hidden" name={"rooms[#{room}][#{side}][#{slot}]"} value="" />
+              </div>
+            </td>
+            <td>
+              <div class="slot" data-kind="judge">
+                <input type="hidden" name={"rooms[#{room}][judge]"} value="" />
+              </div>
+            </td>
+            <td class="status"><span class="tag tag-mut">empty</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="bfoot">{@note}</div>
+    </form>
+    """
+  end
+
+  # ---------------------------------------------------------------
   # Rest of the kit: tag, banner, section
   # ---------------------------------------------------------------
 

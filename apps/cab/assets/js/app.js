@@ -107,6 +107,86 @@ document.querySelectorAll(".ballot [data-ballot]").forEach(grid => {
   recalc()
 })
 
+// dnd table: tray chips -> slots, kind gating, swap-on-occupied (the
+// displaced chip returns to the dragged chip's origin), drag-to-tray
+// unassigns; slots mirror hidden inputs so submit stays a plain POST
+document.querySelectorAll("form[data-dnd]").forEach(dnd => {
+  const tray = dnd.querySelector("[data-tray]")
+  let dragged = null
+  let origin = null
+
+  dnd.addEventListener("dragstart", e => {
+    const chip = e.target.closest(".chip")
+    if (!chip) return
+    dragged = chip
+    origin = chip.parentElement
+    chip.classList.add("dragging")
+  })
+  dnd.addEventListener("dragend", () => {
+    if (dragged) dragged.classList.remove("dragging")
+    dragged = null
+  })
+
+  const targetOf = e => {
+    const slot = e.target.closest(".slot")
+    if (slot && dragged && slot.dataset.kind === dragged.dataset.kind) return slot
+    if (e.target.closest("[data-tray]")) return tray
+    return null
+  }
+
+  dnd.addEventListener("dragover", e => {
+    const t = targetOf(e)
+    if (!t) return
+    e.preventDefault()
+    if (t !== tray) t.classList.add("over")
+  })
+  dnd.addEventListener("dragleave", e => {
+    const slot = e.target.closest(".slot")
+    if (slot) slot.classList.remove("over")
+  })
+  dnd.addEventListener("drop", e => {
+    const t = targetOf(e)
+    if (!t || !dragged) return
+    e.preventDefault()
+    if (t !== tray) {
+      t.classList.remove("over")
+      const occupant = t.querySelector(".chip")
+      if (occupant)
+        (origin.classList && origin.classList.contains("slot") ? origin : tray).appendChild(occupant)
+    }
+    t.appendChild(dragged)
+    refresh()
+  })
+
+  const refresh = () => {
+    const count = tray.querySelectorAll(".chip").length
+    const label = tray.querySelector("[data-tray-count]")
+    if (label) label.textContent = count
+    // slots mirror into the hidden form inputs — same POST as the API
+    dnd.querySelectorAll(".slot").forEach(slot => {
+      const input = slot.querySelector("input[type=hidden]")
+      const chip = slot.querySelector(".chip")
+      if (input) input.value = chip ? chip.dataset.id : ""
+    })
+    // live per-row status: empty / incomplete / ready (+ iron xN)
+    dnd.querySelectorAll("tbody tr").forEach(tr => {
+      const status = tr.querySelector(".status")
+      if (!status) return
+      const teams = [...tr.querySelectorAll("td.team")].map(td => td.querySelectorAll(".chip").length)
+      const judge = tr.querySelector("td:nth-last-child(2) .chip")
+      const filled = teams.reduce((a, b) => a + b, 0)
+      const irons = teams.filter(n => n === 1).length
+      if (filled === 0 && !judge) status.innerHTML = '<span class="tag tag-mut">empty</span>'
+      else if (teams.every(n => n >= 1) && judge)
+        status.innerHTML =
+          '<span class="tag tag-ok">ready</span>' +
+          (irons ? ` <span class="tag tag-warn">iron x${irons}</span>` : "")
+      else status.innerHTML = '<span class="tag tag-warn">incomplete</span>'
+    })
+  }
+  refresh()
+})
+
 // elim ballot: exactly N teams advance
 document.querySelectorAll(".ballot [data-advance]").forEach(grid => {
   const msg = grid.closest(".ballot").querySelector(".bfoot")
