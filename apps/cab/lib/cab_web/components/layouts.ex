@@ -12,18 +12,23 @@ defmodule CabWeb.Layouts do
   embed_templates "layouts/*"
 
   @doc """
-  Renders your app layout.
+  Renders your app layout: the pages-v6 SHELL — left sidenav (the
+  only navigation) + the main column the page fills with its chrome
+  and body; the footer scheme stays below.
 
-  This function is typically invoked from every template,
-  and it often contains your application menu, sidebar,
-  or similar:
-
-      <Layouts.app flash={@flash}>
-        <h1>Content</h1>
+      <Layouts.app flash={@flash} current_user={@current_user}
+                   club={@club} club_role={@club_role}
+                   nav_session={@nav_session} active="sessions">
+        <.chrome .../>
+        <div class="pbody">...</div>
       </Layouts.app>
-
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
+  attr :current_user, :any, default: nil
+  attr :club, :any, default: nil, doc: "club context for the sidenav; nil = global"
+  attr :club_role, :atom, default: :public
+  attr :nav_session, :any, default: nil, doc: "the club's newest session (sidenav Rooms)"
+  attr :active, :string, default: nil, doc: "the lit sidenav item"
 
   attr :current_scope, :map,
     default: nil,
@@ -33,9 +38,18 @@ defmodule CabWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <main class="page-main">
-      {render_slot(@inner_block)}
-    </main>
+    <div class="shell">
+      <CabWeb.Ui.sidenav
+        current_user={@current_user}
+        club={@club}
+        club_role={@club_role}
+        nav_session={@nav_session}
+        active={@active}
+      />
+      <main class="mainc page-main">
+        {render_slot(@inner_block)}
+      </main>
+    </div>
     <footer class="footer">
       <div class="in">
         <div class="cols">

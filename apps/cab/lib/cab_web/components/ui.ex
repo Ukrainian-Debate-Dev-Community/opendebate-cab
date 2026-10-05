@@ -23,32 +23,22 @@ defmodule CabWeb.Ui do
   # ---------------------------------------------------------------
 
   @doc """
-  The control mechanism of every page: brand cap (always -> home),
-  breadcrumb, optional stage tag, and every action the current URL
-  tree allows as flush tape-deck segments. Max one `primary` (gold)
-  segment per page; `quiet` = destructive or exit.
-
-  With `account`, renders the account end-caps exactly as pages-v2:
-  signed-in -> user name + Sign out; signed-out -> a quiet Sign in
-  segment (placed before the action segments).
+  The control mechanism of every page (pages-v6): crumb + THIS page's
+  actions only, as flush tape-deck segments — navigation and the
+  profile live in the sidenav, status lives in the page content as
+  words. Max one `primary` (gold) segment per page; `quiet` =
+  destructive or exit.
 
   A segment with `form` renders as that form's submit button instead
   of a link — the design's "submit lives in the chrome" rule for the
-  ballot pages (the ballot component itself carries no button).
+  ballot/compose/edit pages (the components carry no buttons).
 
-      <.chrome crumbs={[{@club.name, ~p"/c/\#{@club.uuid}"}]} here="rooms"
-               stage="running" stage_kind={:warn}>
-        <:seg method="post" href={...} quiet>Delete rooms</:seg>
-        <:seg href={...}>Edit motion</:seg>
-        <:seg method="post" href={...} primary>Finish session</:seg>
+      <.chrome crumbs={[{@club.name, ~p"/c/\#{@club.uuid}"}]} here="sessions">
+        <:seg form="open-session-form" primary>Open new session</:seg>
       </.chrome>
   """
   attr :crumbs, :list, default: [], doc: "crumb entries as {label, href} tuples"
   attr :here, :string, default: nil, doc: "the non-link tail crumb"
-  attr :stage, :string, default: nil
-  attr :stage_kind, :atom, default: :off, values: [:ok, :warn, :off]
-  attr :account, :boolean, default: false, doc: "render the account segments"
-  attr :current_user, :any, default: nil
 
   slot :seg do
     attr :href, :any
@@ -61,7 +51,6 @@ defmodule CabWeb.Ui do
   def chrome(assigns) do
     ~H"""
     <div class="chrome">
-      <.link href={~p"/"} class="cap">cab</.link>
       <div class="crumb">
         <%= for {label, href} <- @crumbs do %>
           <.link href={href}>{label}</.link>
@@ -69,11 +58,7 @@ defmodule CabWeb.Ui do
         <% end %>
         <span :if={@here} class="here">{@here}</span>
       </div>
-      <span :if={@stage} class={["stage", to_string(@stage_kind)]}>{@stage}</span>
-      <div :if={@seg != [] or @account} class="seg">
-        <.link :if={@account and is_nil(@current_user)} class="quiet" href={~p"/signin"}>
-          Sign in
-        </.link>
+      <div :if={@seg != []} class="seg">
         <%= for seg <- @seg do %>
           <%= if seg[:form] do %>
             <button
@@ -93,30 +78,132 @@ defmodule CabWeb.Ui do
             </.link>
           <% end %>
         <% end %>
-        <%= if @account and @current_user do %>
-          <.link class="me" href={~p"/"}>{@current_user.username}</.link>
-          <.link class="quiet" href={~p"/auth/logout"}>Sign out</.link>
-        <% end %>
       </div>
     </div>
     """
   end
 
   @doc """
-  The owner console's section nav (P8): one row of tabs under the
-  chrome that chooses WHICH section is shown — actions never move
-  out of the chrome. `tabs` entries are `%{key, label, href}` with
-  an optional `count` rendered as the attention badge when > 0.
+  The left sidenav (pages-v6 shell) — ONLY navigation: brand script
+  cap -> home, plain place-name items for the current context
+  (global: Clubs / Standings / + Admin for admins; club: Club /
+  Rooms / Sessions / Standings / Members) and the profile block
+  pinned to the bottom (avatar initials + username -> /account, sign
+  out; anonymous: Sign in). No badges, counters or suffixes; the
+  active item carries a left border.
+  """
+  attr :current_user, :any, default: nil
+  attr :club, :any, default: nil, doc: "club context; nil = global"
+  attr :club_role, :atom, default: :public
+  attr :nav_session, :any, default: nil, doc: "the club's newest session row (Rooms target)"
+  attr :active, :string, default: nil, doc: "the lit item key"
+
+  def sidenav(assigns) do
+    ~H"""
+    <nav class="sidenav" id="sidenav">
+      <.link href={~p"/"} class="cap">cab</.link>
+      <%= if @club do %>
+        <div class="sec">{@club.name}</div>
+        <.nav_item active={@active} key="club" href={club_href(@club, @club_role)} label="Club" />
+        <.nav_item
+          active={@active}
+          key="rooms"
+          href={rooms_href(@club, @club_role, @nav_session)}
+          label="Rooms"
+        />
+        <.nav_item
+          active={@active}
+          key="sessions"
+          href={sessions_href(@club, @club_role)}
+          label="Sessions"
+        />
+        <.nav_item
+          active={@active}
+          key="standings"
+          href={~p"/c/#{@club.uuid}/standings/teams"}
+          label="Standings"
+        />
+        <.nav_item
+          active={@active}
+          key="members"
+          href={members_href(@club, @club_role)}
+          label="Members"
+        />
+      <% else %>
+        <.nav_item active={@active} key="clubs" href={~p"/"} label="Clubs" />
+        <.nav_item active={@active} key="standings" href={~p"/standings/teams"} label="Standings" />
+        <.nav_item
+          :if={@current_user && @current_user.is_admin}
+          active={@active}
+          key="admin"
+          href={~p"/admin"}
+          label="Admin"
+        />
+      <% end %>
+      <div class="profile" id="sidenav-profile">
+        <%= if @current_user do %>
+          <div class="who">
+            <span class="av">{initials(@current_user)}</span>
+            <.link href={~p"/account"}>{@current_user.username}</.link>
+          </div>
+          <.link class="out" href={~p"/auth/logout"}>sign out</.link>
+        <% else %>
+          <.link href={~p"/signin"}>Sign in</.link>
+        <% end %>
+      </div>
+    </nav>
+    """
+  end
+
+  attr :key, :string, required: true
+  attr :active, :string, default: nil
+  attr :href, :any, required: true
+  attr :label, :string, required: true
+
+  defp nav_item(assigns) do
+    ~H"""
+    <.link href={@href} class={["item", @key == @active && "on"]}>{@label}</.link>
+    """
+  end
+
+  defp club_href(club, :owner), do: ~p"/c/#{club.uuid}/owner"
+  defp club_href(club, _role), do: ~p"/c/#{club.uuid}"
+
+  # the LIVE session lives under Rooms; with no session yet the item
+  # falls back to the archive (owner opens new sessions there)
+  defp rooms_href(club, :owner, %{uuid: uuid}), do: ~p"/c/#{club.uuid}/owner/s/#{uuid}"
+  defp rooms_href(club, _role, %{uuid: uuid}), do: ~p"/c/#{club.uuid}/s/#{uuid}"
+  defp rooms_href(club, role, nil), do: sessions_href(club, role)
+
+  defp sessions_href(club, :owner), do: ~p"/c/#{club.uuid}/owner/sessions"
+  defp sessions_href(club, _role), do: ~p"/c/#{club.uuid}/member/sessions"
+
+  defp members_href(club, :owner), do: ~p"/c/#{club.uuid}/owner/members"
+  defp members_href(club, _role), do: ~p"/c/#{club.uuid}/member/members"
+
+  defp initials(user) do
+    (user.name || user.username || "?")
+    |> String.split()
+    |> Enum.take(2)
+    |> Enum.map(&String.first/1)
+    |> Enum.join()
+    |> String.upcase()
+  end
+
+  @doc """
+  The tab row under the chrome (pages-v6 `.selrow`) — picks WHICH
+  view of the page is shown (the four standings tabs). Real borders,
+  no badges. `tabs` entries are `{key, label, href}`.
   """
   attr :id, :string, default: nil
   attr :tabs, :list, required: true
   attr :active, :string, required: true
 
-  def subnav(assigns) do
+  def selrow(assigns) do
     ~H"""
-    <div class="subnav" id={@id}>
-      <.link :for={tab <- @tabs} href={tab.href} class={tab.key == @active && "on"}>
-        {tab.label}<span :if={tab[:count] && tab.count > 0} class="n">{tab.count}</span>
+    <div class="selrow" id={@id}>
+      <.link :for={{key, label, href} <- @tabs} href={href} class={key == @active && "on"}>
+        {label}
       </.link>
     </div>
     """

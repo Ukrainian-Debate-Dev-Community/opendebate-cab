@@ -45,14 +45,35 @@ defmodule CabWeb.ClubScope do
     case resolve(conn, source) do
       {:ok, assigns} ->
         club = Keyword.fetch!(assigns, :club)
-        role = Clubs.role_for(club, conn.assigns[:current_user])
 
-        Enum.reduce(assigns, conn, fn {key, value}, conn -> assign(conn, key, value) end)
-        |> assign(:club_role, role)
-        |> enforce(role, required)
+        if archived_hidden?(club, conn.assigns[:current_user]) do
+          halt_with(conn, 404, "not found")
+        else
+          role = Clubs.role_for(club, conn.assigns[:current_user])
+
+          Enum.reduce(assigns, conn, fn {key, value}, conn -> assign(conn, key, value) end)
+          |> assign(:club_role, role)
+          |> assign_nav_session(club)
+          |> enforce(role, required)
+        end
 
       :error ->
         halt_with(conn, 404, "not found")
+    end
+  end
+
+  # archived clubs are hidden everywhere — only a platform admin
+  # still resolves them (the /admin table is their home)
+  defp archived_hidden?(club, user) do
+    club.archived_at != nil and not (user != nil and user.is_admin)
+  end
+
+  # the sidenav's Rooms item needs the club's newest session; HTML
+  # pages only (the JSON API carries no shell)
+  defp assign_nav_session(conn, club) do
+    case get_format(conn) do
+      "json" -> conn
+      _ -> assign(conn, :nav_session, List.first(Sessions.list_for_club(club)))
     end
   end
 

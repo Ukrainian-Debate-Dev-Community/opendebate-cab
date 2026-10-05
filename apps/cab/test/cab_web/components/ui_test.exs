@@ -9,12 +9,12 @@ defmodule CabWeb.UiTest do
   # chrome
   # ---------------------------------------------------------------
 
-  test "chrome renders cap, crumbs, stage and segments honouring primary/quiet" do
+  test "chrome renders crumbs and segments only — no brand cap, no account, no stage pill" do
     assigns = %{}
 
     html =
       rendered_to_string(~H"""
-      <.chrome crumbs={[{"Kyiv Debate Club", "/c/abc"}]} here="rooms" stage="running" stage_kind={:warn}>
+      <.chrome crumbs={[{"Kyiv Debate Club", "/c/abc"}]} here="rooms">
         <:seg href="/delete" method="post" quiet>Delete rooms</:seg>
         <:seg href="/motion">Edit motion</:seg>
         <:seg href="/finish" method="post" primary>Finish session</:seg>
@@ -22,11 +22,15 @@ defmodule CabWeb.UiTest do
       """)
 
     assert html =~ ~s(class="chrome")
-    assert html =~ ~s(class="cap")
     assert html =~ ~s(href="/c/abc")
     assert html =~ "Kyiv Debate Club"
     assert html =~ ~s(<span class="here">rooms</span>)
-    assert html =~ ~s(class="stage warn")
+
+    # navigation and status left the chrome for the sidenav / content
+    refute html =~ ~s(class="cap")
+    refute html =~ "stage"
+    refute html =~ "Sign in"
+    refute html =~ "Sign out"
 
     # quiet and primary map onto the design classes; plain segs get neither
     assert html =~ ~r/class="quiet"[^>]*/
@@ -38,52 +42,116 @@ defmodule CabWeb.UiTest do
     refute html =~ ~s(href="/motion" data-method)
   end
 
-  test "chrome account segments: signed-in shows name + sign out, signed-out shows sign in" do
-    assigns = %{user: %{username: "anna"}}
+  test "sidenav global context: cap, Clubs/Standings, Admin for admins only" do
+    assigns = %{
+      admin: %{username: "root", name: nil, is_admin: true},
+      user: %{username: "anna", name: "Anna Kovalenko", is_admin: false}
+    }
 
-    signed_in =
+    html =
       rendered_to_string(~H"""
-      <.chrome account current_user={@user} here="my cabinet" />
+      <.sidenav current_user={@user} active="clubs" />
       """)
 
-    assert signed_in =~ ~s(class="me")
-    assert signed_in =~ "anna"
-    assert signed_in =~ "Sign out"
-    assert signed_in =~ ~s(href="/auth/logout")
-    refute signed_in =~ "Sign in"
+    # the brand script cap goes home; plain place names, no badges
+    assert html =~ ~s(class="cap")
+    assert html =~ ">Clubs<"
+    assert html =~ ~s(href="/standings/teams")
+    refute html =~ ">Admin<"
+    refute html =~ ~s(class="n")
 
-    signed_out =
+    # the active item carries .on (a left border in CSS, no shadows)
+    assert html =~ "item on"
+
+    # profile pinned to the bottom: initials avatar + name -> /account
+    assert html =~ ~s(class="profile")
+    assert html =~ ~s(class="av")
+    assert html =~ "AK"
+    assert html =~ ~s(href="/account")
+    assert html =~ "sign out"
+    assert html =~ ~s(href="/auth/logout")
+
+    admin_html =
       rendered_to_string(~H"""
-      <.chrome account current_user={nil} here="cab" />
+      <.sidenav current_user={@admin} active="admin" />
       """)
 
-    # every sign-in link lands on P1, never straight on a provider
-    assert signed_out =~ "Sign in"
-    assert signed_out =~ ~s(href="/signin")
-    refute signed_out =~ "/auth/github"
-    refute signed_out =~ "Sign out"
+    assert admin_html =~ ">Admin<"
+    assert admin_html =~ ~s(href="/admin")
+
+    anonymous =
+      rendered_to_string(~H"""
+      <.sidenav current_user={nil} />
+      """)
+
+    assert anonymous =~ "Sign in"
+    assert anonymous =~ ~s(href="/signin")
+    refute anonymous =~ "/auth/github"
+    refute anonymous =~ "sign out"
   end
 
-  test "subnav renders tabs, the active state and attention counters" do
+  test "sidenav club context: five place items, role-scoped targets" do
+    assigns = %{
+      club: %{uuid: "abc", name: "Kyiv Debate Club"},
+      session: %{uuid: "s1"}
+    }
+
+    member_html =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:member} nav_session={@session} active="rooms" />
+      """)
+
+    assert member_html =~ "Kyiv Debate Club"
+
+    for item <- ~w(Club Rooms Sessions Standings Members) do
+      assert member_html =~ ">#{item}<"
+    end
+
+    assert member_html =~ ~s(href="/c/abc")
+    assert member_html =~ ~s(href="/c/abc/s/s1")
+    assert member_html =~ ~s(href="/c/abc/member/sessions")
+    assert member_html =~ ~s(href="/c/abc/standings/teams")
+    assert member_html =~ ~s(href="/c/abc/member/members")
+
+    owner_html =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:owner} nav_session={@session} active="club" />
+      """)
+
+    assert owner_html =~ ~s(href="/c/abc/owner")
+    assert owner_html =~ ~s(href="/c/abc/owner/s/s1")
+    assert owner_html =~ ~s(href="/c/abc/owner/sessions")
+    assert owner_html =~ ~s(href="/c/abc/owner/members")
+
+    # with no session yet the Rooms item falls back to the archive
+    no_session =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:member} nav_session={nil} />
+      """)
+
+    refute no_session =~ "/c/abc/s/"
+  end
+
+  test "selrow renders the tab row with the active state and no badges" do
     assigns = %{
       tabs: [
-        %{key: "registration", label: "Registration", href: "/o?tab=registration", count: 1},
-        %{key: "requests", label: "Requests", href: "/o?tab=requests", count: 0},
-        %{key: "rooms", label: "Rooms", href: "/o?tab=rooms"}
+        {"teams", "Teams", "/standings/teams"},
+        {"speakers", "Speakers", "/standings/speakers"}
       ]
     }
 
     html =
       rendered_to_string(~H"""
-      <.subnav tabs={@tabs} active="rooms" />
+      <.selrow id="tabs" tabs={@tabs} active="speakers" />
       """)
 
-    assert html =~ ~s(class="subnav")
-    assert html =~ ~s(href="/o?tab=registration")
-    # the active tab carries .on; counters render only when > 0
-    assert html =~ ~r/class="on"[^>]*href="\/o\?tab=rooms"|href="\/o\?tab=rooms"[^>]*class="on"/
-    assert html =~ ~s(class="n">1</span>)
-    assert [_only_one] = String.split(html, ~s(class="n")) |> tl()
+    assert html =~ ~s(class="selrow")
+    assert html =~ ~s(href="/standings/teams")
+
+    assert html =~
+             ~r/class="on"[^>]*href="\/standings\/speakers"|href="\/standings\/speakers"[^>]*class="on"/
+
+    refute html =~ ~s(class="n")
   end
 
   # ---------------------------------------------------------------
