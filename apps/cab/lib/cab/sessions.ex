@@ -978,15 +978,13 @@ defmodule Cab.Sessions do
   def user_club_history(%Club{}, %User{}), do: []
 
   @doc """
-  The club standings (P7) computed from engine results across the
-  club's completed sessions: `%{members: rows, winners: rows}` where
-  members carry `%{name, played, wins, win_rate}` (played = placed in
-  a room as a speaker; win = rank-1 team of a confirmed ballot),
-  sorted by wins, and winners is the session-winners timeline
-  `%{date, name, session_uuid, winner}`, newest first. Engine trouble
-  degrades to empty lists — the pages stay up.
+  The sessions ARCHIVE (previous progress): the club's FINISHED
+  engine events as rows `%{session_uuid, name, date, winner}`, newest
+  first — every value an engine fact, verbatim (rule 0: the winner is
+  the rank-1 team of the confirmed ballot, never computed cab-side).
+  Engine trouble degrades to an empty list — the page stays up.
   """
-  def club_standings(%Club{} = club) do
+  def archive(%Club{} = club) do
     with sessions when sessions != [] <- list_for_club(club),
          {:ok, actor} <- Clubs.club_actor(club),
          {:ok, events} <-
@@ -998,78 +996,18 @@ defmodule Cab.Sessions do
           event["id"]
         end
 
-      rows =
-        sessions
-        |> Enum.filter(&MapSet.member?(completed, &1.engine_event_id))
-        |> Enum.map(&session_results(actor, &1, names))
-        |> Enum.reject(&is_nil/1)
-
-      %{
-        members: standings_members(rows),
-        winners: Enum.map(rows, &Map.take(&1, [:date, :name, :session_uuid, :winner]))
-      }
+      sessions
+      |> Enum.filter(&MapSet.member?(completed, &1.engine_event_id))
+      |> Enum.map(fn session ->
+        %{
+          session_uuid: session.uuid,
+          name: names[session.engine_event_id],
+          date: session.scheduled_at || session.inserted_at,
+          winner: event_winner(actor, %{"id" => session.engine_event_id})
+        }
+      end)
     else
-      _ -> %{members: [], winners: []}
-    end
-  end
-
-  defp session_results(actor, session, names) do
-    with {:ok, participants} <- EngineApi.list_participants(actor, session.engine_event_id),
-         {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
-         {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
-      %{
-        date: session.inserted_at,
-        name: names[session.engine_event_id],
-        session_uuid: session.uuid,
-        winner: winner_from_rooms(rooms),
-        participants: participants,
-        rooms: rooms
-      }
-    else
-      _ -> nil
-    end
-  end
-
-  defp standings_members(rows) do
-    rows
-    |> Enum.flat_map(&session_speaker_results/1)
-    |> Enum.group_by(fn {identity, _won} -> identity end, fn {_identity, won} -> won end)
-    |> Enum.map(fn {{_key, name}, results} ->
-      played = length(results)
-      wins = Enum.count(results, & &1)
-      %{name: name, played: played, wins: wins, win_rate: round(wins * 100 / played)}
-    end)
-    |> Enum.sort_by(&{-&1.wins, -&1.win_rate, &1.name})
-  end
-
-  # one {identity, won?} per speaker per room; an iron (same
-  # participant on both slots) counts once. Identity keys on the
-  # engine user id so the same person aggregates across sessions.
-  defp session_speaker_results(row) do
-    by_id = Map.new(row.participants, &{&1["id"], &1})
-
-    for room <- row.rooms,
-        room_team <- room["RoomTeams"] || [],
-        participant_id <-
-          (room_team["RoomSpeakers"] || [])
-          |> Enum.map(&get_in(&1, ["EventParticipant", "id"]))
-          |> Enum.reject(&is_nil/1)
-          |> Enum.uniq() do
-      participant = by_id[participant_id] || %{}
-
-      identity =
-        {participant["user_id"] || {:participant, participant_id},
-         participant["display_name"] ||
-           get_in(
-             Enum.find(
-               room_team["RoomSpeakers"],
-               &(get_in(&1, ["EventParticipant", "id"]) == participant_id)
-             ),
-             ["EventParticipant", "display_name"]
-           ) || "?"}
-
-      won = room["status"] in ["completed", "confirmed"] and room_team["rank"] == 1
-      {identity, won}
+      _ -> []
     end
   end
 
