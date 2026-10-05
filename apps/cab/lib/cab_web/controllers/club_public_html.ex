@@ -1,23 +1,23 @@
 defmodule CabWeb.ClubPublicHTML do
   use CabWeb, :html
 
-  # P4 — the club's public face
+  import CabWeb.StandingsHTML, only: [standings_tabs: 1, standings_body: 1]
+
+  # the club page — a profile VIEW (the owner edits the same page in
+  # place at /owner)
   def show(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
-      <.chrome
-        account
-        current_user={@current_user}
-        crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-        stage="recruiting"
-        stage_kind={:ok}
-      >
-        <:seg href={~p"/c/#{@club.uuid}/standings"}>Standings</:seg>
-        <:seg :if={@club_role in [:member, :owner]} href={~p"/c/#{@club.uuid}/member"}>
-          Member area
-        </:seg>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="club"
+    >
+      <.chrome here={@club.name}>
         <:seg :if={@club_role == :owner} href={~p"/c/#{@club.uuid}/owner"}>
-          Owner console
+          Edit club
         </:seg>
         <:seg :if={@club_role == :public and is_nil(@current_user)} href={~p"/signin"} primary>
           Request to join
@@ -25,7 +25,6 @@ defmodule CabWeb.ClubPublicHTML do
         <:seg
           :if={@club_role == :public and @current_user}
           href={~p"/c/#{@club.uuid}/join"}
-          method="post"
           primary
         >
           Request to join
@@ -35,12 +34,15 @@ defmodule CabWeb.ClubPublicHTML do
       <div class="pbody">
         <.flash_banners flash={@flash} />
 
-        <.section title="Club" pad>
+        <.section title="About" pad>
           <b id="club-name">{@club.name}</b>{if @club.city, do: " · #{@club.city}"}
           <p>
             {length(@members)} member{if length(@members) != 1, do: "s"}{if head_name(@members),
               do: " · head: #{head_name(@members)}"}
           </p>
+          <p :if={@club.description}>{@club.description}</p>
+          <p :if={@club.meeting_info}>Meetings: {@club.meeting_info}</p>
+          <p :if={@club.contacts}>Contacts: {@club.contacts}</p>
         </.section>
 
         <.section title="Recent sessions">
@@ -51,58 +53,89 @@ defmodule CabWeb.ClubPublicHTML do
               </.link>
             </:col>
             <:col :let={row} label="Session">{row.name}</:col>
-            <:col :let={row} label="Winner">{row.winner || "—"}</:col>
+            <:col :let={row} label="Progress">
+              {if row.winner, do: "won by #{row.winner}", else: "finished"}
+            </:col>
           </.table>
         </.section>
 
-        <.section title="Top members">
-          <.table id="top-members" rows={@top_members} rank empty="No results yet.">
-            <:col :let={row} label="Member">{row.name}</:col>
-            <:col :let={row} label="Wins" num>{row.wins}</:col>
-          </.table>
-          <div class="pad">
-            <.link href={~p"/c/#{@club.uuid}/standings"}>Full standings →</.link>
-          </div>
+        <.section title="Standings" pad>
+          Per-session engine standings live under
+          <.link href={~p"/c/#{@club.uuid}/standings/teams"}>Standings</.link>
+          in the sidenav.
         </.section>
       </div>
     </Layouts.app>
     """
   end
 
-  # P7 — the club standings
+  # the SAME four tabs as /standings, scoped to the club
   def standings(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
-      <.chrome
-        account
-        current_user={@current_user}
-        crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-        here="standings"
-      >
-      </.chrome>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="standings"
+    >
+      <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="standings"></.chrome>
+      <.standings_tabs base={"/c/#{@club.uuid}/standings"} active={@tab} />
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+        <.standings_body tab={@tab} scope={@scope} rows={@rows} club={@club} />
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  # the join-request FORM: two required answers the head reads in
+  # Requests — about me + contact
+  def join(assigns) do
+    ~H"""
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="club"
+    >
+      <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="join"></.chrome>
 
       <div class="pbody">
         <.flash_banners flash={@flash} />
 
-        <.section title="Members">
-          <.table id="standings-members" rows={@members} rank empty="No results yet.">
-            <:col :let={row} label="Member">{row.name}</:col>
-            <:col :let={row} label="Played" num>{row.played}</:col>
-            <:col :let={row} label="Wins" num>{row.wins}</:col>
-            <:col :let={row} label="Win rate" num>{row.win_rate}%</:col>
-          </.table>
-        </.section>
-
-        <.section title="Session winners">
-          <.table id="session-winners" rows={@winners} empty="No completed sessions yet.">
-            <:col :let={row} label="Date">
-              <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"}>
-                {Calendar.strftime(row.date, "%-d %b %Y")}
-              </.link>
-            </:col>
-            <:col :let={row} label="Session">{row.name}</:col>
-            <:col :let={row} label="Winner">{row.winner || "—"}</:col>
-          </.table>
+        <.section title="Join request">
+          <.form_for
+            id="join-request-form"
+            action={~p"/c/#{@club.uuid}/join"}
+            title={"Join #{@club.name}"}
+            description="The club head reads your answers before approving."
+            errors={@errors}
+          >
+            <:block
+              name={:message}
+              type={:longtext}
+              label="About me"
+              required
+              value={@message}
+              hint="Who you are and why you want to debate here."
+            />
+            <:block
+              name={:contact}
+              type={:text}
+              label="Contact"
+              required
+              value={@contact}
+              hint="Telegram, phone or email the head can reach you at."
+            />
+            <:submit note="Lands in the head's Requests with your answers.">
+              Send request
+            </:submit>
+          </.form_for>
         </.section>
       </div>
     </Layouts.app>

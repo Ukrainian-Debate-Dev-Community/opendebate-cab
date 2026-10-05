@@ -1,5 +1,9 @@
 defmodule CabWeb.CabinetHomeTest do
-  @moduledoc "P2 (anonymous front page) and P3 (signed-in cabinet) on GET /."
+  @moduledoc """
+  GET / on the sidenav shell: the anonymous front page (clubs
+  directory with the words Tonight column) and the signed-in cabinet
+  (my clubs, my sessions).
+  """
 
   use CabWeb.ConnCase, async: true
 
@@ -11,7 +15,7 @@ defmodule CabWeb.CabinetHomeTest do
     |> Plug.Conn.put_private(:plug_skip_csrf_protection, true)
   end
 
-  test "P2: anonymous front page carries the pitch and the clubs directory", %{conn: conn} do
+  test "anonymous front page: sidenav shell, pitch, clubs directory", %{conn: conn} do
     head = user_fixture()
 
     club =
@@ -20,32 +24,42 @@ defmodule CabWeb.CabinetHomeTest do
         city: "Kyiv"
       })
 
-    session_fixture(club, engine_event_id: 11)
-
     html = conn |> get(~p"/") |> html_response(200)
 
-    # chrome: the sign-in CTA routes to P1, never to a provider
-    assert html =~ ~s(class="chrome")
-    assert html =~ "Sign in"
+    # the sidenav shell: brand cap, global items, Sign in profile
+    assert html =~ ~s(id="sidenav")
+    assert html =~ ~s(class="cap")
+    assert html =~ ">Clubs<"
+    assert html =~ ~s(href="/standings/teams")
+    assert html =~ ~s(id="sidenav-profile")
     assert html =~ ~s(href="/signin")
     refute html =~ "/auth/github"
+    refute html =~ ">Admin<"
 
     # the one-line pitch banner
     assert html =~ ~s(class="banner info")
     assert html =~ "free for every Ukrainian club"
 
-    # directory: name, city, member count, session count, open -> P4
+    # directory: name, city, members, Tonight words
     assert html =~ ~s(id="clubs-directory")
     assert html =~ "Kyiv Debate Club"
-    assert html =~ "Kyiv"
     assert html =~ ~s(href="/c/#{club.uuid}")
-    assert html =~ ~r/class="num">\s*1\s*</
+    assert html =~ "quiet"
 
     refute html =~ "My clubs"
     refute html =~ "Sign out"
   end
 
-  test "P3: signed-in cabinet lists my clubs with tonight state and role links", %{conn: conn} do
+  test "an archived club is absent from the public directory", %{conn: conn} do
+    head = user_fixture()
+    club = club_fixture(head, %{name: "Gone Club #{System.unique_integer([:positive])}"})
+    {:ok, _} = Cab.Clubs.archive_club(club)
+
+    html = conn |> get(~p"/") |> html_response(200)
+    refute html =~ club.name
+  end
+
+  test "signed-in cabinet lists my clubs with Tonight words, no pills", %{conn: conn} do
     user = user_fixture(%{username: "anna"})
     head = user_fixture()
 
@@ -57,43 +71,42 @@ defmodule CabWeb.CabinetHomeTest do
 
     membership_fixture(user, club)
 
-    my_club =
+    _my_club =
       club_fixture(user, %{name: "Lviv Debate Society #{System.unique_integer([:positive])}"})
 
     pending_club =
       club_fixture(user_fixture(), %{name: "Odesa Debates #{System.unique_integer([:positive])}"})
 
-    {:ok, _} = Cab.Clubs.request_join(user, pending_club)
+    {:ok, _} = Cab.Clubs.request_join(user, pending_club, %{"message" => "hi", "contact" => "@a"})
 
     html = conn |> log_in(user) |> get(~p"/") |> html_response(200)
 
-    # account segments
-    assert html =~ ~s(class="me")
+    # the profile block pinned to the sidenav bottom
+    assert html =~ ~s(id="sidenav-profile")
     assert html =~ "anna"
-    assert html =~ "Sign out"
+    assert html =~ ~s(href="/account")
+    assert html =~ "sign out"
 
-    # my clubs: tonight column + per-role links (P5 member, P8 head)
+    # my clubs: rows link to the club page; roles written as words
     assert html =~ ~s(id="my-clubs")
     assert html =~ "Kyiv Debate Club"
-    assert html =~ "no session"
-    assert html =~ "my club page"
-    assert html =~ ~s(href="/c/#{club.uuid}/member")
+    assert html =~ "member"
+    assert html =~ ~s(href="/c/#{club.uuid}")
     assert html =~ "Lviv Debate Society"
-    assert html =~ "owner console"
-    assert html =~ ~s(href="/c/#{my_club.uuid}/owner")
+    assert html =~ "head"
+    assert html =~ "quiet"
 
-    # pending request: tagged, linking only to the public page
+    # pending request: words, not a pill
     assert html =~ "Odesa Debates"
     assert html =~ "request pending"
-    assert html =~ ~s(href="/c/#{pending_club.uuid}")
-    refute html =~ ~s(href="/c/#{pending_club.uuid}/member")
+    refute html =~ "tag-warn"
 
     # my sessions: no participations yet -> the table's empty state
     assert html =~ ~s(id="my-sessions")
     assert html =~ "Past sessions will appear here."
   end
 
-  test "P3: tonight banner and sign-ups-open tag when a club has an open session",
+  test "tonight banner and sign-ups-open words when a club has an open session",
        %{conn: conn} do
     head = user_fixture(%{node_user_id: 339})
     user = user_fixture(%{username: "bo", node_user_id: 344})
@@ -135,12 +148,12 @@ defmodule CabWeb.CabinetHomeTest do
     html = conn |> log_in(user) |> get(~p"/") |> html_response(200)
 
     assert html =~ "a session is open"
-    assert html =~ "Register →"
-    assert html =~ ~s(href="/c/#{club.uuid}/member")
+    assert html =~ ~s(href="/c/#{club.uuid}")
     assert html =~ "sign-ups open"
   end
 
-  test "P3: my sessions lists past participations, rows linking to P6", %{conn: conn} do
+  test "my sessions lists past participations, rows linking to the session page",
+       %{conn: conn} do
     head = user_fixture(%{node_user_id: 339})
     user = user_fixture(%{username: "bo", node_user_id: 344})
 
@@ -207,7 +220,7 @@ defmodule CabWeb.CabinetHomeTest do
     assert html =~ "Kyiv Debate Club"
     assert html =~ "speaker"
     assert html =~ "won"
-    # the session row links to its P6 page
+    # the session row links to its page
     assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
   end
 end

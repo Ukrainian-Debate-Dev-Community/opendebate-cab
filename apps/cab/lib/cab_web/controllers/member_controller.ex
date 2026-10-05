@@ -1,50 +1,38 @@
 defmodule CabWeb.MemberController do
   use CabWeb, :controller
 
-  alias Cab.Accounts.User
-  alias Cab.Sessions
+  alias Cab.{Clubs, Sessions}
   alias Cab.Sessions.Session
 
-  plug CabWeb.ClubScope, source: :club, require: :member
+  plug CabWeb.ClubScope, [source: :club, require: :member] when action != :legacy_home
 
-  # GET /c/:club_uuid/member — P5, my club page ONLY: tonight's
-  # session + Register/cancel, my role, my results here. The roster,
-  # rooms and draw live on P6.
-  def show(conn, _params) do
+  # GET /c/:club_uuid/member — the M7 "my club page" is gone; the
+  # old URL lands on the club page
+  def legacy_home(conn, %{"club_uuid" => club_uuid}) do
+    redirect(conn, to: ~p"/c/#{club_uuid}")
+  end
+
+  # GET /c/:club_uuid/member/sessions — the archive: previous
+  # (finished) sessions only; the live one lives under Rooms
+  def sessions(conn, _params) do
     club = conn.assigns.club
-    current = List.first(Sessions.list_for_club(club))
 
-    state =
-      with %Session{} <- current,
-           {:ok, state} <- Sessions.state(%{current | club: club}) do
-        state
-      else
-        _ -> nil
-      end
-
-    # a finished session is history (P6/P7), not tonight
-    {current, state} =
-      case state do
-        %{stage: :done} -> {nil, nil}
-        _ -> {current, state}
-      end
-
-    render(conn, :show,
-      current: current,
-      state: state,
-      my_signup: my_signup(state, conn.assigns.current_user),
-      my_results: Sessions.user_club_history(club, conn.assigns.current_user),
-      page_title: "#{club.name} · me"
+    render(conn, :sessions,
+      archive: Sessions.archive(club),
+      page_title: "#{club.name} · sessions"
     )
   end
 
-  # my registration in tonight's session, if any
-  defp my_signup(%{signups: signups}, %User{node_user_id: node_user_id})
-       when is_integer(node_user_id) do
-    Enum.find(signups, &(&1["user_id"] == node_user_id))
-  end
+  # GET /c/:club_uuid/member/members — the roster (the owner's view
+  # with requests and revoke lives in the owner tree)
+  def members(conn, _params) do
+    club = conn.assigns.club
 
-  defp my_signup(_state, _user), do: nil
+    render(conn, :members,
+      members: Clubs.list_members(club),
+      page_title: "#{club.name} · members"
+    )
+  end
 
   # GET /c/:club_uuid/member/sessions/:session_uuid/register — the ONE
   # registration entry: a form with role pills (Speaker | Judge)
@@ -60,7 +48,7 @@ defmodule CabWeb.MemberController do
         _stage ->
           conn
           |> put_flash(:error, "sign-ups are closed for this session")
-          |> redirect(to: ~p"/c/#{club.uuid}/member")
+          |> redirect(to: ~p"/c/#{club.uuid}/s/#{session.uuid}")
       end
     else
       nil ->
@@ -69,7 +57,7 @@ defmodule CabWeb.MemberController do
       {:error, message} ->
         conn
         |> put_flash(:error, error_message(message))
-        |> redirect(to: ~p"/c/#{club.uuid}/member")
+        |> redirect(to: ~p"/c/#{club.uuid}")
     end
   end
 
@@ -84,7 +72,7 @@ defmodule CabWeb.MemberController do
          :ok <- Sessions.remove_signup(conn.assigns.current_user, session, pid) do
       conn
       |> put_flash(:info, "registration cancelled")
-      |> redirect(to: ~p"/c/#{club.uuid}/member")
+      |> redirect(to: ~p"/c/#{club.uuid}/s/#{session.uuid}")
     else
       nil ->
         conn |> send_resp(404, "not found") |> halt()
@@ -95,7 +83,7 @@ defmodule CabWeb.MemberController do
       {:error, message} ->
         conn
         |> put_flash(:error, error_message(message))
-        |> redirect(to: ~p"/c/#{club.uuid}/member")
+        |> redirect(to: ~p"/c/#{club.uuid}/s/#{session_uuid}")
 
       _ ->
         conn |> send_resp(404, "not found") |> halt()
@@ -112,7 +100,7 @@ defmodule CabWeb.MemberController do
          {:ok, _participant} <- Sessions.signup(conn.assigns.current_user, session, kind) do
       conn
       |> put_flash(:info, "registered to #{kind}")
-      |> redirect(to: ~p"/c/#{club.uuid}/member")
+      |> redirect(to: ~p"/c/#{club.uuid}/s/#{session.uuid}")
     else
       nil ->
         conn |> send_resp(404, "not found") |> halt()
@@ -120,17 +108,17 @@ defmodule CabWeb.MemberController do
       false ->
         conn
         |> put_flash(:error, ~s(sign up "as" must be "speak" or "judge"))
-        |> redirect(to: ~p"/c/#{club.uuid}/member")
+        |> redirect(to: ~p"/c/#{club.uuid}/s/#{session_uuid}")
 
       {:error, :conflict, message} ->
         conn
         |> put_flash(:error, message)
-        |> redirect(to: ~p"/c/#{club.uuid}/member")
+        |> redirect(to: ~p"/c/#{club.uuid}/s/#{session_uuid}")
 
       {:error, message} ->
         conn
         |> put_flash(:error, error_message(message))
-        |> redirect(to: ~p"/c/#{club.uuid}/member")
+        |> redirect(to: ~p"/c/#{club.uuid}/s/#{session_uuid}")
     end
   end
 

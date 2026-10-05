@@ -224,8 +224,10 @@ defmodule CabWeb.GuestLinksTest do
       assert Plug.Conn.get_session(conn, :user_id) == guest.id
 
       # ... which opens NOTHING beyond P6's public view
-      assert conn |> get(~p"/c/#{club.uuid}/member") |> response(403)
+      assert conn |> get(~p"/c/#{club.uuid}/member/sessions") |> response(403)
+      assert conn |> get(~p"/c/#{club.uuid}/member/members") |> response(403)
       assert conn |> get(~p"/c/#{club.uuid}/owner") |> response(403)
+      assert conn |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}") |> response(403)
 
       denied = get(conn, ~p"/api/v1/sessions/#{session.uuid}/links")
       assert json_response(denied, 403)["error"] == "forbidden"
@@ -428,14 +430,17 @@ defmodule CabWeb.GuestLinksTest do
       link = link_fixture(guest, session)
       stub_stage([guest_signup(41, 777)])
 
-      # sign-up stage defaults to the Registration tab (1 guest badge)
-      html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
+      # the registration section lives on the owner session surface
+      html =
+        conn
+        |> log_in(head)
+        |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+        |> html_response(200)
 
       assert html =~ ~s(id="shared-registration-url")
       assert html =~ "/r/#{session.uuid}"
       assert html =~ ~s(data-copy=)
       assert html =~ "Guest registrations · 1"
-      assert html =~ ~s(class="n">1</span>)
 
       assert html =~ ~s(id="guest-links")
       assert html =~ "Greta Guest"
@@ -455,7 +460,7 @@ defmodule CabWeb.GuestLinksTest do
       stub_stage([])
 
       revoked = conn |> log_in(head) |> post(~p"/c/#{club.uuid}/owner/links/#{link.id}/revoke")
-      assert redirected_to(revoked) == "/c/#{club.uuid}/owner"
+      assert redirected_to(revoked) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
       assert Phoenix.Flash.get(revoked.assigns.flash, :info) =~ "revoked"
       assert Links.get_active_by_code(link.code) == nil
       assert conn |> get(~p"/l/#{link.code}") |> response(404)
@@ -497,7 +502,7 @@ defmodule CabWeb.GuestLinksTest do
           as: "judge"
         })
 
-      assert redirected_to(conn) == "/c/#{club.uuid}/owner"
+      assert redirected_to(conn) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
       assert_received {:signup, %{"role" => "adjudicator", "user_id" => 778}}
 
       assert [link] = Links.list_for_session(session)

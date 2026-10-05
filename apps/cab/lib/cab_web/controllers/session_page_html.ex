@@ -11,14 +11,17 @@ defmodule CabWeb.SessionPageHTML do
     assigns = Map.put(assigns, :sides, @sides)
 
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="rooms"
+    >
       <.chrome
-        account
-        current_user={@current_user}
         crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-        here={@state.event["name"]}
-        stage={stage_label(@state)}
-        stage_kind={stage_kind(@state)}
+        here={"#{@state.event["name"]} — #{stage_label(@state)}"}
       >
         <:seg
           :if={@state.stage == :signup && is_nil(@my_signup) && @club_role in [:member, :owner]}
@@ -60,10 +63,7 @@ defmodule CabWeb.SessionPageHTML do
           <b id="session-name">{@state.event["name"]}</b>
           · {session_date(@session)}
           <%= if @winner do %>
-            <p>
-              Winner: <b>{@winner}</b>
-              <.tag kind={:ok}>won</.tag>
-            </p>
+            <p>Winner: <b>{@winner}</b></p>
           <% end %>
         </.section>
 
@@ -120,10 +120,10 @@ defmodule CabWeb.SessionPageHTML do
                   </:col>
                   <:col :let={room_team} label="Team">{get_in(room_team, ["Team", "name"])}</:col>
                   <:col :let={room_team} label="Speakers">{speaker_names(room_team)}</:col>
-                  <:col :let={room_team} label="Result">
+                  <:col :let={room_team} label="Result" class="st">
                     <%= if room["status"] in ["completed", "confirmed"] && room_team["rank"] do %>
                       <%= if room_team["rank"] == 1 do %>
-                        <.tag kind={:ok}>won</.tag>
+                        <b>won</b>
                       <% else %>
                         {ordinal(room_team["rank"])}
                       <% end %>
@@ -142,7 +142,14 @@ defmodule CabWeb.SessionPageHTML do
 
   def ballot(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="rooms"
+    >
       <.chrome
         crumbs={[
           {@club.name, ~p"/c/#{@club.uuid}"},
@@ -249,9 +256,4 @@ defmodule CabWeb.SessionPageHTML do
   defp stage_label(%{stage: :closed}), do: "sign-ups closed"
   defp stage_label(%{stage: :running}), do: "running"
   defp stage_label(%{stage: :done}), do: "done"
-
-  defp stage_kind(%{stage: :signup}), do: :ok
-  defp stage_kind(%{stage: :closed}), do: :warn
-  defp stage_kind(%{stage: :running}), do: :warn
-  defp stage_kind(%{stage: :done}), do: :off
 end

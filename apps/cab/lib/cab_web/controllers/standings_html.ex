@@ -1,0 +1,115 @@
+defmodule CabWeb.StandingsHTML do
+  use CabWeb, :html
+
+  # the global standings page; the club page (ClubPublicHTML) reuses
+  # the components below so both scopes render the SAME four tabs
+  def show(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash} current_user={@current_user} active="standings">
+      <.chrome here="standings"></.chrome>
+      <.standings_tabs base="/standings" active={@tab} />
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+        <.standings_body tab={@tab} scope={@scope} rows={@rows} club={@club} />
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  @doc "The four standings tabs (pages-v6 .selrow), shared by both scopes."
+  attr :base, :string, required: true
+  attr :active, :string, required: true
+
+  def standings_tabs(assigns) do
+    ~H"""
+    <.selrow
+      id="standings-tabs"
+      active={@active}
+      tabs={[
+        {"teams", "Teams", "#{@base}/teams"},
+        {"speakers", "Speakers", "#{@base}/speakers"},
+        {"judges", "Judges", "#{@base}/judges"},
+        {"clubs", "Clubs", "#{@base}/clubs"}
+      ]}
+    />
+    """
+  end
+
+  @doc """
+  One standings tab's content — RULE 0: the engine's calculated
+  standings verbatim (name + total_points) for ONE session, judges
+  as a plain chair count, clubs as plain counts. `club` scopes the
+  heading and the previous-sessions link; nil = global.
+  """
+  attr :tab, :string, required: true
+  attr :scope, :any, default: nil, doc: "%{session, club, event} or nil (none finished)"
+  attr :rows, :list, required: true
+  attr :club, :any, default: nil
+
+  def standings_body(assigns) do
+    ~H"""
+    <%= if @tab == "clubs" do %>
+      <.section title="Clubs — plain counts only">
+        <.table id="standings-clubs" rows={@rows} rank empty="No clubs yet.">
+          <:col :let={row} label="Club">
+            <.link href={~p"/c/#{row.club.uuid}"}>{row.club.name}</.link>
+          </:col>
+          <:col :let={row} label="City">{row.club.city || "—"}</:col>
+          <:col :let={row} label="Members" num>{row.members}</:col>
+          <:col :let={row} label="Sessions" num>{row.sessions}</:col>
+          <:col :let={row} label="Rooms" num>{row.rooms}</:col>
+        </.table>
+      </.section>
+    <% else %>
+      <%= if @scope do %>
+        <.section title={session_heading(@tab, @scope)}>
+          <.table
+            id={"standings-#{@tab}"}
+            rows={@rows}
+            rank
+            empty="The engine returned no standings for this session."
+          >
+            <:col :let={row} :if={@tab == "teams"} label="Team">{row["name"]}</:col>
+            <:col :let={row} :if={@tab == "speakers"} label="Speaker">{row["name"]}</:col>
+            <:col :let={row} :if={@tab in ["teams", "speakers"]} label="Points" num>
+              {row["total_points"]}
+            </:col>
+            <:col :let={row} :if={@tab == "judges"} label="Judge">{row.name}</:col>
+            <:col :let={row} :if={@tab == "judges"} label="Rooms judged" num>
+              {row.rooms_judged}
+            </:col>
+          </.table>
+          <div class="pad">
+            <.link id="standings-previous" href={sessions_path(@scope.club)}>
+              Previous sessions →
+            </.link>
+          </div>
+        </.section>
+      <% else %>
+        <.section title={tab_label(@tab)} pad>
+          No finished session yet.
+          <p>Standings show one session's engine results — the latest finished one.</p>
+        </.section>
+      <% end %>
+    <% end %>
+    """
+  end
+
+  defp session_heading(tab, scope) do
+    where = if tab == "judges", do: " — plain count of engine room chairs", else: ""
+
+    "#{tab_label(tab)} · session: #{scope.event["name"]}, " <>
+      "#{Calendar.strftime(scope_date(scope), "%-d %b")} · #{scope.club.name} " <>
+      "(latest finished · previous ones under Sessions)#{where}"
+  end
+
+  defp scope_date(%{session: session}), do: session.scheduled_at || session.inserted_at
+
+  defp tab_label("teams"), do: "Teams"
+  defp tab_label("speakers"), do: "Speakers"
+  defp tab_label("judges"), do: "Judges"
+  defp tab_label("clubs"), do: "Clubs"
+
+  defp sessions_path(club), do: "/c/#{club.uuid}/member/sessions"
+end

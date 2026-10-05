@@ -1,9 +1,9 @@
 defmodule CabWeb.EightPagesTest do
   @moduledoc """
-  M7 acceptance: the canonical eight. P2/P3 live in cabinet_home_test,
-  P4/P5 and most of P8 in html_trees_test, the guest path through P6
-  in guest_links_test — here: P1, the P6 stage variants, P7 and the
-  P8 default-tab logic.
+  The core pages: P1 /signin, the session page's stage variants and
+  the club standings (rule-0 passthrough). The shell, /account,
+  /admin and the global standings live in shell_pages_test; the
+  owner surfaces in html_trees_test.
   """
 
   use CabWeb.ConnCase, async: true
@@ -133,8 +133,9 @@ defmodule CabWeb.EightPagesTest do
 
       html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
 
-      assert html =~ ~s(class="stage ok")
+      # the stage is written out as words in the crumb — no pill
       assert html =~ "sign-up open"
+      refute html =~ "class=\"stage"
       assert html =~ ~s(id="session-signups")
       assert html =~ "Anna K"
       refute html =~ ~s(id="session-draw")
@@ -158,7 +159,7 @@ defmodule CabWeb.EightPagesTest do
         |> get(~p"/c/#{club.uuid}/s/#{session.uuid}")
         |> html_response(200)
 
-      assert html =~ ~s(class="stage warn")
+      assert html =~ "running"
       assert html =~ ~s(id="session-draw")
       for side <- ~w(s-og s-oo s-cg s-co), do: assert(html =~ side)
       # the viewer speaks in R71 (participant 301) -> the row is tinted
@@ -185,7 +186,7 @@ defmodule CabWeb.EightPagesTest do
 
       html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
 
-      assert html =~ ~s(class="stage off")
+      assert html =~ "done"
       assert html =~ "Winner: <b>Team 1</b>"
       assert html =~ "THW show the draw"
       assert html =~ "won"
@@ -201,129 +202,107 @@ defmodule CabWeb.EightPagesTest do
   end
 
   # ---------------------------------------------------------------
-  # P7 /c/:club/standings
+  # /c/:club/standings — the SAME four tabs, rule-0 passthrough
   # ---------------------------------------------------------------
 
-  describe "P7 standings" do
-    test "member stats + session winners timeline, public", %{conn: conn} do
-      head = user_fixture(%{node_user_id: 19})
-      club = club_fixture(head, %{engine_organisation_id: 3})
-      session = session_fixture(club, engine_event_id: 11)
+  defp stub_calculated do
+    stub(fn conn, _params ->
+      case conn.request_path do
+        "/api/events/11" ->
+          ok(conn, %{"id" => 11, "name" => "Walk night", "status" => "completed"})
 
-      stub(fn conn, _params ->
-        case conn.request_path do
-          "/api/events/organisation/3" ->
-            ok(conn, [%{"id" => 11, "name" => "Walk night", "status" => "completed"}])
+        "/api/events/11/standings/calculated/teams" ->
+          ok(conn, [%{"id" => 1, "name" => "Anna & Bohdan", "total_points" => 3}])
 
-          "/api/events/11/participants" ->
-            ok(conn, [
-              %{"id" => 301, "user_id" => 144, "role" => "speaker", "display_name" => "Anna K"},
-              %{"id" => 302, "user_id" => 45, "role" => "speaker", "display_name" => "Bo S"},
-              %{"id" => 303, "user_id" => 46, "role" => "speaker", "display_name" => "Cy D"},
-              %{"id" => 304, "user_id" => 47, "role" => "speaker", "display_name" => "Dee E"},
-              %{"id" => 90, "user_id" => 199, "role" => "adjudicator", "display_name" => "Petro"}
-            ])
+        "/api/events/11/standings/calculated/speakers" ->
+          ok(conn, [%{"id" => 7, "name" => "Anna Kovalenko", "total_points" => 101.53}])
 
-          "/api/events/11/rounds" ->
-            ok(conn, [%{"id" => 21, "sequence" => 1}])
+        "/api/events/11/rounds" ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
 
-          "/api/rounds/21/rooms" ->
-            ok(conn, [
-              %{
-                "id" => 71,
-                "status" => "confirmed",
-                "RoomTeams" =>
-                  for position <- 1..4 do
-                    %{
-                      "id" => 100 + position,
-                      "position" => position,
-                      "rank" => position,
-                      "Team" => %{"name" => "T#{position}"},
-                      "RoomSpeakers" => [
-                        %{"id" => 200 + position, "EventParticipant" => %{"id" => 300 + position}}
-                      ]
-                    }
-                  end
-              }
-            ])
-        end
-      end)
-
-      html = conn |> get(~p"/c/#{club.uuid}/standings") |> html_response(200)
-
-      # member stats: played, wins, win rate — the winner tops the table
-      assert html =~ ~s(id="standings-members")
-      assert html =~ "Anna K"
-      assert html =~ "100%"
-      assert html =~ "0%"
-
-      # winners timeline rows link to P6
-      assert html =~ ~s(id="session-winners")
-      assert html =~ "Walk night"
-      assert html =~ "T1"
-      assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
-    end
-
-    test "degrades to empty tables when the engine is unreachable", %{conn: conn} do
-      club = club_fixture(user_fixture(%{node_user_id: 19}))
-      session_fixture(club, engine_event_id: 11)
-
-      stub(fn conn, _params -> Plug.Conn.send_resp(conn, 500, "boom") end)
-
-      html = conn |> get(~p"/c/#{club.uuid}/standings") |> html_response(200)
-      assert html =~ "No results yet."
-      assert html =~ "No completed sessions yet."
-    end
+        "/api/rounds/21/rooms" ->
+          ok(conn, [
+            %{
+              "id" => 71,
+              "RoomAdjudicators" => [
+                %{"role" => "chair", "EventParticipant" => %{"display_name" => "Petro"}}
+              ]
+            }
+          ])
+      end
+    end)
   end
 
-  # ---------------------------------------------------------------
-  # P8 default tab logic
-  # ---------------------------------------------------------------
-
-  describe "P8 default tab" do
+  describe "club standings" do
     setup %{conn: conn} do
       head = user_fixture(%{node_user_id: 19})
       club = club_fixture(head, %{engine_organisation_id: 3})
-      %{conn: conn, head: head, club: club}
+      session = session_fixture(club, engine_event_id: 11)
+      %{conn: conn, club: club, session: session}
     end
 
-    test "pending requests pull attention first", %{conn: conn, head: head, club: club} do
-      {:ok, _} = Cab.Clubs.request_join(user_fixture(%{username: "nina"}), club)
-      session_fixture(club, engine_event_id: 11)
-      stub_stage([])
+    test "teams/speakers tabs show the engine calculated standings verbatim — no cab math",
+         %{conn: conn, club: club} do
+      stub_calculated()
 
-      html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
-      assert html =~ ~s(id="join-requests")
-      assert html =~ "nina"
-      # the requests tab carries the counter badge
-      assert html =~ ~s(class="n">1</span>)
+      html = conn |> get(~p"/c/#{club.uuid}/standings/speakers") |> html_response(200)
+
+      # the four tabs row (real borders, no pills)
+      assert html =~ ~s(id="standings-tabs")
+
+      for tab <- ~w(teams speakers judges clubs) do
+        assert html =~ ~s(href="/c/#{club.uuid}/standings/#{tab}")
+      end
+
+      # engine output verbatim: name + total_points, session named
+      assert html =~ ~s(id="standings-speakers")
+      assert html =~ "Anna Kovalenko"
+      assert html =~ "101.53"
+      assert html =~ "Walk night"
+      assert html =~ "latest finished"
+      assert html =~ "Previous sessions"
+
+      # NO wins/winrate/played strings anywhere on standings pages
+      refute html =~ "wins"
+      refute html =~ "Wins"
+      refute html =~ "winrate"
+      refute html =~ "Win rate"
+      refute html =~ "win_rate"
+      refute html =~ "played"
+      refute html =~ "Played"
+
+      teams = conn |> get(~p"/c/#{club.uuid}/standings/teams") |> html_response(200)
+      assert teams =~ "Anna &amp; Bohdan"
+      assert teams =~ ~r/>\s*3\s*</
+
+      # the bare /standings URL lands on the teams tab
+      bare = conn |> get(~p"/c/#{club.uuid}/standings") |> html_response(200)
+      assert bare =~ ~s(id="standings-teams")
     end
 
-    test "closed stage defaults to Rooms with the compose banner",
-         %{conn: conn, head: head, club: club} do
-      session = closed_session_fixture(club, engine_event_id: 11)
+    test "judges tab is a plain chair count; clubs tab plain counts",
+         %{conn: conn, club: club} do
+      stub_calculated()
 
-      stub_stage([
-        %{"id" => 1, "user_id" => 41, "role" => "speaker", "display_name" => "S1"},
-        %{"id" => 90, "user_id" => 199, "role" => "adjudicator", "display_name" => "J1"}
-      ])
+      judges = conn |> get(~p"/c/#{club.uuid}/standings/judges") |> html_response(200)
+      assert judges =~ ~s(id="standings-judges")
+      assert judges =~ "Petro"
+      assert judges =~ "Rooms judged"
 
-      html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
-      assert html =~ "No rooms yet."
-      assert html =~ "Compose rooms →"
-      assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/compose"
-      assert html =~ "1 speakers + 1 judge checked in"
+      clubs = conn |> get(~p"/c/#{club.uuid}/standings/clubs") |> html_response(200)
+      assert clubs =~ ~s(id="standings-clubs")
+      assert clubs =~ club.name
     end
 
-    test "an unknown tab falls back to the smart default", %{conn: conn, head: head, club: club} do
-      html =
-        conn
-        |> log_in(head)
-        |> get(~p"/c/#{club.uuid}/owner?tab=nonsense")
-        |> html_response(200)
+    test "no finished session degrades to the empty notice", %{conn: conn, club: club} do
+      stub(fn conn, _params -> Plug.Conn.send_resp(conn, 500, "boom") end)
 
-      # no session, nothing pending -> Tonight (the open-session form)
-      assert html =~ ~s(id="open-session-form")
+      html = conn |> get(~p"/c/#{club.uuid}/standings/teams") |> html_response(200)
+      assert html =~ "No finished session yet."
+    end
+
+    test "an unknown tab is 404", %{conn: conn, club: club} do
+      assert conn |> get("/c/#{club.uuid}/standings/wins") |> response(404)
     end
   end
 end

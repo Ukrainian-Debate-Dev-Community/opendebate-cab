@@ -3,33 +3,237 @@ defmodule CabWeb.OwnerHTML do
 
   # this view's ballot/1 is the page; the kit component stays qualified
   import CabWeb.Ui, except: [ballot: 1]
+  import CabWeb.MemberHTML, only: [archive_section: 1]
   alias Cab.Links
   alias CabWeb.Ui
 
   @sides [{"OG", 1, "s-og"}, {"OO", 2, "s-oo"}, {"CG", 3, "s-cg"}, {"CO", 4, "s-co"}]
 
-  # P8 — the owner console: stage-driven chrome + section nav; the
-  # tab only chooses WHICH section is shown, actions never leave the
-  # chrome.
-  def show(assigns) do
+  # ---------------------------------------------------------------
+  # The club page, owner path: edit-in-place (Save in the chrome)
+  # ---------------------------------------------------------------
+
+  def club(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="club"
+    >
+      <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="edit">
+        <:seg href={~p"/c/#{@club.uuid}"} quiet>View as public</:seg>
+        <:seg form="club-profile-form" primary>Save</:seg>
+      </.chrome>
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+
+        <.section title="Club profile">
+          <.form_for
+            id="club-profile-form"
+            action={~p"/c/#{@club.uuid}/owner/club"}
+            description="Exactly what visitors read on the club page."
+          >
+            <:block name={:name} type={:text} label="Club name" required value={@club.name} />
+            <:block name={:city} type={:text} label="City" value={@club.city} />
+            <:block
+              name={:meeting_info}
+              type={:text}
+              label="Meetings"
+              value={@club.meeting_info}
+              hint="When and where the club meets, e.g. Thursdays 18:30, Hrushevskoho 4."
+            />
+            <:block
+              name={:description}
+              type={:longtext}
+              label="About the club"
+              value={@club.description}
+            />
+            <:block
+              name={:contacts}
+              type={:text}
+              label="Contacts"
+              value={@club.contacts}
+              hint="Telegram, email — how newcomers reach the club."
+            />
+          </.form_for>
+        </.section>
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  # ---------------------------------------------------------------
+  # Sessions archive, owner path: previous progress + Open new
+  # session (the chrome's gold segment submits the form below)
+  # ---------------------------------------------------------------
+
+  def sessions(assigns) do
+    ~H"""
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="sessions"
+    >
+      <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="sessions">
+        <:seg form="open-session-form" primary>Open new session</:seg>
+      </.chrome>
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+
+        <.banner
+          :if={@live}
+          kind={:info}
+          href={~p"/c/#{@club.uuid}/owner/s/#{@live.uuid}"}
+          link="Open →"
+        >
+          The current session lives under Rooms.
+        </.banner>
+
+        <.archive_section club={@club} archive={@archive} />
+
+        <.section title="Open a session">
+          <.form_for
+            id="open-session-form"
+            action={~p"/c/#{@club.uuid}/owner/sessions"}
+            description="Members can sign up as soon as you open it."
+          >
+            <:block
+              name={:name}
+              type={:text}
+              label="Session name"
+              hint="Shown to members on the club page; defaults to the date."
+            />
+            <:block
+              names={[:date, :time]}
+              type={:datetime}
+              label="Date and start time"
+              hint="Optional — when the session is planned to start (UTC)."
+            />
+          </.form_for>
+        </.section>
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  # ---------------------------------------------------------------
+  # Members page, owner path: requests (the join form's answers) +
+  # roster with revoke
+  # ---------------------------------------------------------------
+
+  def members(assigns) do
+    ~H"""
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="members"
+    >
+      <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="members"></.chrome>
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+
+        <.section title={"Join requests · #{length(@join_requests)}"}>
+          <.table
+            id="join-requests"
+            rows={@join_requests}
+            row_id={&"join-request-#{&1.id}"}
+            empty="No pending requests."
+          >
+            <:col :let={request} label="Who">
+              {request.user.username}
+              <.sub>signed-in user{if request.user.name, do: " · #{request.user.name}"}</.sub>
+            </:col>
+            <:col :let={request} label="About them">
+              {request.message || "—"}
+              <.sub :if={request.contact}>contact: {request.contact}</.sub>
+            </:col>
+            <:col :let={request} label="Requested">
+              {Calendar.strftime(request.inserted_at, "%-d %b %Y")}
+            </:col>
+            <:col :let={request}>
+              <.link
+                href={~p"/c/#{@club.uuid}/owner/join-requests/#{request.id}/approve"}
+                method="post"
+              >
+                approve
+              </.link>
+            </:col>
+            <:col :let={request}>
+              <.link
+                href={~p"/c/#{@club.uuid}/owner/join-requests/#{request.id}/decline"}
+                method="post"
+              >
+                decline
+              </.link>
+            </:col>
+          </.table>
+        </.section>
+
+        <.section title={"Members · #{length(@members)}"}>
+          <.table id="members-list" rows={@members} empty="No members yet.">
+            <:col :let={membership} label="Member">
+              {membership.user.username}
+              <.sub :if={membership.user.name}>{membership.user.name}</.sub>
+            </:col>
+            <:col :let={membership} label="Role">{membership.role}</:col>
+            <:col :let={membership} label="Since">
+              {Calendar.strftime(membership.inserted_at, "%-d %b %Y")}
+            </:col>
+            <:col :let={membership}>
+              <.link
+                :if={membership.role != "head"}
+                href={~p"/c/#{@club.uuid}/owner/members/#{membership.user_id}/remove"}
+                method="post"
+              >
+                remove
+              </.link>
+            </:col>
+          </.table>
+        </.section>
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  # ---------------------------------------------------------------
+  # The interim owner session surface (M8a): the M7 Registration +
+  # Tonight + Rooms content on one page, stage-driven chrome. M8b
+  # re-behaves this into the owner play flow.
+  # ---------------------------------------------------------------
+
+  def session(assigns) do
+    assigns = Map.put(assigns, :sides, @sides)
+
+    ~H"""
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="rooms"
+    >
       <.chrome
-        crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-        here="owner"
-        stage={stage_label(@state)}
-        stage_kind={stage_kind(@state)}
+        crumbs={[
+          {@club.name, ~p"/c/#{@club.uuid}"},
+          {"sessions", ~p"/c/#{@club.uuid}/owner/sessions"}
+        ]}
+        here={"#{@state.event["name"]} — #{stage_words(@state)}"}
       >
         <:seg
-          :if={no_open_session?(@state)}
-          href={~p"/c/#{@club.uuid}/owner/sessions"}
-          method="post"
-          primary
-        >
-          Open session
-        </:seg>
-        <:seg
-          :if={@state && @state.stage == :signup}
+          :if={@state.stage == :signup}
           href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/close-signups"}
           method="post"
           primary
@@ -37,13 +241,13 @@ defmodule CabWeb.OwnerHTML do
           Close sign-ups
         </:seg>
         <:seg
-          :if={@state && @state.stage == :closed}
+          :if={@state.stage == :closed}
           href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/compose"}
         >
           Compose rooms
         </:seg>
         <:seg
-          :if={@state && @state.stage == :closed}
+          :if={@state.stage == :closed}
           href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/rooms"}
           method="post"
           primary
@@ -51,7 +255,7 @@ defmodule CabWeb.OwnerHTML do
           Make rooms
         </:seg>
         <:seg
-          :if={@state && @state.stage == :closed}
+          :if={@state.stage == :closed}
           href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-signups"}
           method="post"
         >
@@ -66,7 +270,7 @@ defmodule CabWeb.OwnerHTML do
           Delete rooms
         </:seg>
         <:seg
-          :if={@state && @state.stage == :running}
+          :if={@state.stage == :running}
           href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/finish"}
           method="post"
           primary
@@ -74,7 +278,7 @@ defmodule CabWeb.OwnerHTML do
           Finish session
         </:seg>
         <:seg
-          :if={@state && @state.stage in [:signup, :closed, :running]}
+          :if={@state.stage in [:signup, :closed, :running]}
           href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/cancel"}
           method="post"
           quiet
@@ -83,73 +287,31 @@ defmodule CabWeb.OwnerHTML do
         </:seg>
       </.chrome>
 
-      <.subnav
-        id="owner-subnav"
-        active={@tab}
-        tabs={[
-          %{
-            key: "registration",
-            label: "Registration",
-            href: ~p"/c/#{@club.uuid}/owner?tab=registration",
-            count: length(@links)
-          },
-          %{
-            key: "requests",
-            label: "Requests",
-            href: ~p"/c/#{@club.uuid}/owner?tab=requests",
-            count: length(@join_requests)
-          },
-          %{key: "tonight", label: "Tonight", href: ~p"/c/#{@club.uuid}/owner?tab=tonight"},
-          %{key: "rooms", label: "Rooms", href: ~p"/c/#{@club.uuid}/owner?tab=rooms"},
-          %{key: "members", label: "Members", href: ~p"/c/#{@club.uuid}/owner?tab=members"},
-          %{key: "settings", label: "Settings", href: ~p"/c/#{@club.uuid}/owner?tab=settings"}
-        ]}
-      />
-
       <div class="pbody">
         <.flash_banners flash={@flash} />
-        <%= case @tab do %>
-          <% "registration" -> %>
-            {registration_tab(assigns)}
-          <% "requests" -> %>
-            {requests_tab(assigns)}
-          <% "tonight" -> %>
-            {tonight_tab(assigns)}
-          <% "rooms" -> %>
-            {rooms_tab(assigns)}
-          <% "members" -> %>
-            {members_tab(assigns)}
-          <% "settings" -> %>
-            {settings_tab(assigns)}
+
+        <%= if @state.stage == :done do %>
+          <.section title="Session" pad>
+            This session is finished — results live on the <.link href={
+              ~p"/c/#{@club.uuid}/s/#{@current.uuid}"
+            }>session page</.link>.
+            <p>
+              Previous sessions live under <.link href={~p"/c/#{@club.uuid}/owner/sessions"}>Sessions</.link>.
+            </p>
+          </.section>
+        <% else %>
+          {registration_block(assigns)}
+          {signups_block(assigns)}
+          {rooms_block(assigns)}
         <% end %>
       </div>
     </Layouts.app>
     """
   end
 
-  # ---------------------------------------------------------------
-  # Registration — guest links + registrations (M6 surface)
-  # ---------------------------------------------------------------
+  # --- registration (guest links), the M7 Registration tab content
 
-  defp registration_tab(%{current: nil} = assigns) do
-    ~H"""
-    <.section title="Registration" pad>
-      No session is open.
-      <p>Open a session — guest registration comes with it.</p>
-    </.section>
-    """
-  end
-
-  defp registration_tab(%{state: nil} = assigns) do
-    ~H"""
-    <.section title="Registration" pad>
-      The session is unavailable right now.
-      <p>Try again in a moment.</p>
-    </.section>
-    """
-  end
-
-  defp registration_tab(assigns) do
+  defp registration_block(%{state: %{stage: :signup}} = assigns) do
     ~H"""
     <.copy_banner id="shared-registration-url" url={url(~p"/r/#{@current.uuid}")}>
       Share to register without an account
@@ -181,7 +343,7 @@ defmodule CabWeb.OwnerHTML do
       </.table>
     </.section>
 
-    <.section :if={@state.stage == :signup} title="Issue a link by hand">
+    <.section title="Issue a link by hand">
       <.form_for
         id="issue-link-form"
         action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/links"}
@@ -201,40 +363,24 @@ defmodule CabWeb.OwnerHTML do
     """
   end
 
-  # ---------------------------------------------------------------
-  # Requests — join approvals
-  # ---------------------------------------------------------------
-
-  defp requests_tab(assigns) do
+  defp registration_block(%{links: links} = assigns) when links != [] do
     ~H"""
-    <.section title="Join requests">
-      <.table
-        id="join-requests"
-        rows={@join_requests}
-        row_id={&"join-request-#{&1.id}"}
-        empty="No pending requests."
-      >
-        <:col :let={request} label="Who">
-          {request.user.username}
-          <.sub>signed-in user{if request.user.name, do: " · #{request.user.name}"}</.sub>
+    <.section title={"Guest registrations · #{length(@links)}"}>
+      <.table id="guest-links" rows={@links}>
+        <:col :let={link} label="Name">
+          {link.user.name}
+          <.sub>guest · {link.user.username}</.sub>
         </:col>
-        <:col :let={request} label="Requested">
-          {Calendar.strftime(request.inserted_at, "%-d %b %Y")}
+        <:col :let={link} label="Role">{Links.role_in(link, @state.signups) || "—"}</:col>
+        <:col :let={link} label="Personal link" code>
+          {url(~p"/l/#{link.code}")}
         </:col>
-        <:col :let={request}>
-          <.link
-            href={~p"/c/#{@club.uuid}/owner/join-requests/#{request.id}/approve"}
-            method="post"
-          >
-            approve
-          </.link>
+        <:col :let={link}>
+          <.copy text={url(~p"/l/#{link.code}")} />
         </:col>
-        <:col :let={request}>
-          <.link
-            href={~p"/c/#{@club.uuid}/owner/join-requests/#{request.id}/decline"}
-            method="post"
-          >
-            decline
+        <:col :let={link}>
+          <.link href={~p"/c/#{@club.uuid}/owner/links/#{link.id}/revoke"} method="post">
+            revoke
           </.link>
         </:col>
       </.table>
@@ -242,39 +388,11 @@ defmodule CabWeb.OwnerHTML do
     """
   end
 
-  # ---------------------------------------------------------------
-  # Tonight — attendance (guests cross-reference Registration)
-  # ---------------------------------------------------------------
+  defp registration_block(assigns), do: ~H""
 
-  defp tonight_tab(%{current: current, state: state} = assigns)
-       when is_nil(current) or is_nil(state) do
-    ~H"""
-    <.section title="Open a session">
-      <.form_for
-        id="open-session-form"
-        action={~p"/c/#{@club.uuid}/owner/sessions"}
-        title="Open a session"
-        description="Members can sign up as soon as you open it."
-      >
-        <:block
-          name={:name}
-          type={:text}
-          label="Session name"
-          hint="Shown to members on the club page; defaults to the date."
-        />
-        <:block
-          names={[:date, :time]}
-          type={:datetime}
-          label="Date and start time"
-          hint="Optional — when the session is planned to start (UTC)."
-        />
-        <:submit note="Members get the sign-up right away.">Open session</:submit>
-      </.form_for>
-    </.section>
-    """
-  end
+  # --- signed up, the M7 Tonight tab content
 
-  defp tonight_tab(assigns) do
+  defp signups_block(assigns) do
     assigns = Map.put(assigns, :guest_user_ids, guest_user_ids(assigns.links))
 
     ~H"""
@@ -283,7 +401,7 @@ defmodule CabWeb.OwnerHTML do
         <:col :let={participant} label="Who">
           {participant["display_name"]}
           <.sub :if={participant["user_id"] in @guest_user_ids}>
-            guest — see Registration
+            guest — personal link above
           </.sub>
         </:col>
         <:col :let={participant} label="Role">{participant["role"]}</:col>
@@ -328,21 +446,9 @@ defmodule CabWeb.OwnerHTML do
     """
   end
 
-  # ---------------------------------------------------------------
-  # Rooms — composition, the draw, ballots, motions
-  # ---------------------------------------------------------------
+  # --- rooms, the M7 Rooms tab content
 
-  defp rooms_tab(%{current: current, state: state} = assigns)
-       when is_nil(current) or is_nil(state) do
-    ~H"""
-    <.section title="Rooms" pad>
-      No session is open.
-      <p>Rooms appear once a session runs.</p>
-    </.section>
-    """
-  end
-
-  defp rooms_tab(%{state: %{stage: :signup}} = assigns) do
+  defp rooms_block(%{state: %{stage: :signup}} = assigns) do
     ~H"""
     <.section title="Rooms" pad>
       Rooms are composed after sign-ups close.
@@ -351,7 +457,7 @@ defmodule CabWeb.OwnerHTML do
     """
   end
 
-  defp rooms_tab(%{state: %{stage: :closed}} = assigns) do
+  defp rooms_block(%{state: %{stage: :closed}} = assigns) do
     ~H"""
     <.banner
       kind={:info}
@@ -370,7 +476,7 @@ defmodule CabWeb.OwnerHTML do
     """
   end
 
-  defp rooms_tab(assigns) do
+  defp rooms_block(assigns) do
     assigns = Map.put(assigns, :sides, @sides)
 
     ~H"""
@@ -386,8 +492,8 @@ defmodule CabWeb.OwnerHTML do
           {team_label(room, position)}
         </:col>
         <:col :let={room} label="Judge">{judge_name(room, @state.signups)}</:col>
-        <:col :let={room} label="Ballot">
-          <.tag kind={room_kind(room["status"])}>{room_status_label(room["status"])}</.tag>
+        <:col :let={room} label="Ballot" class="st">
+          {room_status_words(room["status"])}
         </:col>
         <:col :let={room}>
           <.link
@@ -428,73 +534,26 @@ defmodule CabWeb.OwnerHTML do
     """
   end
 
-  # ---------------------------------------------------------------
-  # Members / Settings
-  # ---------------------------------------------------------------
-
-  defp members_tab(assigns) do
-    ~H"""
-    <.section title={"Members · #{length(@members)}"}>
-      <.table id="members-list" rows={@members} empty="No members yet.">
-        <:col :let={membership} label="Member">
-          {membership.user.username}
-          <.sub :if={membership.user.name}>{membership.user.name}</.sub>
-        </:col>
-        <:col :let={membership} label="Role">
-          <%= if membership.role == "head" do %>
-            <.tag kind={:ok}>head</.tag>
-          <% else %>
-            {membership.role}
-          <% end %>
-        </:col>
-        <:col :let={membership} label="Since">
-          {Calendar.strftime(membership.inserted_at, "%-d %b %Y")}
-        </:col>
-        <:col :let={membership}>
-          <.link
-            :if={membership.role != "head"}
-            href={~p"/c/#{@club.uuid}/owner/members/#{membership.user_id}/remove"}
-            method="post"
-          >
-            remove
-          </.link>
-        </:col>
-      </.table>
-    </.section>
-    """
-  end
-
-  defp settings_tab(assigns) do
-    ~H"""
-    <.section title="Club settings">
-      <.form_for
-        id="club-settings-form"
-        action={~p"/c/#{@club.uuid}/owner/club"}
-        description="Shown on the public club page."
-      >
-        <:block name={:name} type={:text} label="Club name" required value={@club.name} />
-        <:block name={:city} type={:text} label="City" value={@club.city} />
-        <:submit note="Takes effect immediately.">Save settings</:submit>
-      </.form_for>
-    </.section>
-    """
-  end
-
   # GET .../owner/sessions/:session_uuid/compose — the drag-and-drop
   # allocation page: tray of signed-up chips over droppable room
   # slots; the submit segment lives in the chrome (the ballot
   # precedent) and "+ room" reloads with ?rooms=N (plain REST)
   def compose(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="rooms"
+    >
       <.chrome
         crumbs={[
           {@club.name, ~p"/c/#{@club.uuid}"},
-          {"owner", ~p"/c/#{@club.uuid}/owner?tab=rooms"}
+          {@state.event["name"], ~p"/c/#{@club.uuid}/owner/s/#{@session.uuid}"}
         ]}
-        here="compose rooms"
-        stage="sign-ups closed"
-        stage_kind={:warn}
+        here="compose rooms — sign-ups closed"
       >
         <:seg
           :if={@rooms < @max_rooms}
@@ -523,11 +582,18 @@ defmodule CabWeb.OwnerHTML do
 
   def ballot(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="rooms"
+    >
       <.chrome
         crumbs={[
           {@club.name, ~p"/c/#{@club.uuid}"},
-          {"owner", ~p"/c/#{@club.uuid}/owner?tab=rooms"}
+          {"session", ~p"/c/#{@club.uuid}/owner/s/#{@session.uuid}"}
         ]}
         here={"ballot R#{@room["id"]}"}
       >
@@ -634,32 +700,20 @@ defmodule CabWeb.OwnerHTML do
 
   defp deletable_rooms?(_state), do: false
 
-  defp no_open_session?(state), do: state == nil or state.stage == :done
-
   defp open_rooms(%{stage: :running, rooms: rooms}),
     do: Enum.reject(rooms, &(&1["status"] in ["confirmed", "completed"]))
 
   defp open_rooms(_state), do: []
 
-  defp stage_label(nil), do: "no session"
-  defp stage_label(%{stage: :signup}), do: "sign-up open"
-  defp stage_label(%{stage: :closed}), do: "sign-ups closed"
-  defp stage_label(%{stage: :running}), do: "running"
-  defp stage_label(%{stage: :done}), do: "no session"
+  # status written out as words — no pills anywhere
+  defp stage_words(%{stage: :signup}), do: "sign-ups open"
+  defp stage_words(%{stage: :closed}), do: "sign-ups closed"
+  defp stage_words(%{stage: :running}), do: "running"
+  defp stage_words(%{stage: :done}), do: "finished"
 
-  defp stage_kind(nil), do: :off
-  defp stage_kind(%{stage: :signup}), do: :ok
-  defp stage_kind(%{stage: :closed}), do: :warn
-  defp stage_kind(%{stage: :running}), do: :warn
-  defp stage_kind(%{stage: :done}), do: :off
-
-  defp room_kind(status) when status in ["confirmed", "completed"], do: :ok
-  defp room_kind("pending"), do: :mut
-  defp room_kind(_status), do: :warn
-
-  defp room_status_label("confirmed"), do: "confirmed"
-  defp room_status_label("completed"), do: "completed"
-  defp room_status_label("judging"), do: "waiting"
-  defp room_status_label("pending"), do: "waiting"
-  defp room_status_label(status), do: status
+  defp room_status_words("confirmed"), do: "ballot in"
+  defp room_status_words("completed"), do: "ballot in"
+  defp room_status_words("judging"), do: "waiting for the ballot"
+  defp room_status_words("pending"), do: "waiting for the ballot"
+  defp room_status_words(status), do: status
 end

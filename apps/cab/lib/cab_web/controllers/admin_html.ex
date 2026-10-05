@@ -1,0 +1,98 @@
+defmodule CabWeb.AdminHTML do
+  use CabWeb, :html
+
+  def show(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash} current_user={@current_user} active="admin">
+      <.chrome here="admin">
+        <:seg form="create-club-form" primary>Create club</:seg>
+      </.chrome>
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+
+        <.section title="Clubs">
+          <.table id="admin-clubs" rows={@clubs} empty="No clubs yet.">
+            <:col :let={club} label="Club">
+              {club.name}
+              <.sub>
+                {club.city || "—"} · {@member_counts[club.id] || 0} member{if (@member_counts[
+                                                                                 club.id
+                                                                               ] || 0) != 1,
+                                                                              do: "s"}
+              </.sub>
+            </:col>
+            <:col :let={club} label="Head">
+              {head_label(@heads[club.id])}
+            </:col>
+            <:col :let={club} label="State">
+              {if club.archived_at, do: "archived", else: "live"}
+            </:col>
+            <:col :let={club}>
+              <.link href={~p"/c/#{club.uuid}"}>open</.link>
+            </:col>
+            <:col :let={club}>
+              <.link
+                :if={is_nil(club.archived_at)}
+                href={~p"/admin/clubs/#{club.uuid}/archive"}
+                method="post"
+              >
+                archive
+              </.link>
+            </:col>
+          </.table>
+        </.section>
+
+        <.section title="Create a club">
+          <.form_for
+            id="create-club-form"
+            action={~p"/admin/clubs"}
+            description="Club creation is admin-only — users can only request membership."
+          >
+            <:block name={:name} type={:text} label="Club name" required />
+            <:block name={:city} type={:text} label="City" />
+            <:block
+              name={:head_id}
+              type={:select}
+              label="Head"
+              required
+              options={user_options(@users)}
+            />
+          </.form_for>
+        </.section>
+
+        <.section title="Change a club's head">
+          <.form_for
+            id="change-head-form"
+            action={~p"/admin/head"}
+            description="The engine organisation gains the new head as owner; the old head stays a member."
+          >
+            <:block
+              name={:uuid}
+              type={:select}
+              label="Club"
+              required
+              options={club_options(@clubs)}
+            />
+            <:block
+              name={:head_id}
+              type={:select}
+              label="New head"
+              required
+              options={user_options(@users)}
+            />
+            <:submit note="Takes effect immediately.">Change head</:submit>
+          </.form_for>
+        </.section>
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  defp head_label(nil), do: "—"
+  defp head_label(user), do: user.name || user.username
+
+  defp user_options(users), do: Enum.map(users, &{&1.username, &1.id})
+
+  defp club_options(clubs), do: Enum.map(clubs, &{&1.name, &1.uuid})
+end

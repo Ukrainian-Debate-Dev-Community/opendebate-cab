@@ -1,86 +1,73 @@
 defmodule CabWeb.MemberHTML do
   use CabWeb, :html
 
-  # P5 — my club page: tonight + my registration, my role, my results
-  def show(assigns) do
+  # the sessions archive, member path: previous progress only; rows
+  # open the session page (the live session lives under Rooms)
+  def sessions(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
-      <.chrome
-        crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-        here="me"
-        stage={stage_label(@state)}
-        stage_kind={stage_kind(@state)}
-      >
-        <:seg
-          :if={@state && @state.stage == :signup && is_nil(@my_signup)}
-          href={~p"/c/#{@club.uuid}/member/sessions/#{@current.uuid}/register"}
-          primary
-        >
-          Register
-        </:seg>
-        <:seg
-          :if={@state && @state.stage == :signup && @my_signup}
-          href={
-            ~p"/c/#{@club.uuid}/member/sessions/#{@current.uuid}/signups/#{@my_signup["id"]}/remove"
-          }
-          method="post"
-          quiet
-        >
-          Cancel my registration
-        </:seg>
-      </.chrome>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="sessions"
+    >
+      <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="sessions"></.chrome>
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+        <.archive_section club={@club} archive={@archive} />
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  @doc "Previous sessions — progress; shared by the member and owner paths."
+  attr :club, :any, required: true
+  attr :archive, :list, required: true
+
+  def archive_section(assigns) do
+    ~H"""
+    <.section title="Previous sessions — progress">
+      <.table id="sessions-archive" rows={@archive} empty="No finished sessions yet.">
+        <:col :let={row} label="Session">
+          <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"}>{row.name}</.link>
+          <.sub>{Calendar.strftime(row.date, "%-d %b %Y")}</.sub>
+        </:col>
+        <:col :let={row} label="Progress">
+          {if row.winner, do: "won by #{row.winner}", else: "finished"}
+        </:col>
+      </.table>
+    </.section>
+    """
+  end
+
+  # the roster, member path (the owner path adds requests + revoke)
+  def members(assigns) do
+    ~H"""
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="members"
+    >
+      <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="members"></.chrome>
 
       <div class="pbody">
         <.flash_banners flash={@flash} />
 
-        <.banner :if={@state && @my_signup} kind={:good}>
-          You are registered to {if @my_signup["role"] == "adjudicator",
-            do: "judge",
-            else: "speak"} tonight.
-        </.banner>
-        <.banner
-          :if={@state && @state.stage in [:closed, :running]}
-          kind={:info}
-          href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}
-          link="Open the session page →"
-        >
-          Registration is closed for this session.
-        </.banner>
-
-        <.section title="Tonight" pad>
-          <%= if @current && @state do %>
-            <b>
-              <.link id="tonight-session" href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}>
-                {@state.event["name"]}
-              </.link>
-            </b>
-            {tonight_meta(@current, @state)}
-            <p>{my_state_line(@state, @my_signup)}</p>
-            <p>You are a {role_name(@club_role)} of this club.</p>
-          <% else %>
-            No session is open.
-            <p>Your club head opens sessions; sign-up appears here.</p>
-            <p>You are a {role_name(@club_role)} of this club.</p>
-          <% end %>
-        </.section>
-
-        <.section title="My results in this club">
-          <.table id="my-results" rows={@my_results} empty="Your results will appear here.">
-            <:col :let={row} label="Date">
-              <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"}>
-                {Calendar.strftime(row.date, "%-d %b %Y")}
-              </.link>
+        <.section title={"Members · #{length(@members)}"}>
+          <.table id="members-list" rows={@members} empty="No members yet.">
+            <:col :let={membership} label="Member">
+              {membership.user.username}
+              <.sub :if={membership.user.name}>{membership.user.name}</.sub>
             </:col>
-            <:col :let={row} label="I was">{row.role}</:col>
-            <:col :let={row} label="Result">
-              <%= cond do %>
-                <% row.won -> %>
-                  <.tag kind={:ok}>won</.tag>
-                <% row.role == "judge" -> %>
-                  <.tag kind={:mut}>judged</.tag>
-                <% true -> %>
-                  —
-              <% end %>
+            <:col :let={membership} label="Role">{membership.role}</:col>
+            <:col :let={membership} label="Since">
+              {Calendar.strftime(membership.inserted_at, "%-d %b %Y")}
             </:col>
           </.table>
         </.section>
@@ -93,15 +80,17 @@ defmodule CabWeb.MemberHTML do
   # registration entry: role pills, POSTing to the signups action
   def register(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="rooms"
+    >
       <.chrome
-        crumbs={[
-          {@club.name, ~p"/c/#{@club.uuid}"},
-          {"me", ~p"/c/#{@club.uuid}/member"}
-        ]}
-        here="register"
-        stage="sign-up open"
-        stage_kind={:ok}
+        crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
+        here="register — sign-ups open"
       >
       </.chrome>
 
@@ -130,38 +119,4 @@ defmodule CabWeb.MemberHTML do
     </Layouts.app>
     """
   end
-
-  defp tonight_meta(current, state) do
-    date =
-      case current.scheduled_at do
-        %DateTime{} = at -> Calendar.strftime(at, "%-d %b · %H:%M")
-        _ -> Calendar.strftime(current.inserted_at, "%-d %b")
-      end
-
-    "· #{date} · #{length(state.signups)} registered"
-  end
-
-  defp my_state_line(%{stage: :signup}, nil),
-    do: "You are not registered yet. Registration closes when the head makes rooms."
-
-  defp my_state_line(%{stage: :signup}, _my_signup),
-    do: "Cancel from the chrome if your plans change."
-
-  defp my_state_line(_state, nil), do: "You are not registered for this session."
-  defp my_state_line(_state, _my_signup), do: "See the session page for your room."
-
-  defp role_name(:owner), do: "head"
-  defp role_name(_role), do: "member"
-
-  defp stage_label(nil), do: nil
-  defp stage_label(%{stage: :signup}), do: "sign-up open"
-  defp stage_label(%{stage: :closed}), do: "sign-ups closed"
-  defp stage_label(%{stage: :running}), do: "running"
-  defp stage_label(%{stage: :done}), do: "done"
-
-  defp stage_kind(nil), do: :off
-  defp stage_kind(%{stage: :signup}), do: :ok
-  defp stage_kind(%{stage: :closed}), do: :warn
-  defp stage_kind(%{stage: :running}), do: :warn
-  defp stage_kind(%{stage: :done}), do: :off
 end

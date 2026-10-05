@@ -3,16 +3,16 @@ defmodule CabWeb.PageHTML do
 
   def home(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_user={@current_user} active="clubs">
       <%= if @current_user do %>
-        <.chrome account current_user={@current_user} here="my cabinet" />
+        <.chrome here="my cab"></.chrome>
         <div class="pbody">
           <.flash_banners flash={@flash} />
           <.banner
             :if={@open_club}
             kind={:info}
-            href={~p"/c/#{@open_club.uuid}/member"}
-            link="Register →"
+            href={~p"/c/#{@open_club.uuid}"}
+            link="Open →"
           >
             {@open_club.name}: a session is open.
           </.banner>
@@ -20,62 +20,41 @@ defmodule CabWeb.PageHTML do
           <.section title="My clubs">
             <.table id="my-clubs" rows={@memberships} empty="You are not in any club yet.">
               <:col :let={m} label="Club">
-                {m.club.name}
-                <.sub :if={m.club.city}>{m.club.city}</.sub>
+                <.link href={~p"/c/#{m.club.uuid}"}>{m.club.name}</.link>
+                <.sub>
+                  {if m.status == "approved", do: m.role, else: "request pending"}{if m.club.city,
+                    do: " · #{m.club.city}"}
+                </.sub>
               </:col>
-              <:col :let={m} label="Role">
-                <%= if m.status == "approved" do %>
-                  {m.role}
-                <% else %>
-                  <.tag kind={:warn}>request pending</.tag>
-                <% end %>
-              </:col>
-              <:col :let={m} label="Tonight">
-                <%= if m.status == "approved" do %>
-                  <.tag kind={tonight_kind(@tonight[m.club_id])}>
-                    {tonight_label(@tonight[m.club_id])}
-                  </.tag>
-                <% else %>
-                  —
-                <% end %>
-              </:col>
-              <:col :let={m}>
-                <%= cond do %>
-                  <% m.status != "approved" -> %>
-                    <.link href={~p"/c/#{m.club.uuid}"}>open</.link>
-                  <% m.role == "head" -> %>
-                    <.link href={~p"/c/#{m.club.uuid}/owner"}>owner console</.link>
-                  <% true -> %>
-                    <.link href={~p"/c/#{m.club.uuid}/member"}>my club page</.link>
-                <% end %>
+              <:col :let={m} label="Tonight" class="st">
+                {if m.status == "approved", do: tonight_words(@tonight[m.club_id]), else: "—"}
               </:col>
             </.table>
           </.section>
 
           <.section title="My sessions">
             <.table id="my-sessions" rows={@history} empty="Past sessions will appear here.">
-              <:col :let={row} label="Date">
+              <:col :let={row} label="Session">
                 <.link href={~p"/c/#{row.club_uuid}/s/#{row.session_uuid}"}>
                   {Calendar.strftime(row.date, "%-d %b %Y")}
                 </.link>
+                <.sub>{row.club} · {row.role}</.sub>
               </:col>
-              <:col :let={row} label="Club">{row.club}</:col>
-              <:col :let={row} label="I was">{row.role}</:col>
-              <:col :let={row} label="Result">
+              <:col :let={row} label="Result" class="st">
                 <%= cond do %>
                   <% row.won -> %>
-                    <.tag kind={:ok}>won</.tag>
+                    <b>won</b>
                   <% row.role == "judge" -> %>
-                    <.tag kind={:mut}>judged</.tag>
+                    judged
                   <% true -> %>
-                    —
+                    played
                 <% end %>
               </:col>
             </.table>
           </.section>
         </div>
       <% else %>
-        <.chrome account current_user={nil} here="debate clubs of Ukraine" />
+        <.chrome here="debate clubs of Ukraine"></.chrome>
         <div class="pbody">
           <.flash_banners flash={@flash} />
           <.banner kind={:info} href={~p"/signin"} link="Sign in →">
@@ -84,12 +63,13 @@ defmodule CabWeb.PageHTML do
 
           <.section title="Clubs">
             <.table id="clubs-directory" rows={@clubs} empty="No clubs here yet.">
-              <:col :let={club} label="Club">{club.name}</:col>
+              <:col :let={club} label="Club">
+                <.link href={~p"/c/#{club.uuid}"}>{club.name}</.link>
+              </:col>
               <:col :let={club} label="City">{club.city}</:col>
               <:col :let={club} label="Members" num>{@member_counts[club.id] || 0}</:col>
-              <:col :let={club} label="Sessions" num>{@session_counts[club.id] || 0}</:col>
-              <:col :let={club}>
-                <.link href={~p"/c/#{club.uuid}"}>open</.link>
+              <:col :let={club} label="Tonight" class="st">
+                {tonight_words(@tonight[club.id])}
               </:col>
             </.table>
           </.section>
@@ -99,12 +79,18 @@ defmodule CabWeb.PageHTML do
     """
   end
 
-  defp tonight_label(nil), do: "no session"
-  defp tonight_label({_session, :signup}), do: "sign-ups open"
-  defp tonight_label({_session, :closed}), do: "sign-ups closed"
-  defp tonight_label({_session, :running}), do: "running"
+  # the Tonight column, written out as words — no pills anywhere
+  defp tonight_words(nil), do: "quiet"
 
-  defp tonight_kind(nil), do: :mut
-  defp tonight_kind({_session, :signup}), do: :ok
-  defp tonight_kind({_session, _stage}), do: :warn
+  defp tonight_words({session, :signup, _rooms}) do
+    case session.scheduled_at do
+      %DateTime{} = at -> "sign-ups open, #{Calendar.strftime(at, "%a %H:%M")}"
+      _ -> "sign-ups open"
+    end
+  end
+
+  defp tonight_words({_session, :closed, _rooms}), do: "sign-ups closed"
+
+  defp tonight_words({_session, :running, rooms}),
+    do: "session running, #{rooms} room#{if rooms != 1, do: "s"}"
 end

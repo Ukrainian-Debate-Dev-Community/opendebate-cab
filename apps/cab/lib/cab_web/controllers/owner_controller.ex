@@ -9,49 +9,86 @@ defmodule CabWeb.OwnerController do
 
   plug CabWeb.ClubScope, source: :club, require: :owner
 
-  @tabs ~w(registration requests tonight rooms members settings)
+  # ---------------------------------------------------------------
+  # The club page, owner path: the SAME profile page as /c/:club but
+  # as an edit-in-place form (Save lives in the chrome)
+  # ---------------------------------------------------------------
 
-  # GET /c/:club_uuid/owner — P8, the console: all head controls
-  # under a section nav (Registration | Requests | Tonight | Rooms |
-  # Members | Settings); ?tab= picks the section, the stage-driven
-  # chrome stays the same on every tab.
-  def show(conn, params) do
+  # GET /c/:club_uuid/owner
+  def club(conn, _params) do
+    render(conn, :club, page_title: "#{conn.assigns.club.name} · edit")
+  end
+
+  # POST /c/:club_uuid/owner/club — the in-place save; twin of
+  # PATCH /api/v1/clubs/:uuid
+  def update_club(conn, params) do
+    attrs = Map.take(params, ["name", "city", "meeting_info", "description", "contacts"])
+
+    case Clubs.update_club(conn.assigns.club, attrs) do
+      {:ok, _club} ->
+        conn
+        |> put_flash(:info, "club profile saved")
+        |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
+
+      {:error, %Ecto.Changeset{}} ->
+        conn
+        |> put_flash(:error, "the club needs a name")
+        |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
+    end
+  end
+
+  # ---------------------------------------------------------------
+  # Sessions archive (owner path): previous progress + the
+  # open-session form (gold "Open new session" in the chrome)
+  # ---------------------------------------------------------------
+
+  # GET /c/:club_uuid/owner/sessions
+  def sessions(conn, _params) do
     club = conn.assigns.club
-    current = List.first(Sessions.list_for_club(club))
 
-    state =
-      with %Session{} <- current,
-           {:ok, state} <- Sessions.state(%{current | club: club}) do
-        state
-      else
-        _ -> nil
-      end
-
-    join_requests = Clubs.list_join_requests(club)
-    links = (current && Links.list_for_session(current)) || []
-
-    render(conn, :show,
-      join_requests: join_requests,
-      members: Clubs.list_members(club),
-      current: current,
-      state: state,
-      links: links,
-      tab: tab(params["tab"], state, length(join_requests)),
-      page_title: "#{club.name} · owner"
+    render(conn, :sessions,
+      archive: Sessions.archive(club),
+      live: live_session(conn),
+      page_title: "#{club.name} · sessions"
     )
   end
 
-  # the smart default: pending requests pull attention first, then
-  # registration while sign-ups are open, rooms once they close
-  defp tab(param, _state, _pending) when param in @tabs, do: param
-
-  defp tab(_param, state, pending) do
-    cond do
-      pending > 0 -> "requests"
-      match?(%{stage: :signup}, state) -> "registration"
-      match?(%{stage: stage} when stage in [:closed, :running], state) -> "rooms"
-      true -> "tonight"
+  # POST /c/:club_uuid/owner/sessions — name + optional date/time;
+  # lands on the new session's owner surface
+  def open_session(conn, params) do
+    with {:ok, scheduled_at} <- Sessions.parse_schedule(params["date"], params["time"]),
+         {:ok, session} <-
+           Sessions.open(
+             conn.assigns.current_user,
+             conn.assigns.club,
+             params["name"],
+             scheduled_at
+           ) do
+      conn
+      |> put_flash(:info, "session opened — sign-ups are live")
+      |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}")
+    else
+      {:error, message} ->
+        conn
+        |> put_flash(:error, error_message(message))
+        |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/sessions")
     end
+  end
+
+  # ---------------------------------------------------------------
+  # Members page, owner path: roster + join requests (the form's
+  # answers shown) + remove
+  # ---------------------------------------------------------------
+
+  # GET /c/:club_uuid/owner/members
+  def members(conn, _params) do
+    club = conn.assigns.club
+
+    render(conn, :members,
+      members: Clubs.list_members(club),
+      join_requests: Clubs.list_join_requests(club),
+      page_title: "#{club.name} · members"
+    )
   end
 
   # POST /c/:club_uuid/owner/join-requests/:id/approve
@@ -74,46 +111,48 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST /c/:club_uuid/owner/club — the settings form's twin of
-  # PATCH /api/v1/clubs/:uuid
-  def update_club(conn, params) do
-    case Clubs.update_club(conn.assigns.club, Map.take(params, ["name", "city"])) do
-      {:ok, _club} -> back(conn, info: "club settings saved")
-      {:error, %Ecto.Changeset{}} -> back(conn, error: "the club needs a name")
-      {:error, message} -> back(conn, error: error_message(message))
-    end
-  end
-
   # POST /c/:club_uuid/owner/members/:user_id/remove
   def remove_member(conn, %{"user_id" => user_id}) do
     with {user_id, ""} <- Integer.parse(user_id),
          {:ok, _membership} <- Clubs.remove_member(conn.assigns.club, user_id) do
-      back(conn, info: "member removed")
+      back_members(conn, info: "member removed")
     else
-      {:error, message} -> back(conn, error: error_message(message))
+      {:error, message} -> back_members(conn, error: error_message(message))
       _ -> conn |> send_resp(404, "not found") |> halt()
     end
   end
 
-  # POST /c/:club_uuid/owner/sessions — name + optional date/time
-  def open_session(conn, params) do
-    with {:ok, scheduled_at} <- Sessions.parse_schedule(params["date"], params["time"]),
-         {:ok, _session} <-
-           Sessions.open(
-             conn.assigns.current_user,
-             conn.assigns.club,
-             params["name"],
-             scheduled_at
-           ) do
-      back(conn, info: "session opened — sign-ups are live")
+  # ---------------------------------------------------------------
+  # The interim owner session surface (M8a): the M7 Registration +
+  # Tonight + Rooms tab content on one page — same behavior, new
+  # address. M8b re-behaves it.
+  # ---------------------------------------------------------------
+
+  # GET /c/:club_uuid/owner/s/:session_uuid
+  def session(conn, %{"session_uuid" => session_uuid}) do
+    club = conn.assigns.club
+
+    with %Session{} = session <- Sessions.get_for_club(club, session_uuid),
+         {:ok, state} <- Sessions.state(%{session | club: club}) do
+      render(conn, :session,
+        current: session,
+        state: state,
+        links: Links.list_for_session(session),
+        members: Clubs.list_members(club),
+        page_title: "#{club.name} · #{state.event["name"]}"
+      )
     else
-      {:error, message} -> back(conn, error: error_message(message))
+      nil ->
+        conn |> send_resp(404, "not found") |> halt()
+
+      {:error, message} ->
+        conn
+        |> put_flash(:error, error_message(message))
+        |> redirect(to: ~p"/c/#{club.uuid}/owner/sessions")
     end
   end
 
-  # POST /c/:club_uuid/owner/sessions/:session_uuid/close-signups —
-  # flow-2's explicit edge: sign-ups close, rooms compose from the
-  # final attendance
+  # POST .../owner/sessions/:session_uuid/close-signups
   def close_signups(conn, %{"session_uuid" => session_uuid}) do
     with_session(conn, session_uuid, fn session ->
       case Sessions.close_signups(session) do
@@ -123,7 +162,7 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST /c/:club_uuid/owner/sessions/:session_uuid/reopen-signups
+  # POST .../owner/sessions/:session_uuid/reopen-signups
   def reopen_signups(conn, %{"session_uuid" => session_uuid}) do
     with_session(conn, session_uuid, fn session ->
       case Sessions.reopen_signups(session) do
@@ -133,8 +172,8 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST /c/:club_uuid/owner/sessions/:session_uuid/signups — the
-  # head signs an approved member up on their behalf
+  # POST .../owner/sessions/:session_uuid/signups — the head signs an
+  # approved member up on their behalf
   def add_signup(conn, %{"session_uuid" => session_uuid} = params) do
     with_session(conn, session_uuid, fn session ->
       case Sessions.signup_for(
@@ -149,9 +188,8 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST /c/:club_uuid/owner/sessions/:session_uuid/links — the head
-  # issues a guest registration + personal link by hand; the personal
-  # URL lands in the flash so the head can pass it on
+  # POST .../owner/sessions/:session_uuid/links — the head issues a
+  # guest link by hand; the personal URL lands in the flash
   def issue_link(conn, %{"session_uuid" => session_uuid} = params) do
     with_session(conn, session_uuid, fn session ->
       case Links.register_guest(session, params["name"], params["as"] || "") do
@@ -164,21 +202,28 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST /c/:club_uuid/owner/links/:id/revoke — the personal URL
-  # stops working immediately (any signup stays; remove it above)
+  # POST .../owner/links/:id/revoke — the personal URL stops working
+  # immediately (any signup stays; remove it on the session surface)
   def revoke_link(conn, %{"id" => id}) do
     with {id, ""} <- Integer.parse(id),
          %Link{} = link <- Links.get_link(id),
          true <- link.club_id == conn.assigns.club.id,
-         {:ok, _link} <- Links.revoke(link) do
-      back(conn, info: "guest link revoked — it stops working immediately")
+         {:ok, link} <- Links.revoke(link) do
+      conn
+      |> put_flash(:info, "guest link revoked — it stops working immediately")
+      |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{link.session.uuid}")
     else
-      {:error, message} -> back(conn, error: error_message(message))
-      _ -> conn |> send_resp(404, "not found") |> halt()
+      {:error, message} ->
+        conn
+        |> put_flash(:error, error_message(message))
+        |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/sessions")
+
+      _ ->
+        conn |> send_resp(404, "not found") |> halt()
     end
   end
 
-  # POST /c/:club_uuid/owner/sessions/:session_uuid/signups/:participant_id/remove
+  # POST .../owner/sessions/:session_uuid/signups/:participant_id/remove
   def remove_signup(conn, %{"session_uuid" => session_uuid, "participant_id" => participant_id}) do
     with_session(conn, session_uuid, fn session ->
       case Integer.parse(participant_id) do
@@ -194,10 +239,10 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # GET /c/:club_uuid/owner/sessions/:session_uuid/compose — the
-  # drag-and-drop allocation page (the ONLY allocation UI). Rooms
-  # count derives from attendance — floor(speakers/8) baseline — and
-  # "+ room" reloads with ?rooms=N up to attendance/4.
+  # GET .../owner/sessions/:session_uuid/compose — the drag-and-drop
+  # allocation page (the ONLY allocation UI). Rooms count derives
+  # from attendance — floor(speakers/8) baseline — and "+ room"
+  # reloads with ?rooms=N up to attendance/4.
   def compose(conn, %{"session_uuid" => session_uuid} = params) do
     club = conn.assigns.club
 
@@ -218,11 +263,21 @@ defmodule CabWeb.OwnerController do
           )
 
         _stage ->
-          back(conn, error: "close sign-ups first — rooms are composed from the final attendance")
+          conn
+          |> put_flash(
+            :error,
+            "close sign-ups first — rooms are composed from the final attendance"
+          )
+          |> redirect(to: ~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
       end
     else
-      nil -> conn |> send_resp(404, "not found") |> halt()
-      {:error, message} -> back(conn, error: error_message(message))
+      nil ->
+        conn |> send_resp(404, "not found") |> halt()
+
+      {:error, message} ->
+        conn
+        |> put_flash(:error, error_message(message))
+        |> redirect(to: ~p"/c/#{club.uuid}/owner/sessions")
     end
   end
 
@@ -235,9 +290,9 @@ defmodule CabWeb.OwnerController do
 
   defp clamp(rooms, max_rooms), do: rooms |> max(1) |> min(max_rooms)
 
-  # POST /c/:club_uuid/owner/sessions/:session_uuid/rooms — the gold
-  # one-click auto path; with "rooms" params (the compose form) the
-  # head's explicit composition is used instead
+  # POST .../owner/sessions/:session_uuid/rooms — the gold one-click
+  # auto path; with "rooms" params (the compose form) the head's
+  # explicit composition is used instead
   def make_rooms(conn, %{"session_uuid" => session_uuid} = params) do
     with_session(conn, session_uuid, fn session ->
       result =
@@ -297,8 +352,8 @@ defmodule CabWeb.OwnerController do
 
   defp presence(value), do: value
 
-  # POST /c/:club_uuid/owner/sessions/:session_uuid/rooms/delete —
-  # rebuild: pending rooms go away so the head can recompose
+  # POST .../owner/sessions/:session_uuid/rooms/delete — rebuild:
+  # pending rooms go away so the head can recompose
   def delete_rooms(conn, %{"session_uuid" => session_uuid}) do
     with_session(conn, session_uuid, fn session ->
       case Sessions.delete_rooms(conn.assigns.current_user, session) do
@@ -308,69 +363,101 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST /c/:club_uuid/owner/sessions/:session_uuid/cancel
+  # POST .../owner/sessions/:session_uuid/cancel
   def cancel_session(conn, %{"session_uuid" => session_uuid}) do
-    with_session(conn, session_uuid, fn session ->
-      case Sessions.cancel(conn.assigns.current_user, session) do
-        {:ok, _session} -> {:ok, "session cancelled"}
-        error -> error
-      end
-    end)
+    case Sessions.get_for_club(conn.assigns.club, session_uuid) do
+      %Session{} = session ->
+        case Sessions.cancel(conn.assigns.current_user, session) do
+          {:ok, _session} ->
+            conn
+            |> put_flash(:info, "session cancelled")
+            |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/sessions")
+
+          {:error, message} ->
+            conn
+            |> put_flash(:error, error_message(message))
+            |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}")
+        end
+
+      nil ->
+        conn |> send_resp(404, "not found") |> halt()
+    end
   end
 
-  # POST /c/:club_uuid/owner/rooms/:id/reopen — the ballot is live again
+  # POST .../owner/rooms/:id/reopen — the ballot is live again
   def reopen(conn, %{"id" => id}) do
     club = conn.assigns.club
 
     with {room_id, ""} <- Integer.parse(id),
          %Session{} = session <- List.first(Sessions.list_for_club(club)) do
       case Sessions.reopen_room(conn.assigns.current_user, %{session | club: club}, room_id) do
-        :ok -> back(conn, info: "room R#{room_id} reopened — the ballot is live again")
-        {:error, message} -> back(conn, error: error_message(message))
+        :ok ->
+          conn
+          |> put_flash(:info, "room R#{room_id} reopened — the ballot is live again")
+          |> redirect(to: ~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+
+        {:error, message} ->
+          conn
+          |> put_flash(:error, error_message(message))
+          |> redirect(to: ~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
       end
     else
       _ -> conn |> send_resp(404, "not found") |> halt()
     end
   end
 
-  # POST /c/:club_uuid/owner/sessions/:session_uuid/finish
+  # POST .../owner/sessions/:session_uuid/finish — results live on
+  # the public session page
   def finish(conn, %{"session_uuid" => session_uuid}) do
-    with_session(conn, session_uuid, fn session ->
-      case Sessions.finish(conn.assigns.current_user, session) do
-        :ok -> {:ok, "session finished"}
-        error -> error
-      end
-    end)
-  end
+    case Sessions.get_for_club(conn.assigns.club, session_uuid) do
+      %Session{} = session ->
+        case Sessions.finish(conn.assigns.current_user, session) do
+          :ok ->
+            conn
+            |> put_flash(:info, "session finished")
+            |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}")
 
-  # POST /c/:club_uuid/owner/rooms/:id/motion
-  def motion(conn, %{"id" => id, "motion_text" => motion_text}) do
-    with {room_id, ""} <- Integer.parse(id),
-         {:ok, _} <- Sessions.set_room_motion(conn.assigns.current_user, room_id, motion_text) do
-      back(conn, info: "motion set")
-    else
-      {:error, message} -> back(conn, error: message)
-      _ -> back(conn, error: "bad room id")
+          {:error, message} ->
+            conn
+            |> put_flash(:error, error_message(message))
+            |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}")
+        end
+
+      nil ->
+        conn |> send_resp(404, "not found") |> halt()
     end
   end
 
-  # GET /c/:club_uuid/owner/rooms/:id/ballot — the head fills any
-  # open room's ballot (full-control doctrine)
+  # POST .../owner/rooms/:id/motion
+  def motion(conn, %{"id" => id, "motion_text" => motion_text}) do
+    with {room_id, ""} <- Integer.parse(id),
+         {:ok, _} <- Sessions.set_room_motion(conn.assigns.current_user, room_id, motion_text) do
+      back_live(conn, info: "motion set")
+    else
+      {:error, message} -> back_live(conn, error: message)
+      _ -> back_live(conn, error: "bad room id")
+    end
+  end
+
+  # GET .../owner/rooms/:id/ballot — the head fills any open room's
+  # ballot (full-control doctrine)
   def ballot(conn, %{"id" => id}) do
     with_ballot_room(conn, id, fn conn, session, room ->
       render_ballot(conn, session, room, nil, nil)
     end)
   end
 
-  # POST /c/:club_uuid/owner/rooms/:id/ballot — in-tree twin of the
-  # ballot API action: redirect + flash, re-render amber on errors
+  # POST .../owner/rooms/:id/ballot — in-tree twin of the ballot API
+  # action: redirect + flash, re-render amber on errors
   def submit_ballot(conn, %{"id" => id} = params) do
     with_ballot_room(conn, id, fn conn, session, room ->
       scores = BallotForm.scores_from_params(params["ballot"])
 
       case Sessions.submit_ballot(conn.assigns.current_user, session, room["id"], scores) do
         :ok ->
-          back(conn, info: "ballot submitted — the room is confirmed")
+          conn
+          |> put_flash(:info, "ballot submitted — the room is confirmed")
+          |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}")
 
         {:error, :forbidden} ->
           conn |> send_resp(403, "forbidden") |> halt()
@@ -418,8 +505,8 @@ defmodule CabWeb.OwnerController do
          %Membership{} = membership <- Clubs.get_membership(id),
          true <- membership.club_id == conn.assigns.club.id do
       case fun.(membership) do
-        {:ok, info} -> back(conn, info: info)
-        {:error, message} -> back(conn, error: message)
+        {:ok, info} -> back_members(conn, info: info)
+        {:error, message} -> back_members(conn, error: message)
       end
     else
       _ -> conn |> send_resp(404, "not found") |> halt()
@@ -429,10 +516,12 @@ defmodule CabWeb.OwnerController do
   defp with_session(conn, session_uuid, fun) do
     case Sessions.get_for_club(conn.assigns.club, session_uuid) do
       %Session{} = session ->
+        back = ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}"
+
         case fun.(session) do
-          {:ok, info} -> back(conn, info: info)
-          {:error, :conflict, message} -> back(conn, error: error_message(message))
-          {:error, message} -> back(conn, error: error_message(message))
+          {:ok, info} -> conn |> put_flash(:info, info) |> redirect(to: back)
+          {:error, :conflict, message} -> flash_error(conn, back, message)
+          {:error, message} -> flash_error(conn, back, message)
         end
 
       nil ->
@@ -440,17 +529,41 @@ defmodule CabWeb.OwnerController do
     end
   end
 
-  defp back(conn, info: info) do
-    conn
-    |> put_flash(:info, info)
-    |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
-  end
-
-  defp back(conn, error: message) do
+  defp flash_error(conn, back, message) do
     conn
     |> put_flash(:error, error_message(message))
-    |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
+    |> redirect(to: back)
   end
+
+  defp back_members(conn, info: info) do
+    conn
+    |> put_flash(:info, info)
+    |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/members")
+  end
+
+  defp back_members(conn, error: message) do
+    conn
+    |> put_flash(:error, error_message(message))
+    |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/members")
+  end
+
+  # the live-session fallback for room actions addressed by id only
+  defp back_live(conn, outcome) do
+    club = conn.assigns.club
+
+    target =
+      case List.first(Sessions.list_for_club(club)) do
+        %Session{uuid: uuid} -> ~p"/c/#{club.uuid}/owner/s/#{uuid}"
+        nil -> ~p"/c/#{club.uuid}/owner/sessions"
+      end
+
+    case outcome do
+      [info: info] -> conn |> put_flash(:info, info) |> redirect(to: target)
+      [error: message] -> flash_error(conn, target, message)
+    end
+  end
+
+  defp live_session(conn), do: conn.assigns[:nav_session]
 
   defp error_message(message) when is_binary(message), do: message
   defp error_message(%{rooms: message}), do: message

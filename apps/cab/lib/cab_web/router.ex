@@ -19,16 +19,34 @@ defmodule CabWeb.Router do
     plug :fetch_current_user
   end
 
-  # THE CANONICAL EIGHT (design/v2-stages.md, 2026-10-04): every
-  # screen is one of P1-P8; every link/redirect lands on one of them.
+  # pages-v6 (M8a): the sidenav shell. Navigation lives in the
+  # sidenav, every page's chrome carries only that page's actions,
+  # status is written out as words in the page content.
   scope "/", CabWeb do
     pipe_through :browser
 
-    # P2 (anonymous front) / P3 (signed-in cabinet)
+    # global welcome: public = clubs directory, signed-in = + my
+    # clubs / my sessions
     get "/", PageController, :home
 
-    # P1 — the ONLY auth entry; /auth/:provider is just the hop
+    # the ONLY auth entry; /auth/:provider is just the hop
     get "/signin", SigninController, :show
+
+    # profile — entry only via the sidenav bottom
+    get "/account", AccountController, :show
+    post "/account", AccountController, :update
+
+    # platform admin (is_admin; 404 for everyone else). Club creation
+    # is ADMIN-ONLY — users can only request membership.
+    get "/admin", AdminController, :show
+    post "/admin/clubs", AdminController, :create_club
+    post "/admin/head", AdminController, :change_head
+    post "/admin/clubs/:uuid/archive", AdminController, :archive
+
+    # global standings: four tabs, RULE 0 — engine output verbatim
+    # per session (default: the latest finished platform-wide)
+    get "/standings", StandingsController, :index
+    get "/standings/:tab", StandingsController, :show
   end
 
   # Role-scoped HTML trees (tabbycat-style): the URL names the view,
@@ -37,16 +55,20 @@ defmodule CabWeb.Router do
   scope "/c/:club_uuid", CabWeb do
     pipe_through :browser
 
-    # public tree: P4 club welcome + P7 standings; join is the HTML
-    # twin of the join-requests API action (redirect + flash)
+    # public tree: the club page (profile view) + the four standings
+    # tabs + the join-request FORM (required answers, never a bare
+    # button)
     get "/", ClubPublicController, :show
     get "/standings", ClubPublicController, :standings
+    get "/standings/:tab", ClubPublicController, :standings
+    get "/join", ClubPublicController, :join_form
     post "/join", ClubPublicController, :join
 
-    # P6 — THE session page, public and stage-aware. Its actions are
-    # identity-gated, not tree-gated: a member judge, the head and a
-    # guest judge (session identity from /l/:code) all ballot here;
-    # anyone cancels only their OWN registration.
+    # THE session page, public and stage-aware (reached via the
+    # sidenav Rooms item). Its actions are identity-gated, not
+    # tree-gated: a member judge, the head and a guest judge (session
+    # identity from /l/:code) all ballot here; anyone cancels only
+    # their OWN registration.
     get "/s/:session_uuid", SessionPageController, :show
 
     post "/s/:session_uuid/signups/:participant_id/remove",
@@ -56,9 +78,12 @@ defmodule CabWeb.Router do
     get "/s/:session_uuid/rooms/:id/ballot", SessionPageController, :ballot
     post "/s/:session_uuid/rooms/:id/ballot", SessionPageController, :submit_ballot
 
-    # member tree: P5 my-club page + registration (ONE entry: form
-    # with role pills) and cancel own registration
-    get "/member", MemberController, :show
+    # member tree: sessions archive + roster + the registration flow
+    # (the M7 "my club page" is gone — /member redirects to the club
+    # page; registration is reached from the session page)
+    get "/member", MemberController, :legacy_home
+    get "/member/sessions", MemberController, :sessions
+    get "/member/members", MemberController, :members
     get "/member/sessions/:session_uuid/register", MemberController, :register
     post "/member/sessions/:session_uuid/signups", MemberController, :signup
 
@@ -66,15 +91,20 @@ defmodule CabWeb.Router do
          MemberController,
          :cancel_signup
 
-    # owner tree: P8 console (?tab= section nav) with the ballot and
-    # compose sub-pages reachable from its Rooms tab — the head
-    # controls everything from here
-    get "/owner", OwnerController, :show
+    # owner tree. The M7 ?tab console is gone: /owner IS the club
+    # page as an edit-in-place form; sessions archive carries the
+    # open-session form; members carries requests + revoke; the
+    # interim owner session surface is /owner/s/:sess.
+    get "/owner", OwnerController, :club
+    post "/owner/club", OwnerController, :update_club
+    get "/owner/sessions", OwnerController, :sessions
+    post "/owner/sessions", OwnerController, :open_session
+    get "/owner/members", OwnerController, :members
     post "/owner/join-requests/:id/approve", OwnerController, :approve
     post "/owner/join-requests/:id/decline", OwnerController, :decline
-    post "/owner/club", OwnerController, :update_club
     post "/owner/members/:user_id/remove", OwnerController, :remove_member
-    post "/owner/sessions", OwnerController, :open_session
+
+    get "/owner/s/:session_uuid", OwnerController, :session
     post "/owner/sessions/:session_uuid/close-signups", OwnerController, :close_signups
     post "/owner/sessions/:session_uuid/reopen-signups", OwnerController, :reopen_signups
     post "/owner/sessions/:session_uuid/signups", OwnerController, :add_signup
@@ -103,7 +133,8 @@ defmodule CabWeb.Router do
   # PUBLIC shared registration URL the head gives out; /l/:code is a
   # guest's permanent personal link — the code IS the identity:
   # opening it signs the browser session in as the guest and lands
-  # on P6, where their cancel/ballot actions work by that identity.
+  # on the session page, where their cancel/ballot actions work by
+  # that identity.
   scope "/", CabWeb do
     pipe_through :browser
 
@@ -113,8 +144,8 @@ defmodule CabWeb.Router do
     get "/l/:code", GuestLinkController, :show
   end
 
-  # JSON API over the same contexts (club creation is the
-  # `mix cab.seed_club` task, not an endpoint)
+  # JSON API over the same contexts (club creation is admin-only:
+  # the /admin HTML form or the `mix cab.seed_club` task)
   scope "/api/v1", CabWeb.Api do
     pipe_through :api
 

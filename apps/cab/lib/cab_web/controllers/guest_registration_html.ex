@@ -5,13 +5,14 @@ defmodule CabWeb.GuestRegistrationHTML do
   # name required + the kit's role pills (Speaker | Judge)
   def new(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
-      <.chrome
-        crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-        here="register"
-        stage="sign-up open"
-        stage_kind={:ok}
-      >
+    <Layouts.app
+      flash={@flash}
+      current_user={assigns[:current_user]}
+      club={@club}
+      nav_session={@session}
+      active="rooms"
+    >
+      <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="register — sign-ups open">
       </.chrome>
 
       <div class="pbody">
@@ -46,13 +47,14 @@ defmodule CabWeb.GuestRegistrationHTML do
   # full /l/:code URL with the copy affordance + the keep-it warning
   def created(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
-      <.chrome
-        crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-        here="registered"
-        stage="sign-up open"
-        stage_kind={:ok}
-      >
+    <Layouts.app
+      flash={@flash}
+      current_user={assigns[:current_user]}
+      club={@club}
+      nav_session={@session}
+      active="rooms"
+    >
+      <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="registered">
         <:seg href={~p"/l/#{@link.code}"} primary>Open my session page</:seg>
       </.chrome>
 
@@ -81,12 +83,16 @@ defmodule CabWeb.GuestRegistrationHTML do
   # any stage but :signup — the registration-closed notice
   def closed(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app
+      flash={@flash}
+      current_user={assigns[:current_user]}
+      club={@club}
+      nav_session={@session}
+      active="rooms"
+    >
       <.chrome
         crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-        here="register"
-        stage={stage_label(@state)}
-        stage_kind={:warn}
+        here={"register — #{stage_label(@state)}"}
       >
       </.chrome>
 
