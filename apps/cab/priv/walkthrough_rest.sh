@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# M1/M3/M4/M5/M6/M7 acceptance: curl through the ENTIRE club lifecycle
-# REST flow against the live stack (engine :3100 + cab :4000 —
-# `make up`, dev DB migrated). Every step asserts the HTTP status and
-# a JSON field. Exits non-zero on the first failed assertion.
-# M7: HTML assertions target the canonical eight — /signin is the only
-# auth entry, /c/:club/s/:session (P6) is THE session page (guests
-# land there via /l/:code), /c/:club/standings is public.
+# M1-M8a acceptance: curl through the ENTIRE club lifecycle REST flow
+# against the live stack (engine :3100 + cab :4000 — `make up`, dev DB
+# migrated). Every step asserts the HTTP status and a JSON field.
+# Exits non-zero on the first failed assertion.
+# M8a: the sidenav shell — join requests carry REQUIRED message +
+# contact, standings are rule-0 engine passthrough per session
+# (/standings/{teams,speakers,judges,clubs} global + the same four
+# tabs per club), the sessions archive lives at
+# /c/:club/{member,owner}/sessions, the owner ?tab console is gone
+# (club edit at /owner, owner session surface at /owner/s/:sess),
+# /account is the profile page and /admin is is_admin-gated HTML.
 #
 #   platform/apps/cab/priv/walkthrough_rest.sh
 #
@@ -95,13 +99,18 @@ echo "club: $CLUB"
 assert head GET "/api/v1/clubs/$CLUB" 200 '.name' "BP Walkthrough $RUN"
 
 # ----------------------------------------------------------------
-say "join requests (a join request IS a pending membership)"
+say "join requests (a join request IS a pending membership + the two REQUIRED answers)"
 # ----------------------------------------------------------------
+# a bare request (no message/contact) is rejected — never a bare button
+assert j1 POST "/api/v1/clubs/$CLUB/join-requests" 422 '.details.message | length' 1
 REQ_IDS=""
 for u in j1 s1 s2 s3 s4 s5 s6 s7 s8; do
-  assert "$u" POST "/api/v1/clubs/$CLUB/join-requests" 201 '.status' pending
+  assert "$u" POST "/api/v1/clubs/$CLUB/join-requests" 201 '.status' pending \
+    "{\"message\":\"I am wt-$RUN-$u and I debate\",\"contact\":\"@wt-$u\"}"
   REQ_IDS="$REQ_IDS $u:$(jq -r '.id' "$BODY")"
 done
+# the answers are stored on the request
+assert j1 GET "/api/v1/clubs/$CLUB" 200 '.uuid' "$CLUB"
 
 say "role trees: a non-member/member never reaches the owner tree"
 assert s1 GET "/api/v1/clubs/$CLUB/members" 403 '.error' forbidden
@@ -141,7 +150,8 @@ assert j1 POST "/api/v1/sessions/$SESSION/signups" 201 '.role' adjudicator '{"as
 # ----------------------------------------------------------------
 say "signups on behalf + removal (head full control)"
 # ----------------------------------------------------------------
-assert x1 POST "/api/v1/clubs/$CLUB/join-requests" 201 '.status' pending
+assert x1 POST "/api/v1/clubs/$CLUB/join-requests" 201 '.status' pending \
+  '{"message":"extra member","contact":"@x1"}'
 X1_REQ=$(jq -r '.id' "$BODY")
 assert head PATCH "/api/v1/join-requests/$X1_REQ" 200 '.status' approved '{"action":"approve"}'
 
@@ -280,7 +290,7 @@ STEP=$((STEP + 1))
 printf 'ok %2d  %-5s %-55s %s  %s\n' "$STEP" GET "/c/$CLUB/s/$SESSION" 200 "name+winner+motion"
 
 # ----------------------------------------------------------------
-say "M7 pages: P1 /signin, the anonymous auth wall, P7 standings"
+say "M8a pages: /signin, the auth walls, the sidenav shell, standings rule 0"
 # ----------------------------------------------------------------
 req anon GET "/signin"
 [ "$STATUS" = "200" ] || fail "GET /signin: status $STATUS, want 200"
@@ -288,22 +298,68 @@ grep -q 'id="signin-github"' "$BODY" || fail "/signin misses the GitHub provider
 grep -q 'Continue with Google' "$BODY" || fail "/signin misses the Google (soon) button"
 html_ok "P1 provider buttons" GET "/signin" 200
 
-# every anonymous auth wall redirects to P1 — never to the provider
-WALL=$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE/c/$CLUB/member")
-case "$WALL" in */signin) : ;; *) fail "anon /c/.../member wall went to '$WALL', want /signin" ;; esac
-html_ok "anon member tree -> /signin" GET "/c/.../member" 302
+# every anonymous auth wall redirects to /signin — never to the provider
+WALL=$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE/c/$CLUB/member/sessions")
+case "$WALL" in */signin) : ;; *) fail "anon member sessions wall went to '$WALL', want /signin" ;; esac
+html_ok "anon member tree -> /signin" GET "/c/.../member/sessions" 302
 
-req anon GET "/c/$CLUB/standings"
-[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/standings: status $STATUS, want 200"
-grep -q 'id="standings-members"' "$BODY" || fail "standings page misses the members table"
-grep -q "$WINNER_HTML" "$BODY" || fail "standings page misses the session winner"
-html_ok "P7 standings + winner" GET "/c/$CLUB/standings" 200
+# the M7 member page is gone: /c/:club/member redirects to the club page
+LEGACY=$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE/c/$CLUB/member")
+case "$LEGACY" in */c/$CLUB) : ;; *) fail "legacy /member went to '$LEGACY', want /c/$CLUB" ;; esac
+html_ok "legacy member page -> club page" GET "/c/.../member" 302
 
-# the anonymous front page lists the club in the directory
+# club standings: the four tabs, engine calculated output VERBATIM
+req anon GET "/c/$CLUB/standings/teams"
+[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/standings/teams: status $STATUS, want 200"
+grep -q 'id="standings-tabs"' "$BODY" || fail "club standings misses the tab row"
+grep -q 'id="standings-teams"' "$BODY" || fail "club standings misses the teams table"
+grep -q "$WINNER_HTML" "$BODY" || fail "teams tab misses the winning team (engine passthrough)"
+grep -qi "win rate\|winrate\|wins<" "$BODY" && fail "standings page carries cab-side win math"
+html_ok "club standings teams (rule 0)" GET "/c/$CLUB/standings/teams" 200
+
+req anon GET "/c/$CLUB/standings/judges"
+[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/standings/judges: status $STATUS, want 200"
+grep -q "Rooms judged" "$BODY" || fail "judges tab misses the plain chair count"
+html_ok "club standings judges (plain count)" GET "/c/$CLUB/standings/judges" 200
+
+# global standings: the same four tabs, platform-wide latest finished
+req anon GET "/standings/teams"
+[ "$STATUS" = "200" ] || fail "GET /standings/teams: status $STATUS, want 200"
+grep -q 'id="standings-tabs"' "$BODY" || fail "global standings misses the tab row"
+html_ok "global standings teams" GET "/standings/teams" 200
+req anon GET "/standings/clubs"
+[ "$STATUS" = "200" ] || fail "GET /standings/clubs: status $STATUS, want 200"
+grep -q 'id="standings-clubs"' "$BODY" || fail "clubs tab misses the plain counts table"
+html_ok "global standings clubs" GET "/standings/clubs" 200
+
+# the sessions archive (owner path) + the owner session surface
+req head GET "/c/$CLUB/owner/sessions"
+[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/owner/sessions: status $STATUS, want 200"
+grep -q 'id="sessions-archive"' "$BODY" || fail "owner sessions misses the archive table"
+grep -q 'id="open-session-form"' "$BODY" || fail "owner sessions misses the open-session form"
+grep -q "Open new session" "$BODY" || fail "owner sessions misses the gold Open new session"
+html_ok "owner sessions archive + open form" GET "/c/$CLUB/owner/sessions" 200
+
+req head GET "/c/$CLUB/owner"
+[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/owner: status $STATUS, want 200"
+grep -q 'id="club-profile-form"' "$BODY" || fail "/owner misses the edit-in-place club form"
+html_ok "club edit-in-place (owner)" GET "/c/$CLUB/owner" 200
+
+# /account is the profile page; /admin does not exist for non-admins
+req head GET "/account"
+[ "$STATUS" = "200" ] || fail "GET /account: status $STATUS, want 200"
+grep -q 'id="account-form"' "$BODY" || fail "/account misses the profile form"
+html_ok "/account profile page" GET "/account" 200
+req head GET "/admin"
+[ "$STATUS" = "404" ] || fail "GET /admin as non-admin: status $STATUS, want 404"
+html_ok "/admin hidden from non-admins" GET "/admin" 404
+
+# the anonymous front page lists the club in the directory (sidenav shell)
 req anon GET "/"
 [ "$STATUS" = "200" ] || fail "GET / anonymous: status $STATUS, want 200"
 grep -q 'id="clubs-directory"' "$BODY" || fail "front page misses the clubs directory"
-html_ok "P2 clubs directory" GET "/" 200
+grep -q 'id="sidenav"' "$BODY" || fail "front page misses the sidenav shell"
+html_ok "front page directory + sidenav" GET "/" 200
 
 # ----------------------------------------------------------------
 say "iron run: 9 speakers, one 1-speaker team, iron ballot, winner"
@@ -377,6 +433,14 @@ for u in s1 s2 s3 s4 s5 s6; do
   assert "$u" POST "/api/v1/sessions/$GSESSION/signups" 201 '.role' speaker '{"as":"speak"}'
 done
 
+# the interim owner session surface: registration + signups + rooms
+req head GET "/c/$CLUB/owner/s/$GSESSION"
+[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/owner/s/$GSESSION: status $STATUS, want 200"
+grep -q 'id="shared-registration-url"' "$BODY" || fail "owner surface misses the shared URL"
+grep -q 'id="session-signups"' "$BODY" || fail "owner surface misses the signups table"
+grep -q "Close sign-ups" "$BODY" || fail "owner surface misses the Close sign-ups segment"
+html_ok "owner session surface" GET "/c/$CLUB/owner/s/\$sess" 200
+
 say "anonymous shared URL -> the registration form (no account)"
 : > "$JARS/g1"; : > "$JARS/g2"; : > "$JARS/late"; : > "$JARS/anon2"
 reqc g1 GET "/r/$GSESSION"
@@ -431,9 +495,9 @@ assert g1 GET "/api/v1/sessions/$GSESSION/links" 403 '.error' forbidden
 req g1 GET "/c/$CLUB/owner"
 [ "$STATUS" = "403" ] || fail "GET /c/$CLUB/owner as guest: status $STATUS, want 403"
 html_ok "guest on owner tree -> 403" GET "/c/.../owner" 403
-req g1 GET "/c/$CLUB/member"
-[ "$STATUS" = "403" ] || fail "GET /c/$CLUB/member as guest: status $STATUS, want 403"
-html_ok "guest on member tree -> 403" GET "/c/.../member" 403
+req g1 GET "/c/$CLUB/member/sessions"
+[ "$STATUS" = "403" ] || fail "GET /c/$CLUB/member/sessions as guest: status $STATUS, want 403"
+html_ok "guest on member tree -> 403" GET "/c/.../member/sessions" 403
 # a room of ANOTHER session does not exist on this session's P6 page
 reqc g2 GET "$G2_LINK"
 req g2 GET "/c/$CLUB/s/$GSESSION/rooms/$IRON_ROOM/ballot"
@@ -515,12 +579,21 @@ grep -q "Handed Hanna" "$BODY" || fail "guest night page misses Handed Hanna"
 html_ok "guest names in history" GET "/c/.../s/<guest-night>" 200
 
 # ----------------------------------------------------------------
-say "club management: profile PATCH + member removal (head only)"
+say "club management: profile PATCH (incl. the M8a profile columns) + member removal"
 # ----------------------------------------------------------------
 assert s1 PATCH "/api/v1/clubs/$CLUB" 403 '.error' forbidden '{"name":"nope"}'
 assert head PATCH "/api/v1/clubs/$CLUB" 200 '.city' Lviv \
-  "{\"name\":\"BP Walkthrough $RUN (renamed)\",\"city\":\"Lviv\"}"
+  "{\"name\":\"BP Walkthrough $RUN (renamed)\",\"city\":\"Lviv\",\"meeting_info\":\"Thursdays 18:30\",\"description\":\"BP practice club\",\"contacts\":\"@wtclub\"}"
 assert head GET "/api/v1/clubs/$CLUB" 200 '.name' "BP Walkthrough $RUN (renamed)"
+assert head GET "/api/v1/clubs/$CLUB" 200 '.meeting_info' "Thursdays 18:30"
+assert head GET "/api/v1/clubs/$CLUB" 200 '.contacts' "@wtclub"
+
+# the club page shows the profile columns
+req anon GET "/c/$CLUB"
+[ "$STATUS" = "200" ] || fail "GET /c/$CLUB: status $STATUS, want 200"
+grep -q "Thursdays 18:30" "$BODY" || fail "club page misses meeting_info"
+grep -q "BP practice club" "$BODY" || fail "club page misses the description"
+html_ok "club page profile columns" GET "/c/$CLUB" 200
 
 assert head GET "/api/v1/clubs/$CLUB/members" 200 '.members | length' 11
 X1_UID=$(jq -r --arg name "wt-$RUN-x1" \

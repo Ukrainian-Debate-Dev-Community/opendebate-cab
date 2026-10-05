@@ -3,20 +3,24 @@
 #
 #   platform/apps/cab/priv/prime_demo.sh <your_username>
 #
+# M8a shell: navigation lives in the LEFT SIDENAV (brand cap -> home;
+# global: Clubs | Standings | Admin; club: Club | Rooms | Sessions |
+# Standings | Members; profile block at the bottom -> /account).
+# Your user is made a PLATFORM ADMIN so the Admin item is clickable.
+#
 # Creates:
 #   Kyiv Debate Club  - YOU are head; 8 speakers + 1 judge approved and
-#                       registered to an OPEN session (sign-ups OPEN -
-#                       the M5 flow waits for YOU to close them); 1 join
-#                       request left pending for you to approve.
-#                       Your click path: approve nina -> Close sign-ups
-#                       -> Make rooms (or Compose rooms: drag chips
-#                       into slots) -> fill ballots (as head: full
-#                       control, or /dev/switch-user to demo-j1) ->
-#                       Finish session -> history -> session page.
+#                       registered to an OPEN session (sign-ups OPEN).
+#                       Click path: Members -> approve nina (her join
+#                       answers are shown) -> Rooms (the live session)
+#                       -> Close sign-ups -> Make/Compose rooms ->
+#                       ballots -> Finish session -> Sessions (archive)
+#                       and Standings (engine passthrough).
 #   Lviv Debate Society - demo-lviv-head is head; you are NOT a member:
-#                       request to join from the public page, then
+#                       Request to join runs through the JOIN FORM
+#                       (about me + contact required), then
 #                       /dev/switch-user?username=demo-lviv-head to
-#                       approve yourself (controlling other users).
+#                       approve yourself.
 set -u
 BASE="${BASE:-http://localhost:4000}"
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
@@ -48,6 +52,11 @@ for u in s1 s2 s3 s4 s5 s6 s7 s8 j1 nina lviv-head lviv-m1; do
 done
 mkjar me "$ME"
 
+echo "== $ME becomes a platform admin (the sidenav Admin item + /admin)"
+(cd "$ROOT/platform" && nix develop --command sh -c \
+  "mix run -e 'Cab.Repo.get_by!(Cab.Accounts.User, username: \"$ME\") |> Ecto.Changeset.change(is_admin: true) |> Cab.Repo.update!()'" \
+  >/dev/null 2>&1) || fail "could not set is_admin on $ME"
+
 echo "== Kyiv Debate Club (head: $ME)"
 SEED_OUT=$(cd "$ROOT/platform" && nix develop --command sh -c \
   "mix cab.seed_club 'Kyiv Debate Club' 'Kyiv' '$ME'" 2>&1) || { echo "$SEED_OUT"; fail "seed kyiv"; }
@@ -55,15 +64,17 @@ KYIV=$(printf '%s\n' "$SEED_OUT" | sed -n 's/^CLUB_UUID=//p' | tail -1)
 [ -n "$KYIV" ] || fail "no kyiv uuid"
 echo "   /c/$KYIV"
 
-echo "== joins: 8 speakers + judge approved, nina left PENDING for you"
+echo "== joins (with the REQUIRED form answers): 8 speakers + judge approved, nina PENDING"
 for u in s1 s2 s3 s4 s5 s6 s7 s8 j1; do
-  req "$u" POST "/api/v1/clubs/$KYIV/join-requests"
+  req "$u" POST "/api/v1/clubs/$KYIV/join-requests" \
+    "{\"message\":\"I am demo-$u and I want to debate\",\"contact\":\"@demo-$u\"}"
   [ "$STATUS" = "201" ] || fail "join $u: $STATUS"
   rid=$(jq -r '.id' "$BODY")
   req me PATCH "/api/v1/join-requests/$rid" '{"action":"approve"}'
   [ "$STATUS" = "200" ] || fail "approve $u: $STATUS"
 done
-req nina POST "/api/v1/clubs/$KYIV/join-requests"
+req nina POST "/api/v1/clubs/$KYIV/join-requests" \
+  '{"message":"Nina here — saw your club at the uni fair, want to try BP","contact":"@demo-nina"}'
 [ "$STATUS" = "201" ] || fail "join nina: $STATUS"
 
 echo "== open session + sign-ups (8 speak, 1 judge)"
@@ -82,7 +93,8 @@ echo "== Lviv Debate Society (you are an outsider)"
 SEED_OUT=$(cd "$ROOT/platform" && nix develop --command sh -c \
   "mix cab.seed_club 'Lviv Debate Society' 'Lviv' 'demo-lviv-head'" 2>&1) || { echo "$SEED_OUT"; fail "seed lviv"; }
 LVIV=$(printf '%s\n' "$SEED_OUT" | sed -n 's/^CLUB_UUID=//p' | tail -1)
-req lviv-m1 POST "/api/v1/clubs/$LVIV/join-requests"
+req lviv-m1 POST "/api/v1/clubs/$LVIV/join-requests" \
+  '{"message":"demo member for the roster","contact":"@demo-lviv-m1"}'
 [ "$STATUS" = "201" ] || fail "lviv join m1: $STATUS"
 rid=$(jq -r '.id' "$BODY")
 req lviv-head PATCH "/api/v1/join-requests/$rid" '{"action":"approve"}'
@@ -90,37 +102,49 @@ req lviv-head PATCH "/api/v1/join-requests/$rid" '{"action":"approve"}'
 
 cat <<EOF
 
-PRIMED. Your world ($ME) — the canonical eight:
-  P1 sign-in     $BASE/signin
-  P2/P3 home     $BASE/   (front page signed out, cabinet signed in)
-  P4 Kyiv        $BASE/c/$KYIV
-  P7 standings   $BASE/c/$KYIV/standings
-  P8 Kyiv owner  $BASE/c/$KYIV/owner
-                 - section tabs: Registration | Requests | Tonight |
-                   Rooms | Members | Settings (?tab=..., counters
-                   pull you to pending work)
-                 - 1 pending request (demo-nina): the Requests tab
-                 - session "Thursday practice" with sign-ups OPEN,
-                   8 speakers + 1 judge registered (Tonight tab)
-                 - guest registration (M6): the Registration tab
-                   carries the shareable URL
-                   $BASE/r/$SESS
-                   - anyone opens it, registers by name, and gets a
-                   personal /l/<code> link that signs them in and
-                   lands on the session page (issue, copy and revoke
-                   links from that tab).
-                   Click CLOSE SIGN-UPS,
-                   then Make rooms (auto) or Compose rooms
-                   (drag-and-drop chips into slots; a 1-speaker team
-                   is an iron) -> per-room ballots (you have full
-                   control; or act as the judge:
-                   $BASE/dev/switch-user?username=demo-j1)
-                 - Finish session -> the session page (P6) shows the
-                   winner; standings (P7) pick it up
-  P6 session     $BASE/c/$KYIV/s/$SESS
-  P5 member page $BASE/c/$KYIV/member (as an approved member)
-  Lviv (public)  $BASE/c/$LVIV
-                 - Request to join, then approve yourself as the head:
-                   $BASE/dev/switch-user?username=demo-lviv-head
-  switch back    $BASE/dev/switch-user?username=$ME
+PRIMED. Your world ($ME) — the M8a sidenav shell:
+
+GLOBAL (sidenav: Clubs | Standings | Admin · profile at the bottom)
+  home / cabinet   $BASE/
+                   - clubs directory with the words "Tonight" column;
+                     signed in it adds My clubs / My sessions
+  sign-in          $BASE/signin
+  standings        $BASE/standings/teams
+                   - four tabs: Teams | Speakers | Judges | Clubs —
+                     ONE session's engine output verbatim (latest
+                     finished); nothing finished yet = the notice
+  account          $BASE/account   (sidenav bottom: avatar + $ME)
+  admin            $BASE/admin     (you are is_admin: clubs table,
+                     create club, change head, archive)
+
+KYIV — you are head (club sidenav: Club | Rooms | Sessions |
+Standings | Members)
+  club page        $BASE/c/$KYIV
+  edit in place    $BASE/c/$KYIV/owner            (Save in the chrome)
+  Rooms (live)     $BASE/c/$KYIV/owner/s/$SESS
+                   - the owner surface: shared guest URL
+                     $BASE/r/$SESS, signed-up list, add by hand;
+                     Close sign-ups -> Make rooms or Compose rooms
+                     (drag-and-drop; a 1-speaker team is an iron) ->
+                     per-room ballots (you have full control; or act
+                     as the judge: $BASE/dev/switch-user?username=demo-j1)
+                     -> Finish session
+  Sessions         $BASE/c/$KYIV/owner/sessions   (archive + Open new
+                     session — the open form moved here)
+  Members          $BASE/c/$KYIV/owner/members
+                   - nina's request is PENDING with her form answers
+                     (about me + contact) — approve or decline
+  Standings        $BASE/c/$KYIV/standings/teams  (same four tabs,
+                     club-scoped; fills up after Finish session)
+  session page     $BASE/c/$KYIV/s/$SESS          (public, stage-aware)
+
+LVIV — you are an outsider
+  club page        $BASE/c/$LVIV
+                   - "Request to join" opens the JOIN FORM
+                     ($BASE/c/$LVIV/join): about me + contact are
+                     REQUIRED; then approve yourself as the head:
+                     $BASE/dev/switch-user?username=demo-lviv-head
+                     -> $BASE/c/$LVIV/owner/members
+
+switch back        $BASE/dev/switch-user?username=$ME
 EOF
