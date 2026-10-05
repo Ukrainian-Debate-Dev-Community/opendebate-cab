@@ -20,6 +20,18 @@ defmodule Cab.Accounts do
 
   def list_users, do: Repo.all(from u in User, order_by: u.username)
 
+  @doc "The /account profile edit — display name only; identity fields stay provider-fed."
+  def update_profile(%User{} = user, attrs) do
+    user
+    |> User.changeset(%{name: attrs["name"] || attrs[:name]})
+    |> Repo.update()
+  end
+
+  @doc "The user's linked provider identities (the /account providers card)."
+  def list_identities(%User{} = user) do
+    Repo.all(from i in Identity, where: i.user_id == ^user.id, order_by: i.provider)
+  end
+
   @doc """
   Finds the user for an Ueberauth result, creating user + identity on
   first login. Profile fields are refreshed from the provider each time.

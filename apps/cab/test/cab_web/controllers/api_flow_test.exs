@@ -55,18 +55,36 @@ defmodule CabWeb.ApiFlowTest do
     # anonymous cannot ask
     assert conn |> post(~p"/api/v1/clubs/#{club.uuid}/join-requests") |> json_response(401)
 
-    created =
+    # the two answers are REQUIRED — a bare request is rejected
+    missing =
       conn
       |> log_in(user)
       |> post(~p"/api/v1/clubs/#{club.uuid}/join-requests")
+      |> json_response(422)
+
+    assert missing["details"]["message"]
+    assert missing["details"]["contact"]
+
+    created =
+      conn
+      |> log_in(user)
+      |> post(~p"/api/v1/clubs/#{club.uuid}/join-requests", %{
+        message: "I debated at school",
+        contact: "@tg"
+      })
       |> json_response(201)
 
     assert created["status"] == "pending"
+    assert created["message"] == "I debated at school"
+    assert created["contact"] == "@tg"
 
     # duplicates rejected
     assert conn
            |> log_in(user)
-           |> post(~p"/api/v1/clubs/#{club.uuid}/join-requests")
+           |> post(~p"/api/v1/clubs/#{club.uuid}/join-requests", %{
+             message: "again",
+             contact: "@tg"
+           })
            |> json_response(422)
 
     # only the head may decide
@@ -92,7 +110,9 @@ defmodule CabWeb.ApiFlowTest do
 
   test "decline deletes the request", %{conn: conn, club: club, head: head} do
     user = user_fixture()
-    {:ok, membership} = Cab.Clubs.request_join(user, club)
+
+    {:ok, membership} =
+      Cab.Clubs.request_join(user, club, %{"message" => "hi", "contact" => "@tg"})
 
     declined =
       conn
@@ -650,11 +670,20 @@ defmodule CabWeb.ApiFlowTest do
     updated =
       conn
       |> log_in(head)
-      |> patch(~p"/api/v1/clubs/#{club.uuid}", %{name: "Renamed Club", city: "Lviv"})
+      |> patch(~p"/api/v1/clubs/#{club.uuid}", %{
+        name: "Renamed Club",
+        city: "Lviv",
+        meeting_info: "Thursdays 18:30",
+        description: "BP club",
+        contacts: "@tg"
+      })
       |> json_response(200)
 
     assert updated["name"] == "Renamed Club"
     assert updated["city"] == "Lviv"
+    assert updated["meeting_info"] == "Thursdays 18:30"
+    assert updated["description"] == "BP club"
+    assert updated["contacts"] == "@tg"
 
     # the roster carries user_id so removal is addressable
     members =

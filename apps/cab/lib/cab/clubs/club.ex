@@ -6,6 +6,12 @@ defmodule Cab.Clubs.Club do
     field :uuid, Ecto.UUID
     field :name, :string
     field :city, :string
+    # the public profile card (P4), owner/admin editable in place
+    field :meeting_info, :string
+    field :description, :string
+    field :contacts, :string
+    # admin archive flag — set server-side, never cast
+    field :archived_at, :utc_datetime
     field :engine_organisation_id, :integer
 
     has_many :memberships, Cab.Clubs.Membership
@@ -16,7 +22,7 @@ defmodule Cab.Clubs.Club do
 
   def changeset(club, attrs) do
     club
-    |> cast(attrs, [:name, :city])
+    |> cast(attrs, [:name, :city, :meeting_info, :description, :contacts])
     |> validate_required([:name])
     |> put_uuid()
     |> unique_constraint(:uuid)

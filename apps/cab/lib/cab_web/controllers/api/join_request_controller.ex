@@ -9,12 +9,20 @@ defmodule CabWeb.Api.JoinRequestController do
   plug ClubScope, [source: :club, require: :authenticated] when action == :create
   plug ClubScope, [source: :join_request, require: :owner] when action == :update
 
-  # POST /api/v1/clubs/:uuid/join-requests — a join request IS a
-  # pending membership
-  def create(conn, _params) do
+  # POST /api/v1/clubs/:uuid/join-requests {"message", "contact"} —
+  # a join request IS a pending membership; both answers are
+  # REQUIRED (the join form's fields, read by the head in Requests)
+  def create(conn, params) do
     with {:ok, membership} <-
-           Clubs.request_join(conn.assigns.current_user, conn.assigns.club) do
-      conn |> put_status(201) |> json(%{id: membership.id, status: membership.status})
+           Clubs.request_join(conn.assigns.current_user, conn.assigns.club, params) do
+      conn
+      |> put_status(201)
+      |> json(%{
+        id: membership.id,
+        status: membership.status,
+        message: membership.message,
+        contact: membership.contact
+      })
     end
   end
 

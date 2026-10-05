@@ -15,6 +15,8 @@ defmodule Cab.ClubsTest do
 
   defp ok(conn, data), do: Req.Test.json(conn, %{"status" => "success", "data" => data})
 
+  defp join_answers, do: %{"message" => "about me", "contact" => "@tg"}
+
   defp claims(conn) do
     ["Bearer " <> token] = Plug.Conn.get_req_header(conn, "authorization")
     signer = Joken.Signer.create("HS256", "test-engine-secret")
@@ -64,12 +66,19 @@ defmodule Cab.ClubsTest do
       %{head: head, club: club}
     end
 
-    test "request_join is a pending membership; approval flips it", %{club: club} do
+    test "request_join is a pending membership carrying the form's answers", %{club: club} do
       user = user_fixture()
       assert Clubs.role_for(club, user) == :public
 
-      assert {:ok, membership} = Clubs.request_join(user, club)
+      assert {:ok, membership} =
+               Clubs.request_join(user, club, %{
+                 "message" => "I debated at school",
+                 "contact" => "@anna_tg"
+               })
+
       assert membership.status == "pending"
+      assert membership.message == "I debated at school"
+      assert membership.contact == "@anna_tg"
       # pending = still public
       assert Clubs.role_for(club, user) == :public
       assert [request] = Clubs.list_join_requests(club)
@@ -81,9 +90,19 @@ defmodule Cab.ClubsTest do
       assert Clubs.list_join_requests(club) == []
     end
 
+    test "both answers are REQUIRED — never a bare button", %{club: club} do
+      user = user_fixture()
+
+      assert {:error, changeset} = Clubs.request_join(user, club)
+      assert %{message: [_], contact: [_]} = errors_on(changeset)
+
+      assert {:error, changeset} = Clubs.request_join(user, club, %{"message" => "hi"})
+      assert %{contact: [_]} = errors_on(changeset)
+    end
+
     test "decline deletes the pending membership", %{club: club} do
       user = user_fixture()
-      {:ok, membership} = Clubs.request_join(user, club)
+      {:ok, membership} = Clubs.request_join(user, club, join_answers())
 
       assert {:ok, _} = Clubs.decline_join(Clubs.get_membership(membership.id))
       assert Clubs.get_membership(membership.id) == nil
@@ -92,8 +111,8 @@ defmodule Cab.ClubsTest do
 
     test "a second request is rejected", %{club: club} do
       user = user_fixture()
-      {:ok, _} = Clubs.request_join(user, club)
-      assert {:error, changeset} = Clubs.request_join(user, club)
+      {:ok, _} = Clubs.request_join(user, club, join_answers())
+      assert {:error, changeset} = Clubs.request_join(user, club, join_answers())
       assert %{user_id: [_]} = errors_on(changeset)
     end
 
@@ -176,9 +195,62 @@ defmodule Cab.ClubsTest do
 
       # a pending request can be removed too (same as declining)
       pending = user_fixture()
-      {:ok, _} = Clubs.request_join(pending, club)
+      {:ok, _} = Clubs.request_join(pending, club, join_answers())
       assert {:ok, _} = Clubs.remove_member(club, pending.id)
       assert Clubs.list_join_requests(club) == []
+    end
+  end
+
+  describe "archive_club/1" do
+    test "archived clubs leave the public directory but keep their rows" do
+      head = user_fixture()
+      club = club_fixture(head)
+      live = club_fixture(user_fixture())
+
+      assert {:ok, archived} = Clubs.archive_club(club)
+      assert archived.archived_at != nil
+
+      listed = Clubs.list_clubs() |> Enum.map(& &1.id)
+      assert live.id in listed
+      refute club.id in listed
+
+      # the admin listing still sees it
+      assert club.id in (Clubs.list_all_clubs() |> Enum.map(& &1.id))
+    end
+  end
+
+  describe "change_head/2" do
+    test "engine org gains the new head as owner; memberships swap roles" do
+      old_head = user_fixture(%{node_user_id: 9})
+      new_head = user_fixture(%{node_user_id: 10})
+      club = club_fixture(old_head, %{engine_organisation_id: 3})
+
+      stub(fn conn, params ->
+        assert conn.method == "POST"
+        assert conn.request_path == "/api/organisations/3/owners"
+        assert params == %{"targetUserId" => 10}
+        ok(conn, %{"id" => 1})
+      end)
+
+      assert {:ok, _club} = Clubs.change_head(club, new_head)
+      assert Clubs.role_for(club, new_head) == :owner
+      assert Clubs.role_for(club, old_head) == :member
+      assert Clubs.head_of(club).id == new_head.id
+    end
+
+    test "an engine refusal changes nothing" do
+      old_head = user_fixture(%{node_user_id: 9})
+      new_head = user_fixture(%{node_user_id: 10})
+      club = club_fixture(old_head, %{engine_organisation_id: 3})
+
+      stub(fn conn, _params ->
+        conn
+        |> Plug.Conn.put_resp_content_type("application/json")
+        |> Plug.Conn.send_resp(403, ~s({"status":"fail","message":"nope"}))
+      end)
+
+      assert {:error, "nope"} = Clubs.change_head(club, new_head)
+      assert Clubs.role_for(club, old_head) == :owner
     end
   end
 end

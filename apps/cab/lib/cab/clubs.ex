@@ -52,14 +52,76 @@ defmodule Cab.Clubs do
     end
   end
 
-  @doc "All clubs for the public front-page directory, alphabetical."
+  @doc """
+  All LIVE clubs, alphabetical — the public directory and every other
+  public surface. Archived clubs never appear here.
+  """
   def list_clubs do
+    Repo.all(from c in Club, where: is_nil(c.archived_at), order_by: c.name)
+  end
+
+  @doc "Every club, archived included — the /admin table only."
+  def list_all_clubs do
     Repo.all(from c in Club, order_by: c.name)
   end
 
-  @doc "The head edits the club profile (name, city) — gateway row only."
+  @doc "The head/admin edits the club profile — gateway row only."
   def update_club(%Club{} = club, attrs) do
     club |> Club.changeset(attrs) |> Repo.update()
+  end
+
+  @doc """
+  Admin archives a club: the gateway `archived_at` flag only — the
+  engine organisation and all debate history stay untouched. Archived
+  clubs disappear from every public surface.
+  """
+  def archive_club(%Club{} = club) do
+    club
+    |> Ecto.Changeset.change(archived_at: DateTime.utc_now(:second))
+    |> Repo.update()
+  end
+
+  @doc "The club's current head user, or nil."
+  def head_of(%Club{} = club) do
+    Repo.one(
+      from u in User,
+        join: m in Membership,
+        on: m.user_id == u.id,
+        where: m.club_id == ^club.id and m.role == "head" and m.status == "approved",
+        limit: 1
+    )
+  end
+
+  @doc """
+  Admin hands the club to a new head: the engine organisation gains
+  the new head as owner (so `club_actor/1` keeps working), the old
+  head membership becomes a plain member and the new head's
+  membership becomes the head row.
+  """
+  def change_head(%Club{} = club, %User{} = new_head) do
+    new_head = Accounts.ensure_node_user(new_head)
+
+    with {:ok, actor} <- require_node_user(new_head),
+         {:ok, _} <- EngineApi.add_owner(actor, club.engine_organisation_id, actor) do
+      Repo.transaction(fn ->
+        from(m in Membership, where: m.club_id == ^club.id and m.role == "head")
+        |> Repo.update_all(set: [role: "member"])
+
+        case Repo.get_by(Membership, club_id: club.id, user_id: new_head.id) do
+          nil ->
+            %Membership{user_id: new_head.id, club_id: club.id}
+            |> Membership.changeset(%{role: "head", status: "approved"})
+            |> Repo.insert!()
+
+          membership ->
+            membership
+            |> Membership.changeset(%{role: "head", status: "approved"})
+            |> Repo.update!()
+        end
+
+        club
+      end)
+    end
   end
 
   @doc """
@@ -101,10 +163,19 @@ defmodule Cab.Clubs do
   # Memberships / join requests
   # ---------------------------------------------------------------
 
-  @doc "A signed-in user asks to join: a pending membership row."
-  def request_join(%User{} = user, %Club{} = club) do
+  @doc """
+  A signed-in user asks to join through the join FORM: a pending
+  membership row carrying the two required answers (about me +
+  contact) the head reads in Requests. Never a bare button.
+  """
+  def request_join(%User{} = user, %Club{} = club, attrs \\ %{}) do
     %Membership{user_id: user.id, club_id: club.id}
-    |> Membership.changeset(%{role: "member", status: "pending"})
+    |> Membership.join_changeset(%{
+      role: "member",
+      status: "pending",
+      message: attrs["message"] || attrs[:message],
+      contact: attrs["contact"] || attrs[:contact]
+    })
     |> Repo.insert()
   end
 
