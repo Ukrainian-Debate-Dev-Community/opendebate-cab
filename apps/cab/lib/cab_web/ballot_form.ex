@@ -16,6 +16,8 @@ defmodule CabWeb.BallotForm do
   the team's speakers. With `ballot_params` (the submitted `ballot`
   map on a failed POST) the chosen speakers, iron flags and scores
   are echoed back and teams with tied totals carry `tied: true`.
+  Without params, a room that already carries submitted scores
+  prefills them — editing a ballot never means retyping it.
   """
   def teams(room, ballot_params \\ nil) do
     tied = tied_sides(ballot_params)
@@ -26,24 +28,24 @@ defmodule CabWeb.BallotForm do
     |> Enum.map(fn room_team ->
       side = Enum.at(@sides, room_team["position"] - 1)
 
-      speakers =
+      slots =
         Enum.map(room_team["RoomSpeakers"] || [], fn speaker ->
           participant = speaker["EventParticipant"] || %{}
-          {participant["display_name"] || "?", participant["id"]}
+          {participant["display_name"] || "?", participant["id"], slot_score(speaker)}
         end)
 
       # a 1-speaker (iron) team carries the same participant on both
       # engine slots: both position rows prefill that speaker, iron
       # pre-checked on the second; the dropdown lists them once
-      options = Enum.uniq(speakers)
-      iron_team? = length(speakers) > 1 and length(options) == 1
+      options = Enum.uniq(Enum.map(slots, fn {label, id, _score} -> {label, id} end))
+      iron_team? = length(slots) > 1 and length(options) == 1
 
       rows =
         @roles[side]
         |> Enum.with_index()
         |> Enum.map(fn {role, index} ->
           submitted = params_for(ballot_params, side, role)
-          {_label, default} = Enum.at(speakers, index, {nil, nil})
+          {_label, default, stored} = Enum.at(slots, index, {nil, nil, nil})
 
           %{
             role: role,
@@ -52,7 +54,7 @@ defmodule CabWeb.BallotForm do
             iron:
               iron?(submitted["iron"]) or
                 (is_nil(ballot_params) and iron_team? and index == 1),
-            score: submitted["score"]
+            score: submitted["score"] || (is_nil(ballot_params) && stored) || nil
           }
         end)
 
@@ -85,6 +87,10 @@ defmodule CabWeb.BallotForm do
   end
 
   def scores_from_params(_ballot_params), do: []
+
+  # the slot's already-submitted score, riding along the room read
+  defp slot_score(%{"Scores" => [%{"value" => value} | _]}), do: value
+  defp slot_score(_speaker), do: nil
 
   defp params_for(nil, _side, _role), do: %{}
 

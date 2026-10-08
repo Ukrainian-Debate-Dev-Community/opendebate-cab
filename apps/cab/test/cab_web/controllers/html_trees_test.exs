@@ -1099,7 +1099,15 @@ defmodule CabWeb.HtmlTreesTest do
 
     # confirmed room: no delete segment, an edit ballot link instead
     # (lock/unlock stays internal — the page never says it)
-    confirmed_room = %{running_room(44) | "status" => "confirmed"}
+    confirmed_room =
+      %{running_room(44) | "status" => "confirmed"}
+      |> update_in(["RoomTeams"], fn teams ->
+        Enum.map(teams, fn room_team ->
+          update_in(room_team, ["RoomSpeakers"], fn speakers ->
+            Enum.map(speakers, &Map.put(&1, "Scores", [%{"value" => 78}]))
+          end)
+        end)
+      end)
 
     stub(fn conn, _params ->
       case {conn.method, conn.request_path} do
@@ -1137,7 +1145,7 @@ defmodule CabWeb.HtmlTreesTest do
     refute html =~ "unlock"
     refute html =~ "unconfirm"
 
-    # the link opens the ordinary ballot form for the confirmed room
+    # the link opens the ballot form PREFILLED with the stored scores
     ballot_html =
       conn
       |> log_in(head)
@@ -1145,6 +1153,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> html_response(200)
 
     assert ballot_html =~ ~s(class="ballot")
+    assert ballot_html =~ ~s(value="78")
   end
 
   test "session cancel lands on the archive; finish lands on the session page",
