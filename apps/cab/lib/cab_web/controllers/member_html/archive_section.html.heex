@@ -1,0 +1,18 @@
+<.section title="Club Sessions">
+  <.table id="club-sessions" rows={@archive} empty="No sessions yet.">
+    <:col :let={row} label="Session">
+      <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"}>{row.name}</.link>
+      <.sub>{Calendar.strftime(row.date, "%-d %b %Y")}</.sub>
+    </:col>
+    <:col :let={row} label="Status" class="st">
+      <%= case row.status do %>
+        <% :done -> %>
+          {if row.winner, do: "done — won by #{row.winner}", else: "done"}
+        <% :live -> %>
+          <b>live</b>
+        <% :open -> %>
+          sign-ups open
+      <% end %>
+    </:col>
+  </.table>
+</.section>

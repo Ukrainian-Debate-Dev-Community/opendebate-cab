@@ -1,0 +1,72 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="rooms"
+>
+  <.chrome
+    crumbs={[
+      {@club.name, ~p"/c/#{@club.uuid}"},
+      {"club", ~p"/c/#{@club.uuid}/owner"}
+    ]}
+    here={"#{@state.event["name"]} — #{stage_words(@state.stage)}"}
+  >
+    <:seg :if={@state.stage == :signup} form="allocator-form" primary>
+      Start session
+    </:seg>
+    <:seg :if={@state.stage == :closed} form="allocator-form" primary>
+      Make these rooms
+    </:seg>
+    <:seg
+      :if={@state.stage == :closed}
+      href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-signups"}
+      method="post"
+    >
+      Reopen sign-ups
+    </:seg>
+    <:seg
+      :if={deletable_rooms?(@state)}
+      href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/rooms/delete"}
+      method="post"
+      quiet
+    >
+      Delete rooms
+    </:seg>
+    <:seg
+      :if={@state.stage == :running && deletable_rooms?(@state)}
+      href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-registration"}
+      method="post"
+    >
+      Reopen registration
+    </:seg>
+    <:seg
+      :if={@state.stage == :running}
+      href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/finish"}
+      method="post"
+      primary
+    >
+      Finish session
+    </:seg>
+  </.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <%= if @state.stage == :done do %>
+      <.section title="Session" pad>
+        This session is finished — results live on the <.link href={
+          ~p"/c/#{@club.uuid}/s/#{@current.uuid}"
+        }>session page</.link>.
+        <p>
+          Previous sessions live on the <.link href={~p"/c/#{@club.uuid}/owner"}>club page</.link>.
+        </p>
+      </.section>
+    <% else %>
+      {registration_block(assigns)}
+      {signups_block(assigns)}
+      {rooms_block(assigns)}
+    <% end %>
+  </div>
+</Layouts.app>

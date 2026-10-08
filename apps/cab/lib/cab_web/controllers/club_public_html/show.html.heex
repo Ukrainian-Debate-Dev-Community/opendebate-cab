@@ -1,0 +1,47 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="club"
+>
+  <.chrome here={@club.name}>
+    <:seg :if={@club_role in [:owner, :admin]} href={~p"/c/#{@club.uuid}/owner"}>
+      Edit club
+    </:seg>
+    <:seg :if={@club_role == :public and is_nil(@current_user)} href={~p"/signin"} primary>
+      Request to join
+    </:seg>
+    <:seg
+      :if={@club_role == :public and @current_user}
+      href={~p"/c/#{@club.uuid}/join"}
+      primary
+    >
+      Request to join
+    </:seg>
+  </.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <.section title="About" pad>
+      <b id="club-name">{@club.name}</b>{if @club.city, do: " · #{@club.city}"}
+      <p>
+        {length(@members)} member{if length(@members) != 1, do: "s"}{if head_name(@members),
+          do: " · head: #{head_name(@members)}"}
+      </p>
+      <p :if={@club.description}>{@club.description}</p>
+      <p :if={@club.meeting_info}>Meetings: {@club.meeting_info}</p>
+      <p :if={@club.contacts}>Contacts: {@club.contacts}</p>
+    </.section>
+
+    <CabWeb.MemberHTML.archive_section club={@club} archive={@recent} />
+
+    <.section title="Standings" pad>
+      Per-session engine standings live under
+      <.link href={~p"/c/#{@club.uuid}/standings/teams"}>Standings</.link>
+      in the sidenav.
+    </.section>
+  </div>
+</Layouts.app>

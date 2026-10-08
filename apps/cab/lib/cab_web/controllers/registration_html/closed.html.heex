@@ -1,0 +1,26 @@
+<Layouts.app
+  flash={@flash}
+  current_user={assigns[:current_user]}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@session}
+  active="register"
+>
+  <.chrome
+    crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
+    here={"register — #{stage_words(@state.stage)}"}
+  >
+  </.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <.banner kind={:info}>Registration is closed for this session.</.banner>
+
+    <.section title="Registration" pad>
+      Sign-ups for <b>{@state.event["name"]}</b>
+      are no longer open.
+      <p>Ask the club head about the next session.</p>
+    </.section>
+  </div>
+</Layouts.app>

@@ -1,0 +1,27 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="members"
+>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="members"></.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <.section title={"Members · #{length(@members)}"}>
+      <.table id="members-list" rows={@members} empty="No members yet.">
+        <:col :let={membership} label="Member">
+          {membership.user.username}
+          <.sub :if={membership.user.name}>{membership.user.name}</.sub>
+        </:col>
+        <:col :let={membership} label="Role">{membership.role}</:col>
+        <:col :let={membership} label="Since">
+          {Calendar.strftime(membership.inserted_at, "%-d %b %Y")}
+        </:col>
+      </.table>
+    </.section>
+  </div>
+</Layouts.app>

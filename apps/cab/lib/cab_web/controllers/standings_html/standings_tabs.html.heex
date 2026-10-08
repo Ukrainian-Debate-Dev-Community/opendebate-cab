@@ -1,0 +1,11 @@
+<.selrow
+  id="standings-tabs"
+  active={@active}
+  tabs={
+    [
+      {"teams", "Teams", "#{@base}/teams"},
+      {"speakers", "Speakers", "#{@base}/speakers"},
+      {"judges", "Judges", "#{@base}/judges"}
+    ] ++ if(@clubs_tab, do: [{"clubs", "Clubs", "#{@base}/clubs"}], else: [])
+  }
+/>

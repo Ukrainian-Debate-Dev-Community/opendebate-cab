@@ -1,0 +1,53 @@
+<%= if @state.stage == :signup do %>
+  <.copy_banner id="shared-registration-url" url={url(~p"/r/#{@current.uuid}")}>
+    Share to register without an account
+  </.copy_banner>
+<% end %>
+
+<%= if @state.stage == :signup or @links != [] do %>
+  <.section title={"Guest registrations · #{length(@links)}"}>
+    <div class="pad">
+      <p>
+        Personal links below are each guest's ONLY access — share one only with its guest.
+      </p>
+    </div>
+    <.table id="guest-links" rows={@links} empty="No guest links issued yet.">
+      <:col :let={link} label="Name">
+        {link.user.name}
+        <.sub>guest · {link.user.username}</.sub>
+      </:col>
+      <:col :let={link} label="Role">{Links.role_in(link, @state.signups) || "—"}</:col>
+      <:col :let={link} label="Personal link" code>
+        {url(~p"/l/#{link.code}")}
+      </:col>
+      <:col :let={link}>
+        <.copy text={url(~p"/l/#{link.code}")} />
+      </:col>
+      <:col :let={link}>
+        <.link href={~p"/c/#{@club.uuid}/owner/links/#{link.id}/revoke"} method="post">
+          revoke
+        </.link>
+      </:col>
+    </.table>
+  </.section>
+<% end %>
+
+<%= if @state.stage == :signup do %>
+  <.section title="Issue a link by hand">
+    <.form_for
+      id="issue-link-form"
+      action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/links"}
+      description="Register a guest by hand — their personal link lands in the banner above."
+    >
+      <:block name={:name} type={:text} label="Guest name" required />
+      <:block
+        name={:as}
+        type={:select}
+        label="Signs up to"
+        value="speak"
+        options={[{"speak", "speak"}, {"judge", "judge"}]}
+      />
+      <:submit note="The guest appears in tonight's list right away.">Create link</:submit>
+    </.form_for>
+  </.section>
+<% end %>

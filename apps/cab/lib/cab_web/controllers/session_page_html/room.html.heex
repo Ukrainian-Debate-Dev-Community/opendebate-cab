@@ -1,0 +1,84 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="rooms"
+>
+  <.chrome
+    crumbs={[
+      {@club.name, ~p"/c/#{@club.uuid}"},
+      {@state.event["name"], ~p"/c/#{@club.uuid}/s/#{@session.uuid}"}
+    ]}
+    here={"room R#{@room["id"]} — #{room_status_words(@room["status"])}"}
+  >
+    <:seg :if={@can_act && is_nil(@room["Motion"])} form={"room-motion-#{@room["id"]}"} primary>
+      Publish motion
+    </:seg>
+    <:seg
+      :if={@can_edit_ballot}
+      href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/ballot"}
+      primary={@room["Motion"] != nil}
+    >
+      {if @room["status"] in ["completed", "confirmed"],
+        do: "Edit ballot",
+        else: "Fill ballot"}
+    </:seg>
+  </.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <.section title="Draw">
+      <.table id={"room-#{@room["id"]}-draw"} rows={sorted_teams(@room)}>
+        <:col :let={room_team} label="Side" code>{side_code(room_team["position"])}</:col>
+        <:col :let={room_team} label="Team">{get_in(room_team, ["Team", "name"])}</:col>
+        <:col :let={room_team} label="Speakers">{speaker_names(room_team)}</:col>
+      </.table>
+      <div class="pad">Judge: <b>{judge_name(@room, @state.signups)}</b></div>
+    </.section>
+
+    <%= if @room["Motion"] do %>
+      <.section title="Motion" pad>
+        <b id="room-motion-text">{@room["Motion"]["motion_text"]}</b>
+        <p :if={@room["Motion"]["infoslide"]}>{@room["Motion"]["infoslide"]}</p>
+        <p :if={@room["Motion"]["keyword"]} class="mut">
+          keyword: {@room["Motion"]["keyword"]}
+        </p>
+        <p :if={prep_deadline(@room)} class="mut">
+          <span id="prep-clock" data-prep-deadline={prep_deadline(@room)}>
+            15 minutes of prep from publishing
+          </span>
+        </p>
+      </.section>
+    <% else %>
+      <.section :if={!@can_act} title="Motion" pad>
+        Not set yet — the judge sets it when the room begins.
+      </.section>
+      <.section :if={@can_act} title="Motion">
+        <.form_for
+          id={"room-motion-#{@room["id"]}"}
+          action={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/motion"}
+          title="This room's motion"
+          description="Publishing shows it to the room and starts 15 minutes of prep."
+        >
+          <:block name={:motion_text} type={:text} label="Motion" required />
+          <:block
+            name={:infoslide}
+            type={:longtext}
+            label="Infoslide"
+            hint="Optional context read before prep."
+          />
+          <:block
+            name={:keyword}
+            type={:text}
+            label="Keyword"
+            hint="Optional tag for finding the motion later."
+          />
+          <:submit note="Visible to everyone in the room right away.">Publish motion</:submit>
+        </.form_for>
+      </.section>
+    <% end %>
+  </div>
+</Layouts.app>

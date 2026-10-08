@@ -1,0 +1,89 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="club"
+>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="edit">
+    <:seg href={~p"/c/#{@club.uuid}"} quiet>View as public</:seg>
+    <:seg form="open-session-form" primary={is_nil(@live)}>Open new session</:seg>
+    <:seg form="club-profile-form" primary={not is_nil(@live)}>Save</:seg>
+  </.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <.section title="Club profile">
+      <.form_for
+        id="club-profile-form"
+        action={~p"/c/#{@club.uuid}/owner/club"}
+        description="Exactly what visitors read on the club page."
+      >
+        <:block name={:name} type={:text} label="Club name" required value={@club.name} />
+        <:block name={:city} type={:text} label="City" value={@club.city} />
+        <:block
+          name={:meeting_info}
+          type={:text}
+          label="Meetings"
+          value={@club.meeting_info}
+          hint="When and where the club meets, e.g. Thursdays 18:30, Hrushevskoho 4."
+        />
+        <:block
+          name={:description}
+          type={:longtext}
+          label="About the club"
+          value={@club.description}
+        />
+        <:block
+          name={:contacts}
+          type={:text}
+          label="Contacts"
+          value={@club.contacts}
+          hint="Telegram, email — how newcomers reach the club."
+        />
+        <:block
+          name={:is_private}
+          type={:select}
+          label="Standings"
+          value={if @club.is_private, do: "true", else: "false"}
+          options={[{"public", "false"}, {"members only", "true"}]}
+          hint="Members only also keeps the club out of the global standings. Everything else stays public."
+        />
+      </.form_for>
+    </.section>
+
+    <.banner
+      :if={@live}
+      kind={:info}
+      href={~p"/c/#{@club.uuid}/owner/s/#{@live.uuid}"}
+      link="Open →"
+    >
+      The current session lives under Rooms.
+    </.banner>
+
+    <.archive_section club={@club} archive={@archive} />
+
+    <.section title="Open a session">
+      <.form_for
+        id="open-session-form"
+        action={~p"/c/#{@club.uuid}/owner/sessions"}
+        description="Members can sign up as soon as you open it."
+      >
+        <:block
+          name={:name}
+          type={:text}
+          label="Session name"
+          hint="Shown to members on the club page; defaults to the date."
+        />
+        <:block
+          names={[:date, :time]}
+          type={:datetime}
+          label="Date and start time"
+          hint="Optional — when the session is planned to start (UTC)."
+        />
+      </.form_for>
+    </.section>
+  </div>
+</Layouts.app>

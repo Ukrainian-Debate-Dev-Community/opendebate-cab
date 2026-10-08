@@ -1,0 +1,73 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="members"
+>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="members"></.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <.section title={"Join requests · #{length(@join_requests)}"}>
+      <.table
+        id="join-requests"
+        rows={@join_requests}
+        row_id={&"join-request-#{&1.id}"}
+        empty="No pending requests."
+      >
+        <:col :let={request} label="Who">
+          {request.user.username}
+          <.sub>signed-in user{if request.user.name, do: " · #{request.user.name}"}</.sub>
+        </:col>
+        <:col :let={request} label="About them">
+          {request.message || "—"}
+          <.sub :if={request.contact}>contact: {request.contact}</.sub>
+        </:col>
+        <:col :let={request} label="Requested">
+          {Calendar.strftime(request.inserted_at, "%-d %b %Y")}
+        </:col>
+        <:col :let={request}>
+          <.link
+            href={~p"/c/#{@club.uuid}/owner/join-requests/#{request.id}/approve"}
+            method="post"
+          >
+            approve
+          </.link>
+        </:col>
+        <:col :let={request}>
+          <.link
+            href={~p"/c/#{@club.uuid}/owner/join-requests/#{request.id}/decline"}
+            method="post"
+          >
+            decline
+          </.link>
+        </:col>
+      </.table>
+    </.section>
+
+    <.section title={"Members · #{length(@members)}"}>
+      <.table id="members-list" rows={@members} empty="No members yet.">
+        <:col :let={membership} label="Member">
+          {membership.user.username}
+          <.sub :if={membership.user.name}>{membership.user.name}</.sub>
+        </:col>
+        <:col :let={membership} label="Role">{membership.role}</:col>
+        <:col :let={membership} label="Since">
+          {Calendar.strftime(membership.inserted_at, "%-d %b %Y")}
+        </:col>
+        <:col :let={membership}>
+          <.link
+            :if={membership.role != "head"}
+            href={~p"/c/#{@club.uuid}/owner/members/#{membership.user_id}/remove"}
+            method="post"
+          >
+            remove
+          </.link>
+        </:col>
+      </.table>
+    </.section>
+  </div>
+</Layouts.app>

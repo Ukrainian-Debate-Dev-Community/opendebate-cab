@@ -1,64 +1,6 @@
 defmodule CabWeb.MeHTML do
+  @moduledoc "/me — profile line, engine stats verbatim, participation history."
   use CabWeb, :html
 
-  # /me — profile line, engine stats verbatim, participation history
-  def show(assigns) do
-    ~H"""
-    <Layouts.app flash={@flash} current_user={@current_user} active="me">
-      <.chrome here="my page"></.chrome>
-
-      <div class="pbody">
-        <.flash_banners flash={@flash} />
-
-        <.section title="Profile" pad>
-          <b>{@current_user.name || @current_user.username}</b>
-          <span :if={@current_user.name}> · {@current_user.username}</span>
-        </.section>
-
-        <%= if @stats do %>
-          <.section title="Stats">
-            <.table id="me-stats" rows={[@stats]}>
-              <:col :let={s} label="Ballots">{s["overview"]["total_ballots_received"]}</:col>
-              <:col :let={s} label="Ranked debates">{s["overview"]["total_debates_ranked"]}</:col>
-              <:col :let={s} label="Avg score">{s["overview"]["average_speaker_score"]}</:col>
-              <:col :let={s} label="Highest">{s["overview"]["highest_score"]}</:col>
-              <:col :let={s} label="Lowest">{s["overview"]["lowest_score"]}</:col>
-              <:col :let={s} label="1st places">{s["placements"]["first_places"]}</:col>
-              <:col :let={s} label="Win rate">{s["placements"]["win_rate_percentage"]}%</:col>
-            </.table>
-            <div class="pad">
-              <p class="mut">Engine statistics, shown as reported — nothing is recomputed.</p>
-            </div>
-          </.section>
-        <% else %>
-          <.section title="Stats" pad>
-            No logged debates yet — stats appear after your first scored round.
-          </.section>
-        <% end %>
-
-        <.section title="History">
-          <.table id="me-history" rows={@history} empty="No sessions played yet.">
-            <:col :let={row} label="Session">
-              <.link href={~p"/c/#{row.club_uuid}/s/#{row.session_uuid}"}>
-                {Calendar.strftime(row.date, "%-d %b %Y")}
-              </.link>
-              <.sub>{row.club}</.sub>
-            </:col>
-            <:col :let={row} label="As">{row.role}</:col>
-            <:col :let={row} label="Result" class="st">
-              <%= cond do %>
-                <% row.won -> %>
-                  <b>won</b>
-                <% row.role == "judge" -> %>
-                  judged
-                <% true -> %>
-                  played
-              <% end %>
-            </:col>
-          </.table>
-        </.section>
-      </div>
-    </Layouts.app>
-    """
-  end
+  embed_templates "me_html/*"
 end

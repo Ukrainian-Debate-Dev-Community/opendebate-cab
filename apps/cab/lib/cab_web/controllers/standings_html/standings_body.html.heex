@@ -1,0 +1,60 @@
+<%= if @tab == "clubs" do %>
+  <.section title="Clubs — plain counts only">
+    <.table id="standings-clubs" rows={@rows} rank empty="No clubs yet.">
+      <:col :let={row} label="Club">
+        <.link href={~p"/c/#{row.club.uuid}"}>{row.club.name}</.link>
+      </:col>
+      <:col :let={row} label="City">{row.club.city || "—"}</:col>
+      <:col :let={row} label="Members" num>{row.members}</:col>
+      <:col :let={row} label="Sessions" num>{row.sessions}</:col>
+      <:col :let={row} label="Rooms" num>{row.rooms}</:col>
+    </.table>
+  </.section>
+<% else %>
+  <%= if @scope do %>
+    <.section title={tab_label(@tab)}>
+      <div class="pad scope-card">
+        <p>
+          session: <b>{@scope.session.name}</b>, {Calendar.strftime(scope_date(@scope), "%-d %b")} · {@scope.club.name}{if assigns[
+                                                                                                                             :archive
+                                                                                                                           ],
+                                                                                                                           do:
+                                                                                                                             " (latest finished)"}
+        </p>
+        <div :if={earlier_rows(assigns) != []} class="flinks">
+          <span class="mut">earlier:</span>
+          <.link
+            :for={row <- earlier_rows(assigns)}
+            href={"#{@base}/#{@tab}?session=#{row.session_uuid}"}
+          >
+            {row.name} · {Calendar.strftime(row.date, "%-d %b")}
+          </.link>
+        </div>
+      </div>
+      <.table
+        id={"standings-#{@tab}"}
+        rows={@rows}
+        rank
+        empty="The engine returned no standings for this session."
+      >
+        <:col :let={row} :if={@tab == "teams"} label="Team">{row["name"]}</:col>
+        <:col :let={row} :if={@tab == "speakers"} label="Speaker">{row["name"]}</:col>
+        <:col :let={row} :if={@tab in ["teams", "speakers"]} label="Points" num>
+          {row["total_points"]}
+        </:col>
+        <:col :let={row} :if={@tab == "judges"} label="Judge">{row["name"]}</:col>
+        <:col :let={row} :if={@tab == "judges"} label="Rooms judged" num>
+          {row["rooms_judged"]}
+        </:col>
+        <:col :let={row} :if={@tab == "judges"} label="Avg feedback" num>
+          {row["avg_feedback"] || "—"}
+        </:col>
+      </.table>
+    </.section>
+  <% else %>
+    <.section title={tab_label(@tab)} pad>
+      No finished session yet.
+      <p>Standings show one session's engine results — the latest finished one.</p>
+    </.section>
+  <% end %>
+<% end %>

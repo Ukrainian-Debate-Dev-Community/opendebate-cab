@@ -1,0 +1,23 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="standings"
+>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="standings"></.chrome>
+  <.standings_tabs base={"/c/#{@club.uuid}/standings"} active={@tab} clubs_tab={false} />
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+    <.standings_body
+      tab={@tab}
+      scope={@scope}
+      rows={@rows}
+      club={@club}
+      archive={@archive}
+      base={"/c/#{@club.uuid}/standings"}
+    />
+  </div>
+</Layouts.app>

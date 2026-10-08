@@ -1,0 +1,44 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="club"
+>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="join"></.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <.section title="Join request">
+      <.form_for
+        id="join-request-form"
+        action={~p"/c/#{@club.uuid}/join"}
+        title={"Join #{@club.name}"}
+        description="The club head reads your answers before approving."
+        errors={@errors}
+      >
+        <:block
+          name={:message}
+          type={:longtext}
+          label="About me"
+          required
+          value={@message}
+          hint="Who you are and why you want to debate here."
+        />
+        <:block
+          name={:contact}
+          type={:text}
+          label="Contact"
+          required
+          value={@contact}
+          hint="Telegram, phone or email the head can reach you at."
+        />
+        <:submit note="Lands in the head's Requests with your answers.">
+          Send request
+        </:submit>
+      </.form_for>
+    </.section>
+  </div>
+</Layouts.app>

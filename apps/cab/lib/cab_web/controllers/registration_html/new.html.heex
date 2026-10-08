@@ -1,0 +1,56 @@
+<Layouts.app
+  flash={@flash}
+  current_user={assigns[:current_user]}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@session}
+  active="register"
+>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="register — sign-ups open">
+  </.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <.section :if={assigns[:current_user]} title="Registration">
+      <.form_for
+        id="register-form"
+        action={~p"/r/#{@session.uuid}"}
+        title={"Register for #{@state.event["name"]}"}
+        description={"Registering as #{@current_user.name || @current_user.username} — one registration per session."}
+        errors={@errors}
+      >
+        <:block
+          name={:as}
+          type={:select}
+          label="I am tonight"
+          required
+          value={@as}
+          options={[{"Speaker", "speak"}, {"Judge", "judge"}]}
+        />
+        <:submit note="You appear in tonight's list right away.">Register</:submit>
+      </.form_for>
+    </.section>
+
+    <.section :if={!assigns[:current_user]} title="Registration">
+      <.form_for
+        id="guest-register-form"
+        action={~p"/r/#{@session.uuid}"}
+        title={"Register for #{@state.event["name"]}"}
+        description="No account needed — you'll get a personal link that is your access to this session."
+        errors={@errors}
+      >
+        <:block name={:name} type={:text} label="Your name" required value={@name} />
+        <:block
+          name={:as}
+          type={:select}
+          label="I am tonight"
+          required
+          value={@as}
+          options={[{"Speaker", "speak"}, {"Judge", "judge"}]}
+        />
+        <:submit note="You appear in tonight's list right away.">Register</:submit>
+      </.form_for>
+    </.section>
+  </div>
+</Layouts.app>
