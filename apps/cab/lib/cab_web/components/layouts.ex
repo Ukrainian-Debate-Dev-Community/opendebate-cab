@@ -54,39 +54,30 @@ defmodule CabWeb.Layouts do
           <div class="in">
             <div class="cols">
               <div>
-                <h6>cab runs on the uadebate platform</h6>
-                <p>
-                  Open infrastructure for debate clubs and tournaments.
-                  Free for every Ukrainian club.
-                </p>
-              </div>
-              <div>
                 <h6>Find your club</h6>
                 <p>
-                  Clubs across Ukraine run weekly practice rounds.
-                  Pick one on <a href="https://uadebate.com">uadebate.com</a> and come debate.
+                  Clubs across Ukraine run weekly practice rounds — pick one on
+                  <a href="https://uadebate.com">uadebate.com</a>
+                  and come debate.
+                  Free for every Ukrainian club.
                 </p>
               </div>
               <div>
                 <h6>Our organisation</h6>
                 <p>
                   Run by the NGO Debate Federation of Ukraine
-                  (ВМГО «Дебатна Федерація України»).
+                  (ВМГО «Дебатна Федерація України») ·
+                  <a href="https://dfu.uadebate.com">dfu.uadebate.com</a>
+                  · <a href="mailto:ngo.dfu@uadebate.com">ngo.dfu@uadebate.com</a>
                 </p>
               </div>
               <div>
                 <h6>Data &amp; privacy</h6>
                 <p>
-                  cab is in beta testing. <a href="/privacy">Privacy &amp; data policy</a>
-                  · requests: <a href="mailto:support@uadebate.com">support@uadebate.com</a>
+                  cab is in beta testing · <a href="/privacy">Privacy &amp; data policy</a>
+                  · <a href="mailto:support@uadebate.com">support@uadebate.com</a>
                 </p>
               </div>
-            </div>
-            <div class="links">
-              <a href="https://uadebate.com">uadebate.com</a>
-              <a href="https://dfu.uadebate.com">DFU</a>
-              <a href="mailto:support@uadebate.com">Support</a>
-              <a href="mailto:ngo.dfu@uadebate.com">Contact</a>
             </div>
           </div>
         </footer>
