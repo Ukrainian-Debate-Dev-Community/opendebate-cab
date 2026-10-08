@@ -1,13 +1,13 @@
 defmodule CabWeb.MemberHTML do
   use CabWeb, :html
 
-  @doc "Previous sessions — progress; shared by the club and owner pages."
+  @doc "The session archive — previous progress; shared by the club and owner pages."
   attr :club, :any, required: true
   attr :archive, :list, required: true
 
   def archive_section(assigns) do
     ~H"""
-    <.section title="Previous sessions — progress">
+    <.section title="Session archive — previous progress">
       <.table id="sessions-archive" rows={@archive} empty="No finished sessions yet.">
         <:col :let={row} label="Session">
           <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"}>{row.name}</.link>
