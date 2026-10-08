@@ -51,31 +51,6 @@ defmodule CabWeb.SessionPageController do
     end
   end
 
-  # GET .../rooms/:id — ONE room URL for every viewer: the draw row in
-  # full, the motion once set, and the chair/head actions in place
-  def room(conn, %{"session_uuid" => session_uuid, "id" => id}) do
-    club = conn.assigns.club
-
-    with {room_id, ""} <- Integer.parse(id || ""),
-         %Session{} = session <- Sessions.get_for_club(club, session_uuid || ""),
-         {:ok, state} <- Sessions.state(%{session | club: club}),
-         %{} = room <- Enum.find(state.rooms, &(&1["id"] == room_id)) do
-      user = conn.assigns.current_user
-
-      conn
-      |> CabWeb.Caching.no_store()
-      |> render(:room,
-        session: %{session | club: club},
-        state: state,
-        room: room,
-        can_act: can_act?(room, user, conn.assigns.club_role),
-        page_title: "#{club.name} · R#{room_id}"
-      )
-    else
-      _ -> conn |> send_resp(404, "not found") |> halt()
-    end
-  end
-
   # POST .../rooms/:id/motion — chair or head sets this room's motion
   def motion(conn, %{"session_uuid" => session_uuid, "id" => id} = params) do
     with_chaired_room(conn, session_uuid, id, fn conn, session, room ->
@@ -102,11 +77,6 @@ defmodule CabWeb.SessionPageController do
           |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}/rooms/#{room["id"]}")
       end
     end)
-  end
-
-  defp can_act?(room, user, club_role) do
-    (user != nil and Sessions.room_chair?(room, user)) or
-      Cab.Clubs.covers?(club_role, :owner)
   end
 
   # GET .../rooms/:id/ballot — the room judge's ballot (chair or head)

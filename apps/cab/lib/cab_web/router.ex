@@ -77,6 +77,7 @@ defmodule CabWeb.Router do
     # their OWN registration.
     live_session :club_public, on_mount: [{CabWeb.LiveScope, :club}] do
       live "/s/:session_uuid", SessionLive, :show
+      live "/s/:session_uuid/rooms/:id", RoomLive, :show
     end
 
     post "/s/:session_uuid/signups/:participant_id/remove",
@@ -85,7 +86,6 @@ defmodule CabWeb.Router do
 
     # ONE room URL for every viewer — identity picks the render and
     # gates the actions (chair/head set the motion, ballot below)
-    get "/s/:session_uuid/rooms/:id", SessionPageController, :room
     post "/s/:session_uuid/rooms/:id/motion", SessionPageController, :motion
 
     get "/s/:session_uuid/rooms/:id/ballot", SessionPageController, :ballot

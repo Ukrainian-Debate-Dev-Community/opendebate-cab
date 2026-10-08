@@ -16,8 +16,8 @@ defmodule CabWeb.SessionLiveTest do
 
   # the engine answers from an Agent, so a test can change the world
   # and broadcast — exactly what a real write does
-  defp stub_engine(signups) do
-    {:ok, agent} = Agent.start_link(fn -> signups end)
+  defp stub_engine(signups, rooms \\ []) do
+    {:ok, agent} = Agent.start_link(fn -> %{signups: signups, rooms: rooms} end)
 
     Req.Test.stub(Core.Engine, fn conn ->
       case conn.request_path do
@@ -28,10 +28,10 @@ defmodule CabWeb.SessionLiveTest do
           ok(conn, [%{"id" => 21, "sequence" => 1}])
 
         "/api/events/11/participants" ->
-          ok(conn, Agent.get(agent, & &1))
+          ok(conn, Agent.get(agent, & &1.signups))
 
         "/api/rounds/21/rooms" ->
-          ok(conn, [])
+          ok(conn, Agent.get(agent, & &1.rooms))
       end
     end)
 
@@ -50,9 +50,38 @@ defmodule CabWeb.SessionLiveTest do
     refute html =~ "Bohdan"
 
     # a registration elsewhere changes the engine and announces it
-    Agent.update(agent, &(&1 ++ [%{"id" => 42, "role" => "speaker", "display_name" => "Bohdan"}]))
+    Agent.update(agent, fn world ->
+      %{
+        world
+        | signups:
+            world.signups ++ [%{"id" => 42, "role" => "speaker", "display_name" => "Bohdan"}]
+      }
+    end)
+
     Cab.Sessions.broadcast(session)
 
     assert render(view) =~ "Bohdan"
+  end
+
+  test "the room page shows the motion the moment it is published", %{conn: conn} do
+    head = user_fixture(%{node_user_id: 9})
+    club = club_fixture(head, %{engine_organisation_id: 3})
+    session = session_fixture(club, engine_event_id: 11)
+
+    room = %{"id" => 71, "status" => "pending", "Motion" => nil, "RoomTeams" => []}
+    agent = stub_engine([], [room])
+
+    {:ok, view, html} = live(conn, ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71")
+    assert html =~ "Not set yet"
+
+    Agent.update(agent, fn world ->
+      %{world | rooms: [%{room | "Motion" => %{"motion_text" => "THW go live"}}]}
+    end)
+
+    Cab.Sessions.broadcast(session)
+
+    html = render(view)
+    assert html =~ "THW go live"
+    refute html =~ "Not set yet"
   end
 end
