@@ -52,6 +52,14 @@ body { min-height:100vh; display:flex; flex-direction:column; }
 .mainc { flex:1; min-width:0; display:flex; flex-direction:column; }
 main.page-main { width:100%; flex:1 0 auto; }
 
+/* ---- error pages (403/404/500) ---- */
+.error-page { max-width:520px; margin:12vh auto; padding:0 22px; }
+.error-page .cap { font-family:"Great Vibes",cursive; font-size:1.8rem;
+                   color:var(--brand); text-decoration:none; }
+.error-page h1 { font-size:1.4rem; margin:18px 0 6px; }
+.error-page p { color:var(--muted); margin:0 0 18px; }
+.error-page .back { color:var(--brand); font-weight:700; text-decoration:none; }
+
 /* ---- the anonymous welcome block (front page) ---- */
 .welcome { background:#fff; border:1px solid var(--line); border-radius:var(--r);
            padding:22px 26px 18px; margin-bottom:16px; }

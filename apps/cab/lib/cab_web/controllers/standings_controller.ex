@@ -37,7 +37,7 @@ defmodule CabWeb.StandingsController do
     )
   end
 
-  def show(conn, _params), do: conn |> send_resp(404, "not found") |> halt()
+  def show(conn, _params), do: conn |> CabWeb.ErrorHTML.respond(404)
 
   defp rows(_tab, nil), do: []
   defp rows("teams", scope), do: Standings.teams(scope)

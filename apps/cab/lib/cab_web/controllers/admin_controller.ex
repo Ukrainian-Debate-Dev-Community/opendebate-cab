@@ -44,7 +44,7 @@ defmodule CabWeb.AdminController do
       |> put_flash(:info, "#{club.name} is now headed by #{head.username}")
       |> redirect(to: ~p"/admin")
     else
-      nil -> conn |> send_resp(404, "not found") |> halt()
+      nil -> conn |> CabWeb.ErrorHTML.respond(404)
       {:error, message} -> bounce(conn, message)
     end
   end
@@ -58,7 +58,7 @@ defmodule CabWeb.AdminController do
       |> put_flash(:info, "#{club.name} archived — it is hidden everywhere public")
       |> redirect(to: ~p"/admin")
     else
-      nil -> conn |> send_resp(404, "not found") |> halt()
+      nil -> conn |> CabWeb.ErrorHTML.respond(404)
       {:error, _} -> bounce(conn, "could not archive the club")
     end
   end
@@ -95,7 +95,7 @@ defmodule CabWeb.AdminController do
   defp require_admin(conn, _opts) do
     case conn.assigns.current_user do
       %{is_admin: true} -> conn
-      _ -> conn |> send_resp(404, "not found") |> halt()
+      _ -> conn |> CabWeb.ErrorHTML.respond(404)
     end
   end
 end

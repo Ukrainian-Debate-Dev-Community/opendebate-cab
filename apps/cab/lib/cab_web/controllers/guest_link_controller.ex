@@ -19,7 +19,7 @@ defmodule CabWeb.GuestLinkController do
   def show(conn, %{"code" => code}) do
     case Links.get_active_by_code(code) do
       nil ->
-        conn |> send_resp(404, "not found") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(404)
 
       link ->
         session_page = ~p"/c/#{link.session.club.uuid}/s/#{link.session.uuid}"

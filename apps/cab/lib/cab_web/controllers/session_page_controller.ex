@@ -38,7 +38,7 @@ defmodule CabWeb.SessionPageController do
         signin_or_404(conn, session_uuid)
 
       {:error, :forbidden} ->
-        conn |> send_resp(403, "forbidden") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(403)
 
       {:error, :conflict, message} ->
         bounce(conn, session_uuid, message)
@@ -47,7 +47,7 @@ defmodule CabWeb.SessionPageController do
         bounce(conn, session_uuid, error_message(message))
 
       _ ->
-        conn |> send_resp(404, "not found") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(404)
     end
   end
 
@@ -98,7 +98,7 @@ defmodule CabWeb.SessionPageController do
           |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}")
 
         {:error, :forbidden} ->
-          conn |> send_resp(403, "forbidden") |> halt()
+          conn |> CabWeb.ErrorHTML.respond(403)
 
         {:error, %{scores: message}} ->
           conn
@@ -146,10 +146,10 @@ defmodule CabWeb.SessionPageController do
           fun.(conn, %{session | club: club}, room)
 
         true ->
-          conn |> send_resp(403, "forbidden") |> halt()
+          conn |> CabWeb.ErrorHTML.respond(403)
       end
     else
-      _ -> conn |> send_resp(404, "not found") |> halt()
+      _ -> conn |> CabWeb.ErrorHTML.respond(404)
     end
   end
 
@@ -162,7 +162,7 @@ defmodule CabWeb.SessionPageController do
         |> halt()
 
       _ ->
-        conn |> send_resp(404, "not found") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(404)
     end
   end
 

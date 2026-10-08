@@ -120,7 +120,7 @@ defmodule CabWeb.RegistrationController do
       |> fun.(session, state)
     else
       nil ->
-        conn |> send_resp(404, "not found") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(404)
 
       {:error, message} ->
         conn

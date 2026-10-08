@@ -115,7 +115,7 @@ defmodule CabWeb.OwnerController do
       back_members(conn, info: "member removed")
     else
       {:error, message} -> back_members(conn, error: error_message(message))
-      _ -> conn |> send_resp(404, "not found") |> halt()
+      _ -> conn |> CabWeb.ErrorHTML.respond(404)
     end
   end
 
@@ -140,7 +140,7 @@ defmodule CabWeb.OwnerController do
       )
     else
       nil ->
-        conn |> send_resp(404, "not found") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(404)
 
       {:error, message} ->
         conn
@@ -246,7 +246,7 @@ defmodule CabWeb.OwnerController do
         |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
 
       _ ->
-        conn |> send_resp(404, "not found") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(404)
     end
   end
 
@@ -355,7 +355,7 @@ defmodule CabWeb.OwnerController do
         end
 
       nil ->
-        conn |> send_resp(404, "not found") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(404)
     end
   end
 
@@ -377,7 +377,7 @@ defmodule CabWeb.OwnerController do
         end
 
       nil ->
-        conn |> send_resp(404, "not found") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(404)
     end
   end
 
@@ -392,7 +392,7 @@ defmodule CabWeb.OwnerController do
         {:error, message} -> back_members(conn, error: message)
       end
     else
-      _ -> conn |> send_resp(404, "not found") |> halt()
+      _ -> conn |> CabWeb.ErrorHTML.respond(404)
     end
   end
 
@@ -408,7 +408,7 @@ defmodule CabWeb.OwnerController do
         end
 
       nil ->
-        conn |> send_resp(404, "not found") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(404)
     end
   end
 

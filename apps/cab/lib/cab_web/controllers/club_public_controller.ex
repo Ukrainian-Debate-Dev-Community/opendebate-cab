@@ -45,7 +45,7 @@ defmodule CabWeb.ClubPublicController do
         end
 
       _tab ->
-        conn |> send_resp(404, "not found") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(404)
     end
   end
 
@@ -92,7 +92,7 @@ defmodule CabWeb.ClubPublicController do
         |> halt()
 
       _user ->
-        conn |> send_resp(403, "standings are members-only in this club") |> halt()
+        conn |> CabWeb.ErrorHTML.respond(403, "This club's standings are for its members.")
     end
   end
 

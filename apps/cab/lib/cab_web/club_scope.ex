@@ -161,12 +161,9 @@ defmodule CabWeb.ClubScope do
   end
 
   defp halt_with(conn, status, message) do
-    conn =
-      case get_format(conn) do
-        "json" -> conn |> put_status(status) |> json(%{error: message})
-        _ -> send_resp(conn, status, message)
-      end
-
-    halt(conn)
+    case get_format(conn) do
+      "json" -> conn |> put_status(status) |> json(%{error: message}) |> halt()
+      _ -> CabWeb.ErrorHTML.respond(conn, status)
+    end
   end
 end

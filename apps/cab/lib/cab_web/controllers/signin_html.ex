@@ -1,9 +1,8 @@
 defmodule CabWeb.SigninHTML do
   @moduledoc """
-  P1 per `design/signin.html` VERBATIM (split page: brand side +
-  "we don't use passwords" card with the provider icon buttons),
-  palette tokens adapted to the current kit. Google renders disabled
-  ("soon"); the guest note covers the personal-link path.
+  /signin: the split page (brand side + "we don't use passwords" card
+  with the provider buttons). Google renders disabled ("soon"); the
+  guest note covers the personal-link path.
   """
 
   use CabWeb, :html
@@ -15,15 +14,15 @@ defmodule CabWeb.SigninHTML do
         <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
         <div class="brand-top"><span class="dot">C</span> cab.uadebate</div>
         <div>
-          <h1>Debate management of the Debate Federation of Ukraine</h1>
+          <h1>The home of Ukrainian debate clubs</h1>
           <p>
-            Tournaments, rounds, ballots and standings — one system for debaters,
-            judges and organizers.
+            Club sessions, rooms, ballots and standings — one place for debaters,
+            judges and club heads.
           </p>
           <ul class="feats">
-            <li>register your team in two clicks</li>
-            <li>judge ballots with locked, auditable results</li>
-            <li>live tab and speaker standings</li>
+            <li>register for a club session with one link</li>
+            <li>judges fill the ballot right in their room</li>
+            <li>per-session standings and your own history</li>
           </ul>
         </div>
         <div class="foot">Debate Federation of Ukraine · uadebate.com</div>
@@ -74,7 +73,7 @@ defmodule CabWeb.SigninHTML do
           </div>
 
           <p class="legal">
-            By continuing you agree to the Terms of Service and Privacy Policy.
+            By continuing you agree to the <a href={~p"/privacy"}>Privacy&amp;Policy</a>.
           </p>
         </div>
       </main>
