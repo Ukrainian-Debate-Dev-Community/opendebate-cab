@@ -58,12 +58,23 @@ defmodule Cab.Standings do
 
   defp finished_scope(%Session{} = session) do
     with {:ok, actor} <- Clubs.club_actor(session.club),
-         {:ok, %{"status" => "completed"} = event} <-
-           EngineApi.get_event(actor, session.engine_event_id) do
+         %{} = event <- finished_event(actor, session.engine_event_id) do
       %{session: session, club: session.club, actor: actor, event: event}
     else
       _ -> nil
     end
+  end
+
+  # a completed event is immutable — remember it, so the latest-finished
+  # scan stops re-asking the engine on every tab switch; anything not
+  # (yet) completed is re-checked each time
+  defp finished_event(actor, event_id) do
+    Cab.Standings.Cache.fetch({event_id, :event}, fn ->
+      case EngineApi.get_event(actor, event_id) do
+        {:ok, %{"status" => "completed"} = event} -> {:commit, event}
+        _ -> {:ignore, nil}
+      end
+    end)
   end
 
   @doc """
