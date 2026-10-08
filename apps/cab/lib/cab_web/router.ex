@@ -121,7 +121,7 @@ defmodule CabWeb.Router do
     post "/owner/rooms/:id/motion", OwnerController, :motion
     get "/owner/rooms/:id/ballot", OwnerController, :ballot
     post "/owner/rooms/:id/ballot", OwnerController, :submit_ballot
-    post "/owner/rooms/:id/reopen", OwnerController, :reopen
+    post "/owner/rooms/:id/unlock", OwnerController, :unlock
 
     # owner registration surface (M6): issue a guest link by hand,
     # revoke one — the shared /r/:session_uuid URL lives below
@@ -169,7 +169,7 @@ defmodule CabWeb.Router do
 
     post "/rooms/:id/motion", RoomController, :motion
     post "/rooms/:id/ballot", RoomController, :ballot
-    patch "/rooms/:id/reopen", RoomController, :reopen
+    patch "/rooms/:id/unlock", RoomController, :unlock
 
     # guest links (head only): list, issue by hand, revoke. The
     # public shared URL has no API twin — it IS an HTML flow.

@@ -162,10 +162,11 @@ defmodule CabWeb.SessionPageController do
   defp my_signup(_state, _user), do: nil
 
   # the chrome's gold "Fill ballot" segment: the open room this
-  # viewer chairs
+  # viewer chairs — completed means the head unlocked the ballot and
+  # the chair can resubmit a correction
   defp my_ballot_room(%{stage: :running, rooms: rooms}, %User{} = user) do
     Enum.find(rooms, fn room ->
-      room["status"] in ["pending", "judging"] and Sessions.room_chair?(room, user)
+      room["status"] in ["pending", "judging", "completed"] and Sessions.room_chair?(room, user)
     end)
   end
 

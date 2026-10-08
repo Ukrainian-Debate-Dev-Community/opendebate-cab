@@ -254,11 +254,11 @@ assert j1 POST "/api/v1/rooms/$ROOM/ballot" 200 '.status' confirmed \
   "{\"session_uuid\":\"$SESSION\",\"scores\":$SCORES}"
 
 # ----------------------------------------------------------------
-say "ballot reopen: head reopens, the judge resubmits"
+say "ballot correction: head unlocks, the judge resubmits"
 # ----------------------------------------------------------------
-assert s1 PATCH "/api/v1/rooms/$ROOM/reopen" 403 '.error' forbidden \
+assert s1 PATCH "/api/v1/rooms/$ROOM/unlock" 403 '.error' forbidden \
   "{\"session_uuid\":\"$SESSION\"}"
-assert head PATCH "/api/v1/rooms/$ROOM/reopen" 200 '.status' judging \
+assert head PATCH "/api/v1/rooms/$ROOM/unlock" 200 '.status' completed \
   "{\"session_uuid\":\"$SESSION\"}"
 assert j1 POST "/api/v1/rooms/$ROOM/ballot" 200 '.status' confirmed \
   "{\"session_uuid\":\"$SESSION\",\"scores\":$SCORES}"

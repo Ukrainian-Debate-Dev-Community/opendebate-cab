@@ -497,17 +497,17 @@ defmodule CabWeb.OwnerHTML do
         </:col>
         <:col :let={room}>
           <.link
-            :if={room["status"] in ["pending", "judging"]}
+            :if={room["status"] in ["pending", "judging", "completed"]}
             href={~p"/c/#{@club.uuid}/owner/rooms/#{room["id"]}/ballot"}
           >
             ballot
           </.link>
           <.link
-            :if={room["status"] in ["confirmed", "completed"] && @state.stage == :running}
-            href={~p"/c/#{@club.uuid}/owner/rooms/#{room["id"]}/reopen"}
+            :if={room["status"] == "confirmed" && @state.stage == :running}
+            href={~p"/c/#{@club.uuid}/owner/rooms/#{room["id"]}/unlock"}
             method="post"
           >
-            reopen
+            unlock
           </.link>
         </:col>
       </.table>
@@ -712,7 +712,7 @@ defmodule CabWeb.OwnerHTML do
   defp stage_words(%{stage: :done}), do: "finished"
 
   defp room_status_words("confirmed"), do: "ballot in"
-  defp room_status_words("completed"), do: "ballot in"
+  defp room_status_words("completed"), do: "ballot in — editable"
   defp room_status_words("judging"), do: "waiting for the ballot"
   defp room_status_words("pending"), do: "waiting for the ballot"
   defp room_status_words(status), do: status

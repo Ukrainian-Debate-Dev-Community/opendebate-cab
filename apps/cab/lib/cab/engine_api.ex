@@ -136,11 +136,11 @@ defmodule Cab.EngineApi do
     speakerScores:[{room_speaker_id,score}]} — ranks a permutation of
     1..teams_per_room, exactly teams_per_room*speakers_per_team scores,
     each within format score_min..score_max (BP: 50..100). Attributed
-    to the room's chair. Room -> 'completed'. Resubmission allowed
-    until confirmed (rejected once completed — reopen first).
-    NOTE: engine rejects submit when room.status == completed, so
-    editing = reopen + submit.
-  - `PATCH /rooms/:roomId/reopen` — completed -> judging, ballot wiped
+    to the room's chair. Room -> 'completed'. A completed room accepts
+    resubmission as an atomic replace of the previous ballot (it stays
+    completed); only 'confirmed' and 'void' reject submission, so
+    editing a locked ballot = unconfirm + resubmit. Nothing ever wipes
+    a submitted result.
   - `PATCH /rooms/:roomId/confirm` — completed -> confirmed (locks)
   - `PATCH /rooms/:roomId/unconfirm` — confirmed -> completed
 
@@ -447,10 +447,6 @@ defmodule Cab.EngineApi do
 
   def unconfirm_room(actor, room_id) do
     Engine.patch(actor, "/api/rooms/#{room_id}/unconfirm", %{}) |> unwrap()
-  end
-
-  def reopen_room(actor, room_id) do
-    Engine.patch(actor, "/api/rooms/#{room_id}/reopen", %{}) |> unwrap()
   end
 
   # ---------------------------------------------------------------

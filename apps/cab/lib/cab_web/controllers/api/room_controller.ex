@@ -11,7 +11,7 @@ defmodule CabWeb.Api.RoomController do
   # club is resolved from the required "session_uuid" body field; the
   # engine additionally enforces chair rights on its side
   plug ClubScope, [source: :room_session, require: :member] when action in [:motion, :ballot]
-  plug ClubScope, [source: :room_session, require: :owner] when action == :reopen
+  plug ClubScope, [source: :room_session, require: :owner] when action == :unlock
 
   # POST /api/v1/sessions/:uuid/rooms — no body: attendance pairing
   # (auto); {"rooms": [{"judge_participant_id", "teams": [[pid,pid] x4]}]}:
@@ -39,13 +39,13 @@ defmodule CabWeb.Api.RoomController do
     end
   end
 
-  # PATCH /api/v1/rooms/:id/reopen {"session_uuid"} — head reopens a
-  # confirmed/completed ballot; the room is judging again
-  def reopen(conn, %{"id" => id}) do
+  # PATCH /api/v1/rooms/:id/unlock {"session_uuid"} — head unconfirms
+  # a locked ballot; the room is completed and editable by resubmission
+  def unlock(conn, %{"id" => id}) do
     with {:ok, room_id} <- room_id(id),
          :ok <-
-           Sessions.reopen_room(conn.assigns.current_user, conn.assigns.session, room_id) do
-      json(conn, %{room_id: room_id, status: "judging"})
+           Sessions.unlock_room(conn.assigns.current_user, conn.assigns.session, room_id) do
+      json(conn, %{room_id: room_id, status: "completed"})
     end
   end
 

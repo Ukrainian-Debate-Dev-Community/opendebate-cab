@@ -968,7 +968,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert response(conn, 403)
   end
 
-  test "running stage: delete rooms while pending, reopen once confirmed",
+  test "running stage: delete rooms while pending, unlock once confirmed",
        %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
     test_pid = self()
@@ -1006,7 +1006,7 @@ defmodule CabWeb.HtmlTreesTest do
 
     assert html =~ "Delete rooms"
     assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/rooms/delete"
-    refute html =~ "reopen"
+    refute html =~ "unlock"
 
     deleted =
       conn
@@ -1017,7 +1017,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert Phoenix.Flash.get(deleted.assigns.flash, :info) =~ "1 room(s) deleted"
     assert_received :room_deleted
 
-    # confirmed room: no delete segment, a reopen link instead
+    # confirmed room: no delete segment, an unlock link instead
     confirmed_room = %{running_room(44) | "status" => "confirmed"}
 
     stub(fn conn, _params ->
@@ -1050,14 +1050,14 @@ defmodule CabWeb.HtmlTreesTest do
       |> html_response(200)
 
     refute html =~ "Delete rooms"
-    assert html =~ "/c/#{club.uuid}/owner/rooms/71/reopen"
+    assert html =~ "/c/#{club.uuid}/owner/rooms/71/unlock"
     assert html =~ "ballot in"
 
-    reopened = conn |> log_in(head) |> post(~p"/c/#{club.uuid}/owner/rooms/71/reopen")
-    assert redirected_to(reopened) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-    assert Phoenix.Flash.get(reopened.assigns.flash, :info) =~ "reopened"
+    unlocked = conn |> log_in(head) |> post(~p"/c/#{club.uuid}/owner/rooms/71/unlock")
+    assert redirected_to(unlocked) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
+    assert Phoenix.Flash.get(unlocked.assigns.flash, :info) =~ "unlocked"
     assert_received {:step, "unconfirm"}
-    assert_received {:step, "reopen"}
+    refute_received {:step, _}
   end
 
   test "session cancel lands on the archive; finish lands on the session page",

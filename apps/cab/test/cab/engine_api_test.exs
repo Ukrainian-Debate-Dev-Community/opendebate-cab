@@ -255,14 +255,13 @@ defmodule Cab.EngineApiTest do
              )
   end
 
-  test "confirm, unconfirm and reopen PATCH the room" do
+  test "confirm and unconfirm PATCH the room" do
     stub(fn conn, _params ->
       assert conn.method == "PATCH"
 
       assert conn.request_path in [
                "/api/rooms/71/confirm",
-               "/api/rooms/71/unconfirm",
-               "/api/rooms/71/reopen"
+               "/api/rooms/71/unconfirm"
              ]
 
       Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
@@ -270,7 +269,6 @@ defmodule Cab.EngineApiTest do
 
     assert {:ok, _} = EngineApi.confirm_room(9, 71)
     assert {:ok, _} = EngineApi.unconfirm_room(9, 71)
-    assert {:ok, _} = EngineApi.reopen_room(9, 71)
   end
 
   test "standings read the calculated endpoints" do

@@ -613,33 +613,29 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Reopens a room's ballot (head only — enforce at the boundary): a
-  confirmed room is unconfirmed first (confirmed rooms are locked in
-  the engine), then reopened — completed -> judging with the ballot
-  wiped, ready for resubmission.
+  Unlocks a room's ballot for correction (head only — enforce at the
+  boundary): a confirmed room is unconfirmed back to completed, where
+  the ballot stays intact and a resubmission atomically replaces it.
+  A submitted result is never wiped. Already-completed rooms are a
+  no-op — the ballot form is open for them.
   """
-  def reopen_room(%User{} = head, %Session{} = session, room_id) do
+  def unlock_room(%User{} = head, %Session{} = session, room_id) do
     with {:ok, actor} <- actor_for(head),
          {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
          {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]),
          {:ok, room} <- find_room(rooms, room_id) do
-      reopen_steps(actor, room)
+      unlock_steps(actor, room)
     end
   end
 
-  defp reopen_steps(actor, %{"id" => id, "status" => "confirmed"}) do
-    with {:ok, _} <- EngineApi.unconfirm_room(actor, id),
-         {:ok, _} <- EngineApi.reopen_room(actor, id) do
-      :ok
-    end
+  defp unlock_steps(actor, %{"id" => id, "status" => "confirmed"}) do
+    with {:ok, _} <- EngineApi.unconfirm_room(actor, id), do: :ok
   end
 
-  defp reopen_steps(actor, %{"id" => id, "status" => "completed"}) do
-    with {:ok, _} <- EngineApi.reopen_room(actor, id), do: :ok
-  end
+  defp unlock_steps(_actor, %{"status" => "completed"}), do: :ok
 
-  defp reopen_steps(_actor, %{"status" => status}),
-    do: {:error, "only completed or confirmed rooms can be reopened (room is #{status})"}
+  defp unlock_steps(_actor, %{"status" => status}),
+    do: {:error, "only a submitted ballot can be unlocked (room is #{status})"}
 
   @doc """
   Cancels the session: the engine event is archived (soft delete —

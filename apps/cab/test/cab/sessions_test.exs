@@ -578,7 +578,7 @@ defmodule Cab.SessionsTest do
     assert {:error, "this session has no rooms" <> _} = Sessions.delete_rooms(head, session)
   end
 
-  test "reopen_room unconfirms a confirmed room first", %{head: head, club: club} do
+  test "unlock_room unconfirms a confirmed room, no-ops on completed", %{head: head, club: club} do
     session = session_fixture(club, engine_event_id: 11)
     test_pid = self()
 
@@ -599,23 +599,22 @@ defmodule Cab.SessionsTest do
     end
 
     room_stub.("confirmed")
-    assert :ok = Sessions.reopen_room(head, session, 71)
+    assert :ok = Sessions.unlock_room(head, session, 71)
     assert_received {:step, "unconfirm"}
-    assert_received {:step, "reopen"}
 
+    # completed = already editable; the ballot is never wiped
     room_stub.("completed")
-    assert :ok = Sessions.reopen_room(head, session, 71)
-    assert_received {:step, "reopen"}
-    refute_received {:step, "unconfirm"}
+    assert :ok = Sessions.unlock_room(head, session, 71)
+    refute_received {:step, _}
 
     room_stub.("pending")
-    assert {:error, message} = Sessions.reopen_room(head, session, 71)
+    assert {:error, message} = Sessions.unlock_room(head, session, 71)
     assert message =~ "room is pending"
 
     room_stub.("confirmed")
 
     assert {:error, "room 72 is not part of this session"} =
-             Sessions.reopen_room(head, session, 72)
+             Sessions.unlock_room(head, session, 72)
   end
 
   test "cancel archives the engine event and removes the gateway row",
