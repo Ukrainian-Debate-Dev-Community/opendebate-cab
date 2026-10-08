@@ -183,7 +183,7 @@ defmodule CabWeb.OwnerController do
   def close_signups(conn, %{"session_uuid" => session_uuid}) do
     with_session(conn, session_uuid, fn session ->
       case Sessions.close_signups(session) do
-        {:ok, _session} -> {:ok, "sign-ups closed — make or compose rooms when ready"}
+        {:ok, _session} -> {:ok, "sign-ups closed — drag people into the rooms when ready"}
         error -> error
       end
     end)
@@ -332,7 +332,7 @@ defmodule CabWeb.OwnerController do
   def delete_rooms(conn, %{"session_uuid" => session_uuid}) do
     with_session(conn, session_uuid, fn session ->
       case Sessions.delete_rooms(conn.assigns.current_user, session) do
-        {:ok, count} -> {:ok, "#{count} room(s) deleted — compose or make rooms again"}
+        {:ok, count} -> {:ok, "#{count} room(s) deleted — allocate the rooms again"}
         error -> error
       end
     end)

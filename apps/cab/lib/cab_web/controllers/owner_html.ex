@@ -459,7 +459,11 @@ defmodule CabWeb.OwnerHTML do
     ~H"""
     <.section title="Rooms">
       <.table id="session-rooms" rows={@state.rooms}>
-        <:col :let={room} class="rank">R{room["id"]}</:col>
+        <:col :let={room} class="rank">
+          <.link href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}"}>
+            R{room["id"]}
+          </.link>
+        </:col>
         <:col
           :let={room}
           :for={{label, position, side_class} <- @sides}
@@ -536,7 +540,7 @@ defmodule CabWeb.OwnerHTML do
   defp attendance_line(signups) do
     speakers = Enum.count(signups, &(&1["role"] == "speaker"))
     judges = Enum.count(signups, &(&1["role"] == "adjudicator"))
-    rooms = max(div(speakers, 8), 1)
+    rooms = Cab.Sessions.room_count(signups)
 
     "#{speakers} speakers + #{judges} judge#{if judges != 1, do: "s"} checked in → #{rooms} room#{if rooms != 1, do: "s"}."
   end

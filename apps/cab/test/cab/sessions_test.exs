@@ -175,6 +175,17 @@ defmodule Cab.SessionsTest do
     end
   end
 
+  test "room_count is the only automatic part: ceil(speakers / 8), at least one" do
+    speakers = fn n -> for i <- 1..n, do: %{"id" => i, "role" => "speaker"} end
+    judge = [%{"id" => 99, "role" => "adjudicator"}]
+
+    assert Sessions.room_count([]) == 1
+    assert Sessions.room_count(speakers.(8) ++ judge) == 1
+    assert Sessions.room_count(speakers.(9)) == 2
+    assert Sessions.room_count(speakers.(13)) == 2
+    assert Sessions.room_count(speakers.(17)) == 3
+  end
+
   test "close_signups / reopen_signups flip the registration window", %{club: club} do
     session = session_fixture(club, engine_event_id: 11)
 

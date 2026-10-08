@@ -1016,6 +1016,8 @@ defmodule CabWeb.HtmlTreesTest do
       |> html_response(200)
 
     assert show =~ ~s(id="session-rooms")
+    # R# opens the room page
+    assert show =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}/rooms/71")
     assert show =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
     assert show =~ "waiting for the ballot"
     assert show =~ "Finish session"
