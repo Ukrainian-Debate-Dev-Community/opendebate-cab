@@ -104,9 +104,9 @@ defmodule CabWeb.CabinetHomeTest do
     assert html =~ "request pending"
     refute html =~ "tag-warn"
 
-    # my sessions: no participations yet -> the table's empty state
-    assert html =~ ~s(id="my-sessions")
-    assert html =~ "Past sessions will appear here."
+    # history lives on My page — the cabinet only points there
+    assert html =~ "live on"
+    assert html =~ ~s(href="/me")
   end
 
   test "tonight banner and sign-ups-open words when a club has an open session",
@@ -161,7 +161,7 @@ defmodule CabWeb.CabinetHomeTest do
     assert html =~ "sign-ups open"
   end
 
-  test "my sessions lists past participations, rows linking to the session page",
+  test "My page lists past participations, rows linking to the session page",
        %{conn: conn} do
     head = user_fixture(%{node_user_id: 339})
     user = user_fixture(%{username: "bo", node_user_id: 344})
@@ -177,11 +177,8 @@ defmodule CabWeb.CabinetHomeTest do
 
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
-        "/api/users/schedule" ->
-          Req.Test.json(req, %{
-            "status" => "success",
-            "data" => %{"as_adjudicator" => [], "as_player" => []}
-          })
+        "/api/users/344/stats" ->
+          Req.Test.json(req, %{"status" => "success", "data" => nil})
 
         "/api/events/organisation/3" ->
           Req.Test.json(req, %{
@@ -228,10 +225,10 @@ defmodule CabWeb.CabinetHomeTest do
       end
     end)
 
-    html = conn |> log_in(user) |> get(~p"/") |> html_response(200)
+    html = conn |> log_in(user) |> get(~p"/me") |> html_response(200)
 
-    assert html =~ ~s(id="my-sessions")
-    refute html =~ "Past sessions will appear here."
+    assert html =~ ~s(id="me-history")
+    refute html =~ "No sessions played yet."
     assert html =~ "Kyiv Debate Club"
     assert html =~ "speaker"
     assert html =~ "won"

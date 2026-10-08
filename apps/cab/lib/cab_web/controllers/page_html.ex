@@ -46,25 +46,8 @@ defmodule CabWeb.PageHTML do
             </.table>
           </.section>
 
-          <.section title="My sessions">
-            <.table id="my-sessions" rows={@history} empty="Past sessions will appear here.">
-              <:col :let={row} label="Session">
-                <.link href={~p"/c/#{row.club_uuid}/s/#{row.session_uuid}"}>
-                  {Calendar.strftime(row.date, "%-d %b %Y")}
-                </.link>
-                <.sub>{row.club} · {row.role}</.sub>
-              </:col>
-              <:col :let={row} label="Result" class="st">
-                <%= cond do %>
-                  <% row.won -> %>
-                    <b>won</b>
-                  <% row.role == "judge" -> %>
-                    judged
-                  <% true -> %>
-                    played
-                <% end %>
-              </:col>
-            </.table>
+          <.section title="My sessions" pad>
+            Past sessions and personal stats live on <.link href={~p"/me"}>My page</.link>.
           </.section>
         </div>
       <% else %>

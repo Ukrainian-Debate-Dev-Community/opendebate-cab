@@ -31,7 +31,6 @@ defmodule CabWeb.PageController do
           tonight: tonight,
           open_club: find_open_club(memberships, tonight),
           schedule: Sessions.user_schedule(user),
-          history: Sessions.user_history(user),
           page_title: "my cab"
         )
     end
