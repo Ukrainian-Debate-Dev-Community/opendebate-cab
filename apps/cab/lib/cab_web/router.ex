@@ -75,21 +75,18 @@ defmodule CabWeb.Router do
          SessionPageController,
          :cancel_signup
 
+    # ONE room URL for every viewer — identity picks the render and
+    # gates the actions (chair/head set the motion, ballot below)
+    get "/s/:session_uuid/rooms/:id", SessionPageController, :room
+    post "/s/:session_uuid/rooms/:id/motion", SessionPageController, :motion
+
     get "/s/:session_uuid/rooms/:id/ballot", SessionPageController, :ballot
     post "/s/:session_uuid/rooms/:id/ballot", SessionPageController, :submit_ballot
 
-    # member tree: sessions archive + roster + the registration flow
-    # (the M7 "my club page" is gone — /member redirects to the club
-    # page; registration is reached from the session page)
-    get "/member", MemberController, :legacy_home
-    get "/member/sessions", MemberController, :sessions
-    get "/member/members", MemberController, :members
-    get "/member/sessions/:session_uuid/register", MemberController, :register
-    post "/member/sessions/:session_uuid/signups", MemberController, :signup
-
-    post "/member/sessions/:session_uuid/signups/:participant_id/remove",
-         MemberController,
-         :cancel_signup
+    # the roster — the only member-gated page (v3.1: the member tree
+    # is gone; registration lives at /r/:sess, the club page is the
+    # sessions archive)
+    get "/members", MemberController, :members
 
     # owner tree. The M7 ?tab console is gone: /owner IS the club
     # page as an edit-in-place form; sessions archive carries the
@@ -118,9 +115,6 @@ defmodule CabWeb.Router do
     post "/owner/sessions/:session_uuid/rooms/delete", OwnerController, :delete_rooms
     post "/owner/sessions/:session_uuid/finish", OwnerController, :finish
     post "/owner/sessions/:session_uuid/cancel", OwnerController, :cancel_session
-    post "/owner/rooms/:id/motion", OwnerController, :motion
-    get "/owner/rooms/:id/ballot", OwnerController, :ballot
-    post "/owner/rooms/:id/ballot", OwnerController, :submit_ballot
 
     # owner registration surface (M6): issue a guest link by hand,
     # revoke one — the shared /r/:session_uuid URL lives below
@@ -128,8 +122,8 @@ defmodule CabWeb.Router do
     post "/owner/links/:id/revoke", OwnerController, :revoke_link
   end
 
-  # M6 guest access (launch-timeline L2). /r/:session_uuid is the
-  # PUBLIC shared registration URL the head gives out; /l/:code is a
+  # /r/:session_uuid is THE one registration URL (v3.1): guests get a
+  # personal link, signed-in users sign up as themselves; /l/:code is a
   # guest's permanent personal link — the code IS the identity:
   # opening it signs the browser session in as the guest and lands
   # on the session page, where their cancel/ballot actions work by
@@ -137,8 +131,8 @@ defmodule CabWeb.Router do
   scope "/", CabWeb do
     pipe_through :browser
 
-    get "/r/:session_uuid", GuestRegistrationController, :new
-    post "/r/:session_uuid", GuestRegistrationController, :create
+    get "/r/:session_uuid", RegistrationController, :new
+    post "/r/:session_uuid", RegistrationController, :create
 
     get "/l/:code", GuestLinkController, :show
   end

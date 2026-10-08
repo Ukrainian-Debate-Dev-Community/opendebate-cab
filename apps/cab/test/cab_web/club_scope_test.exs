@@ -32,14 +32,14 @@ defmodule CabWeb.ClubScopeTest do
     test "member tree: /signin for anonymous, 403 for pending, 200 for approved",
          %{conn: conn, club: club} do
       # the anonymous auth wall lands on P1
-      assert get(conn, ~p"/c/#{club.uuid}/member/sessions") |> redirected_to() == "/signin"
+      assert get(conn, ~p"/c/#{club.uuid}/members") |> redirected_to() == "/signin"
 
       pending = user_fixture()
       membership_fixture(pending, club, status: "pending")
 
       assert conn
              |> log_in(pending)
-             |> get(~p"/c/#{club.uuid}/member/sessions")
+             |> get(~p"/c/#{club.uuid}/members")
              |> response(403)
 
       member = user_fixture()
@@ -47,8 +47,8 @@ defmodule CabWeb.ClubScopeTest do
 
       assert conn
              |> log_in(member)
-             |> get(~p"/c/#{club.uuid}/member/sessions")
-             |> html_response(200) =~ "sessions"
+             |> get(~p"/c/#{club.uuid}/members")
+             |> html_response(200) =~ "Members"
     end
 
     test "owner tree: 403 for a plain member, 200 for the head",
@@ -65,7 +65,7 @@ defmodule CabWeb.ClubScopeTest do
     test "head covers the member tree too", %{conn: conn, club: club, head: head} do
       assert conn
              |> log_in(head)
-             |> get(~p"/c/#{club.uuid}/member/sessions")
+             |> get(~p"/c/#{club.uuid}/members")
              |> html_response(200)
     end
   end

@@ -24,8 +24,8 @@ defmodule CabWeb.SessionPageHTML do
         here={"#{@state.event["name"]} — #{stage_label(@state)}"}
       >
         <:seg
-          :if={@state.stage == :signup && is_nil(@my_signup) && @club_role in [:member, :owner]}
-          href={~p"/c/#{@club.uuid}/member/sessions/#{@session.uuid}/register"}
+          :if={@state.stage == :signup && is_nil(@my_signup)}
+          href={~p"/r/#{@session.uuid}"}
           primary
         >
           Register
@@ -86,7 +86,11 @@ defmodule CabWeb.SessionPageHTML do
                 rows={@state.rooms}
                 row_class={fn room -> room["id"] == @my_room_id && "me" end}
               >
-                <:col :let={room} class="rank">R{room["id"]}</:col>
+                <:col :let={room} class="rank">
+                  <.link href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{room["id"]}"}>
+                    R{room["id"]}
+                  </.link>
+                </:col>
                 <:col
                   :let={room}
                   :for={{label, position, side_class} <- @sides}
@@ -139,6 +143,83 @@ defmodule CabWeb.SessionPageHTML do
     </Layouts.app>
     """
   end
+
+  # ONE room URL for every viewer — identity picks what renders:
+  # everyone sees the draw and the motion once set; the chair or head
+  # additionally gets the motion form and the ballot link (@can_act)
+  def room(assigns) do
+    ~H"""
+    <Layouts.app
+      flash={@flash}
+      current_user={@current_user}
+      club={@club}
+      club_role={@club_role}
+      nav_session={@nav_session}
+      active="rooms"
+    >
+      <.chrome
+        crumbs={[
+          {@club.name, ~p"/c/#{@club.uuid}"},
+          {@state.event["name"], ~p"/c/#{@club.uuid}/s/#{@session.uuid}"}
+        ]}
+        here={"room R#{@room["id"]} — #{room_status_words(@room["status"])}"}
+      >
+        <:seg
+          :if={@can_act && @room["status"] in ["pending", "judging", "completed"]}
+          href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/ballot"}
+          primary
+        >
+          {if @room["status"] == "completed", do: "Edit ballot", else: "Fill ballot"}
+        </:seg>
+      </.chrome>
+
+      <div class="pbody">
+        <.flash_banners flash={@flash} />
+
+        <.section title="Draw">
+          <.table id={"room-#{@room["id"]}-draw"} rows={sorted_teams(@room)}>
+            <:col :let={room_team} label="Side" code>{side_code(room_team["position"])}</:col>
+            <:col :let={room_team} label="Team">{get_in(room_team, ["Team", "name"])}</:col>
+            <:col :let={room_team} label="Speakers">{speaker_names(room_team)}</:col>
+          </.table>
+          <div class="pad">Judge: <b>{judge_name(@room, @state.signups)}</b></div>
+        </.section>
+
+        <%= if @room["Motion"] do %>
+          <.section title="Motion" pad>
+            <b id="room-motion-text">{@room["Motion"]["motion_text"]}</b>
+            <p :if={@room["Motion"]["infoslide"]}>{@room["Motion"]["infoslide"]}</p>
+            <p :if={@room["Motion"]["keyword"]} class="mut">
+              keyword: {@room["Motion"]["keyword"]}
+            </p>
+          </.section>
+        <% else %>
+          <.section :if={!@can_act} title="Motion" pad>
+            Not set yet — the judge sets it when the room begins.
+          </.section>
+          <.section :if={@can_act} title="Motion">
+            <.form_for
+              id={"room-motion-#{@room["id"]}"}
+              action={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/motion"}
+              title="Set this room's motion"
+              description="Setting it shows it to the room and starts 15 minutes of prep."
+            >
+              <:block name={:motion_text} type={:text} label="Motion" required />
+              <:submit note="Visible to everyone in the room right away.">Set motion</:submit>
+            </.form_for>
+          </.section>
+        <% end %>
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  defp room_status_words("pending"), do: "waiting to start"
+  defp room_status_words("judging"), do: "debating — waiting for the ballot"
+  defp room_status_words("completed"), do: "ballot in"
+  defp room_status_words("confirmed"), do: "ballot in"
+  defp room_status_words("void"), do: "void"
+  defp room_status_words(other), do: other
 
   def ballot(assigns) do
     ~H"""

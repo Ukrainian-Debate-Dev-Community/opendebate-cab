@@ -1,4 +1,4 @@
-defmodule CabWeb.GuestRegistrationHTML do
+defmodule CabWeb.RegistrationHTML do
   use CabWeb, :html
 
   # GET /r/:session_uuid while :signup — the guest registration form:
@@ -18,7 +18,27 @@ defmodule CabWeb.GuestRegistrationHTML do
       <div class="pbody">
         <.flash_banners flash={@flash} />
 
-        <.section title="Registration">
+        <.section :if={assigns[:current_user]} title="Registration">
+          <.form_for
+            id="register-form"
+            action={~p"/r/#{@session.uuid}"}
+            title={"Register for #{@state.event["name"]}"}
+            description={"Registering as #{@current_user.name || @current_user.username} — one registration per session."}
+            errors={@errors}
+          >
+            <:block
+              name={:as}
+              type={:select}
+              label="I am tonight"
+              required
+              value={@as}
+              options={[{"Speaker", "speak"}, {"Judge", "judge"}]}
+            />
+            <:submit note="You appear in tonight's list right away.">Register</:submit>
+          </.form_for>
+        </.section>
+
+        <.section :if={!assigns[:current_user]} title="Registration">
           <.form_for
             id="guest-register-form"
             action={~p"/r/#{@session.uuid}"}

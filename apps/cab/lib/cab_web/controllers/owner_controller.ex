@@ -5,7 +5,6 @@ defmodule CabWeb.OwnerController do
   alias Cab.Clubs.Membership
   alias Cab.Links.Link
   alias Cab.Sessions.Session
-  alias CabWeb.BallotForm
 
   plug CabWeb.ClubScope, source: :club, require: :owner
 
@@ -406,76 +405,6 @@ defmodule CabWeb.OwnerController do
     end
   end
 
-  # POST .../owner/rooms/:id/motion
-  def motion(conn, %{"id" => id, "motion_text" => motion_text}) do
-    with {room_id, ""} <- Integer.parse(id),
-         {:ok, _} <- Sessions.set_room_motion(conn.assigns.current_user, room_id, motion_text) do
-      back_live(conn, info: "motion set")
-    else
-      {:error, message} -> back_live(conn, error: message)
-      _ -> back_live(conn, error: "bad room id")
-    end
-  end
-
-  # GET .../owner/rooms/:id/ballot — the head fills any open room's
-  # ballot (full-control doctrine)
-  def ballot(conn, %{"id" => id}) do
-    with_ballot_room(conn, id, fn conn, session, room ->
-      render_ballot(conn, session, room, nil, nil)
-    end)
-  end
-
-  # POST .../owner/rooms/:id/ballot — in-tree twin of the ballot API
-  # action: redirect + flash, re-render amber on errors
-  def submit_ballot(conn, %{"id" => id} = params) do
-    with_ballot_room(conn, id, fn conn, session, room ->
-      scores = BallotForm.scores_from_params(params["ballot"])
-
-      case Sessions.submit_ballot(conn.assigns.current_user, session, room["id"], scores) do
-        :ok ->
-          conn
-          |> put_flash(:info, "ballot submitted — the room is confirmed")
-          |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}")
-
-        {:error, :forbidden} ->
-          conn |> send_resp(403, "forbidden") |> halt()
-
-        {:error, %{scores: message}} ->
-          conn
-          |> put_status(422)
-          |> render_ballot(session, room, params["ballot"], message)
-
-        {:error, message} ->
-          conn
-          |> put_status(422)
-          |> render_ballot(session, room, params["ballot"], error_message(message))
-      end
-    end)
-  end
-
-  defp render_ballot(conn, session, room, ballot_params, error) do
-    render(conn, :ballot,
-      session: session,
-      room: room,
-      teams: BallotForm.teams(room, ballot_params),
-      error: error,
-      page_title: "ballot · R#{room["id"]}"
-    )
-  end
-
-  defp with_ballot_room(conn, id, fun) do
-    club = conn.assigns.club
-
-    with {room_id, ""} <- Integer.parse(id),
-         %Session{} = session <- List.first(Sessions.list_for_club(club)),
-         {:ok, state} <- Sessions.state(%{session | club: club}),
-         %{} = room <- Enum.find(state.rooms, &(&1["id"] == room_id)) do
-      fun.(conn, session, room)
-    else
-      _ -> conn |> send_resp(404, "not found") |> halt()
-    end
-  end
-
   # ---------------------------------------------------------------
 
   defp with_join_request(conn, id, fun) do
@@ -526,21 +455,6 @@ defmodule CabWeb.OwnerController do
   end
 
   # the live-session fallback for room actions addressed by id only
-  defp back_live(conn, outcome) do
-    club = conn.assigns.club
-
-    target =
-      case List.first(Sessions.list_for_club(club)) do
-        %Session{uuid: uuid} -> ~p"/c/#{club.uuid}/owner/s/#{uuid}"
-        nil -> ~p"/c/#{club.uuid}/owner/sessions"
-      end
-
-    case outcome do
-      [info: info] -> conn |> put_flash(:info, info) |> redirect(to: target)
-      [error: message] -> flash_error(conn, target, message)
-    end
-  end
-
   defp live_session(conn), do: conn.assigns[:nav_session]
 
   defp error_message(message) when is_binary(message), do: message

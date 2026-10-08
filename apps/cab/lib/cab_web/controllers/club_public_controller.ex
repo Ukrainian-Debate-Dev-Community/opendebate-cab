@@ -15,7 +15,7 @@ defmodule CabWeb.ClubPublicController do
     club = conn.assigns.club
 
     render(conn, :show,
-      recent: Enum.take(Sessions.archive(club), 5),
+      recent: Sessions.archive(club),
       members: Clubs.list_members(club),
       page_title: club.name
     )

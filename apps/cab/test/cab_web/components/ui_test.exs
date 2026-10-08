@@ -90,7 +90,7 @@ defmodule CabWeb.UiTest do
     refute anonymous =~ "sign out"
   end
 
-  test "sidenav club context: five place items, role-scoped targets" do
+  test "sidenav club context: place items, role-scoped targets" do
     assigns = %{
       club: %{uuid: "abc", name: "Kyiv Debate Club"},
       session: %{uuid: "s1"}
@@ -103,15 +103,18 @@ defmodule CabWeb.UiTest do
 
     assert member_html =~ "Kyiv Debate Club"
 
-    for item <- ~w(Club Rooms Sessions Standings Members) do
+    for item <- ~w(Club Rooms Standings Members Register) do
       assert member_html =~ ">#{item}<"
     end
 
+    # the Sessions item is gone — the club page is the archive
+    refute member_html =~ ">Sessions<"
+
     assert member_html =~ ~s(href="/c/abc")
     assert member_html =~ ~s(href="/c/abc/s/s1")
-    assert member_html =~ ~s(href="/c/abc/member/sessions")
     assert member_html =~ ~s(href="/c/abc/standings/teams")
-    assert member_html =~ ~s(href="/c/abc/member/members")
+    assert member_html =~ ~s(href="/c/abc/members")
+    assert member_html =~ ~s(href="/r/s1")
 
     owner_html =
       rendered_to_string(~H"""
@@ -120,16 +123,16 @@ defmodule CabWeb.UiTest do
 
     assert owner_html =~ ~s(href="/c/abc/owner")
     assert owner_html =~ ~s(href="/c/abc/owner/s/s1")
-    assert owner_html =~ ~s(href="/c/abc/owner/sessions")
     assert owner_html =~ ~s(href="/c/abc/owner/members")
 
-    # with no session yet the Rooms item falls back to the archive
+    # with no session yet the Rooms item falls back and Register hides
     no_session =
       rendered_to_string(~H"""
       <.sidenav club={@club} club_role={:member} nav_session={nil} />
       """)
 
     refute no_session =~ "/c/abc/s/"
+    refute no_session =~ ">Register<"
   end
 
   test "selrow renders the tab row with the active state and no badges" do

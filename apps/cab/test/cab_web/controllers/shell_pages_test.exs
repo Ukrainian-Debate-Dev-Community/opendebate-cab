@@ -57,7 +57,7 @@ defmodule CabWeb.ShellPagesTest do
       assert admin_html =~ ~s(href="/admin")
     end
 
-    test "club context: the five place items, role-scoped", %{conn: conn} do
+    test "club context: the place items, role-scoped", %{conn: conn} do
       head = user_fixture(%{node_user_id: 9})
       club = club_fixture(head, %{engine_organisation_id: 3})
       session = session_fixture(club, engine_event_id: 11)
@@ -73,20 +73,23 @@ defmodule CabWeb.ShellPagesTest do
 
       assert html =~ club.name
 
-      for item <- ~w(Club Rooms Sessions Standings Members) do
+      for item <- ~w(Club Rooms Standings Members Register) do
         assert html =~ ">#{item}<"
       end
 
-      # public: Rooms -> the session page; member paths behind walls
+      # the Sessions item is gone — the club page is the archive
+      refute html =~ ">Sessions<"
+
+      # public: Rooms -> the session page; the roster behind the wall;
+      # Register -> THE registration URL
       assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
-      assert html =~ ~s(href="/c/#{club.uuid}/member/sessions")
       assert html =~ ~s(href="/c/#{club.uuid}/standings/teams")
-      assert html =~ ~s(href="/c/#{club.uuid}/member/members")
+      assert html =~ ~s(href="/c/#{club.uuid}/members")
+      assert html =~ ~s(href="/r/#{session.uuid}")
 
       # the owner's sidenav targets the owner trees
       owner_html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}") |> html_response(200)
       assert owner_html =~ ~s(href="/c/#{club.uuid}/owner/s/#{session.uuid}")
-      assert owner_html =~ ~s(href="/c/#{club.uuid}/owner/sessions")
       assert owner_html =~ ~s(href="/c/#{club.uuid}/owner/members")
       assert owner_html =~ ~s(href="/c/#{club.uuid}/owner")
 

@@ -230,7 +230,7 @@ defmodule CabWeb.HtmlTreesTest do
     {:ok, _} = Cab.Clubs.request_join(user_fixture(%{username: "nina"}), club, join_answers())
 
     roster =
-      conn |> log_in(member) |> get(~p"/c/#{club.uuid}/member/members") |> html_response(200)
+      conn |> log_in(member) |> get(~p"/c/#{club.uuid}/members") |> html_response(200)
 
     assert roster =~ ~s(id="members-list")
     assert roster =~ "plainmember"
@@ -292,13 +292,12 @@ defmodule CabWeb.HtmlTreesTest do
       end
     end)
 
-    # member path: archive rows -> session page, no open-session form
+    # the club page IS the archive now — public, full list, no form
     member_html =
-      conn |> log_in(member) |> get(~p"/c/#{club.uuid}/member/sessions") |> html_response(200)
+      conn |> log_in(member) |> get(~p"/c/#{club.uuid}") |> html_response(200)
 
-    assert member_html =~ ~s(id="sessions-archive")
+    assert member_html =~ ~s(id="recent-sessions")
     assert member_html =~ "Done night"
-    assert member_html =~ "won by Winners"
     assert member_html =~ ~s(href="/c/#{club.uuid}/s/#{done.uuid}")
     refute member_html =~ ~s(id="open-session-form")
     refute member_html =~ "Open new session"
@@ -326,24 +325,16 @@ defmodule CabWeb.HtmlTreesTest do
     assert session.engine_event_id == 12
     assert session.scheduled_at == ~U[2026-10-09 18:30:00Z]
 
-    # anonymous hits the wall; the archive is a member page
-    anon = get(conn, ~p"/c/#{club.uuid}/member/sessions")
-    assert redirected_to(anon) == "/signin"
+    # the old member archive route is gone
+    assert conn |> get("/c/#{club.uuid}/member/sessions") |> response(404)
   end
 
   # ---------------------------------------------------------------
   # Old routes: the M7 member page and the ?tab console are gone
   # ---------------------------------------------------------------
 
-  test "the M7 member page redirects to the club page", %{conn: conn, club: club} do
-    member = user_fixture()
-    membership_fixture(member, club)
-
-    assert conn |> log_in(member) |> get(~p"/c/#{club.uuid}/member") |> redirected_to() ==
-             "/c/#{club.uuid}"
-
-    # anonymous too — the redirect needs no membership
-    assert conn |> get(~p"/c/#{club.uuid}/member") |> redirected_to() == "/c/#{club.uuid}"
+  test "the member tree is gone — v3.1 keeps one URL per view", %{conn: conn, club: club} do
+    assert conn |> get("/c/#{club.uuid}/member") |> response(404)
   end
 
   test "the owner ?tab console is gone — /owner?tab=x is the club edit page", %{
@@ -394,29 +385,31 @@ defmodule CabWeb.HtmlTreesTest do
       end
     end)
 
-    # the session page carries the gold Register segment for members
+    # the session page carries the gold Register segment -> /r/:sess
     page =
       conn |> log_in(member) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
 
     assert page =~ "Register"
-    assert page =~ "/c/#{club.uuid}/member/sessions/#{session.uuid}/register"
+    assert page =~ "/r/#{session.uuid}"
 
-    # the registration form: role pills, one POST
+    # THE registration URL, signed-in: prefilled, role pills, no name field
     html =
       conn
       |> log_in(member)
-      |> get(~p"/c/#{club.uuid}/member/sessions/#{session.uuid}/register")
+      |> get(~p"/r/#{session.uuid}")
       |> html_response(200)
 
     assert html =~ ~s(id="register-form")
+    assert html =~ "Registering as"
     assert html =~ "Speaker"
     assert html =~ "Judge"
     assert html =~ ~s(name="as")
+    refute html =~ ~s(name="name")
 
     conn =
       conn
       |> log_in(member)
-      |> post(~p"/c/#{club.uuid}/member/sessions/#{session.uuid}/signups", %{as: "speak"})
+      |> post(~p"/r/#{session.uuid}", %{as: "speak"})
 
     assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
     assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "registered"
@@ -454,18 +447,18 @@ defmodule CabWeb.HtmlTreesTest do
       end
     end)
 
-    bounced =
+    closed_page =
       conn
       |> log_in(member)
-      |> get(~p"/c/#{club.uuid}/member/sessions/#{session.uuid}/register")
+      |> get(~p"/r/#{session.uuid}")
+      |> html_response(200)
 
-    assert redirected_to(bounced) == "/c/#{club.uuid}/s/#{session.uuid}"
-    assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~ "closed"
+    assert closed_page =~ "closed"
 
     cancelled =
       conn
       |> log_in(member)
-      |> post(~p"/c/#{club.uuid}/member/sessions/#{session.uuid}/signups/41/remove")
+      |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove")
 
     assert redirected_to(cancelled) == "/c/#{club.uuid}/s/#{session.uuid}"
     assert Phoenix.Flash.get(cancelled.assigns.flash, :info) =~ "registration cancelled"
@@ -916,6 +909,81 @@ defmodule CabWeb.HtmlTreesTest do
     assert_received :confirmed
   end
 
+  test "one room URL: public sees draw + motion, the chair gets the form and sets it", %{
+    conn: conn,
+    club: club
+  } do
+    judge = user_fixture(%{node_user_id: 44})
+    membership_fixture(judge, club)
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    bare_room = Map.put(running_room(44), "Motion", nil)
+
+    stub(fn conn, params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/organisation/3"} ->
+          ok(conn, [])
+
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "name" => "Night", "status" => "scheduled"})
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [bare_room])
+
+        {"POST", "/api/rooms/71/motion"} ->
+          send(test_pid, {:motion, params["motion_text"]})
+          ok(conn, %{"motion" => %{"motion_text" => params["motion_text"]}})
+      end
+    end)
+
+    # anonymous: the draw and the honest "not set yet" — no form
+    public_html =
+      conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71") |> html_response(200)
+
+    assert public_html =~ ~s(id="room-71-draw")
+    assert public_html =~ "Not set yet"
+    refute public_html =~ ~s(id="room-motion-71")
+
+    # the chair: same URL, the motion form appears and posts
+    chair_html =
+      conn
+      |> log_in(judge)
+      |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71")
+      |> html_response(200)
+
+    assert chair_html =~ ~s(id="room-motion-71")
+
+    set =
+      conn
+      |> log_in(judge)
+      |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/motion", %{
+        motion_text: "THW debate"
+      })
+
+    assert redirected_to(set) == "/c/#{club.uuid}/s/#{session.uuid}/rooms/71"
+    assert_received {:motion, "THW debate"}
+
+    # a plain member is neither chair nor head — no motion for them
+    outsider = user_fixture(%{node_user_id: 55})
+    membership_fixture(outsider, club)
+
+    denied =
+      conn
+      |> log_in(outsider)
+      |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/motion", %{
+        motion_text: "THW hijack"
+      })
+
+    assert response(denied, 403)
+  end
+
   test "a member who is not the room judge gets no ballot page", %{conn: conn, club: club} do
     speaker = user_fixture(%{node_user_id: 55})
     membership_fixture(speaker, club)
@@ -952,19 +1020,19 @@ defmodule CabWeb.HtmlTreesTest do
       |> html_response(200)
 
     assert show =~ ~s(id="session-rooms")
-    assert show =~ "/c/#{club.uuid}/owner/rooms/71/ballot"
+    assert show =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
     assert show =~ "waiting for the ballot"
     assert show =~ "Finish session"
     refute show =~ "tag-"
 
     html =
-      conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner/rooms/71/ballot") |> html_response(200)
+      conn |> log_in(head) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot") |> html_response(200)
 
     assert html =~ ~s(class="ballot")
-    assert html =~ ~s(action="/c/#{club.uuid}/owner/rooms/71/ballot")
+    assert html =~ ~s(action="/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
 
     # the owner tree stays owner-only for members…
-    denied = conn |> log_in(member) |> get(~p"/c/#{club.uuid}/owner/rooms/71/ballot")
+    denied = conn |> log_in(member) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
     assert response(denied, 403)
 
     # …but the ladder lets a platform admin (no membership) through
@@ -973,7 +1041,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> Ecto.Changeset.change(is_admin: true)
       |> Cab.Repo.update!()
 
-    allowed = conn |> log_in(admin) |> get(~p"/c/#{club.uuid}/owner/rooms/71/ballot")
+    allowed = conn |> log_in(admin) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
     assert html_response(allowed, 200) =~ ~s(class="ballot")
   end
 
@@ -1061,7 +1129,7 @@ defmodule CabWeb.HtmlTreesTest do
 
     refute html =~ "Delete rooms"
     assert html =~ "edit ballot"
-    assert html =~ "/c/#{club.uuid}/owner/rooms/71/ballot"
+    assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
     assert html =~ "ballot in"
     refute html =~ "unlock"
     refute html =~ "unconfirm"
@@ -1070,7 +1138,7 @@ defmodule CabWeb.HtmlTreesTest do
     ballot_html =
       conn
       |> log_in(head)
-      |> get(~p"/c/#{club.uuid}/owner/rooms/71/ballot")
+      |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
       |> html_response(200)
 
     assert ballot_html =~ ~s(class="ballot")
@@ -1129,7 +1197,10 @@ defmodule CabWeb.HtmlTreesTest do
     assert Cab.Sessions.list_for_club(club) == []
   end
 
-  test "signup for another club's session is 404", %{conn: conn, club: club} do
+  test "acting on another club's session through this club's URL is 404", %{
+    conn: conn,
+    club: club
+  } do
     member = user_fixture()
     membership_fixture(member, club)
     other_club = club_fixture(user_fixture())
@@ -1138,7 +1209,7 @@ defmodule CabWeb.HtmlTreesTest do
     conn =
       conn
       |> log_in(member)
-      |> post(~p"/c/#{club.uuid}/member/sessions/#{other_session.uuid}/signups", %{as: "speak"})
+      |> post(~p"/c/#{club.uuid}/s/#{other_session.uuid}/signups/41/remove")
 
     assert response(conn, 404)
   end

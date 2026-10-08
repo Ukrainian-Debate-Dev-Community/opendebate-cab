@@ -297,9 +297,9 @@ grep -q 'Continue with Google' "$BODY" || fail "/signin misses the Google (soon)
 html_ok "P1 provider buttons" GET "/signin" 200
 
 # every anonymous auth wall redirects to /signin — never to the provider
-WALL=$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE/c/$CLUB/member/sessions")
+WALL=$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE/c/$CLUB/members")
 case "$WALL" in */signin) : ;; *) fail "anon member sessions wall went to '$WALL', want /signin" ;; esac
-html_ok "anon member tree -> /signin" GET "/c/.../member/sessions" 302
+html_ok "anon members page -> /signin" GET "/c/.../members" 302
 
 # the M7 member page is gone: /c/:club/member redirects to the club page
 LEGACY=$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE/c/$CLUB/member")
@@ -493,9 +493,9 @@ assert g1 GET "/api/v1/sessions/$GSESSION/links" 403 '.error' forbidden
 req g1 GET "/c/$CLUB/owner"
 [ "$STATUS" = "403" ] || fail "GET /c/$CLUB/owner as guest: status $STATUS, want 403"
 html_ok "guest on owner tree -> 403" GET "/c/.../owner" 403
-req g1 GET "/c/$CLUB/member/sessions"
-[ "$STATUS" = "403" ] || fail "GET /c/$CLUB/member/sessions as guest: status $STATUS, want 403"
-html_ok "guest on member tree -> 403" GET "/c/.../member/sessions" 403
+req g1 GET "/c/$CLUB/members"
+[ "$STATUS" = "403" ] || fail "GET /c/$CLUB/members as guest: status $STATUS, want 403"
+html_ok "guest on members page -> 403" GET "/c/.../members" 403
 # a room of ANOTHER session does not exist on this session's P6 page
 reqc g2 GET "$G2_LINK"
 req g2 GET "/c/$CLUB/s/$GSESSION/rooms/$IRON_ROOM/ballot"

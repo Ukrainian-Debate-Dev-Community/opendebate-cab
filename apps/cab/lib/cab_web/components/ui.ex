@@ -113,12 +113,6 @@ defmodule CabWeb.Ui do
         />
         <.nav_item
           active={@active}
-          key="sessions"
-          href={sessions_href(@club, @club_role)}
-          label="Sessions"
-        />
-        <.nav_item
-          active={@active}
           key="standings"
           href={~p"/c/#{@club.uuid}/standings/teams"}
           label="Standings"
@@ -128,6 +122,13 @@ defmodule CabWeb.Ui do
           key="members"
           href={members_href(@club, @club_role)}
           label="Members"
+        />
+        <.nav_item
+          :if={@nav_session}
+          active={@active}
+          key="register"
+          href={~p"/r/#{@nav_session.uuid}"}
+          label="Register"
         />
       <% else %>
         <.nav_item active={@active} key="clubs" href={~p"/"} label="Clubs" />
@@ -174,15 +175,17 @@ defmodule CabWeb.Ui do
   defp rooms_href(club, role, %{uuid: uuid}) when role in [:owner, :admin],
     do: ~p"/c/#{club.uuid}/owner/s/#{uuid}"
   defp rooms_href(club, _role, %{uuid: uuid}), do: ~p"/c/#{club.uuid}/s/#{uuid}"
-  defp rooms_href(club, role, nil), do: sessions_href(club, role)
-
-  defp sessions_href(club, role) when role in [:owner, :admin],
+  # no session yet: Rooms falls back to the archive — the owner's
+  # sessions page (where new ones open) or the club page itself
+  defp rooms_href(club, role, nil) when role in [:owner, :admin],
     do: ~p"/c/#{club.uuid}/owner/sessions"
-  defp sessions_href(club, _role), do: ~p"/c/#{club.uuid}/member/sessions"
+
+  defp rooms_href(club, _role, nil), do: ~p"/c/#{club.uuid}"
 
   defp members_href(club, role) when role in [:owner, :admin],
     do: ~p"/c/#{club.uuid}/owner/members"
-  defp members_href(club, _role), do: ~p"/c/#{club.uuid}/member/members"
+
+  defp members_href(club, _role), do: ~p"/c/#{club.uuid}/members"
 
   defp initials(user) do
     (user.name || user.username || "?")

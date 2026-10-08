@@ -5,7 +5,6 @@ defmodule CabWeb.OwnerHTML do
   import CabWeb.Ui, except: [ballot: 1]
   import CabWeb.MemberHTML, only: [archive_section: 1]
   alias Cab.Links
-  alias CabWeb.Ui
 
   @sides [{"OG", 1, "s-og"}, {"OO", 2, "s-oo"}, {"CG", 3, "s-cg"}, {"CO", 4, "s-co"}]
 
@@ -498,13 +497,13 @@ defmodule CabWeb.OwnerHTML do
         <:col :let={room}>
           <.link
             :if={room["status"] in ["pending", "judging"]}
-            href={~p"/c/#{@club.uuid}/owner/rooms/#{room["id"]}/ballot"}
+            href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}/ballot"}
           >
             ballot
           </.link>
           <.link
             :if={room["status"] in ["completed", "confirmed"] && @state.stage == :running}
-            href={~p"/c/#{@club.uuid}/owner/rooms/#{room["id"]}/ballot"}
+            href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}/ballot"}
           >
             edit ballot
           </.link>
@@ -516,7 +515,7 @@ defmodule CabWeb.OwnerHTML do
       <.section title={"Room R#{room["id"]} · motion"}>
         <.form_for
           id={"motion-form-#{room["id"]}"}
-          action={~p"/c/#{@club.uuid}/owner/rooms/#{room["id"]}/motion"}
+          action={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}/motion"}
         >
           <:block
             name={:motion_text}
@@ -572,44 +571,6 @@ defmodule CabWeb.OwnerHTML do
             action={~p"/c/#{@club.uuid}/owner/sessions/#{@session.uuid}/rooms"}
             rooms={@rooms}
             tray={dnd_tray(@state.signups)}
-          />
-        </.section>
-      </div>
-    </Layouts.app>
-    """
-  end
-
-  def ballot(assigns) do
-    ~H"""
-    <Layouts.app
-      flash={@flash}
-      current_user={@current_user}
-      club={@club}
-      club_role={@club_role}
-      nav_session={@nav_session}
-      active="rooms"
-    >
-      <.chrome
-        crumbs={[
-          {@club.name, ~p"/c/#{@club.uuid}"},
-          {"session", ~p"/c/#{@club.uuid}/owner/s/#{@session.uuid}"}
-        ]}
-        here={"ballot R#{@room["id"]}"}
-      >
-        <:seg form={"ballot-#{@room["id"]}"} primary>Submit ballot</:seg>
-      </.chrome>
-
-      <div class="pbody">
-        <.flash_banners flash={@flash} />
-
-        <.section title={"Room R#{@room["id"]} · ballot"}>
-          <Ui.ballot
-            id={"ballot-#{@room["id"]}"}
-            room={"R#{@room["id"]}"}
-            motion={@room["Motion"] && @room["Motion"]["motion_text"]}
-            teams={@teams}
-            error={@error}
-            action={~p"/c/#{@club.uuid}/owner/rooms/#{@room["id"]}/ballot"}
           />
         </.section>
       </div>
