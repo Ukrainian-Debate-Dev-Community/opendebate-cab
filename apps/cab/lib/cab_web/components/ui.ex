@@ -529,7 +529,7 @@ defmodule CabWeb.Ui do
   The scored BP ballot (club sessions, tournament prelims): motion
   header, one color block per team side (OG violet, OO blue, CG
   green, CO amber), position rows = speaker dropdown + iron check +
-  score input (50-100, step 0.5). Team totals and ranks DERIVE live
+  score input (whole points, 50-100). Team totals and ranks DERIVE live
   (vanilla JS); tied totals mark both blocks amber — BP forbids ties.
   Submit lives in the chrome, not here.
 
@@ -586,7 +586,7 @@ defmodule CabWeb.Ui do
               name={"ballot[#{team.side}][#{row.role}][score]"}
               min="50"
               max="100"
-              step="0.5"
+              step="1"
               value={row[:score]}
             />
           </div>

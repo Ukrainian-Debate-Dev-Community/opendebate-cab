@@ -330,7 +330,7 @@ defmodule CabWeb.UiTest do
     # per row: speaker dropdown, iron check, score input 50-100 step .5
     assert html =~ ~s(class="who")
     assert html =~ "iron"
-    assert html =~ ~s(min="50" max="100" step="0.5")
+    assert html =~ ~s(min="50" max="100" step="1")
     assert length(String.split(html, ~s(class="brow"))) == 9
 
     # live totals / derived ranks live in the bsum, filled by JS

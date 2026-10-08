@@ -233,7 +233,7 @@ SCORES=$(jq -c '[.rooms[0].RoomTeams | sort_by(.position)[]
   | .position as $p | [.RoomSpeakers[].EventParticipant.id] as $ids
   | ({"1":76,"2":79,"3":75,"4":74}[$p|tostring]) as $base
   | {position:$p, speaker_participant_id:$ids[0], iron:false, score:$base},
-    {position:$p, speaker_participant_id:$ids[1], iron:false, score:($base-0.5)}]' "$BODY")
+    {position:$p, speaker_participant_id:$ids[1], iron:false, score:($base-1)}]' "$BODY")
 
 # ----------------------------------------------------------------
 say "the judge posts the motion, then the scored ballot"
@@ -398,7 +398,7 @@ IRON_SCORES=$(jq -c '[.rooms[0].RoomTeams | sort_by(.position)[]
   | ({"1":76,"2":75,"3":74,"4":80}[$p|tostring]) as $base
   | {position:$p, speaker_participant_id:$ids[0], iron:false, score:$base},
     {position:$p, speaker_participant_id:$ids[1], iron:($ids[0] == $ids[1]),
-     score:($base-0.5)}]' "$BODY")
+     score:($base-1)}]' "$BODY")
 
 assert j1 POST "/api/v1/rooms/$IRON_ROOM/motion" 200 '.motion.motion_text' \
   "THW iron solo $RUN" \

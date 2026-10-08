@@ -280,7 +280,7 @@ defmodule CabWeb.ApiFlowTest do
            |> log_in(speaker)
            |> post(~p"/api/v1/rooms/71/ballot", %{
              session_uuid: session.uuid,
-             scores: scores.([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
+             scores: scores.([{1, 151}, {2, 157}, {3, 149}, {4, 147}])
            })
            |> json_response(403)
 
@@ -290,7 +290,7 @@ defmodule CabWeb.ApiFlowTest do
       |> log_in(judge)
       |> post(~p"/api/v1/rooms/71/ballot", %{
         session_uuid: session.uuid,
-        scores: scores.([{1, 151.0}, {2, 151.0}, {3, 149.5}, {4, 147.5}])
+        scores: scores.([{1, 151}, {2, 151}, {3, 149}, {4, 147}])
       })
       |> json_response(422)
 
@@ -301,7 +301,7 @@ defmodule CabWeb.ApiFlowTest do
       |> log_in(judge)
       |> post(~p"/api/v1/rooms/71/ballot", %{
         session_uuid: session.uuid,
-        scores: scores.([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
+        scores: scores.([{1, 151}, {2, 157}, {3, 149}, {4, 147}])
       })
       |> json_response(200)
 

@@ -318,18 +318,18 @@ defmodule CabWeb.GuestLinksTest do
       "ballot" => %{
         "og" => %{
           "PM" => %{"speaker" => "301", "score" => "78"},
-          "DPM" => %{"speaker" => "302", "score" => "75.5"}
+          "DPM" => %{"speaker" => "302", "score" => "76"}
         },
         "oo" => %{
           "LO" => %{"speaker" => "303", "score" => "76"},
           "DLO" => %{"speaker" => "304", "score" => "75"}
         },
         "cg" => %{
-          "MG" => %{"speaker" => "305", "score" => "74.5"},
+          "MG" => %{"speaker" => "305", "score" => "74"},
           "GW" => %{"speaker" => "306", "score" => "75"}
         },
         "co" => %{
-          "MO" => %{"speaker" => "307", "score" => "72.5"},
+          "MO" => %{"speaker" => "307", "score" => "72"},
           "OW" => %{"speaker" => "308", "score" => "75"}
         }
       }

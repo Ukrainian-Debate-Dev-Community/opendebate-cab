@@ -855,11 +855,11 @@ defmodule CabWeb.HtmlTreesTest do
           "DLO" => %{"speaker" => "304", "score" => "75"}
         },
         "cg" => %{
-          "MG" => %{"speaker" => "305", "score" => "74.5"},
+          "MG" => %{"speaker" => "305", "score" => "74"},
           "GW" => %{"speaker" => "306", "score" => "75"}
         },
         "co" => %{
-          "MO" => %{"speaker" => "307", "score" => "72.5"},
+          "MO" => %{"speaker" => "307", "score" => "72"},
           "OW" => %{"speaker" => "308", "score" => "75"}
         }
       }
@@ -907,7 +907,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> log_in(judge)
       |> post(
         ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot",
-        ballot_params(["78", "75.5"])
+        ballot_params(["78", "76"])
       )
 
     assert redirected_to(done) == "/c/#{club.uuid}/s/#{session.uuid}"
