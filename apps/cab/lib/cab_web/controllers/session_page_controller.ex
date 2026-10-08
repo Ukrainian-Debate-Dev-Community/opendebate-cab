@@ -29,7 +29,7 @@ defmodule CabWeb.SessionPageController do
       my_signup = my_signup(state, user)
 
       conn
-      |> CabWeb.Caching.by_stage(state.stage)
+      |> CabWeb.Caching.no_store()
       |> render(:show,
         session: session,
         state: state,
@@ -94,7 +94,7 @@ defmodule CabWeb.SessionPageController do
       user = conn.assigns.current_user
 
       conn
-      |> CabWeb.Caching.by_stage(state.stage)
+      |> CabWeb.Caching.no_store()
       |> render(:room,
         session: %{session | club: club},
         state: state,

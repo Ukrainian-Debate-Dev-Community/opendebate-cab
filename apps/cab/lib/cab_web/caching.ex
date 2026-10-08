@@ -1,18 +1,15 @@
 defmodule CabWeb.Caching do
   @moduledoc """
-  The cache rule in one place: finished sessions are immutable — their
-  pages cache hard; anything live is never stored. Role-scoped pages
-  (owner, admin, cabinet) stay on the browser default (no header).
+  HTML pages carry the viewer's identity in the sidenav shell, so they
+  are NEVER HTTP-cached — a shared or stale copy would show someone
+  else's account (a browser once served a guest's cached standings page
+  to a signed-in head). Immutability of finished sessions is exploited
+  server-side instead (`Cab.Standings.Cache`); hard public HTTP caching
+  is reserved for the keyed public API (pillar 3), which carries no
+  identity.
   """
   import Plug.Conn
 
-  @doc "Public page over finished (immutable) data."
-  def finished(conn), do: put_resp_header(conn, "cache-control", "public, max-age=3600")
-
-  @doc "Live page — state changes under the viewer's feet."
-  def live(conn), do: put_resp_header(conn, "cache-control", "no-store")
-
-  @doc "Finished when the session's stage is done, live otherwise."
-  def by_stage(conn, :done), do: finished(conn)
-  def by_stage(conn, _stage), do: live(conn)
+  @doc "Every HTML page: never stored by browsers or proxies."
+  def no_store(conn), do: put_resp_header(conn, "cache-control", "no-store")
 end

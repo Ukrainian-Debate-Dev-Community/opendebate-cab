@@ -31,7 +31,7 @@ defmodule CabWeb.ClubPublicController do
         scope = Standings.latest_finished(club)
 
         conn
-        |> CabWeb.Caching.finished()
+        |> CabWeb.Caching.no_store()
         |> render(:standings,
           tab: tab,
           scope: scope,

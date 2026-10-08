@@ -17,7 +17,7 @@ defmodule CabWeb.StandingsController do
     scope = Standings.latest_finished()
 
     conn
-    |> CabWeb.Caching.finished()
+    |> CabWeb.Caching.no_store()
     |> render(:show,
       tab: tab,
       scope: scope,
