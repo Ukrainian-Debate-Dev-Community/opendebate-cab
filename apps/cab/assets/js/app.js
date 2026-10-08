@@ -267,3 +267,18 @@ if (process.env.NODE_ENV === "development") {
   })
 }
 
+
+// ---- prep countdown: the one JS spark on the room page ----
+// the server renders a span with data-prep-deadline (ISO, UTC);
+// we only ever write the remaining time into it.
+const tickPrep = () => {
+  document.querySelectorAll("[data-prep-deadline]").forEach((el) => {
+    const left = new Date(el.dataset.prepDeadline) - Date.now()
+    el.textContent =
+      left <= 0
+        ? "prep time is over — debate"
+        : `prep: ${Math.floor(left / 60000)}:${String(Math.floor(left / 1000) % 60).padStart(2, "0")} left`
+  })
+}
+setInterval(tickPrep, 1000)
+tickPrep()

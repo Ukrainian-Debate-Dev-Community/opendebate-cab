@@ -192,6 +192,11 @@ defmodule CabWeb.SessionPageHTML do
             <p :if={@room["Motion"]["keyword"]} class="mut">
               keyword: {@room["Motion"]["keyword"]}
             </p>
+            <p :if={prep_deadline(@room)} class="mut">
+              <span id="prep-clock" data-prep-deadline={prep_deadline(@room)}>
+                15 minutes of prep from publishing
+              </span>
+            </p>
           </.section>
         <% else %>
           <.section :if={!@can_act} title="Motion" pad>
@@ -212,6 +217,17 @@ defmodule CabWeb.SessionPageHTML do
       </div>
     </Layouts.app>
     """
+  end
+
+  # the prep clock: 15 minutes from the motion's publication — the
+  # engine ships created_at (ISO) with the motion; absent = no clock
+  defp prep_deadline(room) do
+    with %{"created_at" => created} when is_binary(created) <- room["Motion"],
+         {:ok, at, _offset} <- DateTime.from_iso8601(created) do
+      at |> DateTime.add(15, :minute) |> DateTime.to_iso8601()
+    else
+      _ -> nil
+    end
   end
 
   defp room_status_words("pending"), do: "waiting to start"
