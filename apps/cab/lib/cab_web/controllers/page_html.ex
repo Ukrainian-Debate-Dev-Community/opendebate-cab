@@ -26,7 +26,7 @@ defmodule CabWeb.PageHTML do
                     do: " · #{m.club.city}"}
                 </.sub>
               </:col>
-              <:col :let={m} label="Tonight" class="st">
+              <:col :let={m} label="Next session" class="st">
                 {if m.status == "approved", do: tonight_words(@tonight[m.club_id]), else: "—"}
               </:col>
             </.table>
@@ -77,8 +77,20 @@ defmodule CabWeb.PageHTML do
               </:col>
               <:col :let={club} label="City">{club.city}</:col>
               <:col :let={club} label="Members" num>{@member_counts[club.id] || 0}</:col>
-              <:col :let={club} label="Tonight" class="st">
-                {tonight_words(@tonight[club.id])}
+              <:col :let={club} label="Next session" class="st">
+                <%= case @tonight[club.id] do %>
+                  <% nil -> %>
+                    not planned yet
+                  <% {session, :signup, _rooms} -> %>
+                    {session_when(session)} — <.link href={~p"/r/#{session.uuid}"}>register</.link>
+                  <% {_session, :closed, _rooms} -> %>
+                    starting soon
+                  <% {session, :running, _rooms} -> %>
+                    live now —
+                    <.link href={~p"/c/#{club.uuid}/s/#{session.uuid}"}>
+                      watch rooms
+                    </.link>
+                <% end %>
               </:col>
             </.table>
           </.section>
@@ -136,7 +148,11 @@ defmodule CabWeb.PageHTML do
     """
   end
 
-  # the Tonight column, written out as words — no pills anywhere
+  # the next-session when: scheduled time or tonight's date
+  defp session_when(%{scheduled_at: %DateTime{} = at}), do: Calendar.strftime(at, "%a %H:%M")
+  defp session_when(_session), do: "sign-ups open"
+
+  # the Next session column, written out as words — no pills anywhere
   defp tonight_words(nil), do: "quiet"
 
   defp tonight_words({session, :signup, _rooms}) do

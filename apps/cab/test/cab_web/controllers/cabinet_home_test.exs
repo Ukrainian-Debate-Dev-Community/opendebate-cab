@@ -1,7 +1,7 @@
 defmodule CabWeb.CabinetHomeTest do
   @moduledoc """
   GET / on the sidenav shell: the anonymous front page (clubs
-  directory with the words Tonight column) and the signed-in cabinet
+  directory with the words Next-session column) and the signed-in cabinet
   (my clubs, my sessions).
   """
 
@@ -42,11 +42,12 @@ defmodule CabWeb.CabinetHomeTest do
     assert html =~ "needs no account"
     assert html =~ "Free for every Ukrainian club"
 
-    # directory: name, city, members, Tonight words
+    # directory: name, city, members, Next session words
     assert html =~ ~s(id="clubs-directory")
+    assert html =~ "Next session"
     assert html =~ "Kyiv Debate Club"
     assert html =~ ~s(href="/c/#{club.uuid}")
-    assert html =~ "quiet"
+    assert html =~ "not planned yet"
 
     refute html =~ "My clubs"
     refute html =~ "Sign out"
