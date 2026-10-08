@@ -84,8 +84,11 @@ defmodule CabWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
-      # Design-system kit: chrome, table, form_for, ballot, tag, banner, section
+      # Design-system kit: chrome, sidenav, table, form_for, ballot,
+      # allocator, banner, section
       import CabWeb.Ui
+      # The one source of session/room words
+      import CabWeb.SessionFormat
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

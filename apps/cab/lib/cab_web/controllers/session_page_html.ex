@@ -5,11 +5,7 @@ defmodule CabWeb.SessionPageHTML do
   import CabWeb.Ui, except: [ballot: 1]
   alias CabWeb.Ui
 
-  @sides [{"OG", 1, "s-og"}, {"OO", 2, "s-oo"}, {"CG", 3, "s-cg"}, {"CO", 4, "s-co"}]
-
   def show(assigns) do
-    assigns = Map.put(assigns, :sides, @sides)
-
     ~H"""
     <Layouts.app
       flash={@flash}
@@ -21,7 +17,7 @@ defmodule CabWeb.SessionPageHTML do
     >
       <.chrome
         crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-        here={"#{@state.event["name"]} — #{stage_label(@state)}"}
+        here={"#{@state.event["name"]} — #{stage_words(@state.stage)}"}
       >
         <:seg
           :if={@state.stage == :signup && is_nil(@my_signup)}
@@ -93,7 +89,7 @@ defmodule CabWeb.SessionPageHTML do
                 </:col>
                 <:col
                   :let={room}
-                  :for={{label, position, side_class} <- @sides}
+                  :for={{label, position, side_class} <- sides()}
                   label={label}
                   class={"side #{side_class}"}
                 >
@@ -250,19 +246,6 @@ defmodule CabWeb.SessionPageHTML do
     end
   end
 
-  # the room row's status in words: motion state + ballot state
-  defp room_words(room) do
-    motion = if room["Motion"], do: "motion set", else: "motion pending"
-    "#{motion} · #{room_status_words(room["status"])}"
-  end
-
-  defp room_status_words("pending"), do: "waiting to start"
-  defp room_status_words("judging"), do: "debating — waiting for the ballot"
-  defp room_status_words("completed"), do: "ballot in"
-  defp room_status_words("confirmed"), do: "ballot in"
-  defp room_status_words("void"), do: "void"
-  defp room_status_words(other), do: other
-
   def ballot(assigns) do
     ~H"""
     <Layouts.app
@@ -301,44 +284,6 @@ defmodule CabWeb.SessionPageHTML do
     """
   end
 
-  # ---------------------------------------------------------------
-  # Draw helpers
-  # ---------------------------------------------------------------
-
-  # the team at a side position; a 1-speaker team is marked (iron)
-  defp team_label(room, position) do
-    case Enum.find(room["RoomTeams"] || [], &(&1["position"] == position)) do
-      nil ->
-        "—"
-
-      room_team ->
-        name = get_in(room_team, ["Team", "name"]) || "—"
-        if iron_team?(room_team), do: "#{name} (iron)", else: name
-    end
-  end
-
-  defp iron_team?(room_team) do
-    (room_team["RoomSpeakers"] || [])
-    |> Enum.map(&get_in(&1, ["EventParticipant", "id"]))
-    |> Enum.uniq()
-    |> length() == 1
-  end
-
-  # the chair's display name, resolved through the signups list
-  defp judge_name(room, signups) do
-    chair =
-      Enum.find(room["RoomAdjudicators"] || [], &(&1["role"] == "chair"))
-
-    with %{} <- chair,
-         participant_id when not is_nil(participant_id) <-
-           get_in(chair, ["EventParticipant", "id"]) do
-      get_in(chair, ["EventParticipant", "display_name"]) ||
-        Enum.find_value(signups, &(&1["id"] == participant_id && &1["display_name"])) || "—"
-    else
-      _ -> "—"
-    end
-  end
-
   defp my_room_motion(%{rooms: rooms}, my_room_id) when is_integer(my_room_id) do
     case Enum.find(rooms, &(&1["id"] == my_room_id)) do
       %{"Motion" => %{"motion_text" => motion}} when is_binary(motion) -> motion
@@ -347,36 +292,4 @@ defmodule CabWeb.SessionPageHTML do
   end
 
   defp my_room_motion(_state, _my_room_id), do: nil
-
-  # ---------------------------------------------------------------
-  # Results helpers (done stage)
-  # ---------------------------------------------------------------
-
-  defp sorted_teams(room), do: Enum.sort_by(room["RoomTeams"] || [], & &1["position"])
-
-  defp side_code(position), do: Enum.at(~w(OG OO CG CO), (position || 1) - 1)
-
-  # iron teams carry the same participant on both slots — show once
-  defp speaker_names(room_team) do
-    (room_team["RoomSpeakers"] || [])
-    |> Enum.map(&get_in(&1, ["EventParticipant", "display_name"]))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.join(" & ")
-  end
-
-  defp ordinal(1), do: "1st"
-  defp ordinal(2), do: "2nd"
-  defp ordinal(3), do: "3rd"
-  defp ordinal(rank), do: "#{rank}th"
-
-  defp session_date(%{scheduled_at: %DateTime{} = scheduled_at}),
-    do: Calendar.strftime(scheduled_at, "%-d %b %Y · %H:%M")
-
-  defp session_date(session), do: Calendar.strftime(session.inserted_at, "%-d %b %Y")
-
-  defp stage_label(%{stage: :signup}), do: "sign-up open"
-  defp stage_label(%{stage: :closed}), do: "sign-ups closed"
-  defp stage_label(%{stage: :running}), do: "running"
-  defp stage_label(%{stage: :done}), do: "done"
 end

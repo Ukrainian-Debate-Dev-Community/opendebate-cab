@@ -6,8 +6,6 @@ defmodule CabWeb.OwnerHTML do
   import CabWeb.MemberHTML, only: [archive_section: 1]
   alias Cab.Links
 
-  @sides [{"OG", 1, "s-og"}, {"OO", 2, "s-oo"}, {"CG", 3, "s-cg"}, {"CO", 4, "s-co"}]
-
   # ---------------------------------------------------------------
   # The club page, owner path: edit-in-place (Save in the chrome)
   # ---------------------------------------------------------------
@@ -196,8 +194,6 @@ defmodule CabWeb.OwnerHTML do
   # ---------------------------------------------------------------
 
   def session(assigns) do
-    assigns = Map.put(assigns, :sides, @sides)
-
     ~H"""
     <Layouts.app
       flash={@flash}
@@ -212,7 +208,7 @@ defmodule CabWeb.OwnerHTML do
           {@club.name, ~p"/c/#{@club.uuid}"},
           {"club", ~p"/c/#{@club.uuid}/owner"}
         ]}
-        here={"#{@state.event["name"]} — #{stage_words(@state)}"}
+        here={"#{@state.event["name"]} — #{stage_words(@state.stage)}"}
       >
         <:seg :if={@state.stage == :signup} form="allocator-form" primary>
           Start session
@@ -454,8 +450,6 @@ defmodule CabWeb.OwnerHTML do
   end
 
   defp rooms_block(assigns) do
-    assigns = Map.put(assigns, :sides, @sides)
-
     ~H"""
     <.section title="Rooms">
       <.table id="session-rooms" rows={@state.rooms}>
@@ -466,7 +460,7 @@ defmodule CabWeb.OwnerHTML do
         </:col>
         <:col
           :let={room}
-          :for={{label, position, side_class} <- @sides}
+          :for={{label, position, side_class} <- sides()}
           label={label}
           class={"side #{side_class}"}
         >
@@ -545,38 +539,6 @@ defmodule CabWeb.OwnerHTML do
     "#{speakers} speakers + #{judges} judge#{if judges != 1, do: "s"} checked in → #{rooms} room#{if rooms != 1, do: "s"}."
   end
 
-  # the team at a side position; a 1-speaker team is marked (iron)
-  defp team_label(room, position) do
-    case Enum.find(room["RoomTeams"] || [], &(&1["position"] == position)) do
-      nil ->
-        "—"
-
-      room_team ->
-        name = get_in(room_team, ["Team", "name"]) || "—"
-        if iron_team?(room_team), do: "#{name} (iron)", else: name
-    end
-  end
-
-  defp iron_team?(room_team) do
-    (room_team["RoomSpeakers"] || [])
-    |> Enum.map(&get_in(&1, ["EventParticipant", "id"]))
-    |> Enum.uniq()
-    |> length() == 1
-  end
-
-  defp judge_name(room, signups) do
-    chair = Enum.find(room["RoomAdjudicators"] || [], &(&1["role"] == "chair"))
-
-    with %{} <- chair,
-         participant_id when not is_nil(participant_id) <-
-           get_in(chair, ["EventParticipant", "id"]) do
-      get_in(chair, ["EventParticipant", "display_name"]) ||
-        Enum.find_value(signups, &(&1["id"] == participant_id && &1["display_name"])) || "—"
-    else
-      _ -> "—"
-    end
-  end
-
   defp deletable_rooms?(%{stage: :running, rooms: rooms}) when rooms != [],
     do: Enum.all?(rooms, &(&1["status"] == "pending"))
 
@@ -586,16 +548,4 @@ defmodule CabWeb.OwnerHTML do
     do: Enum.reject(rooms, &(&1["status"] in ["confirmed", "completed"]))
 
   defp open_rooms(_state), do: []
-
-  # status written out as words — no pills anywhere
-  defp stage_words(%{stage: :signup}), do: "sign-ups open"
-  defp stage_words(%{stage: :closed}), do: "sign-ups closed"
-  defp stage_words(%{stage: :running}), do: "running"
-  defp stage_words(%{stage: :done}), do: "finished"
-
-  defp room_status_words("confirmed"), do: "ballot in"
-  defp room_status_words("completed"), do: "ballot in"
-  defp room_status_words("judging"), do: "waiting for the ballot"
-  defp room_status_words("pending"), do: "waiting for the ballot"
-  defp room_status_words(status), do: status
 end

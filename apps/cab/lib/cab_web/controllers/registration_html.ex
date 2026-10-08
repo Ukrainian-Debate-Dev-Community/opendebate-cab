@@ -115,7 +115,7 @@ defmodule CabWeb.RegistrationHTML do
     >
       <.chrome
         crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-        here={"register — #{stage_label(@state)}"}
+        here={"register — #{stage_words(@state.stage)}"}
       >
       </.chrome>
 
@@ -133,9 +133,4 @@ defmodule CabWeb.RegistrationHTML do
     </Layouts.app>
     """
   end
-
-  defp stage_label(%{stage: :signup}), do: "sign-up open"
-  defp stage_label(%{stage: :closed}), do: "sign-ups closed"
-  defp stage_label(%{stage: :running}), do: "running"
-  defp stage_label(%{stage: :done}), do: "done"
 end

@@ -134,7 +134,7 @@ defmodule CabWeb.EightPagesTest do
       html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
 
       # the stage is written out as words in the crumb — no pill
-      assert html =~ "sign-up open"
+      assert html =~ "sign-ups open"
       refute html =~ "class=\"stage"
       assert html =~ ~s(id="session-signups")
       assert html =~ "Anna K"
@@ -189,7 +189,7 @@ defmodule CabWeb.EightPagesTest do
 
       html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
 
-      assert html =~ "done"
+      assert html =~ "finished"
       assert html =~ "Winner: <b>Team 1</b>"
       assert html =~ "THW show the draw"
       assert html =~ "won"
