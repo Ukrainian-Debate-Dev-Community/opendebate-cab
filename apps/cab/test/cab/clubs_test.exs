@@ -142,41 +142,24 @@ defmodule Cab.ClubsTest do
   end
 
   describe "club_history/1" do
-    test "completed events of the org, annotated with winners" do
+    test "finished sessions with their recorded winners — no engine call" do
       head = user_fixture(%{node_user_id: 9})
       club = club_fixture(head, %{engine_organisation_id: 3})
 
-      stub(fn conn, _params ->
-        case conn.request_path do
-          "/api/events/organisation/3" ->
-            # reads run as the club head
-            assert %{"id" => 9} = claims(conn)
+      done =
+        session_fixture(club,
+          engine_event_id: 11,
+          name: "Done night",
+          finished_at: ~U[2026-10-08 20:00:00Z],
+          winner_name: "Winners"
+        )
 
-            ok(conn, [
-              %{"id" => 11, "name" => "Done night", "status" => "completed"},
-              %{"id" => 12, "name" => "Tonight", "status" => "scheduled"}
-            ])
+      _open = session_fixture(club, engine_event_id: 12)
 
-          "/api/events/11/rounds" ->
-            ok(conn, [%{"id" => 21, "sequence" => 1}])
+      stub(fn _conn, _params -> raise "club_history must not call the engine" end)
 
-          "/api/rounds/21/rooms" ->
-            ok(conn, [
-              %{
-                "id" => 71,
-                "status" => "confirmed",
-                "RoomTeams" => [
-                  %{"id" => 1, "rank" => 2, "Team" => %{"name" => "Losers"}},
-                  %{"id" => 2, "rank" => 1, "Team" => %{"name" => "Winners"}}
-                ]
-              }
-            ])
-        end
-      end)
-
-      assert {:ok, [event]} = Clubs.club_history(club)
-      assert event["id"] == 11
-      assert event["winner"] == "Winners"
+      assert {:ok, [row]} = Clubs.club_history(club)
+      assert {row.session_uuid, row.name, row.winner} == {done.uuid, "Done night", "Winners"}
     end
   end
 

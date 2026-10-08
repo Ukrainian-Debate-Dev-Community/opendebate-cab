@@ -266,20 +266,10 @@ defmodule Cab.Clubs do
   # ---------------------------------------------------------------
 
   @doc """
-  Completed engine events of the club's organisation, each annotated
-  with `"winner"` (winning team of the event's single round).
+  The club's finished sessions with their recorded winners — cab's
+  own rows (the winner was copied from the engine at finish).
   """
-  def club_history(%Club{} = club) do
-    with {:ok, actor} <- club_actor(club),
-         {:ok, events} <- EngineApi.list_organisation_events(actor, club.engine_organisation_id) do
-      history =
-        events
-        |> Enum.filter(&(&1["status"] == "completed"))
-        |> Enum.map(&Map.put(&1, "winner", Sessions.event_winner(actor, &1)))
-
-      {:ok, history}
-    end
-  end
+  def club_history(%Club{} = club), do: {:ok, Sessions.archive(club)}
 
   defp require_node_user(%User{node_user_id: id}) when is_integer(id), do: {:ok, id}
   defp require_node_user(%User{}), do: {:error, "engine user could not be provisioned"}

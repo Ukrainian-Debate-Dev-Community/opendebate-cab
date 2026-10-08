@@ -242,7 +242,14 @@ defmodule CabWeb.EightPagesTest do
     setup %{conn: conn} do
       head = user_fixture(%{node_user_id: 19})
       club = club_fixture(head, %{engine_organisation_id: 3})
-      session = session_fixture(club, engine_event_id: 11)
+
+      session =
+        session_fixture(club,
+          engine_event_id: 11,
+          name: "Walk night",
+          finished_at: ~U[2026-10-01 20:00:00Z]
+        )
+
       %{conn: conn, club: club, session: session}
     end
 
@@ -301,8 +308,13 @@ defmodule CabWeb.EightPagesTest do
 
     test "?session walks the archive; earlier sessions are linked",
          %{conn: conn, club: club, session: first_session} do
-      # a second, newer session — the default scope lands on it
-      _newer = session_fixture(club, engine_event_id: 10)
+      # a second, newer finished session — the default scope lands on it
+      _newer =
+        session_fixture(club,
+          engine_event_id: 10,
+          name: "Newer night",
+          finished_at: ~U[2026-10-08 20:00:00Z]
+        )
 
       stub(fn conn, _params ->
         case conn.request_path do
@@ -350,11 +362,18 @@ defmodule CabWeb.EightPagesTest do
       refute old_html =~ "Newer Winner"
     end
 
-    test "no finished session degrades to the empty notice", %{conn: conn, club: club} do
+    test "no finished session shows the empty notice; engine trouble degrades to empty rows",
+         %{conn: conn, club: club} do
+      fresh = club_fixture(user_fixture(%{node_user_id: 29}), %{engine_organisation_id: 5})
+      _open = session_fixture(fresh, engine_event_id: 50)
+
+      html = conn |> get(~p"/c/#{fresh.uuid}/standings/teams") |> html_response(200)
+      assert html =~ "No finished session yet."
+
       stub(fn conn, _params -> Plug.Conn.send_resp(conn, 500, "boom") end)
 
       html = conn |> get(~p"/c/#{club.uuid}/standings/teams") |> html_response(200)
-      assert html =~ "No finished session yet."
+      assert html =~ "The engine returned no standings for this session."
     end
 
     test "an unknown tab is 404", %{conn: conn, club: club} do

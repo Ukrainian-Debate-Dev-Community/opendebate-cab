@@ -295,6 +295,12 @@ defmodule Cab.SessionsTest do
              %{"participant_ids" => [3, 6], "position" => 3},
              %{"participant_ids" => [5], "position" => 4}
            ] = room_params["teams"]
+
+    # the start is recorded on cab's row — lists read it, not the engine
+    recorded = Sessions.get_by_uuid(session.uuid)
+    assert %DateTime{} = recorded.started_at
+    assert recorded.rooms_count == 1
+    assert Sessions.stage_of(recorded) == :running
   end
 
   test "make_rooms/3 is gated on :closed", %{head: head, club: club} do
@@ -481,10 +487,18 @@ defmodule Cab.SessionsTest do
       end)
     end
 
+    session
+    |> Ecto.Changeset.change(started_at: DateTime.utc_now(:second), rooms_count: 2)
+    |> Cab.Repo.update!()
+
     rooms_stub.([%{"id" => 71, "status" => "pending"}, %{"id" => 72, "status" => "pending"}])
     assert {:ok, 2} = Sessions.delete_rooms(head, session)
     assert_received {:deleted_room, "71"}
     assert_received {:deleted_room, "72"}
+
+    # the recorded start is cleared with the rooms
+    recorded = Sessions.get_by_uuid(session.uuid)
+    assert {recorded.started_at, recorded.rooms_count} == {nil, 0}
 
     rooms_stub.([%{"id" => 71, "status" => "pending"}, %{"id" => 72, "status" => "judging"}])
     assert {:error, "only pending rooms" <> _} = Sessions.delete_rooms(head, session)
@@ -757,80 +771,89 @@ defmodule Cab.SessionsTest do
              )
   end
 
-  test "user_history lists finished participations with the winner flag",
+  test "user_history is ONE engine call mapped onto cab's recorded sessions",
        %{club: club} do
     speaker = user_fixture(%{node_user_id: 44})
-    membership_fixture(speaker, club)
     judge = user_fixture(%{node_user_id: 77})
-    membership_fixture(judge, club)
-    session = session_fixture(club, engine_event_id: 11)
 
-    # an approved membership in a club without sessions adds nothing
-    other_club = club_fixture(user_fixture(%{node_user_id: 8}))
-    membership_fixture(speaker, other_club)
+    session =
+      session_fixture(club,
+        engine_event_id: 11,
+        finished_at: ~U[2026-10-08 20:00:00Z],
+        winner_user_ids: [44]
+      )
+
+    test_pid = self()
 
     stub(fn conn, _params ->
       case conn.request_path do
-        "/api/events/organisation/3" ->
-          ok(conn, [
-            %{"id" => 11, "name" => "Night 1", "status" => "completed"},
-            %{"id" => 12, "name" => "Open night", "status" => "scheduled"}
-          ])
+        "/api/users/history" ->
+          send(test_pid, {:history_for, claims(conn)["id"]})
 
-        "/api/events/11/participants" ->
-          ok(conn, [
-            %{"id" => 41, "user_id" => 44, "role" => "speaker"},
-            %{"id" => 42, "user_id" => 77, "role" => "adjudicator"}
-          ])
+          # 99 is an event cab does not know — dropped
+          case claims(conn)["id"] do
+            44 ->
+              ok(conn, %{"as_adjudicator" => [], "as_player" => [%{"id" => 11}, %{"id" => 99}]})
 
-        "/api/events/11/rounds" ->
+            77 ->
+              ok(conn, %{"as_adjudicator" => [%{"id" => 11}], "as_player" => []})
+          end
+      end
+    end)
+
+    assert [row] = Sessions.user_history(speaker)
+    assert_received {:history_for, 44}
+
+    assert {row.club, row.role, row.won, row.session_uuid} ==
+             {club.name, "speaker", true, session.uuid}
+
+    assert row.date == session.finished_at
+
+    # the judge participated but never competes for the win
+    assert [%{role: "judge", won: false}] = Sessions.user_history(judge)
+
+    # a user without an engine counterpart never participated
+    assert Sessions.user_history(user_fixture(%{node_user_id: nil})) == []
+  end
+
+  test "finish completes round and event and records the winner verbatim",
+       %{head: head, club: club} do
+    session = session_fixture(club, engine_event_id: 11, engine_round_id: 21)
+    test_pid = self()
+
+    stub(fn conn, params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "name" => "Night", "status" => "scheduled"})
+
+        {"GET", "/api/events/11/rounds"} ->
           ok(conn, [%{"id" => 21, "sequence" => 1}])
 
-        "/api/rounds/21/rooms" ->
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [
+            %{"id" => 41, "user_id" => 444, "role" => "speaker"},
+            %{"id" => 42, "user_id" => 445, "role" => "speaker"}
+          ])
+
+        {"GET", "/api/rounds/21/rooms"} ->
           ok(conn, [
             %{
               "id" => 71,
               "status" => "confirmed",
               "RoomTeams" => [
                 %{
-                  "id" => 101,
                   "rank" => 1,
-                  "RoomSpeakers" => [%{"id" => 201, "EventParticipant" => %{"id" => 41}}]
+                  "Team" => %{"name" => "Winners"},
+                  "RoomSpeakers" => [%{"EventParticipant" => %{"id" => 41}}]
                 },
                 %{
-                  "id" => 102,
                   "rank" => 2,
-                  "RoomSpeakers" => [%{"id" => 202, "EventParticipant" => %{"id" => 43}}]
+                  "Team" => %{"name" => "Others"},
+                  "RoomSpeakers" => [%{"EventParticipant" => %{"id" => 42}}]
                 }
               ]
             }
           ])
-      end
-    end)
-
-    assert [row] = Sessions.user_history(speaker)
-    assert row.club == club.name
-    assert row.role == "speaker"
-    assert row.won == true
-    assert row.date == session.inserted_at
-
-    # the judge participated but never competes for the win
-    assert [judge_row] = Sessions.user_history(judge)
-    assert judge_row.role == "judge"
-    assert judge_row.won == false
-
-    # a user without an engine counterpart never participated
-    assert Sessions.user_history(user_fixture(%{node_user_id: nil})) == []
-  end
-
-  test "finish completes round and event", %{head: head, club: club} do
-    session = session_fixture(club, engine_event_id: 11)
-    test_pid = self()
-
-    stub(fn conn, params ->
-      case {conn.method, conn.request_path} do
-        {"GET", "/api/events/11/rounds"} ->
-          ok(conn, [%{"id" => 21, "sequence" => 1}])
 
         {"PUT", "/api/rounds/21"} ->
           send(test_pid, {:round, params})
@@ -845,5 +868,11 @@ defmodule Cab.SessionsTest do
     assert :ok = Sessions.finish(head, session)
     assert_received {:round, %{"status" => "completed"}}
     assert_received {:event, %{"status" => "completed"}}
+
+    recorded = Sessions.get_by_uuid(session.uuid)
+    assert %DateTime{} = recorded.finished_at
+    assert recorded.winner_name == "Winners"
+    assert recorded.winner_user_ids == [444]
+    assert Sessions.stage_of(recorded) == :done
   end
 end

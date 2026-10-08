@@ -55,7 +55,14 @@ defmodule CabWeb.ClubPrivacyTest do
     head = user_fixture(%{node_user_id: 19})
     club = club_fixture(head, %{engine_organisation_id: 3})
     {:ok, club} = Clubs.update_club(club, %{"is_private" => "true"})
-    session = session_fixture(club, engine_event_id: 11)
+
+    session =
+      session_fixture(club,
+        engine_event_id: 11,
+        name: "Quiet night",
+        finished_at: ~U[2026-10-08 20:00:00Z]
+      )
+
     %{conn: conn, club: club, head: head, session: session}
   end
 

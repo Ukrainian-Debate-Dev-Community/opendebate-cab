@@ -461,6 +461,10 @@ defmodule Cab.EngineApi do
     Engine.get(actor, "/api/users/#{user_id}/stats") |> unwrap()
   end
 
+  def user_history(actor, limit \\ 200) do
+    Engine.get(actor, "/api/users/history?limit=#{limit}") |> unwrap()
+  end
+
   def user_schedule(actor) do
     Engine.get(actor, "/api/users/schedule") |> unwrap()
   end

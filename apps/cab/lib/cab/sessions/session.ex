@@ -4,15 +4,23 @@ defmodule Cab.Sessions.Session do
 
   schema "sessions" do
     field :uuid, Ecto.UUID
-    # engine owns the debate data — NO stage column; stage is derived.
-    # The gateway owns only the registration window: scheduled_at
-    # (optional planned start) and signups_closed_at (set = closed).
+    # engine owns the debate data; the gateway owns the registration
+    # window (scheduled_at, signups_closed_at) and the lifecycle facts
+    # it performs itself (below).
     field :engine_event_id, :integer
     field :engine_round_id, :integer
     field :scheduled_at, :utc_datetime
     field :signups_closed_at, :utc_datetime
     # the allocator draft: slot key => participant id (see Cab.Sessions.place/3)
     field :draft_allocation, :map, default: %{}
+    # lifecycle facts recorded when cab performs them (lists read these,
+    # never the engine): see Cab.Sessions.stage_of/1
+    field :name, :string
+    field :started_at, :utc_datetime
+    field :rooms_count, :integer, default: 0
+    field :finished_at, :utc_datetime
+    field :winner_name, :string
+    field :winner_user_ids, {:array, :integer}, default: []
 
     belongs_to :club, Cab.Clubs.Club
     belongs_to :opened_by_user, Cab.Accounts.User

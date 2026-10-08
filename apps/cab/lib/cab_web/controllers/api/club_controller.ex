@@ -23,22 +23,18 @@ defmodule CabWeb.Api.ClubController do
         description: club.description,
         contacts: club.contacts,
         history:
-          Enum.map(history, fn event ->
-            %{
-              id: event["id"],
-              name: event["name"],
-              status: event["status"],
-              winner: event["winner"]
-            }
+          Enum.map(history, fn row ->
+            %{session_uuid: row.session_uuid, name: row.name, winner: row.winner}
           end)
       })
     end
   end
 
   # PATCH /api/v1/clubs/:uuid {"name", "city", "meeting_info",
-  # "description", "contacts"} — head edits the profile
+  # "description", "contacts", "is_private"} — head edits the profile
   def update(conn, params) do
-    attrs = Map.take(params, ["name", "city", "meeting_info", "description", "contacts"])
+    attrs =
+      Map.take(params, ["name", "city", "meeting_info", "description", "contacts", "is_private"])
 
     with {:ok, club} <- Clubs.update_club(conn.assigns.club, attrs) do
       json(conn, %{

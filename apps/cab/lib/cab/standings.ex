@@ -5,13 +5,12 @@ defmodule Cab.Standings do
 
     * teams    — GET /events/:id/standings/calculated/teams
     * speakers — GET /events/:id/standings/calculated/speakers
-    * judges   — plain COUNT of engine room chairs in that session
-    * clubs    — plain counts (members, sessions, rooms)
+    * judges   — GET /events/:id/stats/judges
+    * clubs    — plain counts from cab's records (members, sessions,
+                 rooms)
 
-  The default session is the latest FINISHED one (platform-wide for
-  the global tabs, per club for the club tabs); previous sessions are
-  browsed via the Sessions archive. No summing, averaging or any
-  cab-side math across sessions — ever.
+  Which session is shown comes from cab's records (finished_at) — one
+  engine call per tab, the standings themselves. No cab-side math.
   """
 
   import Ecto.Query
@@ -22,89 +21,69 @@ defmodule Cab.Standings do
   alias Cab.Sessions.Session
 
   @tabs ~w(teams speakers judges clubs)
-  # how many recent sessions the latest-finished scan may touch
-  @scan_limit 25
 
   def tabs, do: @tabs
 
   @doc """
-  The latest finished session, platform-wide (archived clubs
-  excluded) or scoped to one club. Returns
-  `%{session, club, actor, event}` or `nil` (none finished / engine
-  unreachable).
+  The latest finished session, platform-wide (archived and private
+  clubs excluded) or scoped to one club — straight from cab's records.
+  Returns `%{session, club, actor}` or `nil` (none finished).
   """
   def latest_finished do
-    Repo.all(
+    Repo.one(
       from s in Session,
         join: c in assoc(s, :club),
-        where: is_nil(c.archived_at) and not c.is_private,
-        order_by: [desc: s.id],
-        limit: @scan_limit,
+        where: not is_nil(s.finished_at) and is_nil(c.archived_at) and not c.is_private,
+        order_by: [desc: s.finished_at],
+        limit: 1,
         preload: [club: c]
     )
-    |> Enum.find_value(&finished_scope/1)
+    |> scope()
   end
 
   def latest_finished(%Club{} = club) do
-    Repo.all(
+    Repo.one(
       from s in Session,
-        where: s.club_id == ^club.id,
-        order_by: [desc: s.id],
-        limit: @scan_limit
+        where: s.club_id == ^club.id and not is_nil(s.finished_at),
+        order_by: [desc: s.finished_at],
+        limit: 1
     )
-    |> Enum.map(&%{&1 | club: club})
-    |> Enum.find_value(&finished_scope/1)
+    |> then(&(&1 && %{&1 | club: club}))
+    |> scope()
   end
 
   @doc """
   The scope for ONE chosen session (the club standings selector) —
-  same shape as `latest_finished/1`, nil unless that session is
-  finished.
+  same shape as `latest_finished/1`, nil unless that session finished.
   """
-  def finished(%Session{} = session), do: finished_scope(session)
+  def finished(%Session{} = session), do: scope(session)
 
-  defp finished_scope(%Session{} = session) do
-    with {:ok, actor} <- Clubs.club_actor(session.club),
-         %{} = event <- finished_event(actor, session.engine_event_id) do
-      %{session: session, club: session.club, actor: actor, event: event}
-    else
+  defp scope(%Session{finished_at: %DateTime{}} = session) do
+    case Clubs.club_actor(session.club) do
+      {:ok, actor} -> %{session: session, club: session.club, actor: actor}
       _ -> nil
     end
   end
 
-  # a completed event is immutable — remember it, so the latest-finished
-  # scan stops re-asking the engine on every tab switch; anything not
-  # (yet) completed is re-checked each time
-  defp finished_event(actor, event_id) do
-    Cab.Standings.Cache.fetch({event_id, :event}, fn ->
-      case EngineApi.get_event(actor, event_id) do
-        {:ok, %{"status" => "completed"} = event} -> {:commit, event}
-        _ -> {:ignore, nil}
-      end
-    end)
-  end
+  defp scope(_session), do: nil
 
   @doc """
   Engine calculated team standings for the scope's session, verbatim
   (`[%{"name" => _, "total_points" => _}, ...]` as returned).
   """
   def teams(%{actor: actor, session: session}) do
-    cached(session, :teams, fn ->
-      case EngineApi.team_standings(actor, session.engine_event_id) do
-        {:ok, rows} -> {:commit, rows}
-        {:error, _message} -> {:ignore, []}
-      end
-    end)
+    case EngineApi.team_standings(actor, session.engine_event_id) do
+      {:ok, rows} -> rows
+      {:error, _message} -> []
+    end
   end
 
   @doc "Engine calculated speaker standings for the scope's session, verbatim."
   def speakers(%{actor: actor, session: session}) do
-    cached(session, :speakers, fn ->
-      case EngineApi.speaker_standings(actor, session.engine_event_id) do
-        {:ok, rows} -> {:commit, rows}
-        {:error, _message} -> {:ignore, []}
-      end
-    end)
+    case EngineApi.speaker_standings(actor, session.engine_event_id) do
+      {:ok, rows} -> rows
+      {:error, _message} -> []
+    end
   end
 
   @doc """
@@ -113,30 +92,22 @@ defmodule Cab.Standings do
   avg_feedback}]`, rule 0.
   """
   def judges(%{actor: actor, session: session}) do
-    cached(session, :judges, fn ->
-      case EngineApi.judge_stats(actor, session.engine_event_id) do
-        {:ok, rows} -> {:commit, rows}
-        {:error, _message} -> {:ignore, []}
-      end
-    end)
+    case EngineApi.judge_stats(actor, session.engine_event_id) do
+      {:ok, rows} -> rows
+      {:error, _message} -> []
+    end
   end
 
-  # a scope only ever wraps a FINISHED session (finished_scope), so
-  # its standings are immutable — cache the engine's verbatim rows
-  defp cached(session, tab, fun),
-    do: Cab.Standings.Cache.fetch({session.engine_event_id, tab}, fun)
-
   @doc """
-  The clubs tab: plain counts per live club — members (approved
-  rows), sessions (gateway rows), rooms (engine rooms across the
-  club's sessions; engine trouble degrades that count to 0). Most
-  members first.
+  The clubs tab: plain counts per public club from cab's records —
+  members, sessions and rooms made. Most members first.
   """
-  def clubs(clubs \\ nil) do
-    clubs = (clubs || Clubs.list_clubs()) |> Enum.reject(& &1.is_private)
+  def clubs do
+    clubs = Enum.reject(Clubs.list_clubs(), & &1.is_private)
     ids = Enum.map(clubs, & &1.id)
     members = Clubs.member_counts(ids)
     sessions = Sessions.session_counts(ids)
+    rooms = Sessions.room_counts(ids)
 
     clubs
     |> Enum.map(fn club ->
@@ -144,25 +115,9 @@ defmodule Cab.Standings do
         club: club,
         members: members[club.id] || 0,
         sessions: sessions[club.id] || 0,
-        rooms: room_count(club)
+        rooms: rooms[club.id] || 0
       }
     end)
     |> Enum.sort_by(&{-&1.members, &1.club.name})
-  end
-
-  defp room_count(%Club{} = club) do
-    with sessions when sessions != [] <- Sessions.list_for_club(club),
-         {:ok, actor} <- Clubs.club_actor(club) do
-      Enum.reduce(sessions, 0, fn session, count ->
-        with {:ok, round} <- Sessions.round_by_sequence(actor, session.engine_event_id, 1),
-             {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
-          count + length(rooms)
-        else
-          _ -> count
-        end
-      end)
-    else
-      _ -> 0
-    end
   end
 end

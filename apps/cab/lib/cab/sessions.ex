@@ -61,6 +61,17 @@ defmodule Cab.Sessions do
     end
   end
 
+  @doc "Rooms made per club, as `%{club_id => count}` (cab's records)."
+  def room_counts(club_ids) do
+    Repo.all(
+      from s in Session,
+        where: s.club_id in ^club_ids,
+        group_by: s.club_id,
+        select: {s.club_id, sum(s.rooms_count)}
+    )
+    |> Map.new()
+  end
+
   @doc "Session counts for the given club ids, as `%{club_id => count}` (front-page directory)."
   def session_counts(club_ids) do
     Repo.all(
@@ -94,6 +105,7 @@ defmodule Cab.Sessions do
         opened_by_user_id: head.id,
         engine_event_id: event["id"],
         engine_round_id: round["id"],
+        name: event["name"] || name,
         scheduled_at: scheduled_at
       }
       |> Session.changeset()
@@ -553,8 +565,10 @@ defmodule Cab.Sessions do
       with {:ok, state} <- state(session),
            :ok <- require_stage(state, :closed),
            {:ok, rooms} <- parse_composition(rooms_spec, state.signups),
-           {:ok, actor} <- actor_for(head) do
-        create_composition(actor, state, rooms)
+           {:ok, actor} <- actor_for(head),
+           {:ok, count} <- create_composition(actor, state, rooms) do
+        record(session, started_at: DateTime.utc_now(:second), rooms_count: count)
+        {:ok, count}
       end
 
     notify(result, session)
@@ -729,12 +743,16 @@ defmodule Cab.Sessions do
             {:error, "only pending rooms can be deleted — this session is already in play"}
 
           true ->
-            Enum.reduce_while(rooms, {:ok, 0}, fn room, {:ok, count} ->
-              case EngineApi.delete_room(actor, room["id"]) do
-                {:ok, _} -> {:cont, {:ok, count + 1}}
-                {:error, message} -> {:halt, {:error, message}}
-              end
-            end)
+            with {:ok, count} <-
+                   Enum.reduce_while(rooms, {:ok, 0}, fn room, {:ok, count} ->
+                     case EngineApi.delete_room(actor, room["id"]) do
+                       {:ok, _} -> {:cont, {:ok, count + 1}}
+                       {:error, message} -> {:halt, {:error, message}}
+                     end
+                   end) do
+              record(session, started_at: nil, rooms_count: 0)
+              {:ok, count}
+            end
         end
       end
 
@@ -1021,14 +1039,85 @@ defmodule Cab.Sessions do
   def finish(%User{} = head, %Session{} = session) do
     result =
       with {:ok, actor} <- actor_for(head),
-           {:ok, round_id} <- session_round_id(actor, session),
-           {:ok, _} <- EngineApi.update_round(actor, round_id, %{status: "completed"}),
+           {:ok, state} <- state(session),
+           {:ok, _} <- EngineApi.update_round(actor, state.round["id"], %{status: "completed"}),
            {:ok, _} <-
              EngineApi.update_event(actor, session.engine_event_id, %{status: "completed"}) do
+        record(session,
+          finished_at: DateTime.utc_now(:second),
+          winner_name: winner_from_rooms(state.rooms),
+          winner_user_ids: winner_user_ids(state)
+        )
+
         :ok
       end
 
     notify(result, session)
+  end
+
+  # the winning team's members as gateway-visible engine user ids —
+  # copied once at finish so history never re-walks the rooms
+  defp winner_user_ids(%{rooms: rooms, signups: signups}) do
+    user_of = Map.new(signups, &{&1["id"], &1["user_id"]})
+
+    rooms
+    |> Enum.filter(&(&1["status"] in ["completed", "confirmed"]))
+    |> Enum.flat_map(&(&1["RoomTeams"] || []))
+    |> Enum.filter(&(&1["rank"] == 1))
+    |> Enum.flat_map(&(&1["RoomSpeakers"] || []))
+    |> Enum.map(&user_of[get_in(&1, ["EventParticipant", "id"])])
+    |> Enum.filter(&is_integer/1)
+    |> Enum.uniq()
+  end
+
+  # writes a lifecycle fact onto the session row — unconditionally: the
+  # struct in hand may be stale, so a changeset diff could skip it
+  defp record(%Session{id: id}, changes) do
+    from(s in Session, where: s.id == ^id)
+    |> Repo.update_all(set: Keyword.put(changes, :updated_at, DateTime.utc_now(:second)))
+  end
+
+  @doc """
+  One-off backfill for rows that predate the lifecycle columns: reads
+  the engine once and records name, start, room count, finish and the
+  winner. Idempotent. Returns `:ok` or `{:error, message}`.
+  """
+  def backfill(%Session{} = session) do
+    with {:ok, state} <- state(session) do
+      done? = state.event["status"] == "completed"
+
+      record(session,
+        name: state.event["name"],
+        rooms_count: length(state.rooms),
+        started_at:
+          if(state.rooms != [], do: session.started_at || session.updated_at, else: nil),
+        finished_at: if(done?, do: session.finished_at || session.updated_at, else: nil),
+        winner_name: if(done?, do: winner_from_rooms(state.rooms), else: nil),
+        winner_user_ids: if(done?, do: winner_user_ids(state), else: [])
+      )
+
+      :ok
+    end
+  end
+
+  @doc """
+  The session's stage from cab's own records — for lists and
+  overviews, no engine call. Detail pages use `state/1`, which reads
+  the engine and is authoritative.
+  """
+  def stage_of(%Session{finished_at: %DateTime{}}), do: :done
+  def stage_of(%Session{started_at: %DateTime{}}), do: :running
+  def stage_of(%Session{signups_closed_at: %DateTime{}}), do: :closed
+  def stage_of(%Session{}), do: :signup
+
+  @doc "The club's session that is not finished yet, or nil."
+  def current_for_club(%Club{} = club) do
+    Repo.one(
+      from s in Session,
+        where: s.club_id == ^club.id and is_nil(s.finished_at),
+        order_by: [desc: s.id],
+        limit: 1
+    )
   end
 
   # ---------------------------------------------------------------
@@ -1041,21 +1130,6 @@ defmodule Cab.Sessions do
         nil -> {:error, "round #{sequence} does not exist yet"}
         round -> {:ok, round}
       end
-    end
-  end
-
-  @doc """
-  Winner of an event: the rank-1 team of its last round (club sessions
-  have exactly one). Returns the team name or `nil`.
-  """
-  def event_winner(actor, event) do
-    with {:ok, rounds} <- EngineApi.list_rounds(actor, event["id"]),
-         last_round when not is_nil(last_round) <-
-           Enum.max_by(rounds, & &1["sequence"], fn -> nil end),
-         {:ok, rooms} <- EngineApi.list_rooms(actor, last_round["id"]) do
-      winner_from_rooms(rooms)
-    else
-      _ -> nil
     end
   end
 
@@ -1075,36 +1149,45 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  The user's past participations across their approved clubs, newest
-  first: for every finished session of such a club where the user's
-  engine counterpart took part, `%{date, club, role, won}` — `date`
-  is the gateway session's `inserted_at`, `role` is "speaker" or
-  "judge", and `won` is true when their team took rank 1 of the
-  confirmed ballot (always false for judges).
+  The user's past participations, newest first — ONE engine call
+  (`GET /users/history`, self-scoped) mapped onto cab's session rows:
+  `%{date, club, club_uuid, session_uuid, role, won}`. `won` reads the
+  winner recorded at finish; judges never "win". Sessions cab does
+  not know (foreign events) are dropped.
   """
   def user_history(%User{node_user_id: node_user_id} = user) when is_integer(node_user_id) do
-    user
-    |> Clubs.list_user_memberships()
-    |> Enum.filter(&(&1.status == "approved"))
-    |> Enum.flat_map(&club_user_history(&1.club, user))
-    |> Enum.sort_by(& &1.date, {:desc, DateTime})
+    with {:ok, actor} <- actor_for(user),
+         {:ok, data} <- EngineApi.user_history(actor) do
+      by_event =
+        Enum.flat_map([{"judge", "as_adjudicator"}, {"speaker", "as_player"}], fn {role, key} ->
+          for event <- data[key] || [], do: {event["id"], role}
+        end)
+
+      sessions =
+        Repo.all(
+          from s in Session,
+            where: s.engine_event_id in ^Enum.map(by_event, &elem(&1, 0)),
+            preload: :club
+        )
+        |> Map.new(&{&1.engine_event_id, &1})
+
+      for {event_id, role} <- by_event, session = sessions[event_id], session != nil do
+        %{
+          date: session.finished_at || session.inserted_at,
+          club: session.club.name,
+          club_uuid: session.club.uuid,
+          session_uuid: session.uuid,
+          role: role,
+          won: role == "speaker" and node_user_id in session.winner_user_ids
+        }
+      end
+      |> Enum.sort_by(& &1.date, {:desc, DateTime})
+    else
+      _ -> []
+    end
   end
 
-  # no engine counterpart yet -> never participated
   def user_history(%User{}), do: []
-
-  @doc """
-  The user's past participations in ONE club (the P5 "my results"
-  rows), newest first — same shape as `user_history/1`.
-  """
-  def user_club_history(%Club{} = club, %User{node_user_id: node_user_id} = user)
-      when is_integer(node_user_id) do
-    club
-    |> club_user_history(user)
-    |> Enum.sort_by(& &1.date, {:desc, DateTime})
-  end
-
-  def user_club_history(%Club{}, %User{}), do: []
 
   @doc """
   The user's upcoming signups ACROSS CLUBS (the cabinet's schedule):
@@ -1141,136 +1224,46 @@ defmodule Cab.Sessions do
   def user_schedule(%User{}), do: []
 
   @doc """
-  The club page's "Club Sessions" table (M9): EVERY gateway session,
-  newest first, with its status in words — done (+ winner) | live |
-  open. One engine listing; winners only for finished rows.
+  The club page's "Club Sessions" table: EVERY session, newest first,
+  with its status from cab's records — done (+ the winner recorded at
+  finish) | live | open. Pure database, no engine call.
   """
   def club_sessions(%Club{} = club) do
-    with sessions when sessions != [] <- list_for_club(club),
-         {:ok, actor} <- Clubs.club_actor(club),
-         {:ok, events} <-
-           EngineApi.list_organisation_events(actor, club.engine_organisation_id) do
-      names = Map.new(events, &{&1["id"], &1["name"]})
-
-      completed =
-        for event <- events, event["status"] == "completed", into: MapSet.new() do
-          event["id"]
-        end
-
-      Enum.map(sessions, fn session ->
-        done? = MapSet.member?(completed, session.engine_event_id)
-
-        status =
-          cond do
-            done? -> :done
-            session.signups_closed_at == nil -> :open
-            true -> :live
-          end
-
-        %{
-          session_uuid: session.uuid,
-          name: names[session.engine_event_id],
-          date: session.scheduled_at || session.inserted_at,
-          status: status,
-          winner: done? && event_winner(actor, %{"id" => session.engine_event_id})
-        }
-      end)
-    else
-      _ -> []
+    for session <- list_for_club(club) do
+      %{
+        session_uuid: session.uuid,
+        name: session.name,
+        date: session.scheduled_at || session.inserted_at,
+        status:
+          case stage_of(session) do
+            :done -> :done
+            :signup -> :open
+            _ -> :live
+          end,
+        winner: session.winner_name
+      }
     end
   end
 
   @doc """
-  The sessions ARCHIVE (previous progress): the club's FINISHED
-  engine events as rows `%{session_uuid, name, date, winner}`, newest
-  first — every value an engine fact, verbatim (rule 0: the winner is
-  the rank-1 team of the confirmed ballot, never computed cab-side).
-  Engine trouble degrades to an empty list — the page stays up.
+  The FINISHED sessions (the standings selector), newest finish
+  first, from cab's records — the winner is the engine's, copied
+  verbatim at finish (rule 0).
   """
   def archive(%Club{} = club) do
-    with sessions when sessions != [] <- list_for_club(club),
-         {:ok, actor} <- Clubs.club_actor(club),
-         {:ok, events} <-
-           EngineApi.list_organisation_events(actor, club.engine_organisation_id) do
-      names = Map.new(events, &{&1["id"], &1["name"]})
-
-      completed =
-        for event <- events, event["status"] == "completed", into: MapSet.new() do
-          event["id"]
-        end
-
-      sessions
-      |> Enum.filter(&MapSet.member?(completed, &1.engine_event_id))
-      |> Enum.map(fn session ->
-        %{
-          session_uuid: session.uuid,
-          name: names[session.engine_event_id],
-          date: session.scheduled_at || session.inserted_at,
-          winner: event_winner(actor, %{"id" => session.engine_event_id})
-        }
-      end)
-    else
-      _ -> []
-    end
-  end
-
-  defp club_user_history(%Club{} = club, user) do
-    case list_for_club(club) do
-      [] ->
-        []
-
-      sessions ->
-        with {:ok, actor} <- Clubs.club_actor(club),
-             {:ok, events} <-
-               EngineApi.list_organisation_events(actor, club.engine_organisation_id) do
-          completed =
-            for event <- events, event["status"] == "completed", into: MapSet.new() do
-              event["id"]
-            end
-
-          sessions
-          |> Enum.filter(&MapSet.member?(completed, &1.engine_event_id))
-          |> Enum.map(&participation(actor, club, &1, user))
-          |> Enum.reject(&is_nil/1)
-        else
-          _ -> []
-        end
-    end
-  end
-
-  defp participation(actor, club, session, user) do
-    with {:ok, participants} <- EngineApi.list_participants(actor, session.engine_event_id),
-         %{} = me <- Enum.find(participants, &(&1["user_id"] == user.node_user_id)) do
+    Repo.all(
+      from s in Session,
+        where: s.club_id == ^club.id and not is_nil(s.finished_at),
+        order_by: [desc: s.finished_at]
+    )
+    |> Enum.map(fn session ->
       %{
-        date: session.inserted_at,
-        club: club.name,
-        club_uuid: club.uuid,
         session_uuid: session.uuid,
-        role: if(me["role"] == "adjudicator", do: "judge", else: "speaker"),
-        won: me["role"] != "adjudicator" and won?(actor, session, me)
+        name: session.name,
+        date: session.scheduled_at || session.inserted_at,
+        winner: session.winner_name
       }
-    else
-      _ -> nil
-    end
-  end
-
-  # did this participant's team take rank 1 of a confirmed ballot?
-  defp won?(actor, session, me) do
-    with {:ok, round_id} <- session_round_id(actor, session),
-         {:ok, rooms} <- EngineApi.list_rooms(actor, round_id) do
-      rooms
-      |> Enum.filter(&(&1["status"] in ["completed", "confirmed"]))
-      |> Enum.flat_map(&(&1["RoomTeams"] || []))
-      |> Enum.any?(fn room_team ->
-        room_team["rank"] == 1 and
-          Enum.any?(
-            room_team["RoomSpeakers"] || [],
-            &(get_in(&1, ["EventParticipant", "id"]) == me["id"])
-          )
-      end)
-    else
-      _ -> false
-    end
+    end)
   end
 
   defp session_club(%Session{} = session) do

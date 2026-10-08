@@ -74,11 +74,11 @@ defmodule CabWeb.StandingsHTML do
         <.section title={tab_label(@tab)}>
           <div class="pad scope-card">
             <p>
-              session: <b>{@scope.event["name"]}</b>, {Calendar.strftime(scope_date(@scope), "%-d %b")} · {@scope.club.name}{if assigns[
-                                                                                                                                  :archive
-                                                                                                                                ],
-                                                                                                                                do:
-                                                                                                                                  " (latest finished)"}
+              session: <b>{@scope.session.name}</b>, {Calendar.strftime(scope_date(@scope), "%-d %b")} · {@scope.club.name}{if assigns[
+                                                                                                                                 :archive
+                                                                                                                               ],
+                                                                                                                               do:
+                                                                                                                                 " (latest finished)"}
             </p>
             <div :if={earlier_rows(assigns) != []} class="flinks">
               <span class="mut">earlier:</span>

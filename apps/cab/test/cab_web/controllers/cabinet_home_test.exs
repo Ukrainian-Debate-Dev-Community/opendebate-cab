@@ -173,55 +173,22 @@ defmodule CabWeb.CabinetHomeTest do
         engine_organisation_id: 3
       })
 
-    membership_fixture(user, club)
-    session = session_fixture(club, engine_event_id: 11)
+    session =
+      session_fixture(club,
+        engine_event_id: 11,
+        finished_at: ~U[2026-10-08 20:00:00Z],
+        winner_user_ids: [344]
+      )
 
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
         "/api/users/344/stats" ->
           Req.Test.json(req, %{"status" => "success", "data" => nil})
 
-        "/api/events/organisation/3" ->
+        "/api/users/history" ->
           Req.Test.json(req, %{
             "status" => "success",
-            "data" => [%{"id" => 11, "name" => "Night 1", "status" => "completed"}]
-          })
-
-        # the tonight column peeks at the latest session's stage
-        "/api/events/11" ->
-          Req.Test.json(req, %{
-            "status" => "success",
-            "data" => %{"id" => 11, "status" => "completed"}
-          })
-
-        "/api/events/11/participants" ->
-          Req.Test.json(req, %{
-            "status" => "success",
-            "data" => [%{"id" => 41, "user_id" => 344, "role" => "speaker"}]
-          })
-
-        "/api/events/11/rounds" ->
-          Req.Test.json(req, %{
-            "status" => "success",
-            "data" => [%{"id" => 21, "sequence" => 1}]
-          })
-
-        "/api/rounds/21/rooms" ->
-          Req.Test.json(req, %{
-            "status" => "success",
-            "data" => [
-              %{
-                "id" => 71,
-                "status" => "confirmed",
-                "RoomTeams" => [
-                  %{
-                    "id" => 101,
-                    "rank" => 1,
-                    "RoomSpeakers" => [%{"id" => 201, "EventParticipant" => %{"id" => 41}}]
-                  }
-                ]
-              }
-            ]
+            "data" => %{"as_adjudicator" => [], "as_player" => [%{"id" => 11}]}
           })
       end
     end)

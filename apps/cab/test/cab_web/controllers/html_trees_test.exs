@@ -49,28 +49,16 @@ defmodule CabWeb.HtmlTreesTest do
         contacts: "@kyivdebate"
       })
 
-    session = session_fixture(club, engine_event_id: 11)
+    session =
+      session_fixture(club,
+        engine_event_id: 11,
+        name: "Night 1",
+        finished_at: ~U[2026-10-08 20:00:00Z],
+        winner_name: "Winners"
+      )
 
-    stub(fn conn, _params ->
-      case conn.request_path do
-        "/api/events/organisation/3" ->
-          ok(conn, [%{"id" => 11, "name" => "Night 1", "status" => "completed"}])
-
-        "/api/events/11/rounds" ->
-          ok(conn, [%{"id" => 21, "sequence" => 1}])
-
-        "/api/rounds/21/rooms" ->
-          ok(conn, [
-            %{
-              "id" => 71,
-              "status" => "confirmed",
-              "RoomTeams" => [
-                %{"id" => 1, "rank" => 1, "position" => 1, "Team" => %{"name" => "Winners"}}
-              ]
-            }
-          ])
-      end
-    end)
+    # the club page is cab's own records — no engine call at all
+    stub(fn _conn, _params -> raise "the club page must not call the engine" end)
 
     html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
     assert html =~ club.name
@@ -83,7 +71,7 @@ defmodule CabWeb.HtmlTreesTest do
     # recent sessions: rows -> session page, progress as words
     assert html =~ ~s(id="club-sessions")
     assert html =~ "Night 1"
-    assert html =~ "won by Winners"
+    assert html =~ "done — won by Winners"
     assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
 
     # anonymous: the gold join CTA routes to /signin; club sidenav
@@ -263,27 +251,17 @@ defmodule CabWeb.HtmlTreesTest do
   } do
     member = user_fixture()
     membership_fixture(member, club)
-    done = session_fixture(club, engine_event_id: 11)
+
+    done =
+      session_fixture(club,
+        engine_event_id: 11,
+        name: "Done night",
+        finished_at: ~U[2026-10-08 20:00:00Z],
+        winner_name: "Winners"
+      )
 
     stub(fn conn, params ->
       case {conn.method, conn.request_path} do
-        {"GET", "/api/events/organisation/3"} ->
-          ok(conn, [
-            %{"id" => 11, "name" => "Done night", "status" => "completed"}
-          ])
-
-        {"GET", "/api/events/11/rounds"} ->
-          ok(conn, [%{"id" => 21, "sequence" => 1}])
-
-        {"GET", "/api/rounds/21/rooms"} ->
-          ok(conn, [
-            %{
-              "id" => 71,
-              "status" => "confirmed",
-              "RoomTeams" => [%{"id" => 1, "rank" => 1, "Team" => %{"name" => "Winners"}}]
-            }
-          ])
-
         {"POST", "/api/events/3"} ->
           ok(conn, %{"id" => 12, "name" => params["name"], "status" => "scheduled"})
 

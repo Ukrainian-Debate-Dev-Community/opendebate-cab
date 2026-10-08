@@ -21,7 +21,7 @@ defmodule CabWeb.OwnerController do
 
     render(conn, :club,
       archive: Sessions.club_sessions(club),
-      live: live_session(conn),
+      live: Sessions.current_for_club(club),
       page_title: "#{club.name} · edit"
     )
   end
@@ -429,9 +429,6 @@ defmodule CabWeb.OwnerController do
     |> put_flash(:error, error_message(message))
     |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/members")
   end
-
-  # the live-session fallback for room actions addressed by id only
-  defp live_session(conn), do: conn.assigns[:nav_session]
 
   defp error_message(message) when is_binary(message), do: message
   defp error_message(%{rooms: message}), do: message

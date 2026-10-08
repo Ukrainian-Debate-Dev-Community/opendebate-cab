@@ -23,30 +23,25 @@ defmodule CabWeb.ApiFlowTest do
 
   test "GET /api/v1/clubs/:uuid returns profile + history with winner",
        %{conn: conn, club: club} do
-    stub(fn conn, _params ->
-      case conn.request_path do
-        "/api/events/organisation/3" ->
-          ok(conn, [%{"id" => 11, "name" => "Night 1", "status" => "completed"}])
+    done =
+      session_fixture(club,
+        engine_event_id: 11,
+        name: "Night 1",
+        finished_at: ~U[2026-10-08 20:00:00Z],
+        winner_name: "Ann & Bo"
+      )
 
-        "/api/events/11/rounds" ->
-          ok(conn, [%{"id" => 21, "sequence" => 1}])
-
-        "/api/rounds/21/rooms" ->
-          ok(conn, [
-            %{
-              "id" => 71,
-              "status" => "confirmed",
-              "RoomTeams" => [%{"id" => 1, "rank" => 1, "Team" => %{"name" => "Ann & Bo"}}]
-            }
-          ])
-      end
-    end)
+    stub(fn _conn, _params -> raise "the club profile must not call the engine" end)
 
     data = conn |> get(~p"/api/v1/clubs/#{club.uuid}") |> json_response(200)
     assert data["uuid"] == club.uuid
     assert data["name"] == "BP Club"
     assert data["city"] == "Kyiv"
-    assert [%{"id" => 11, "winner" => "Ann & Bo"}] = data["history"]
+
+    assert [%{"session_uuid" => uuid, "name" => "Night 1", "winner" => "Ann & Bo"}] =
+             data["history"]
+
+    assert uuid == done.uuid
   end
 
   test "join request lifecycle over the API", %{conn: conn, club: club, head: head} do
@@ -320,6 +315,15 @@ defmodule CabWeb.ApiFlowTest do
 
     stub(fn conn, _params ->
       case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "name" => "Night", "status" => "scheduled"})
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [%{"id" => 71, "status" => "confirmed", "RoomTeams" => []}])
+
         {"GET", "/api/events/11/rounds"} ->
           ok(conn, [%{"id" => 21, "sequence" => 1}])
 

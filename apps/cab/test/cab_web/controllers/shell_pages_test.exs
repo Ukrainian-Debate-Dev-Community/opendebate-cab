@@ -242,7 +242,15 @@ defmodule CabWeb.ShellPagesTest do
     setup %{conn: conn} do
       head = user_fixture(%{node_user_id: 9})
       club = club_fixture(head, %{engine_organisation_id: 3})
-      session = session_fixture(club, engine_event_id: 11)
+
+      session =
+        session_fixture(club,
+          engine_event_id: 11,
+          name: "Thursday practice",
+          finished_at: ~U[2026-10-08 20:00:00Z],
+          rooms_count: 1
+        )
+
       %{conn: conn, club: club, session: session}
     end
 
@@ -316,12 +324,9 @@ defmodule CabWeb.ShellPagesTest do
       assert conn |> get("/standings/wins") |> response(404)
     end
 
-    test "no finished session yet shows the notice", %{conn: conn} do
-      stub(fn conn, _params ->
-        case conn.request_path do
-          "/api/events/11" -> ok(conn, %{"id" => 11, "status" => "scheduled"})
-        end
-      end)
+    test "no finished session yet shows the notice", %{conn: conn, session: session} do
+      # the only session reopens as unfinished in cab's records
+      session |> Ecto.Changeset.change(finished_at: nil) |> Cab.Repo.update!()
 
       html = conn |> get(~p"/standings/teams") |> html_response(200)
       assert html =~ "No finished session yet."

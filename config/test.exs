@@ -43,7 +43,3 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
-
-# standings cache: off in tests (global ETS would leak between tests
-# that reuse engine event ids); the cache itself has a unit test
-config :cab, :standings_cache, false

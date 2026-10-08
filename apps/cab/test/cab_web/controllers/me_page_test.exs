@@ -18,6 +18,12 @@ defmodule CabWeb.MePageTest do
 
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
+        "/api/users/history" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{"as_adjudicator" => [], "as_player" => []}
+          })
+
         "/api/users/344/stats" ->
           Req.Test.json(req, %{
             "status" => "success",
@@ -52,6 +58,12 @@ defmodule CabWeb.MePageTest do
 
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
+        "/api/users/history" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{"as_adjudicator" => [], "as_player" => []}
+          })
+
         "/api/users/345/stats" ->
           Req.Test.json(req, %{"status" => "success", "data" => nil})
       end

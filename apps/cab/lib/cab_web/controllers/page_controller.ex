@@ -41,21 +41,18 @@ defmodule CabWeb.PageController do
     render(conn, :privacy, page_title: "Privacy&Policy")
   end
 
-  # The Tonight column, written out as words: each club's latest
-  # session stage, as %{club_id => {session, stage, rooms}}. Engine
-  # trouble (or a finished session) reads as quiet.
+  # The Next session column: each club's unfinished session and its
+  # stage, as %{club_id => {session, stage, rooms}} — cab's own
+  # records, no engine call; no unfinished session reads as nil.
   defp tonight_by_club(clubs) do
     for club <- clubs, into: %{} do
-      state =
-        with %Session{} = session <- List.first(Sessions.list_for_club(club)),
-             {:ok, %{stage: stage} = state} when stage != :done <-
-               Sessions.state(%{session | club: club}) do
-          {session, stage, length(state.rooms)}
-        else
-          _ -> nil
-        end
+      case Sessions.current_for_club(club) do
+        %Session{} = session ->
+          {club.id, {session, Sessions.stage_of(session), session.rooms_count}}
 
-      {club.id, state}
+        nil ->
+          {club.id, nil}
+      end
     end
   end
 
