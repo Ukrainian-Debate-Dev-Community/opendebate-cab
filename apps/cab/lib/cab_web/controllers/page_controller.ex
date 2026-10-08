@@ -37,6 +37,11 @@ defmodule CabWeb.PageController do
     end
   end
 
+  # GET /privacy — the data & privacy policy, public
+  def privacy(conn, _params) do
+    render(conn, :privacy, page_title: "privacy & data")
+  end
+
   # The Tonight column, written out as words: each club's latest
   # session stage, as %{club_id => {session, stage, rooms}}. Engine
   # trouble (or a finished session) reads as quiet.
