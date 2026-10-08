@@ -52,6 +52,8 @@ defmodule CabWeb.StandingsHTML do
   attr :scope, :any, default: nil, doc: "%{session, club, event} or nil (none finished)"
   attr :rows, :list, required: true
   attr :club, :any, default: nil
+  attr :archive, :list, default: nil
+  attr :base, :string, default: nil
 
   def standings_body(assigns) do
     ~H"""
@@ -69,7 +71,25 @@ defmodule CabWeb.StandingsHTML do
       </.section>
     <% else %>
       <%= if @scope do %>
-        <.section title={session_heading(@tab, @scope)}>
+        <.section title={tab_label(@tab)}>
+          <div class="pad scope-card">
+            <p>
+              session: <b>{@scope.event["name"]}</b>, {Calendar.strftime(scope_date(@scope), "%-d %b")} · {@scope.club.name}{if assigns[
+                                                                                                                                  :archive
+                                                                                                                                ],
+                                                                                                                                do:
+                                                                                                                                  " (latest finished)"}
+            </p>
+            <div :if={earlier_rows(assigns) != []} class="flinks">
+              <span class="mut">earlier:</span>
+              <.link
+                :for={row <- earlier_rows(assigns)}
+                href={"#{@base}/#{@tab}?session=#{row.session_uuid}"}
+              >
+                {row.name} · {Calendar.strftime(row.date, "%-d %b")}
+              </.link>
+            </div>
+          </div>
           <.table
             id={"standings-#{@tab}"}
             rows={@rows}
@@ -81,9 +101,12 @@ defmodule CabWeb.StandingsHTML do
             <:col :let={row} :if={@tab in ["teams", "speakers"]} label="Points" num>
               {row["total_points"]}
             </:col>
-            <:col :let={row} :if={@tab == "judges"} label="Judge">{row.name}</:col>
+            <:col :let={row} :if={@tab == "judges"} label="Judge">{row["name"]}</:col>
             <:col :let={row} :if={@tab == "judges"} label="Rooms judged" num>
-              {row.rooms_judged}
+              {row["rooms_judged"]}
+            </:col>
+            <:col :let={row} :if={@tab == "judges"} label="Avg feedback" num>
+              {row["avg_feedback"] || "—"}
             </:col>
           </.table>
         </.section>
@@ -97,12 +120,14 @@ defmodule CabWeb.StandingsHTML do
     """
   end
 
-  defp session_heading(tab, scope) do
-    where = if tab == "judges", do: " — plain count of engine room chairs", else: ""
-
-    "#{tab_label(tab)} · session: #{scope.event["name"]}, " <>
-      "#{Calendar.strftime(scope_date(scope), "%-d %b")} · #{scope.club.name}#{where}"
+  # the archive minus the shown session — the selector links on the
+  # scope card (club scope passes archive + base; global passes none)
+  defp earlier_rows(%{archive: archive, scope: scope}) when is_list(archive) do
+    shown = scope && scope.session.uuid
+    Enum.reject(archive, &(&1.session_uuid == shown))
   end
+
+  defp earlier_rows(_assigns), do: []
 
   defp scope_date(%{session: session}), do: session.scheduled_at || session.inserted_at
 

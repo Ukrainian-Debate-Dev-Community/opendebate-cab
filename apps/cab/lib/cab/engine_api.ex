@@ -453,6 +453,10 @@ defmodule Cab.EngineApi do
   # Users (self-scoped reads run as that user's actor)
   # ---------------------------------------------------------------
 
+  def judge_stats(actor, event_id) do
+    Engine.get(actor, "/api/events/#{event_id}/stats/judges") |> unwrap()
+  end
+
   def user_stats(actor, user_id) do
     Engine.get(actor, "/api/users/#{user_id}/stats") |> unwrap()
   end

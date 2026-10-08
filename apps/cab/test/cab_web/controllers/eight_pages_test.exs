@@ -223,18 +223,17 @@ defmodule CabWeb.EightPagesTest do
         "/api/events/11/standings/calculated/speakers" ->
           ok(conn, [%{"id" => 7, "name" => "Anna Kovalenko", "total_points" => 101.53}])
 
+        "/api/events/11/stats/judges" ->
+          ok(conn, [
+            %{"id" => 90, "name" => "Petro", "rooms_judged" => 2, "avg_feedback" => 8.5}
+          ])
+
+        # the scope card's archive selector peeks at winners
         "/api/events/11/rounds" ->
           ok(conn, [%{"id" => 21, "sequence" => 1}])
 
         "/api/rounds/21/rooms" ->
-          ok(conn, [
-            %{
-              "id" => 71,
-              "RoomAdjudicators" => [
-                %{"role" => "chair", "EventParticipant" => %{"display_name" => "Petro"}}
-              ]
-            }
-          ])
+          ok(conn, [])
       end
     end)
   end
@@ -286,7 +285,7 @@ defmodule CabWeb.EightPagesTest do
       assert bare =~ ~s(id="standings-teams")
     end
 
-    test "judges tab is a plain chair count; clubs tab is global-only",
+    test "judges tab is the engine's judge stats verbatim; clubs tab is global-only",
          %{conn: conn, club: club} do
       stub_calculated()
 
@@ -294,6 +293,8 @@ defmodule CabWeb.EightPagesTest do
       assert judges =~ ~s(id="standings-judges")
       assert judges =~ "Petro"
       assert judges =~ "Rooms judged"
+      assert judges =~ "Avg feedback"
+      assert judges =~ "8.5"
 
       assert conn |> get(~p"/c/#{club.uuid}/standings/clubs") |> response(404)
     end
@@ -334,7 +335,8 @@ defmodule CabWeb.EightPagesTest do
       # default: the latest finished, with the earlier one linked below
       html = conn |> get(~p"/c/#{club.uuid}/standings/speakers") |> html_response(200)
       assert html =~ "Newer Winner"
-      assert html =~ "Earlier sessions"
+      assert html =~ "(latest finished)"
+      assert html =~ "earlier:"
       assert html =~ "?session=#{first_session.uuid}"
 
       # the selector shows exactly that session's engine rows

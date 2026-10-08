@@ -24,6 +24,7 @@ defmodule Cab.StandingsTest do
     teams = Keyword.get(opts, :teams, [])
     speakers = Keyword.get(opts, :speakers, [])
     rooms = Keyword.get(opts, :rooms, [])
+    judges = Keyword.get(opts, :judges, [])
 
     stub(fn conn ->
       case conn.request_path do
@@ -41,6 +42,9 @@ defmodule Cab.StandingsTest do
 
         "/api/rounds/21/rooms" ->
           ok(conn, rooms)
+
+        "/api/events/11/stats/judges" ->
+          ok(conn, judges)
 
         "/api/events/organisation/3" ->
           ok(conn, [%{"id" => 11, "name" => "Walk night", "status" => "completed"}])
@@ -103,28 +107,23 @@ defmodule Cab.StandingsTest do
              Standings.speakers(scope)
   end
 
-  test "judges is a plain count of the session's room chairs" do
+  test "judges are the engine's judge stats, verbatim" do
     head = user_fixture(%{node_user_id: 9})
     club = club_fixture(head, %{engine_organisation_id: 3})
     session_fixture(club, engine_event_id: 11)
 
-    chair = fn name ->
-      %{"role" => "chair", "EventParticipant" => %{"display_name" => name}}
-    end
-
     stub_finished(
-      rooms: [
-        %{"id" => 71, "RoomAdjudicators" => [chair.("Petro")]},
-        %{"id" => 72, "RoomAdjudicators" => [chair.("Petro")]},
-        %{"id" => 73, "RoomAdjudicators" => [chair.("Nadia")]}
+      judges: [
+        %{"id" => 90, "name" => "Petro", "rooms_judged" => 2, "avg_feedback" => 8.5},
+        %{"id" => 91, "name" => "Nadia", "rooms_judged" => 1, "avg_feedback" => nil}
       ]
     )
 
     scope = Standings.latest_finished()
 
     assert [
-             %{name: "Petro", rooms_judged: 2},
-             %{name: "Nadia", rooms_judged: 1}
+             %{"name" => "Petro", "rooms_judged" => 2, "avg_feedback" => 8.5},
+             %{"name" => "Nadia", "rooms_judged" => 1, "avg_feedback" => nil}
            ] = Standings.judges(scope)
   end
 

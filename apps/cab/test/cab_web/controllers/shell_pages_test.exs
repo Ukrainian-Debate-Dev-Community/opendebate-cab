@@ -258,6 +258,11 @@ defmodule CabWeb.ShellPagesTest do
           "/api/events/11/standings/calculated/speakers" ->
             ok(conn, [%{"id" => 7, "name" => "Anna Kovalenko", "total_points" => 101.53}])
 
+          "/api/events/11/stats/judges" ->
+            ok(conn, [
+              %{"id" => 90, "name" => "Petro", "rooms_judged" => 1, "avg_feedback" => nil}
+            ])
+
           "/api/events/11/rounds" ->
             ok(conn, [%{"id" => 21, "sequence" => 1}])
 

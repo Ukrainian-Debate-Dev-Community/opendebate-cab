@@ -108,27 +108,15 @@ defmodule Cab.Standings do
   end
 
   @doc """
-  Judges of the scope's session: a plain COUNT of engine room chairs
-  — `[%{name, rooms_judged}]`, most rooms first.
+  Judges of the scope's session — the ENGINE's judge stats verbatim
+  (`GET /events/:id/stats/judges`): `[{id, name, rooms_judged,
+  avg_feedback}]`, rule 0.
   """
   def judges(%{actor: actor, session: session}) do
     cached(session, :judges, fn ->
-      with {:ok, round} <- Sessions.round_by_sequence(actor, session.engine_event_id, 1),
-           {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
-        rows =
-          rooms
-          |> Enum.flat_map(&(&1["RoomAdjudicators"] || []))
-          |> Enum.filter(&(&1["role"] == "chair"))
-          |> Enum.map(&get_in(&1, ["EventParticipant", "display_name"]))
-          |> Enum.reject(&is_nil/1)
-          |> Enum.frequencies()
-          |> Enum.map(fn {name, count} -> %{name: name, rooms_judged: count} end)
-          |> Enum.sort_by(&{-&1.rooms_judged, &1.name})
-
-        {:commit, rows}
-      else
-        # engine trouble must not stick in the cache
-        _ -> {:ignore, []}
+      case EngineApi.judge_stats(actor, session.engine_event_id) do
+        {:ok, rows} -> {:commit, rows}
+        {:error, _message} -> {:ignore, []}
       end
     end)
   end
