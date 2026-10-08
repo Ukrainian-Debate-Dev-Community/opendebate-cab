@@ -17,21 +17,27 @@ defmodule CabWeb.StandingsHTML do
     """
   end
 
-  @doc "The four standings tabs (pages-v6 .selrow), shared by both scopes."
+  @doc """
+  The standings tabs (pages-v6 .selrow), shared by both scopes —
+  the Clubs tab is GLOBAL-ONLY (a club comparing clubs inside its
+  own scope makes no sense).
+  """
   attr :base, :string, required: true
   attr :active, :string, required: true
+  attr :clubs_tab, :boolean, default: true
 
   def standings_tabs(assigns) do
     ~H"""
     <.selrow
       id="standings-tabs"
       active={@active}
-      tabs={[
-        {"teams", "Teams", "#{@base}/teams"},
-        {"speakers", "Speakers", "#{@base}/speakers"},
-        {"judges", "Judges", "#{@base}/judges"},
-        {"clubs", "Clubs", "#{@base}/clubs"}
-      ]}
+      tabs={
+        [
+          {"teams", "Teams", "#{@base}/teams"},
+          {"speakers", "Speakers", "#{@base}/speakers"},
+          {"judges", "Judges", "#{@base}/judges"}
+        ] ++ if(@clubs_tab, do: [{"clubs", "Clubs", "#{@base}/clubs"}], else: [])
+      }
     />
     """
   end
@@ -80,11 +86,6 @@ defmodule CabWeb.StandingsHTML do
               {row.rooms_judged}
             </:col>
           </.table>
-          <div class="pad">
-            <.link id="standings-previous" href={sessions_path(@scope.club)}>
-              Previous sessions →
-            </.link>
-          </div>
         </.section>
       <% else %>
         <.section title={tab_label(@tab)} pad>
@@ -110,6 +111,4 @@ defmodule CabWeb.StandingsHTML do
   defp tab_label("speakers"), do: "Speakers"
   defp tab_label("judges"), do: "Judges"
   defp tab_label("clubs"), do: "Clubs"
-
-  defp sessions_path(club), do: "/c/#{club.uuid}/member/sessions"
 end

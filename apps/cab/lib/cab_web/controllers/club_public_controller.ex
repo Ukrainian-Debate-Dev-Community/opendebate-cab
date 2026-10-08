@@ -21,8 +21,8 @@ defmodule CabWeb.ClubPublicController do
     )
   end
 
-  # GET /c/:club_uuid/standings[/:tab] — the SAME four tabs as the
-  # global standings, scoped to this club (RULE 0 passthrough)
+  # GET /c/:club_uuid/standings[/:tab] — teams · speakers · judges
+  # scoped to this club (RULE 0 passthrough); Clubs is global-only
   def standings(conn, params) do
     club = conn.assigns.club
 
@@ -36,14 +36,6 @@ defmodule CabWeb.ClubPublicController do
           tab: tab,
           scope: scope,
           rows: standings_rows(tab, scope),
-          page_title: "#{club.name} · standings"
-        )
-
-      "clubs" ->
-        render(conn, :standings,
-          tab: "clubs",
-          scope: nil,
-          rows: Standings.clubs([club]),
           page_title: "#{club.name} · standings"
         )
 

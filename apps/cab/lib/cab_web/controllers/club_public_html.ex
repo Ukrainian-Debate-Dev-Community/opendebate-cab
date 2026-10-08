@@ -69,7 +69,7 @@ defmodule CabWeb.ClubPublicHTML do
     """
   end
 
-  # the SAME four tabs as /standings, scoped to the club
+  # teams · speakers · judges, scoped to the club (Clubs is global-only)
   def standings(assigns) do
     ~H"""
     <Layouts.app
@@ -81,7 +81,7 @@ defmodule CabWeb.ClubPublicHTML do
       active="standings"
     >
       <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="standings"></.chrome>
-      <.standings_tabs base={"/c/#{@club.uuid}/standings"} active={@tab} />
+      <.standings_tabs base={"/c/#{@club.uuid}/standings"} active={@tab} clubs_tab={false} />
 
       <div class="pbody">
         <.flash_banners flash={@flash} />

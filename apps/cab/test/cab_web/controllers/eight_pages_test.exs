@@ -247,12 +247,14 @@ defmodule CabWeb.EightPagesTest do
 
       html = conn |> get(~p"/c/#{club.uuid}/standings/speakers") |> html_response(200)
 
-      # the four tabs row (real borders, no pills)
+      # three tabs at club scope — Clubs is global-only
       assert html =~ ~s(id="standings-tabs")
 
-      for tab <- ~w(teams speakers judges clubs) do
+      for tab <- ~w(teams speakers judges) do
         assert html =~ ~s(href="/c/#{club.uuid}/standings/#{tab}")
       end
+
+      refute html =~ ~s(href="/c/#{club.uuid}/standings/clubs")
 
       # engine output verbatim: name + total_points, session named
       assert html =~ ~s(id="standings-speakers")
@@ -260,7 +262,6 @@ defmodule CabWeb.EightPagesTest do
       assert html =~ "101.53"
       assert html =~ "Walk night"
       assert html =~ "latest finished"
-      assert html =~ "Previous sessions"
 
       # NO wins/winrate/played strings anywhere on standings pages
       refute html =~ "wins"
@@ -280,7 +281,7 @@ defmodule CabWeb.EightPagesTest do
       assert bare =~ ~s(id="standings-teams")
     end
 
-    test "judges tab is a plain chair count; clubs tab plain counts",
+    test "judges tab is a plain chair count; clubs tab is global-only",
          %{conn: conn, club: club} do
       stub_calculated()
 
@@ -289,9 +290,7 @@ defmodule CabWeb.EightPagesTest do
       assert judges =~ "Petro"
       assert judges =~ "Rooms judged"
 
-      clubs = conn |> get(~p"/c/#{club.uuid}/standings/clubs") |> html_response(200)
-      assert clubs =~ ~s(id="standings-clubs")
-      assert clubs =~ club.name
+      assert conn |> get(~p"/c/#{club.uuid}/standings/clubs") |> response(404)
     end
 
     test "no finished session degrades to the empty notice", %{conn: conn, club: club} do
