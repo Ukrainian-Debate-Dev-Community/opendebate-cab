@@ -194,6 +194,130 @@ defmodule Cab.Sessions do
   end
 
   @doc """
+  THE ALLOCATOR DRAFT (server-held): the head drops a person on a
+  slot — `"<room>:<og|oo|cg|co>:<1|2>"` for speakers,
+  `"<room>:judge"` for judges. The person leaves any previous slot;
+  an occupied target sends its occupant to that previous slot (a
+  swap) or back to the tray. Kinds are enforced. Editable while the
+  session is :signup or :closed. Returns `{:ok, session}`.
+  """
+  def place(%Session{} = session, participant_id, slot) when is_integer(participant_id) do
+    result =
+      with {:ok, state} <- state(session),
+           :ok <- require_draftable(state),
+           {:ok, person} <- find_participant(state.signups, participant_id),
+           {:ok, _room, side} <- parse_slot(slot, room_count(state.signups)),
+           :ok <- slot_fits(person, side) do
+        draft = clean_draft(session.draft_allocation, state.signups)
+        from = Enum.find_value(draft, fn {key, pid} -> pid == participant_id && key end)
+        occupant = draft[slot]
+
+        draft =
+          draft
+          |> Map.delete(from)
+          |> Map.put(slot, participant_id)
+          |> then(fn d ->
+            if occupant && occupant != participant_id && from,
+              do: Map.put(d, from, occupant),
+              else: d
+          end)
+
+        save_draft(session, draft)
+      end
+
+    notify(result, session)
+  end
+
+  @doc "Sends a person from the draft back to the tray."
+  def unplace(%Session{} = session, participant_id) when is_integer(participant_id) do
+    draft =
+      session.draft_allocation
+      |> Enum.reject(fn {_key, pid} -> pid == participant_id end)
+      |> Map.new()
+
+    notify(save_draft(session, draft), session)
+  end
+
+  @doc """
+  The draft as the allocator renders it: only people still signed
+  up, only slots inside today's automatic room count.
+  """
+  def draft(%Session{} = session, signups), do: clean_draft(session.draft_allocation, signups)
+
+  @doc """
+  START SESSION from the server-held draft: the draft becomes the
+  rooms spec for `start/3`; on success the draft is cleared.
+  """
+  def start_from_draft(%User{} = head, %Session{} = session) do
+    with {:ok, state} <- state(session),
+         spec = draft_spec(clean_draft(session.draft_allocation, state.signups), state.signups),
+         {:ok, count} <- start(head, session, spec) do
+      _ = save_draft(get_by_uuid(session.uuid), %{})
+      {:ok, count}
+    end
+  end
+
+  defp draft_spec(draft, signups) do
+    for room <- 1..room_count(signups) do
+      %{
+        "judge_participant_id" => draft["#{room}:judge"],
+        "teams" =>
+          for side <- ~w(og oo cg co) do
+            Enum.reject([draft["#{room}:#{side}:1"], draft["#{room}:#{side}:2"]], &is_nil/1)
+          end
+      }
+    end
+  end
+
+  defp require_draftable(%{stage: stage}) when stage in [:signup, :closed], do: :ok
+
+  defp require_draftable(%{stage: stage}),
+    do: {:error, :conflict, "the allocation is fixed once the session runs (session is #{stage})"}
+
+  defp parse_slot(slot, rooms) when is_binary(slot) do
+    case String.split(slot, ":") do
+      [room, "judge"] ->
+        with {r, ""} when r in 1..rooms//1 <- Integer.parse(room), do: {:ok, r, "judge"}
+
+      [room, side, n] when side in ~w(og oo cg co) and n in ["1", "2"] ->
+        with {r, ""} when r in 1..rooms//1 <- Integer.parse(room), do: {:ok, r, side}
+
+      _ ->
+        :error
+    end
+    |> case do
+      {:ok, _room, _side} = ok -> ok
+      _ -> {:error, "no such slot: #{slot}"}
+    end
+  end
+
+  defp parse_slot(slot, _rooms), do: {:error, "no such slot: #{inspect(slot)}"}
+
+  defp slot_fits(%{"role" => "adjudicator"}, "judge"), do: :ok
+  defp slot_fits(%{"role" => "speaker"}, side) when side != "judge", do: :ok
+  defp slot_fits(_person, "judge"), do: {:error, "only judges chair a room"}
+  defp slot_fits(_person, _side), do: {:error, "judges cannot take a speaker slot"}
+
+  defp clean_draft(draft, signups) do
+    signed = MapSet.new(signups, & &1["id"])
+    rooms = room_count(signups)
+
+    for {key, pid} <- draft || %{},
+        MapSet.member?(signed, pid),
+        {room, _} <- [Integer.parse(key)],
+        room in 1..rooms//1,
+        into: %{} do
+      {key, pid}
+    end
+  end
+
+  defp save_draft(session, draft) do
+    session
+    |> Ecto.Changeset.change(draft_allocation: draft)
+    |> Repo.update()
+  end
+
+  @doc """
   The allocator's automatic ROOM COUNT (M9): enough rooms for every
   speaker — ceil(speakers / #{@max_room_speakers}), minimum one. The
   only automatic part of allocation; 13 speakers = 2 rooms.

@@ -11,6 +11,8 @@ defmodule Cab.Sessions.Session do
     field :engine_round_id, :integer
     field :scheduled_at, :utc_datetime
     field :signups_closed_at, :utc_datetime
+    # the allocator draft: slot key => participant id (see Cab.Sessions.place/3)
+    field :draft_allocation, :map, default: %{}
 
     belongs_to :club, Cab.Clubs.Club
     belongs_to :opened_by_user, Cab.Accounts.User

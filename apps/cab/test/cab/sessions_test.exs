@@ -135,6 +135,46 @@ defmodule Cab.SessionsTest do
     refute_receive {:session_changed, _}, 50
   end
 
+  describe "allocator draft" do
+    setup %{club: club} do
+      session = session_fixture(club, engine_event_id: 11)
+
+      signups =
+        [%{"id" => 90, "role" => "adjudicator", "display_name" => "Judge"}] ++
+          for(i <- 1..8, do: %{"id" => i, "role" => "speaker", "display_name" => "S#{i}"})
+
+      stub(fn conn, _params -> state_stub(conn, signups) end)
+      %{session: session, signups: signups}
+    end
+
+    test "place, swap on an occupied slot, unplace", %{session: session, signups: signups} do
+      {:ok, session} = Sessions.place(session, 1, "1:og:1")
+      {:ok, session} = Sessions.place(session, 2, "1:oo:1")
+      assert Sessions.draft(session, signups) == %{"1:og:1" => 1, "1:oo:1" => 2}
+
+      # dropping 1 onto 2's slot swaps them
+      {:ok, session} = Sessions.place(session, 1, "1:oo:1")
+      assert Sessions.draft(session, signups) == %{"1:oo:1" => 1, "1:og:1" => 2}
+
+      {:ok, session} = Sessions.unplace(session, 1)
+      assert Sessions.draft(session, signups) == %{"1:og:1" => 2}
+    end
+
+    test "kinds are enforced and slots must exist", %{session: session} do
+      assert {:error, "judges cannot take a speaker slot"} =
+               Sessions.place(session, 90, "1:og:1")
+
+      assert {:error, "only judges chair a room"} = Sessions.place(session, 1, "1:judge")
+      assert {:error, "no such slot: 3:og:1"} = Sessions.place(session, 1, "3:og:1")
+      assert {:ok, _} = Sessions.place(session, 90, "1:judge")
+    end
+
+    test "people who left the signups drop out of the draft", %{session: session} do
+      {:ok, session} = Sessions.place(session, 1, "1:og:1")
+      assert Sessions.draft(session, [%{"id" => 2, "role" => "speaker"}]) == %{}
+    end
+  end
+
   test "close_signups / reopen_signups flip the registration window", %{club: club} do
     session = session_fixture(club, engine_event_id: 11)
 
