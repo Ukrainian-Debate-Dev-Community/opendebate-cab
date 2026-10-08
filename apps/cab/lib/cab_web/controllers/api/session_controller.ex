@@ -42,20 +42,12 @@ defmodule CabWeb.Api.SessionController do
   end
 
   # GET /api/v1/sessions/:uuid — the public session detail twin:
-  # stage derived from engine state + the gateway registration window;
-  # while :closed the state carries the pairing PROPOSAL — the
-  # auto-pair result, nothing persisted — and once ballots confirm,
-  # the winner
+  # stage derived from engine state + the gateway registration window
+  # and, once ballots are in, the winner
   def show(conn, _params) do
     session = conn.assigns.session
 
     with {:ok, state} <- Sessions.state(session) do
-      proposal =
-        case Sessions.pairing_proposal(session, state) do
-          {:ok, rooms} -> %{rooms: rooms}
-          :unavailable -> nil
-        end
-
       json(conn, %{
         uuid: session.uuid,
         club_uuid: conn.assigns.club.uuid,
@@ -66,8 +58,7 @@ defmodule CabWeb.Api.SessionController do
         round: state.round,
         signups: state.signups,
         rooms: state.rooms,
-        winner: Sessions.winner_from_rooms(state.rooms),
-        proposal: proposal
+        winner: Sessions.winner_from_rooms(state.rooms)
       })
     end
   end

@@ -12,23 +12,18 @@ defmodule CabWeb.Api.RoomController do
   # engine additionally enforces chair rights on its side
   plug ClubScope, [source: :room_session, require: :member] when action in [:motion, :ballot]
 
-  # POST /api/v1/sessions/:uuid/rooms — no body: attendance pairing
-  # (auto); {"rooms": [{"judge_participant_id", "teams": [[pid,pid] x4]}]}:
-  # the head's explicit composition
-  def create(conn, params) do
-    user = conn.assigns.current_user
-    session = conn.assigns.session
-
-    result =
-      case params["rooms"] do
-        nil -> Sessions.make_rooms(user, session)
-        rooms_spec -> Sessions.make_rooms(user, session, rooms_spec)
-      end
-
-    with {:ok, count} <- result do
+  # POST /api/v1/sessions/:uuid/rooms {"rooms": [{"judge_participant_id",
+  # "teams": [[pid,pid] x4]}]} — the head's composition; the spec is
+  # REQUIRED, cab never pairs anyone automatically
+  def create(conn, %{"rooms" => rooms_spec}) do
+    with {:ok, count} <-
+           Sessions.make_rooms(conn.assigns.current_user, conn.assigns.session, rooms_spec) do
       conn |> put_status(201) |> json(%{rooms_created: count})
     end
   end
+
+  def create(_conn, _params),
+    do: {:error, %{rooms: "the rooms spec is required — nothing is allocated automatically"}}
 
   # DELETE /api/v1/sessions/:uuid/rooms — rebuild: pending rooms (and
   # their temporary teams) go away so the head can recompose

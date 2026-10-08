@@ -20,7 +20,6 @@ defmodule Cab.Sessions do
 
   @teams_per_room 4
   @speakers_per_team 2
-  @min_room_speakers 4
   @max_room_speakers 8
 
   # ---------------------------------------------------------------
@@ -537,137 +536,12 @@ defmodule Cab.Sessions do
     do: {:error, :conflict, "rooms are composed after sign-ups close (session is #{actual})"}
 
   @doc """
-  The pairing PROPOSAL the head sees before making rooms: the
-  engine's auto-pair order re-chunked into iron-capable rooms,
-  computed WITHOUT side effects (nothing is persisted). Available
-  while `state.stage == :closed` (rooms are composed from the final
-  attendance) with at least #{@min_room_speakers} speakers and a
-  judge; `:unavailable` otherwise.
-
-  Returns `{:ok, rooms}` where each room is
-  `%{judge_participant_id: id, teams: [[pid] | [pid, pid] x #{@teams_per_room}]}`
-  — pairs first, singles (declared irons) last.
-  """
-  def pairing_proposal(%Session{} = session, %{stage: :closed} = state) do
-    case auto_composition(session, state) do
-      {:ok, rooms} -> {:ok, rooms}
-      {:error, _message} -> :unavailable
-    end
-  end
-
-  def pairing_proposal(%Session{}, _state), do: :unavailable
-
-  @doc """
-  The auto-pair composition (nothing persisted): the engine's random
-  speaking order chunked into `room_count` rooms (default
-  `floor(speakers / #{@max_room_speakers})`, min 1) of
-  #{@teams_per_room} teams each. Teams hold 1-#{@speakers_per_team}
-  speakers — a 1-speaker team is a declared iron — so a room holds
-  #{@min_room_speakers}-#{@max_room_speakers} speakers; pairs come
-  first, singles last. Speakers beyond the rooms' capacity stay
-  unallocated (the head composes explicitly to choose who sits out).
-  """
-  def auto_composition(%Session{} = session, %{signups: signups}, room_count \\ nil) do
-    speakers = Enum.filter(signups, &(&1["role"] == "speaker"))
-    judges = Enum.filter(signups, &(&1["role"] == "adjudicator"))
-    attendance = length(speakers)
-    rooms = room_count || max(div(attendance, @max_room_speakers), 1)
-
-    cond do
-      attendance < @min_room_speakers ->
-        {:error,
-         "rooms need #{@min_room_speakers}-#{@max_room_speakers} speakers " <>
-           "(have #{attendance} signed up)"}
-
-      rooms > div(attendance, @min_room_speakers) ->
-        {:error,
-         "#{rooms} room(s) need at least #{rooms * @min_room_speakers} speakers " <>
-           "(have #{attendance})"}
-
-      length(judges) < rooms ->
-        {:error, "need at least #{rooms} judge(s) (have #{length(judges)})"}
-
-      true ->
-        with {:ok, order} <- speaking_order(session, speakers) do
-          {:ok,
-           order
-           |> Enum.take(min(attendance, rooms * @max_room_speakers))
-           |> chunk_rooms(rooms)
-           |> Enum.zip(judges)
-           |> Enum.map(fn {teams, judge} ->
-             %{judge_participant_id: judge["id"], teams: teams}
-           end)}
-        end
-    end
-  end
-
-  # the engine's auto-generate proposal flattened to a random speaking
-  # order (free-speaker aware); signups it skipped go last
-  defp speaking_order(session, speakers) do
-    with {:ok, actor} <- Clubs.club_actor(session_club(session)),
-         {:ok, %{"proposed_teams" => proposals}} <-
-           EngineApi.propose_teams(actor, session.engine_event_id) do
-      signed = MapSet.new(speakers, & &1["id"])
-
-      proposed =
-        proposals
-        |> Enum.flat_map(& &1["participant_ids"])
-        |> Enum.filter(&MapSet.member?(signed, &1))
-
-      {:ok, proposed ++ (Enum.map(speakers, & &1["id"]) -- proposed)}
-    end
-  end
-
-  # spreads the placed speakers evenly over the rooms, then cuts each
-  # room into 4 teams: pairs first, singles (irons) last
-  defp chunk_rooms(placed, rooms) do
-    base = div(length(placed), rooms)
-    extra = rem(length(placed), rooms)
-
-    {chunks, _rest} =
-      Enum.map_reduce(0..(rooms - 1), placed, fn index, rest ->
-        size = base + if(index < extra, do: 1, else: 0)
-        {room, rest} = Enum.split(rest, size)
-        {room_teams(room), rest}
-      end)
-
-    chunks
-  end
-
-  defp room_teams(room_speakers) do
-    pairs = length(room_speakers) - @teams_per_room
-    {paired, singles} = Enum.split(room_speakers, pairs * @speakers_per_team)
-    Enum.chunk_every(paired, @speakers_per_team) ++ Enum.map(singles, &[&1])
-  end
-
-  @doc """
-  Rooms by attendance, the gold one-click path: the auto composition
-  (`auto_composition/3`) created for real — only while `:closed` (the
-  graph gate: sign-ups close -> rooms by attendance), 409-style
-  `{:error, :conflict, message}` otherwise. Returns `{:ok, rooms_created}`.
-
-  Teams go in INLINE as temporary teams (the engine purges them with
-  the room on `delete_rooms/2` and they never lock speakers), which
-  is what makes the delete-and-recompose loop possible.
-  """
-  def make_rooms(%User{} = head, %Session{} = session) do
-    result =
-      with {:ok, state} <- state(session),
-           :ok <- require_stage(state, :closed),
-           {:ok, rooms} <- auto_composition(session, state),
-           {:ok, actor} <- actor_for(head) do
-        create_composition(actor, state, rooms)
-      end
-
-    notify(result, session)
-  end
-
-  @doc """
   EXPLICIT room composition: the head says who goes where.
   `rooms_spec` is a list of
   `%{"judge_participant_id" => id, "teams" => [[pid] | [pid, pid] x #{@teams_per_room}]}`
   (atom keys and integer-strings accepted) — a 1-speaker team is a
-  declared iron. Only while `:closed`, like `make_rooms/2`. Validated
+  declared iron. Only while `:closed`. People are ALWAYS placed by
+  the head; cab never pairs anyone automatically. Validated
   against the signups: every pid a signed-up speaker placed at most
   once, every judge a signed-up judge chairing at most one room,
   #{@teams_per_room} teams of 1-#{@speakers_per_team} per room.
@@ -810,8 +684,10 @@ defmodule Cab.Sessions do
   end
 
   # Rooms are created motion-less: each room's judge sets their own
-  # motion afterwards via set_room_motion/3. Teams are inline
-  # temporary teams — see make_rooms/2.
+  # motion afterwards via set_room_motion/5. Teams go in INLINE as
+  # temporary teams (the engine purges them with the room on
+  # delete_rooms/2 and they never lock speakers) — the
+  # delete-and-recompose loop depends on it.
   defp create_session_rooms(actor, round, team_specs, judges) do
     team_specs
     |> Enum.chunk_every(@teams_per_room)

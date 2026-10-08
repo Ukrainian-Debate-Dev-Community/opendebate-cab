@@ -185,8 +185,15 @@ defmodule CabWeb.ApiFlowTest do
     # member cannot make rooms or finish
     assert conn
            |> log_in(member)
-           |> post(~p"/api/v1/sessions/#{session_uuid}/rooms")
+           |> post(~p"/api/v1/sessions/#{session_uuid}/rooms", %{"rooms" => []})
            |> json_response(403)
+
+    # nothing is ever allocated automatically: no spec, no rooms
+    assert conn
+           |> log_in(head)
+           |> post(~p"/api/v1/sessions/#{session_uuid}/rooms")
+           |> json_response(422)
+           |> get_in(["details", "rooms"]) =~ "nothing is allocated automatically"
 
     assert conn
            |> log_in(member)
@@ -357,7 +364,9 @@ defmodule CabWeb.ApiFlowTest do
     # rooms before close -> 409 (the graph gate)
     assert conn
            |> log_in(head)
-           |> post(~p"/api/v1/sessions/#{session.uuid}/rooms")
+           |> post(~p"/api/v1/sessions/#{session.uuid}/rooms", %{
+             "rooms" => [%{"judge_participant_id" => 99, "teams" => [[1], [2], [3], [4]]}]
+           })
            |> json_response(409)
            |> Map.fetch!("error") =~ "after sign-ups close"
 
@@ -394,52 +403,6 @@ defmodule CabWeb.ApiFlowTest do
            |> get(~p"/api/v1/sessions/#{session.uuid}")
            |> json_response(200)
            |> Map.fetch!("stage") == "signup"
-  end
-
-  test "GET session carries the pairing proposal while :closed",
-       %{conn: conn, club: club, head: head} do
-    session = closed_session_fixture(club, engine_event_id: 11)
-
-    signups =
-      for id <- 1..8 do
-        %{"id" => id, "role" => "speaker", "display_name" => "S#{id}", "user_id" => 400 + id}
-      end ++ [%{"id" => 99, "role" => "adjudicator", "display_name" => "J", "user_id" => 499}]
-
-    stub(fn conn, _params ->
-      case {conn.method, conn.request_path} do
-        {"GET", "/api/events/11"} ->
-          ok(conn, %{"id" => 11, "status" => "scheduled"})
-
-        {"GET", "/api/events/11/rounds"} ->
-          ok(conn, [%{"id" => 21, "sequence" => 1}])
-
-        {"GET", "/api/events/11/participants"} ->
-          ok(conn, signups)
-
-        {"GET", "/api/rounds/21/rooms"} ->
-          ok(conn, [])
-
-        {"GET", "/api/events/11/teams/auto-generate"} ->
-          ok(conn, %{
-            "total_free_speakers" => 8,
-            "proposed_teams" =>
-              for n <- 0..3 do
-                %{"name" => "T#{n}", "participant_ids" => [2 * n + 1, 2 * n + 2]}
-              end
-          })
-      end
-    end)
-
-    state =
-      conn |> log_in(head) |> get(~p"/api/v1/sessions/#{session.uuid}") |> json_response(200)
-
-    assert state["stage"] == "closed"
-    assert state["signups_closed_at"]
-    assert state["winner"] == nil
-
-    assert %{"rooms" => [room]} = state["proposal"]
-    assert room["judge_participant_id"] == 99
-    assert room["teams"] == [[1, 2], [3, 4], [5, 6], [7, 8]]
   end
 
   test "signups on behalf and signup removal", %{conn: conn, club: club, head: head} do

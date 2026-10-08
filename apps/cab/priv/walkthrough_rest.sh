@@ -172,12 +172,11 @@ assert s8 DELETE "/api/v1/sessions/$SESSION/signups/$S8_PID" 200 '.status' remov
 assert s8 POST "/api/v1/sessions/$SESSION/signups" 201 '.role' speaker '{"as":"speak"}'
 
 # ----------------------------------------------------------------
-say "the close-signups gate (flow-2: sign-ups close -> rooms by attendance)"
+say "the close-signups gate (rooms are composed after sign-ups close)"
 # ----------------------------------------------------------------
-# no proposal and no rooms while sign-ups are open
-assert head GET "/api/v1/sessions/$SESSION" 200 '.proposal' null
-assert head POST "/api/v1/sessions/$SESSION/rooms" 409 \
-  '.error | contains("after sign-ups close")' true
+# no rooms while sign-ups are open (and never without a spec)
+assert head POST "/api/v1/sessions/$SESSION/rooms" 422 \
+  '.details.rooms | contains("nothing is allocated automatically")' true
 assert head POST "/api/v1/sessions/$SESSION/reopen-signups" 409 \
   '.error | contains("while closed")' true
 
@@ -198,10 +197,13 @@ assert head GET "/api/v1/sessions/$SESSION" 200 '.stage' signup
 assert head POST "/api/v1/sessions/$SESSION/close-signups" 200 '.stage' closed
 
 # ----------------------------------------------------------------
-say "pairing proposal (no side effects), explicit composition, rebuild"
+say "explicit composition (the head places everyone), rebuild"
 # ----------------------------------------------------------------
-assert head GET "/api/v1/sessions/$SESSION" 200 '.proposal.rooms | length' 1
-COMPOSE=$(jq -c '{rooms: .proposal.rooms}' "$BODY")
+assert head GET "/api/v1/sessions/$SESSION" 200 '.stage' closed
+COMPOSE=$(jq -c '{rooms: [{
+  judge_participant_id: ([.signups[] | select(.role == "adjudicator") | .id][0]),
+  teams: ([.signups[] | select(.role == "speaker") | .id][0:8]
+          | [.[0:2], .[2:4], .[4:6], .[6:8]])}]}' "$BODY")
 
 assert s1 POST "/api/v1/sessions/$SESSION/rooms" 403 '.error' forbidden "$COMPOSE"
 assert head POST "/api/v1/sessions/$SESSION/rooms" 201 '.rooms_created' 1 "$COMPOSE"
@@ -213,9 +215,9 @@ assert head DELETE "/api/v1/sessions/$SESSION/rooms" 200 '.rooms_deleted' 1
 assert head GET "/api/v1/sessions/$SESSION" 200 '.stage' closed
 
 # ----------------------------------------------------------------
-say "head makes rooms from attendance"
+say "head composes the rooms again"
 # ----------------------------------------------------------------
-assert head POST "/api/v1/sessions/$SESSION/rooms" 201 '.rooms_created' 1
+assert head POST "/api/v1/sessions/$SESSION/rooms" 201 '.rooms_created' 1 "$COMPOSE"
 assert j1 GET "/api/v1/sessions/$SESSION" 200 '.stage' running
 ROOM=$(jq -r '.rooms[0].id' "$BODY")
 # the ballot speaks in room order: og/oo/cg/co, speakers from dropdowns
