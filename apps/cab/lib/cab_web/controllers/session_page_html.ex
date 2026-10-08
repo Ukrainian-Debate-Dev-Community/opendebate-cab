@@ -168,7 +168,7 @@ defmodule CabWeb.SessionPageHTML do
         here={"room R#{@room["id"]} — #{room_status_words(@room["status"])}"}
       >
         <:seg :if={@can_act && is_nil(@room["Motion"])} form={"room-motion-#{@room["id"]}"} primary>
-          Set motion
+          Publish motion
         </:seg>
         <:seg
           :if={@can_act && @room["status"] in ["pending", "judging", "completed"]}
@@ -212,11 +212,23 @@ defmodule CabWeb.SessionPageHTML do
             <.form_for
               id={"room-motion-#{@room["id"]}"}
               action={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/motion"}
-              title="Set this room's motion"
-              description="Setting it shows it to the room and starts 15 minutes of prep."
+              title="This room's motion"
+              description="Publishing shows it to the room and starts 15 minutes of prep."
             >
               <:block name={:motion_text} type={:text} label="Motion" required />
-              <:submit note="Visible to everyone in the room right away.">Set motion</:submit>
+              <:block
+                name={:infoslide}
+                type={:longtext}
+                label="Infoslide"
+                hint="Optional context read before prep."
+              />
+              <:block
+                name={:keyword}
+                type={:text}
+                label="Keyword"
+                hint="Optional tag for finding the motion later."
+              />
+              <:submit note="Visible to everyone in the room right away.">Publish motion</:submit>
             </.form_for>
           </.section>
         <% end %>

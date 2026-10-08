@@ -672,9 +672,9 @@ defmodule Cab.Sessions do
   of one session may debate different ones). Chair-guarded by the
   engine, with owner/organiser fall-through for the head.
   """
-  def set_room_motion(%User{} = user, room_id, motion_text) do
+  def set_room_motion(%User{} = user, room_id, motion_text, attrs \\ %{}) do
     with {:ok, actor} <- actor_for(user) do
-      EngineApi.set_room_motion(actor, room_id, motion_text)
+      EngineApi.set_room_motion(actor, room_id, motion_text, attrs)
     end
   end
 

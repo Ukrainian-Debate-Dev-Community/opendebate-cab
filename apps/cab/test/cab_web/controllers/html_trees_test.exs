@@ -941,7 +941,7 @@ defmodule CabWeb.HtmlTreesTest do
           ok(conn, [bare_room])
 
         {"POST", "/api/rooms/71/motion"} ->
-          send(test_pid, {:motion, params["motion_text"]})
+          send(test_pid, {:motion, params["motion_text"], params["infoslide"], params["keyword"]})
           ok(conn, %{"motion" => %{"motion_text" => params["motion_text"]}})
       end
     end)
@@ -962,16 +962,21 @@ defmodule CabWeb.HtmlTreesTest do
       |> html_response(200)
 
     assert chair_html =~ ~s(id="room-motion-71")
+    assert chair_html =~ "Infoslide"
+    assert chair_html =~ "Keyword"
+    assert chair_html =~ "Publish motion"
 
     set =
       conn
       |> log_in(judge)
       |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/motion", %{
-        motion_text: "THW debate"
+        motion_text: "THW debate",
+        infoslide: "Context slide",
+        keyword: "economy"
       })
 
     assert redirected_to(set) == "/c/#{club.uuid}/s/#{session.uuid}/rooms/71"
-    assert_received {:motion, "THW debate"}
+    assert_received {:motion, "THW debate", "Context slide", "economy"}
 
     # a plain member is neither chair nor head — no motion for them
     outsider = user_fixture(%{node_user_id: 55})

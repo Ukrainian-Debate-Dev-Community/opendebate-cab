@@ -494,24 +494,10 @@ defmodule CabWeb.OwnerHTML do
       </.table>
     </.section>
 
-    <%= for room <- open_rooms(@state) do %>
-      <.section title={"Room R#{room["id"]} · motion"}>
-        <.form_for
-          id={"motion-form-#{room["id"]}"}
-          action={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}/motion"}
-        >
-          <:block
-            name={:motion_text}
-            type={:text}
-            label="Motion"
-            required
-            value={room["Motion"] && room["Motion"]["motion_text"]}
-            hint="This room's judge announces it; rooms may debate different motions."
-          />
-          <:submit note="Visible to the room right away.">Set motion</:submit>
-        </.form_for>
-      </.section>
-    <% end %>
+    <.section :if={open_rooms(@state) != []} title="Motions" pad>
+      Each room's motion is set on its page — open a room (R#) in the
+      table above to publish the motion, infoslide and keyword.
+    </.section>
     """
   end
 

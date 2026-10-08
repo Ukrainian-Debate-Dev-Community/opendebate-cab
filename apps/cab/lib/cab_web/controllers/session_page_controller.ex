@@ -110,10 +110,20 @@ defmodule CabWeb.SessionPageController do
   # POST .../rooms/:id/motion — chair or head sets this room's motion
   def motion(conn, %{"session_uuid" => session_uuid, "id" => id} = params) do
     with_chaired_room(conn, session_uuid, id, fn conn, session, room ->
-      case Sessions.set_room_motion(conn.assigns.current_user, room["id"], params["motion_text"]) do
+      attrs =
+        %{infoslide: presence(params["infoslide"]), keyword: presence(params["keyword"])}
+        |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+        |> Map.new()
+
+      case Sessions.set_room_motion(
+             conn.assigns.current_user,
+             room["id"],
+             params["motion_text"],
+             attrs
+           ) do
         {:ok, _} ->
           conn
-          |> put_flash(:info, "motion set")
+          |> put_flash(:info, "motion published")
           |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}/rooms/#{room["id"]}")
 
         {:error, message} ->
@@ -260,6 +270,15 @@ defmodule CabWeb.SessionPageController do
     |> put_flash(:error, message)
     |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session_uuid}")
   end
+
+  defp presence(value) when is_binary(value) do
+    case String.trim(value) do
+      "" -> nil
+      trimmed -> trimmed
+    end
+  end
+
+  defp presence(_value), do: nil
 
   defp error_message(message) when is_binary(message), do: message
   defp error_message(_other), do: "the session is unavailable right now"
