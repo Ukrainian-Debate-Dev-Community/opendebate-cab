@@ -30,7 +30,9 @@ defmodule CabWeb.ClubPublicController do
       tab when tab in ~w(teams speakers judges) ->
         scope = Standings.latest_finished(club)
 
-        render(conn, :standings,
+        conn
+        |> CabWeb.Caching.finished()
+        |> render(:standings,
           tab: tab,
           scope: scope,
           rows: standings_rows(tab, scope),

@@ -16,7 +16,9 @@ defmodule CabWeb.StandingsController do
   def show(conn, %{"tab" => tab}) when tab in ~w(teams speakers judges) do
     scope = Standings.latest_finished()
 
-    render(conn, :show,
+    conn
+    |> CabWeb.Caching.finished()
+    |> render(:show,
       tab: tab,
       scope: scope,
       rows: rows(tab, scope),

@@ -71,18 +71,22 @@ defmodule Cab.Standings do
   (`[%{"name" => _, "total_points" => _}, ...]` as returned).
   """
   def teams(%{actor: actor, session: session}) do
-    case EngineApi.team_standings(actor, session.engine_event_id) do
-      {:ok, rows} -> rows
-      {:error, _message} -> []
-    end
+    cached(session, :teams, fn ->
+      case EngineApi.team_standings(actor, session.engine_event_id) do
+        {:ok, rows} -> {:commit, rows}
+        {:error, _message} -> {:ignore, []}
+      end
+    end)
   end
 
   @doc "Engine calculated speaker standings for the scope's session, verbatim."
   def speakers(%{actor: actor, session: session}) do
-    case EngineApi.speaker_standings(actor, session.engine_event_id) do
-      {:ok, rows} -> rows
-      {:error, _message} -> []
-    end
+    cached(session, :speakers, fn ->
+      case EngineApi.speaker_standings(actor, session.engine_event_id) do
+        {:ok, rows} -> {:commit, rows}
+        {:error, _message} -> {:ignore, []}
+      end
+    end)
   end
 
   @doc """
@@ -90,20 +94,31 @@ defmodule Cab.Standings do
   — `[%{name, rooms_judged}]`, most rooms first.
   """
   def judges(%{actor: actor, session: session}) do
-    with {:ok, round} <- Sessions.round_by_sequence(actor, session.engine_event_id, 1),
-         {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
-      rooms
-      |> Enum.flat_map(&(&1["RoomAdjudicators"] || []))
-      |> Enum.filter(&(&1["role"] == "chair"))
-      |> Enum.map(&get_in(&1, ["EventParticipant", "display_name"]))
-      |> Enum.reject(&is_nil/1)
-      |> Enum.frequencies()
-      |> Enum.map(fn {name, count} -> %{name: name, rooms_judged: count} end)
-      |> Enum.sort_by(&{-&1.rooms_judged, &1.name})
-    else
-      _ -> []
-    end
+    cached(session, :judges, fn ->
+      with {:ok, round} <- Sessions.round_by_sequence(actor, session.engine_event_id, 1),
+           {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
+        rows =
+          rooms
+          |> Enum.flat_map(&(&1["RoomAdjudicators"] || []))
+          |> Enum.filter(&(&1["role"] == "chair"))
+          |> Enum.map(&get_in(&1, ["EventParticipant", "display_name"]))
+          |> Enum.reject(&is_nil/1)
+          |> Enum.frequencies()
+          |> Enum.map(fn {name, count} -> %{name: name, rooms_judged: count} end)
+          |> Enum.sort_by(&{-&1.rooms_judged, &1.name})
+
+        {:commit, rows}
+      else
+        # engine trouble must not stick in the cache
+        _ -> {:ignore, []}
+      end
+    end)
   end
+
+  # a scope only ever wraps a FINISHED session (finished_scope), so
+  # its standings are immutable — cache the engine's verbatim rows
+  defp cached(session, tab, fun),
+    do: Cab.Standings.Cache.fetch({session.engine_event_id, tab}, fun)
 
   @doc """
   The clubs tab: plain counts per live club — members (approved

@@ -56,8 +56,37 @@ defmodule Cab.SessionsTest do
 
     assert {:ok, session} = Sessions.open(head, club, "Tuesday night")
     assert session.engine_event_id == 11
+    # the round id is stamped so later reads skip the rounds lookup
+    assert session.engine_round_id == 21
     assert session.opened_by_user_id == head.id
     assert Sessions.get_for_club(club, session.uuid).id == session.id
+  end
+
+  test "state with a stamped round id fans the reads out and skips no data",
+       %{club: club} do
+    session = session_fixture(club, engine_event_id: 11, engine_round_id: 21)
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "name" => "Night", "status" => "scheduled"})
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [%{"id" => 41, "role" => "speaker", "display_name" => "Ann"}])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [%{"id" => 71, "status" => "pending"}])
+      end
+    end)
+
+    assert {:ok, state} = Sessions.state(%{session | club: club})
+    assert state.round["id"] == 21
+    assert [%{"id" => 41}] = state.signups
+    assert [%{"id" => 71}] = state.rooms
+    assert state.stage == :running
   end
 
   test "signup registers self as speaker or adjudicator while :signup", %{club: club} do
@@ -607,7 +636,7 @@ defmodule Cab.SessionsTest do
       end
     end)
 
-    scores = ballot_scores([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
+    scores = ballot_scores([{1, 151}, {2, 157}, {3, 149}, {4, 147}])
 
     # the chair cannot edit once confirmed — the ballot is the head's
     assert {:error, :forbidden} = Sessions.submit_ballot(judge, session, 71, scores)
@@ -717,9 +746,9 @@ defmodule Cab.SessionsTest do
     session = session_fixture(club, engine_event_id: 11)
     stub_ballot_room(engine_room(), self())
 
-    # totals: p2 157.5 > p1 151.5 > p3 149.5 > p4 147.5
+    # totals: p2 157 > p1 151 > p3 149 > p4 147
     scores =
-      ballot_scores([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
+      ballot_scores([{1, 151}, {2, 157}, {3, 149}, {4, 147}])
 
     assert :ok = Sessions.submit_ballot(judge, session, 71, scores)
 
@@ -735,8 +764,8 @@ defmodule Cab.SessionsTest do
 
     speaks = Map.new(params["speakerScores"], &{&1["room_speaker_id"], &1["score"]})
     assert map_size(speaks) == 8
-    assert speaks[203] == 82.5 and speaks[204] == 75.0
-    assert speaks[201] == 76.5 and speaks[202] == 75.0
+    assert speaks[203] == 82.0 and speaks[204] == 75.0
+    assert speaks[201] == 76.0 and speaks[202] == 75.0
 
     # confirm is owner-only in the engine -> runs as the club head
     assert_received {:confirmed, %{"id" => 9}}
@@ -750,9 +779,9 @@ defmodule Cab.SessionsTest do
     # participant 301 speaks both OG speeches (iron) — second score
     # lands on room_speaker 202, the teammate's slot
     scores =
-      ballot_scores([{2, 157.5}, {3, 149.5}, {4, 147.5}]) ++
+      ballot_scores([{2, 157}, {3, 149}, {4, 147}]) ++
         [
-          %{"position" => 1, "speaker_participant_id" => 301, "iron" => false, "score" => 76.5},
+          %{"position" => 1, "speaker_participant_id" => 301, "iron" => false, "score" => 76},
           %{"position" => 1, "speaker_participant_id" => 301, "iron" => true, "score" => 75.0}
         ]
 
@@ -760,7 +789,7 @@ defmodule Cab.SessionsTest do
     assert_received {:scores, _claims, params}
 
     speaks = Map.new(params["speakerScores"], &{&1["room_speaker_id"], &1["score"]})
-    assert speaks[201] == 76.5 and speaks[202] == 75.0
+    assert speaks[201] == 76.0 and speaks[202] == 75.0
   end
 
   test "submit_ballot rejects tied team totals naming the total", %{club: club} do
@@ -768,7 +797,7 @@ defmodule Cab.SessionsTest do
     session = session_fixture(club, engine_event_id: 11)
     stub_ballot_room(engine_room(), self())
 
-    scores = ballot_scores([{1, 151.0}, {2, 151.0}, {3, 149.5}, {4, 147.5}])
+    scores = ballot_scores([{1, 151}, {2, 151}, {3, 149}, {4, 147}])
 
     assert {:error, %{scores: message}} = Sessions.submit_ballot(judge, session, 71, scores)
     assert message =~ "151"
@@ -776,32 +805,32 @@ defmodule Cab.SessionsTest do
     refute_received {:scores, _claims, _params}
   end
 
-  test "submit_ballot validates score bounds and the 0.5 step", %{club: club} do
+  test "submit_ballot validates score bounds and whole points", %{club: club} do
     judge = user_fixture(%{node_user_id: 77})
     session = session_fixture(club, engine_event_id: 11)
 
-    for bad <- [49.5, 100.5, 75.3, nil, "76"] do
+    for bad <- [49, 101, 75.5, nil, "76"] do
       scores =
-        ballot_scores([{2, 157.5}, {3, 149.5}, {4, 147.5}]) ++
+        ballot_scores([{2, 157}, {3, 149}, {4, 147}]) ++
           [
             %{"position" => 1, "speaker_participant_id" => 301, "score" => bad},
             %{"position" => 1, "speaker_participant_id" => 302, "score" => 75.0}
           ]
 
       assert {:error, %{scores: message}} = Sessions.submit_ballot(judge, session, 71, scores)
-      assert message =~ "50-100 in 0.5 steps"
+      assert message =~ "whole points, 50-100"
     end
 
     # not two entries per team
     assert {:error, %{scores: message}} =
-             Sessions.submit_ballot(judge, session, 71, ballot_scores([{1, 151.5}, {2, 157.5}]))
+             Sessions.submit_ballot(judge, session, 71, ballot_scores([{1, 151}, {2, 157}]))
 
     assert message =~ "8 scores"
   end
 
   test "submit_ballot is judge-or-head only", %{club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
-    scores = ballot_scores([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
+    scores = ballot_scores([{1, 151}, {2, 157}, {3, 149}, {4, 147}])
 
     # a member who is neither the room's chair nor the head -> forbidden
     outsider = user_fixture(%{node_user_id: 55})
@@ -823,9 +852,9 @@ defmodule Cab.SessionsTest do
     stub_ballot_room(engine_room(), self())
 
     scores =
-      ballot_scores([{2, 157.5}, {3, 149.5}, {4, 147.5}]) ++
+      ballot_scores([{2, 157}, {3, 149}, {4, 147}]) ++
         [
-          %{"position" => 1, "speaker_participant_id" => 999, "score" => 76.5},
+          %{"position" => 1, "speaker_participant_id" => 999, "score" => 76},
           %{"position" => 1, "speaker_participant_id" => 302, "score" => 75.0}
         ]
 
@@ -837,7 +866,7 @@ defmodule Cab.SessionsTest do
                judge,
                session,
                72,
-               ballot_scores([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
+               ballot_scores([{1, 151}, {2, 157}, {3, 149}, {4, 147}])
              )
   end
 

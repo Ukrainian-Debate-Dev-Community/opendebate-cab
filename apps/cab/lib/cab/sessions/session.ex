@@ -8,6 +8,7 @@ defmodule Cab.Sessions.Session do
     # The gateway owns only the registration window: scheduled_at
     # (optional planned start) and signups_closed_at (set = closed).
     field :engine_event_id, :integer
+    field :engine_round_id, :integer
     field :scheduled_at, :utc_datetime
     field :signups_closed_at, :utc_datetime
 

@@ -73,11 +73,12 @@ defmodule Cab.Sessions do
 
     with {:ok, actor} <- actor_for(head),
          {:ok, event} <- EngineApi.create_event(actor, club.engine_organisation_id, name),
-         {:ok, _round} <- EngineApi.create_round(actor, event["id"], "Club round", 1) do
+         {:ok, round} <- EngineApi.create_round(actor, event["id"], "Club round", 1) do
       %Session{
         club_id: club.id,
         opened_by_user_id: head.id,
         engine_event_id: event["id"],
+        engine_round_id: round["id"],
         scheduled_at: scheduled_at
       }
       |> Session.changeset()
@@ -262,10 +263,11 @@ defmodule Cab.Sessions do
     club = session_club(session)
 
     with {:ok, actor} <- Clubs.club_actor(club),
-         {:ok, event} <- EngineApi.get_event(actor, session.engine_event_id),
-         {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
-         {:ok, signups} <- EngineApi.list_participants(actor, session.engine_event_id),
-         {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
+         [event_r, round_r, signups_r, rooms_r] <- state_reads(actor, session),
+         {:ok, event} <- event_r,
+         {:ok, round} <- round_r,
+         {:ok, signups} <- signups_r,
+         {:ok, rooms} <- rooms_r do
       {:ok,
        %{
          event: event,
@@ -275,6 +277,46 @@ defmodule Cab.Sessions do
          stage: stage(event, rooms, session)
        }}
     end
+  end
+
+  # the four engine reads are independent once the round id is known
+  # (stamped at open) — fan them out instead of paying their sum
+  defp state_reads(actor, %Session{engine_round_id: round_id} = session)
+       when is_integer(round_id) do
+    fan_out([
+      fn -> EngineApi.get_event(actor, session.engine_event_id) end,
+      fn -> round_by_sequence(actor, session.engine_event_id, 1) end,
+      fn -> EngineApi.list_participants(actor, session.engine_event_id) end,
+      fn -> EngineApi.list_rooms(actor, round_id) end
+    ])
+  end
+
+  # legacy row without the stamp: the rooms read waits for the round
+  defp state_reads(actor, %Session{} = session) do
+    [event_r, round_r, signups_r] =
+      fan_out([
+        fn -> EngineApi.get_event(actor, session.engine_event_id) end,
+        fn -> round_by_sequence(actor, session.engine_event_id, 1) end,
+        fn -> EngineApi.list_participants(actor, session.engine_event_id) end
+      ])
+
+    rooms_r = with {:ok, round} <- round_r, do: EngineApi.list_rooms(actor, round["id"])
+    [event_r, round_r, signups_r, rooms_r]
+  end
+
+  defp fan_out(funs) do
+    funs
+    |> Task.async_stream(& &1.(), timeout: 30_000, ordered: true)
+    |> Enum.map(fn {:ok, result} -> result end)
+  end
+
+  # most flows only need the round's id — the stamp answers without
+  # an engine call; legacy rows fall back to the lookup
+  defp session_round_id(_actor, %Session{engine_round_id: id}) when is_integer(id), do: {:ok, id}
+
+  defp session_round_id(actor, %Session{} = session) do
+    with {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
+         do: {:ok, round["id"]}
   end
 
   defp stage(%{"status" => "completed"}, _rooms, _session), do: :done
@@ -592,8 +634,8 @@ defmodule Cab.Sessions do
   """
   def delete_rooms(%User{} = head, %Session{} = session) do
     with {:ok, actor} <- actor_for(head),
-         {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
-         {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
+         {:ok, round_id} <- session_round_id(actor, session),
+         {:ok, rooms} <- EngineApi.list_rooms(actor, round_id) do
       cond do
         rooms == [] ->
           {:error, "this session has no rooms to delete"}
@@ -647,7 +689,7 @@ defmodule Cab.Sessions do
   `%{position, speaker_participant_id, iron, score}`: the participant
   id comes from the ballot's who-spoke dropdown, `iron` marks a
   stand-in covering a teammate's speech (same participant twice), and
-  scores are 50-100 in 0.5 steps.
+  scores are whole points, 50-100.
 
   Only the room's chair (the signed-up judge) or the club head may
   submit — `{:error, :forbidden}` otherwise. The ballot goes in as
@@ -665,8 +707,8 @@ defmodule Cab.Sessions do
     with {:ok, entries} <- parse_ballot_entries(scores),
          {:ok, actor} <- actor_for(user),
          {:ok, head_actor} <- Clubs.club_actor(club),
-         {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
-         {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]),
+         {:ok, round_id} <- session_round_id(actor, session),
+         {:ok, rooms} <- EngineApi.list_rooms(actor, round_id),
          {:ok, room} <- find_room(rooms, room_id),
          :ok <- authorize_ballot(room, user, club),
          {:ok, rankings, speaker_scores} <- ballot_payload(room, entries),
@@ -758,7 +800,7 @@ defmodule Cab.Sessions do
         {:error, "speaker_participant_id (integer) is required on every score"}
 
       not valid_score?(score) ->
-        {:error, "score #{inspect(score)} is invalid — scores are 50-100 in 0.5 steps"}
+        {:error, "score #{inspect(score)} is invalid — scores are whole points, 50-100"}
 
       true ->
         {:ok,
@@ -780,8 +822,9 @@ defmodule Cab.Sessions do
     end
   end
 
+  # whole points only — the engine stores scores as integers
   defp valid_score?(score),
-    do: is_number(score) and score >= 50 and score <= 100 and trunc(score * 2) == score * 2
+    do: is_number(score) and score >= 50 and score <= 100 and trunc(score) == score
 
   defp ballot_payload(room, entries) do
     room_teams = Enum.sort_by(room["RoomTeams"] || [], & &1["position"])
@@ -881,8 +924,8 @@ defmodule Cab.Sessions do
   """
   def finish(%User{} = head, %Session{} = session) do
     with {:ok, actor} <- actor_for(head),
-         {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
-         {:ok, _} <- EngineApi.update_round(actor, round["id"], %{status: "completed"}),
+         {:ok, round_id} <- session_round_id(actor, session),
+         {:ok, _} <- EngineApi.update_round(actor, round_id, %{status: "completed"}),
          {:ok, _} <-
            EngineApi.update_event(actor, session.engine_event_id, %{status: "completed"}) do
       :ok
@@ -1040,8 +1083,8 @@ defmodule Cab.Sessions do
 
   # did this participant's team take rank 1 of a confirmed ballot?
   defp won?(actor, session, me) do
-    with {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
-         {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]) do
+    with {:ok, round_id} <- session_round_id(actor, session),
+         {:ok, rooms} <- EngineApi.list_rooms(actor, round_id) do
       rooms
       |> Enum.filter(&(&1["status"] in ["completed", "confirmed"]))
       |> Enum.flat_map(&(&1["RoomTeams"] || []))

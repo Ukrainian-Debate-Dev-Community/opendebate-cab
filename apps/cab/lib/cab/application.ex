@@ -12,6 +12,7 @@ defmodule Cab.Application do
       Cab.Repo,
       {DNSCluster, query: Application.get_env(:cab, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Cab.PubSub},
+      Cab.Standings.Cache,
       # Start a worker by calling: Cab.Worker.start_link(arg)
       # {Cab.Worker, arg},
       # Start to serve requests, typically the last entry

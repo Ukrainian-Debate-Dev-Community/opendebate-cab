@@ -28,7 +28,9 @@ defmodule CabWeb.SessionPageController do
       user = conn.assigns.current_user
       my_signup = my_signup(state, user)
 
-      render(conn, :show,
+      conn
+      |> CabWeb.Caching.by_stage(state.stage)
+      |> render(:show,
         session: session,
         state: state,
         winner: Sessions.winner_from_rooms(state.rooms),

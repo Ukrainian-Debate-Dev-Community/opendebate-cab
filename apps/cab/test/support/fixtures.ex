@@ -45,6 +45,7 @@ defmodule Cab.Fixtures do
       club_id: club.id,
       opened_by_user_id: Keyword.get(opts, :opened_by_user_id),
       engine_event_id: Keyword.get(opts, :engine_event_id, 11),
+      engine_round_id: Keyword.get(opts, :engine_round_id),
       scheduled_at: Keyword.get(opts, :scheduled_at),
       signups_closed_at: Keyword.get(opts, :signups_closed_at)
     }
