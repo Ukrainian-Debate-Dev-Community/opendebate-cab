@@ -12,15 +12,16 @@ defmodule CabWeb.OwnerHTML do
 
   # template helpers
 
-  # tray chips from tonight's signups: speakers first, judges last
-  defp dnd_tray(signups) do
-    for participant <- Enum.sort_by(signups, &(&1["role"] == "adjudicator")) do
-      %{
-        id: participant["id"],
-        name: participant["display_name"],
-        kind: if(participant["role"] == "adjudicator", do: "judge", else: "spk")
-      }
-    end
+  # the allocator's people: participant id => %{id, name, kind}
+  defp people(signups) do
+    Map.new(signups, fn participant ->
+      {participant["id"],
+       %{
+         id: participant["id"],
+         name: participant["display_name"],
+         kind: if(participant["role"] == "adjudicator", do: "judge", else: "spk")
+       }}
+    end)
   end
 
   # approved members not signed up tonight, as form options

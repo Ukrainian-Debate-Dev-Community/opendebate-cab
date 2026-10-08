@@ -47,7 +47,7 @@
           keyword: {@room["Motion"]["keyword"]}
         </p>
         <p :if={prep_deadline(@room)} class="mut">
-          <span id="prep-clock" data-prep-deadline={prep_deadline(@room)}>
+          <span id="prep-clock" phx-hook="PrepClock" data-prep-deadline={prep_deadline(@room)}>
             15 minutes of prep from publishing
           </span>
         </p>

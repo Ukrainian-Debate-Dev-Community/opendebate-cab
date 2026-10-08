@@ -111,4 +111,69 @@ defmodule CabWeb.SessionLiveTest do
     refute chair_html =~ "Edit ballot"
     refute chair_html =~ "Fill ballot"
   end
+
+  test "the live allocator: drops update the server draft, Start turns it into rooms",
+       %{conn: conn} do
+    head = user_fixture(%{node_user_id: 9})
+    club = club_fixture(head, %{engine_organisation_id: 3})
+    session = session_fixture(club, engine_event_id: 11, engine_round_id: 21)
+    test_pid = self()
+
+    signups =
+      [%{"id" => 99, "role" => "adjudicator", "display_name" => "Judge J"}] ++
+        for(i <- 1..8, do: %{"id" => i, "role" => "speaker", "display_name" => "S#{i}"})
+
+    Req.Test.stub(Core.Engine, fn conn ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "name" => "Live night", "status" => "scheduled"})
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, signups)
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [])
+
+        {"POST", "/api/rounds/21/rooms"} ->
+          {:ok, body, conn} = Plug.Conn.read_body(conn)
+          send(test_pid, {:room, Jason.decode!(body)})
+          ok(conn, %{"id" => 71})
+      end
+    end)
+
+    {:ok, view, html} =
+      live(
+        init_test_session(conn, %{user_id: head.id}),
+        ~p"/c/#{club.uuid}/owner/s/#{session.uuid}"
+      )
+
+    assert html =~ ~s(phx-hook="Allocator")
+
+    # each drop is one event; the server keeps the draft
+    slots = ~w(1:og:1 1:og:2 1:oo:1 1:oo:2 1:cg:1 1:cg:2 1:co:1 1:co:2)
+
+    for {slot, id} <- Enum.zip(slots, 1..8) do
+      render_hook(view, "place", %{"id" => id, "slot" => slot})
+    end
+
+    render_hook(view, "place", %{"id" => 99, "slot" => "1:judge"})
+
+    draft = Cab.Sessions.get_by_uuid(session.uuid).draft_allocation
+    assert map_size(draft) == 9
+    assert draft["1:judge"] == 99
+
+    # a judge dropped on a speaker slot is refused with words
+    assert render_hook(view, "place", %{"id" => 99, "slot" => "1:og:1"}) =~
+             "judges cannot take a speaker slot"
+
+    # Start session: the draft becomes exactly this room
+    html = view |> element("#allocator-form") |> render_submit()
+    assert html =~ "session started — 1 room(s)"
+    assert_received {:room, %{"teams" => teams}}
+    assert Enum.map(teams, & &1["participant_ids"]) == [[1, 2], [3, 4], [5, 6], [7, 8]]
+    assert Cab.Sessions.get_by_uuid(session.uuid).draft_allocation == %{}
+  end
 end

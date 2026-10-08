@@ -212,6 +212,8 @@ defmodule Cab.Sessions do
   session is :signup or :closed. Returns `{:ok, session}`.
   """
   def place(%Session{} = session, participant_id, slot) when is_integer(participant_id) do
+    session = get_by_uuid(session.uuid)
+
     result =
       with {:ok, state} <- state(session),
            :ok <- require_draftable(state),
@@ -240,6 +242,8 @@ defmodule Cab.Sessions do
 
   @doc "Sends a person from the draft back to the tray."
   def unplace(%Session{} = session, participant_id) when is_integer(participant_id) do
+    session = get_by_uuid(session.uuid)
+
     draft =
       session.draft_allocation
       |> Enum.reject(fn {_key, pid} -> pid == participant_id end)
@@ -259,10 +263,24 @@ defmodule Cab.Sessions do
   rooms spec for `start/3`; on success the draft is cleared.
   """
   def start_from_draft(%User{} = head, %Session{} = session) do
+    from_draft(session, &start(head, &1, &2))
+  end
+
+  @doc """
+  At :closed (registration already closed), the draft becomes the
+  rooms exactly like `start_from_draft/2`, without touching the window.
+  """
+  def make_rooms_from_draft(%User{} = head, %Session{} = session) do
+    from_draft(session, &make_rooms(head, &1, &2))
+  end
+
+  defp from_draft(%Session{} = session, create) do
+    session = get_by_uuid(session.uuid)
+
     with {:ok, state} <- state(session),
          spec = draft_spec(clean_draft(session.draft_allocation, state.signups), state.signups),
-         {:ok, count} <- start(head, session, spec) do
-      _ = save_draft(get_by_uuid(session.uuid), %{})
+         {:ok, count} <- create.(session, spec) do
+      record(session, draft_allocation: %{})
       {:ok, count}
     end
   end

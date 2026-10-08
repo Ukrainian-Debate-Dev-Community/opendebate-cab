@@ -223,22 +223,17 @@ defmodule CabWeb.Ui do
   @doc """
   One table for everything tabular. Cell formats via `:col` flags:
   `code` (mono), `num` (right-aligned tabular), `float` (same),
-  `center`; table flags `rank` (violet # column) and `check`
-  (bulk-ops checkbox column, header selects all — pass `true` or a
-  `row -> boolean` function for the checked state). `sort` on a
-  column makes the header client-side sortable. Empty rows render
-  one centered muted line.
+  `center`; the table flag `rank` adds the violet # column. Empty
+  rows render one centered muted line.
 
       <.table id="speakers" rows={@speakers} rank>
-        <:col :let={s} label="Speaker" sort="name">{s.name}<.sub>{s.club}</.sub></:col>
+        <:col :let={s} label="Speaker">{s.name}<.sub>{s.club}</.sub></:col>
         <:col :let={s} label="Team" code>{s.team_key}</:col>
-        <:col :let={s} label="Avg spk" sort="avg" float>{s.avg}</:col>
       </.table>
   """
   attr :id, :string, default: nil
   attr :rows, :list, required: true
   attr :rank, :boolean, default: false
-  attr :check, :any, default: false
   attr :row_id, :any, default: nil, doc: "row -> dom id"
 
   attr :row_class, :any,
@@ -249,7 +244,6 @@ defmodule CabWeb.Ui do
 
   slot :col do
     attr :label, :string
-    attr :sort, :string, doc: "client-side sort key; marks the header sortable"
     attr :num, :boolean
     attr :float, :boolean
     attr :code, :boolean
@@ -262,14 +256,10 @@ defmodule CabWeb.Ui do
     <table class="t" id={@id}>
       <thead>
         <tr>
-          <th :if={@check != false} class="c" style="width:36px">
-            <input type="checkbox" data-check-all />
-          </th>
           <th :if={@rank} style="width:40px">#</th>
           <th
             :for={col <- @col}
-            class={[col[:sort] && "sort", (col[:num] || col[:float]) && "num", col[:center] && "c"]}
-            data-k={col[:sort]}
+            class={[(col[:num] || col[:float]) && "num", col[:center] && "c"]}
           >
             {col[:label]}
           </th>
@@ -279,7 +269,7 @@ defmodule CabWeb.Ui do
         <tr :if={@rows == []}>
           <td
             class="empty"
-            colspan={length(@col) + ((@rank && 1) || 0) + ((@check != false && 1) || 0)}
+            colspan={length(@col) + ((@rank && 1) || 0)}
           >
             {@empty}
           </td>
@@ -289,9 +279,6 @@ defmodule CabWeb.Ui do
           id={@row_id && @row_id.(row)}
           class={@row_class && @row_class.(row)}
         >
-          <td :if={@check != false} class="c">
-            <input type="checkbox" checked={checked?(@check, row)} />
-          </td>
           <td :if={@rank} class="rank">{index}</td>
           <td
             :for={col <- @col}
@@ -309,9 +296,6 @@ defmodule CabWeb.Ui do
     </table>
     """
   end
-
-  defp checked?(check, row) when is_function(check, 1), do: !!check.(row)
-  defp checked?(_check, _row), do: false
 
   @doc "The optional muted sub-line inside a table cell."
   slot :inner_block, required: true
@@ -534,7 +518,7 @@ defmodule CabWeb.Ui do
   header, one color block per team side (OG violet, OO blue, CG
   green, CO amber), position rows = speaker dropdown + iron check +
   score input (whole points, 50-100). Team totals and ranks DERIVE live
-  (vanilla JS); tied totals mark both blocks amber — BP forbids ties.
+  (the BallotMath hook); tied totals mark both blocks amber — BP forbids ties.
   Submit lives in the chrome, not here.
 
   `teams` is a list of `%{side: :og, name: "...", rows: [...]}` where
@@ -555,7 +539,7 @@ defmodule CabWeb.Ui do
 
   def ballot(assigns) do
     ~H"""
-    <form class="ballot" id={@id} action={@action} method="post">
+    <form class="ballot" id={@id} action={@action} method="post" phx-hook="BallotMath">
       <input :if={@action} type="hidden" name="_csrf_token" value={get_csrf_token()} />
       <div class="b-motion">
         <span class="k">Motion{@room && " · #{@room}"}</span>
@@ -601,7 +585,7 @@ defmodule CabWeb.Ui do
       </div>
       <div class="bfoot">
         <%= if @error do %>
-          <span class="err">{@error}</span>
+          <span class="err server">{@error}</span>
         <% else %>
           Enter all eight scores — ranks derive from team totals.
         <% end %>
@@ -613,58 +597,46 @@ defmodule CabWeb.Ui do
   defp side_label(side), do: @sides[side] || side |> to_string() |> String.upcase()
 
   # ---------------------------------------------------------------
-  # 5 · Drag-and-drop table (allocations)
+  # 5 · Allocator (drag-and-drop, server-held draft)
   # ---------------------------------------------------------------
 
-  @dnd_sides ~w(og oo cg co)
+  @alloc_sides ~w(og oo cg co)
 
   @doc """
-  The console allocation surface (tabbycat's draganddrop model) — the
-  ONLY allocation UI, never dropdowns or swap controls for
-  allocation: a tray of unallocated chips (name + SPK/JUDGE mark,
-  judges blue) above a table whose team cells are dashed drop slots
-  with the ballot's side color bands. Chip kinds gate targets,
-  dropping on an occupied slot swaps (the displaced chip returns to
-  the dragged chip's origin), dragging to the tray unassigns; each
-  row carries a live status — empty / incomplete / ready + iron xN
-  (a 1-speaker team is a declared iron).
+  The allocation surface (tabbycat's drag-and-drop model), rendered
+  from the SERVER-HELD draft: a tray of everyone not placed yet over
+  one row per room whose slots carry their key ("1:og:2", "1:judge").
+  The Allocator hook only reports drops — `place {id, slot}` or
+  `unplace {id}` — and the server re-renders, so new signups simply
+  appear in the tray and nothing is ever placed automatically.
 
-  Slots mirror hidden inputs named `rooms[N][og][1]` …
-  `rooms[N][judge]`, so the submit is the SAME plain POST the
-  composition endpoint takes — drag-and-drop is presentation, not
-  transport. The submit button lives in the chrome
-  (`<:seg form={id}>`), like the ballot. Behavior is the dnd widget
-  in assets/js/app.js (vanilla JS, no frameworks).
-
-  `tray` entries are `%{id, name, kind}` with kind "spk" | "judge".
+  `people` maps participant id => `%{id, name, kind}` (kind "spk" |
+  "judge"); `draft` maps slot key => participant id. The hidden form
+  `form_id` carries the submit (the chrome's gold segment).
   """
-  attr :id, :string, required: true
-  attr :action, :string, required: true
-  attr :rooms, :integer, required: true, doc: "row count, derived from attendance"
-  attr :tray, :list, required: true
+  attr :id, :string, default: "allocator"
+  attr :rooms, :integer, required: true
+  attr :people, :map, required: true
+  attr :draft, :map, required: true
+  attr :form_id, :string, required: true
+  attr :submit, :string, required: true, doc: "the phx-submit event of the hidden form"
 
-  attr :note, :string,
-    default:
-      "Drag chips into slots; drop on an occupied slot to swap; drag back " <>
-        "to the tray to unassign. A team with one speaker becomes an iron."
+  def allocator(assigns) do
+    placed = MapSet.new(Map.values(assigns.draft))
 
-  def dnd_table(assigns) do
-    assigns = assign(assigns, :sides, @dnd_sides)
+    tray =
+      assigns.people
+      |> Map.values()
+      |> Enum.reject(&MapSet.member?(placed, &1.id))
+      |> Enum.sort_by(&{&1.kind == "judge", &1.name})
+
+    assigns = assign(assigns, sides: @alloc_sides, tray: tray)
 
     ~H"""
-    <form class="dnd" id={@id} action={@action} method="post" data-dnd>
-      <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
-      <div class="tray" data-tray>
-        <span class="tlabel">Unallocated · <span data-tray-count>{length(@tray)}</span></span>
-        <span
-          :for={chip <- @tray}
-          class={["chip", chip.kind == "judge" && "judge"]}
-          draggable="true"
-          data-kind={chip.kind}
-          data-id={chip.id}
-        >
-          {chip.name} <span class="k">{if chip.kind == "judge", do: "JUDGE", else: "SPK"}</span>
-        </span>
+    <div class="dnd" id={@id} phx-hook="Allocator">
+      <div class="tray" data-drop="tray">
+        <span class="tlabel">Unallocated · {length(@tray)}</span>
+        <.chip :for={person <- @tray} person={person} />
       </div>
       <table>
         <thead>
@@ -679,25 +651,73 @@ defmodule CabWeb.Ui do
           </tr>
         </thead>
         <tbody>
-          <tr :for={room <- 1..@rooms} data-room={room}>
+          <tr :for={room <- 1..@rooms}>
             <td class="room">R{room}</td>
             <td :for={side <- @sides} class={"team t-#{side}"}>
-              <div :for={slot <- 1..2} class="slot" data-kind="spk">
-                <input type="hidden" name={"rooms[#{room}][#{side}][#{slot}]"} value="" />
+              <div
+                :for={n <- 1..2}
+                class="slot"
+                data-kind="spk"
+                data-slot={"#{room}:#{side}:#{n}"}
+              >
+                <%= if person = placed(@people, @draft, "#{room}:#{side}:#{n}") do %>
+                  <.chip person={person} />
+                <% end %>
               </div>
             </td>
             <td>
-              <div class="slot" data-kind="judge">
-                <input type="hidden" name={"rooms[#{room}][judge]"} value="" />
+              <div class="slot" data-kind="judge" data-slot={"#{room}:judge"}>
+                <%= if person = placed(@people, @draft, "#{room}:judge") do %>
+                  <.chip person={person} />
+                <% end %>
               </div>
             </td>
-            <td class="status"><span class="tag tag-mut">empty</span></td>
+            <td class="status">{allocation_words(@draft, room)}</td>
           </tr>
         </tbody>
       </table>
-      <div class="bfoot">{@note}</div>
-    </form>
+      <form id={@form_id} phx-submit={@submit}></form>
+      <div class="bfoot">
+        Drag chips into slots; drop on a taken slot to swap; drag back to the
+        tray to unassign. A team with one speaker becomes an iron.
+      </div>
+    </div>
     """
+  end
+
+  attr :person, :map, required: true
+
+  defp chip(assigns) do
+    ~H"""
+    <span
+      class={["chip", @person.kind == "judge" && "judge"]}
+      draggable="true"
+      data-id={@person.id}
+      data-kind={@person.kind}
+    >
+      {@person.name} <span class="k">{if @person.kind == "judge", do: "JUDGE", else: "SPK"}</span>
+    </span>
+    """
+  end
+
+  defp placed(people, draft, key), do: draft[key] && people[draft[key]]
+
+  # a row's state in words: empty / incomplete / ready (+ irons)
+  defp allocation_words(draft, room) do
+    teams =
+      for side <- @alloc_sides do
+        Enum.count(1..2, &draft["#{room}:#{side}:#{&1}"])
+      end
+
+    judge? = draft["#{room}:judge"] != nil
+    irons = Enum.count(teams, &(&1 == 1))
+
+    cond do
+      Enum.sum(teams) == 0 and not judge? -> "empty"
+      Enum.all?(teams, &(&1 >= 1)) and judge? and irons > 0 -> "ready · #{irons} iron"
+      Enum.all?(teams, &(&1 >= 1)) and judge? -> "ready"
+      true -> "incomplete"
+    end
   end
 
   # ---------------------------------------------------------------

@@ -25,12 +25,120 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/cab"
 import topbar from "../vendor/topbar"
 
+// ----------------------------------------------------------------
+// Hooks: every widget is a LiveView hook, so it survives live
+// re-renders. Pages rendered without LiveView mount the same hooks
+// once (see mountDeadHooks below) — one implementation for both.
+// ----------------------------------------------------------------
+
+// the scored ballot: live team totals, derived ranks, tie warning
+const BallotMath = {
+  mounted() {
+    this.grid = this.el.querySelector("[data-ballot]")
+    this.msg = this.el.querySelector(".bfoot")
+    this.recalc = () => {
+      const teams = [...this.grid.querySelectorAll(".bteam")].map(t => ({
+        el: t,
+        sum: [...t.querySelectorAll("input[type=number]")].reduce((a, i) => a + (parseInt(i.value, 10) || 0), 0),
+      }))
+      const sums = teams.map(t => t.sum)
+      const tied = sums.some((s, i) => sums.indexOf(s) !== i)
+      const order = teams.slice().sort((a, b) => b.sum - a.sum)
+      const names = ["1st", "2nd", "3rd", "4th"]
+      teams.forEach(t => {
+        t.el.querySelector(".tot").textContent = String(t.sum)
+        t.el.querySelector(".rk").textContent = names[order.indexOf(t)] || `${order.indexOf(t) + 1}th`
+        t.el.querySelector(".bsum").classList.toggle("tied", teams.some(o => o !== t && o.sum === t.sum))
+      })
+      if (!this.msg || this.msg.querySelector(".err.server")) return
+      this.msg.innerHTML = tied
+        ? '<span class="err">Two teams share a total — BP forbids ties. Adjust scores to submit.</span>'
+        : "All totals distinct — ballot valid. Submit lives in the chrome."
+    }
+    this.grid.addEventListener("input", this.recalc)
+    this.recalc()
+  },
+  updated() { this.recalc && this.recalc() },
+}
+
+// the prep clock on the room page: counts down to data-prep-deadline
+const PrepClock = {
+  mounted() {
+    this.tick = () => {
+      const left = new Date(this.el.dataset.prepDeadline) - Date.now()
+      this.el.textContent =
+        left <= 0
+          ? "prep time is over — debate"
+          : `prep: ${Math.floor(left / 60000)}:${String(Math.floor(left / 1000) % 60).padStart(2, "0")} left`
+    }
+    this.tick()
+    this.timer = setInterval(this.tick, 1000)
+  },
+  updated() { this.tick() },
+  destroyed() { clearInterval(this.timer) },
+}
+
+// the allocator: drag reports a drop to the server — place {id, slot}
+// or unplace {id}; the server owns the draft and re-renders the table
+const Allocator = {
+  mounted() {
+    let dragged = null
+    const accepts = slot => slot && dragged && slot.dataset.kind === dragged.dataset.kind
+    const clearOver = () => this.el.querySelectorAll(".slot.over").forEach(s => s.classList.remove("over"))
+
+    this.el.addEventListener("dragstart", e => {
+      const chip = e.target.closest(".chip")
+      if (!chip) return
+      dragged = chip
+      chip.classList.add("dragging")
+      e.dataTransfer.setData("text/plain", chip.dataset.id)
+    })
+    this.el.addEventListener("dragend", () => {
+      if (dragged) dragged.classList.remove("dragging")
+      dragged = null
+      clearOver()
+    })
+    this.el.addEventListener("dragover", e => {
+      const slot = e.target.closest(".slot")
+      if (accepts(slot)) {
+        e.preventDefault()
+        clearOver()
+        slot.classList.add("over")
+      } else if (dragged && e.target.closest("[data-drop=tray]")) {
+        e.preventDefault()
+      }
+    })
+    this.el.addEventListener("drop", e => {
+      if (!dragged) return
+      const slot = e.target.closest(".slot")
+      const id = parseInt(dragged.dataset.id, 10)
+      e.preventDefault()
+      clearOver()
+      if (accepts(slot)) this.pushEvent("place", {id, slot: slot.dataset.slot})
+      else if (e.target.closest("[data-drop=tray]") && dragged.closest(".slot")) this.pushEvent("unplace", {id})
+    })
+  },
+}
+
+const Hooks = {BallotMath, PrepClock, Allocator}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {...colocatedHooks, ...Hooks},
 })
+
+// pages rendered without LiveView: run each hook's mounted() once on
+// elements outside any LiveView (inside one, LiveView mounts it)
+const mountDeadHooks = () => {
+  document.querySelectorAll("[phx-hook]").forEach(el => {
+    if (el.closest("[data-phx-session]")) return
+    const hook = Hooks[el.getAttribute("phx-hook")]
+    if (hook) Object.assign(Object.create(hook), {el, pushEvent() {}}).mounted()
+  })
+}
+mountDeadHooks()
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
@@ -45,147 +153,6 @@ liveSocket.connect()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
-
-// ----------------------------------------------------------------
-// Design-system widgets (vanilla JS): table sort, ballot math, the
-// allocator, copy buttons, the prep clock.
-// ----------------------------------------------------------------
-
-// table: client-side sort on th.sort + header select-all checkbox
-document.querySelectorAll("table.t").forEach(table => {
-  const headers = table.querySelectorAll("th.sort")
-  headers.forEach(th => {
-    th.addEventListener("click", () => {
-      const was = th.classList.contains("desc")
-      headers.forEach(x => x.classList.remove("asc", "desc"))
-      th.classList.add(was ? "asc" : "desc")
-      const tb = table.tBodies[0]
-      const idx = [...th.parentNode.children].indexOf(th)
-      ;[...tb.rows]
-        .sort((a, b) => {
-          const r = a.cells[idx].innerText.localeCompare(b.cells[idx].innerText, undefined, {numeric: true})
-          return was ? r : -r
-        })
-        .forEach(r => tb.appendChild(r))
-      ;[...tb.rows].forEach((r, i) => {
-        const rank = r.querySelector("td.rank")
-        if (rank) rank.innerText = i + 1
-      })
-    })
-  })
-  const all = table.querySelector("thead input[type=checkbox]")
-  if (all) {
-    all.addEventListener("click", () => {
-      table.querySelectorAll("tbody input[type=checkbox]").forEach(cb => (cb.checked = all.checked))
-    })
-  }
-})
-
-// scored ballot: live totals, derived ranks, tie detection
-document.querySelectorAll(".ballot [data-ballot]").forEach(grid => {
-  const msg = grid.closest(".ballot").querySelector(".bfoot")
-  const recalc = () => {
-    const teams = [...grid.querySelectorAll(".bteam")].map(t => ({
-      el: t,
-      sum: [...t.querySelectorAll("input[type=number]")].reduce((a, i) => a + (parseFloat(i.value) || 0), 0),
-    }))
-    const sums = teams.map(t => t.sum)
-    const tied = sums.some((s, i) => sums.indexOf(s) !== i)
-    const order = teams.slice().sort((a, b) => b.sum - a.sum)
-    const names = ["1st", "2nd", "3rd", "4th"]
-    teams.forEach(t => {
-      t.el.querySelector(".tot").textContent = String(t.sum)
-      t.el.querySelector(".rk").textContent = names[order.indexOf(t)] || `${order.indexOf(t) + 1}th`
-      t.el.querySelector(".bsum").classList.toggle("tied", teams.some(o => o !== t && o.sum === t.sum))
-    })
-    if (!msg) return
-    msg.innerHTML = tied
-      ? '<span class="err">Two teams share a total - BP forbids ties. Adjust scores to submit.</span>'
-      : "All totals distinct - ballot valid. Submit lives in the chrome."
-  }
-  grid.addEventListener("input", recalc)
-  recalc()
-})
-
-// dnd table: tray chips -> slots, kind gating, swap-on-occupied (the
-// displaced chip returns to the dragged chip's origin), drag-to-tray
-// unassigns; slots mirror hidden inputs so submit stays a plain POST
-document.querySelectorAll("form[data-dnd]").forEach(dnd => {
-  const tray = dnd.querySelector("[data-tray]")
-  let dragged = null
-  let origin = null
-
-  dnd.addEventListener("dragstart", e => {
-    const chip = e.target.closest(".chip")
-    if (!chip) return
-    dragged = chip
-    origin = chip.parentElement
-    chip.classList.add("dragging")
-  })
-  dnd.addEventListener("dragend", () => {
-    if (dragged) dragged.classList.remove("dragging")
-    dragged = null
-  })
-
-  const targetOf = e => {
-    const slot = e.target.closest(".slot")
-    if (slot && dragged && slot.dataset.kind === dragged.dataset.kind) return slot
-    if (e.target.closest("[data-tray]")) return tray
-    return null
-  }
-
-  dnd.addEventListener("dragover", e => {
-    const t = targetOf(e)
-    if (!t) return
-    e.preventDefault()
-    if (t !== tray) t.classList.add("over")
-  })
-  dnd.addEventListener("dragleave", e => {
-    const slot = e.target.closest(".slot")
-    if (slot) slot.classList.remove("over")
-  })
-  dnd.addEventListener("drop", e => {
-    const t = targetOf(e)
-    if (!t || !dragged) return
-    e.preventDefault()
-    if (t !== tray) {
-      t.classList.remove("over")
-      const occupant = t.querySelector(".chip")
-      if (occupant)
-        (origin.classList && origin.classList.contains("slot") ? origin : tray).appendChild(occupant)
-    }
-    t.appendChild(dragged)
-    refresh()
-  })
-
-  const refresh = () => {
-    const count = tray.querySelectorAll(".chip").length
-    const label = tray.querySelector("[data-tray-count]")
-    if (label) label.textContent = count
-    // slots mirror into the hidden form inputs — same POST as the API
-    dnd.querySelectorAll(".slot").forEach(slot => {
-      const input = slot.querySelector("input[type=hidden]")
-      const chip = slot.querySelector(".chip")
-      if (input) input.value = chip ? chip.dataset.id : ""
-    })
-    // live per-row status: empty / incomplete / ready (+ iron xN)
-    dnd.querySelectorAll("tbody tr").forEach(tr => {
-      const status = tr.querySelector(".status")
-      if (!status) return
-      const teams = [...tr.querySelectorAll("td.team")].map(td => td.querySelectorAll(".chip").length)
-      const judge = tr.querySelector("td:nth-last-child(2) .chip")
-      const filled = teams.reduce((a, b) => a + b, 0)
-      const irons = teams.filter(n => n === 1).length
-      if (filled === 0 && !judge) status.innerHTML = '<span class="tag tag-mut">empty</span>'
-      else if (teams.every(n => n >= 1) && judge)
-        status.innerHTML =
-          '<span class="tag tag-ok">ready</span>' +
-          (irons ? ` <span class="tag tag-warn">iron x${irons}</span>` : "")
-      else status.innerHTML = '<span class="tag tag-warn">incomplete</span>'
-    })
-  }
-  refresh()
-})
 
 // copy affordance: [data-copy] buttons put their payload on the
 // clipboard (shared registration URL, personal guest links)
@@ -250,19 +217,3 @@ if (process.env.NODE_ENV === "development") {
     window.liveReloader = reloader
   })
 }
-
-
-// ---- prep countdown: the one JS spark on the room page ----
-// the server renders a span with data-prep-deadline (ISO, UTC);
-// we only ever write the remaining time into it.
-const tickPrep = () => {
-  document.querySelectorAll("[data-prep-deadline]").forEach((el) => {
-    const left = new Date(el.dataset.prepDeadline) - Date.now()
-    el.textContent =
-      left <= 0
-        ? "prep time is over — debate"
-        : `prep: ${Math.floor(left / 60000)}:${String(Math.floor(left / 1000) % 60).padStart(2, "0")} left`
-  })
-}
-setInterval(tickPrep, 1000)
-tickPrep()

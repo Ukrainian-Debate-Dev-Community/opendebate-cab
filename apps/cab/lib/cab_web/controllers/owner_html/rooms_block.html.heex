@@ -9,11 +9,12 @@
           closes registration and opens these rooms.
         </p>
       </div>
-      <.dnd_table
-        id="allocator-form"
-        action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/start"}
+      <.allocator
         rooms={Cab.Sessions.room_count(@state.signups)}
-        tray={dnd_tray(@state.signups)}
+        people={people(@state.signups)}
+        draft={@draft}
+        form_id="allocator-form"
+        submit="start"
       />
     </.section>
   <% :closed -> %>
@@ -24,11 +25,12 @@
           drag people from the tray into the slots.
         </p>
       </div>
-      <.dnd_table
-        id="allocator-form"
-        action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/rooms"}
+      <.allocator
         rooms={Cab.Sessions.room_count(@state.signups)}
-        tray={dnd_tray(@state.signups)}
+        people={people(@state.signups)}
+        draft={@draft}
+        form_id="allocator-form"
+        submit="make_rooms"
       />
     </.section>
   <% _running_or_done -> %>

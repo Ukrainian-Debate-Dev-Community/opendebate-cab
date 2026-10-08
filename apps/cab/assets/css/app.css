@@ -152,11 +152,6 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
         text-transform:uppercase; font-weight:700; color:var(--muted);
         padding:7px var(--px); border-bottom:1px solid var(--line);
         white-space:nowrap; user-select:none; }
-.t th.sort { cursor:pointer; }
-.t th.sort:hover { color:var(--brand); }
-.t th.sort::after { content:"↕"; margin-left:4px; opacity:.4; }
-.t th.sort.asc::after  { content:"↑"; opacity:1; color:var(--brand); }
-.t th.sort.desc::after { content:"↓"; opacity:1; color:var(--brand); }
 .t td { padding:6px var(--px); border-bottom:1px solid var(--line); }
 .t tbody tr:last-child td { border-bottom:none; }
 .t tbody tr:hover { background:var(--brand-50); }
@@ -169,15 +164,8 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .t td.c, .t th.c { text-align:center; }
 .t td a { color:var(--brand); font-weight:650; text-decoration:none; }
 .t td a:hover { text-decoration:underline; }
-.t input[type=checkbox] { width:15px; height:15px; accent-color:var(--brand);
-                          vertical-align:middle; cursor:pointer; }
 .t .empty { padding:30px var(--px); text-align:center; color:var(--muted);
             font-size:.84rem; }
-.tag { font-size:.64rem; font-weight:700; padding:2px 8px; border-radius:999px;
-       white-space:nowrap; }
-.tag-ok   { background:var(--ok-bg); color:var(--ok); }
-.tag-warn { background:var(--warn-bg); color:var(--warn); }
-.tag-mut  { background:var(--brand-50); color:var(--muted); }
 
 /* ================================================================
    3 · FORM — one flowing piece: title block + field blocks + submit,
@@ -321,7 +309,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .slot.over { border-color:var(--brand); background:var(--brand-50); }
 .slot:has(.chip) { border:1px solid var(--line); border-radius:4px;
                    background:#fff; }
-.dnd td.status { width:84px; }
+.dnd td.status { width:110px; font-size:.72rem; color:var(--muted); font-weight:650; }
 
 /* ================================================================
    Rest of the kit: banner + section/card (tag is above, with table)

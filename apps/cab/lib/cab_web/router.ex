@@ -106,7 +106,11 @@ defmodule CabWeb.Router do
     post "/owner/join-requests/:id/decline", OwnerController, :decline
     post "/owner/members/:user_id/remove", OwnerController, :remove_member
 
-    get "/owner/s/:session_uuid", OwnerController, :session
+    live_session :club_owner,
+      on_mount: [{CabWeb.LiveScope, :club}, {CabWeb.LiveScope, :owner}] do
+      live "/owner/s/:session_uuid", OwnerSessionLive, :show
+    end
+
     post "/owner/sessions/:session_uuid/start", OwnerController, :start
     post "/owner/sessions/:session_uuid/close-signups", OwnerController, :close_signups
     post "/owner/sessions/:session_uuid/reopen-signups", OwnerController, :reopen_signups

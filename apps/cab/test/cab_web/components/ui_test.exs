@@ -161,30 +161,26 @@ defmodule CabWeb.UiTest do
   # table
   # ---------------------------------------------------------------
 
-  test "table renders every cell format: check, rank, sub, code, num, sort header" do
+  test "table renders every cell format: rank, sub, code, num" do
     assigns = %{rows: [%{name: "Anna", team: "KDC-A", avg: "76.42"}]}
 
     html =
       rendered_to_string(~H"""
-      <.table id="standings" rows={@rows} rank check={fn _row -> true end}>
-        <:col :let={s} label="Speaker" sort="name">
+      <.table id="standings" rows={@rows} rank>
+        <:col :let={s} label="Speaker">
           {s.name}
           <.sub>Kyiv Debate Club</.sub>
         </:col>
         <:col :let={s} label="Team" code>{s.team}</:col>
-        <:col :let={s} label="Avg spk" sort="avg" float>{s.avg}</:col>
+        <:col :let={s} label="Avg spk" float>{s.avg}</:col>
       </.table>
       """)
 
     assert html =~ ~s(class="t" id="standings")
-    assert html =~ ~s(data-check-all)
-    assert html =~ ~s(checked)
     assert html =~ ~s(<td class="rank">1</td>)
     assert html =~ ~s(class="sub">Kyiv Debate Club</span>)
     assert html =~ ~s(class="code")
-    assert html =~ ~s(class="sort num")
-    assert html =~ ~s(data-k="avg")
-    assert html =~ ~s(data-k="name")
+    assert html =~ ~s(class="num")
   end
 
   test "table renders the centered empty state line with the full colspan" do
@@ -343,52 +339,41 @@ defmodule CabWeb.UiTest do
     assert html =~ ~s(class="bfoot")
   end
 
-  test "dnd_table renders the tray of kind-marked chips, droppable slots and hidden inputs" do
+  test "allocator renders the server draft: tray of the unplaced, keyed slots, row words" do
     assigns = %{
-      tray: [
-        %{id: 1, name: "Anna", kind: "spk"},
-        %{id: 2, name: "Bohdan", kind: "spk"},
-        %{id: 99, name: "Nadia", kind: "judge"}
-      ]
+      people: %{
+        1 => %{id: 1, name: "Anna", kind: "spk"},
+        2 => %{id: 2, name: "Bohdan", kind: "spk"},
+        99 => %{id: 99, name: "Nadia", kind: "judge"}
+      },
+      draft: %{"1:og:1" => 1}
     }
 
     html =
       rendered_to_string(~H"""
-      <.dnd_table id="compose" action="/rooms" rooms={2} tray={@tray} />
+      <.allocator rooms={2} people={@people} draft={@draft} form_id="allocator-form" submit="start" />
       """)
 
-    # a plain form POSTing to the composition action — dnd is
-    # presentation, not transport
-    assert html =~ ~s(class="dnd")
-    assert html =~ ~s(action="/rooms")
-    assert html =~ ~s(method="post")
-    assert html =~ "data-dnd"
-    assert html =~ ~s(name="_csrf_token")
+    # the hook reports drops; the hidden form carries the submit event
+    assert html =~ ~s(phx-hook="Allocator")
+    assert html =~ ~s(id="allocator-form" phx-submit="start")
 
-    # tray: draggable chips with the kind mark; judges carry the blue class
-    assert html =~ "data-tray"
-    assert html =~ "data-tray-count"
-    assert length(String.split(html, ~s(draggable="true"))) == 4
-    assert html =~ ~s(data-id="1")
-    assert html =~ "Anna <span class=\"k\">SPK</span>"
-    assert html =~ "Nadia <span class=\"k\">JUDGE</span>"
-    assert html =~ ~s(class="chip judge")
+    # the tray holds only the unplaced — Anna sits in her slot
+    [tray, table] = String.split(html, "<table>", parts: 2)
+    refute tray =~ "Anna"
+    assert tray =~ "Bohdan"
+    assert tray =~ ~s(class="chip judge")
+    assert tray =~ "Unallocated · 2"
 
-    # two rows x (4 team cells with side bands x 2 slots + judge slot
-    # + status tag), each slot mirroring a hidden input
-    for side <- ~w(og oo cg co), do: assert(html =~ ~s(class="team t-#{side}"))
-    assert length(String.split(html, ~s(class="slot"))) == 19
-    assert html =~ ~s(name="rooms[1][og][1]")
-    assert html =~ ~s(name="rooms[1][og][2]")
-    assert html =~ ~s(name="rooms[2][co][2]")
-    assert html =~ ~s(name="rooms[1][judge]")
-    assert html =~ ~s(name="rooms[2][judge]")
-    assert html =~ ~s(data-kind="judge")
-    assert html =~ ~s(class="status")
-    assert html =~ "iron"
+    # slots carry their keys; the placed chip renders inside its slot
+    assert table =~ ~s(data-slot="1:og:1")
+    assert table =~ ~s(data-slot="2:judge")
+    assert table =~ "Anna <span class=\"k\">SPK</span>"
 
-    # never dropdowns or swap controls for allocation
-    refute html =~ "<select"
+    # row state in words, never pills
+    assert table =~ "incomplete"
+    assert table =~ "empty"
+    refute html =~ "tag-"
   end
 
   test "banner renders kind and the optional trailing link" do

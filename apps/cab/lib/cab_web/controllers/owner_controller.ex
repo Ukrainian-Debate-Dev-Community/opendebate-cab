@@ -122,30 +122,6 @@ defmodule CabWeb.OwnerController do
   # The owner session page and its lifecycle actions
   # ---------------------------------------------------------------
 
-  # GET /c/:club_uuid/owner/s/:session_uuid
-  def session(conn, %{"session_uuid" => session_uuid}) do
-    club = conn.assigns.club
-
-    with %Session{} = session <- Sessions.get_for_club(club, session_uuid),
-         {:ok, state} <- Sessions.state(%{session | club: club}) do
-      render(conn, :session,
-        current: session,
-        state: state,
-        links: Links.list_for_session(session),
-        members: Clubs.list_members(club),
-        page_title: "#{club.name} · #{state.event["name"]}"
-      )
-    else
-      nil ->
-        conn |> CabWeb.ErrorHTML.respond(404)
-
-      {:error, message} ->
-        conn
-        |> put_flash(:error, error_message(message))
-        |> redirect(to: ~p"/c/#{club.uuid}/owner")
-    end
-  end
-
   # POST .../owner/sessions/:session_uuid/start — the gold action:
   # closes registration and creates the rooms from the dragged
   # allocator state (only the room count was automatic)

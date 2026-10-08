@@ -537,16 +537,14 @@ defmodule CabWeb.HtmlTreesTest do
 
     # the EMBEDDED allocator: automatic room count, EMPTY slots —
     # nobody is ever placed automatically
-    assert html =~ ~s(id="allocator-form")
-    assert html =~ "data-dnd"
+    assert html =~ ~s(id="allocator-form" phx-submit="start")
+    assert html =~ ~s(phx-hook="Allocator")
     assert html =~ "count automatic"
-    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/start"
 
     # the owner surface is owner-tree only
-    assert conn
-           |> log_in(member)
-           |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
-           |> response(403)
+    assert_error_sent 403, fn ->
+      conn |> log_in(member) |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+    end
   end
 
   test "owner surface at :closed: allocator + Make these rooms + Reopen; lifecycle twins redirect back",
@@ -563,7 +561,7 @@ defmodule CabWeb.HtmlTreesTest do
     # the allocator is embedded here too; Make these rooms submits it
     assert html =~ "Make these rooms"
     assert html =~ ~s(id="allocator-form")
-    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/rooms"
+    assert html =~ ~s(phx-submit="make_rooms")
     assert html =~ "Reopen sign-ups"
     assert html =~ "sign-ups closed"
     refute html =~ "Close sign-ups"
@@ -665,18 +663,17 @@ defmodule CabWeb.HtmlTreesTest do
       |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
       |> html_response(200)
 
-    # the dnd table: a tray of draggable chips over droppable slots
-    # that mirror hidden inputs — NO dropdowns anywhere, slots EMPTY
-    assert html =~ ~s(id="allocator-form")
-    assert html =~ "data-dnd"
-    assert html =~ "data-tray"
+    # the allocator: a tray of draggable chips over keyed slots the
+    # server fills from its draft — NO dropdowns anywhere, slots EMPTY
+    assert html =~ ~s(phx-hook="Allocator")
+    assert html =~ ~s(data-drop="tray")
     assert html =~ ~s(draggable="true")
     assert html =~ ~s(data-kind="spk")
     assert html =~ ~s(data-kind="judge")
     assert html =~ "Speaker 8"
-    assert html =~ ~s(name="rooms[1][og][1]")
-    assert html =~ ~s(name="rooms[1][co][2]")
-    assert html =~ ~s(name="rooms[1][judge]")
+    assert html =~ ~s(data-slot="1:og:1")
+    assert html =~ ~s(data-slot="1:co:2")
+    assert html =~ ~s(data-slot="1:judge")
     refute html =~ "<select"
 
     # the submit segment is the chrome's one gold action; the room
@@ -684,7 +681,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(form="allocator-form")
     assert html =~ "Start session"
     refute html =~ "+ room"
-    refute html =~ ~s(name="rooms[2][og][1]")
+    refute html =~ ~s(data-slot="2:og:1")
 
     # the count is ceiling-based — 13 speakers open 2 rooms, never 1
     thirteen = for i <- 1..13, do: %{"role" => "speaker", "id" => i}

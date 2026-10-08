@@ -250,7 +250,7 @@ defmodule CabWeb.GuestLinksTest do
       # ... which opens NOTHING beyond P6's public view
       assert conn |> get(~p"/c/#{club.uuid}/members") |> response(403)
       assert conn |> get(~p"/c/#{club.uuid}/owner") |> response(403)
-      assert conn |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}") |> response(403)
+      assert_error_sent 403, fn -> get(conn, ~p"/c/#{club.uuid}/owner/s/#{session.uuid}") end
 
       denied = get(conn, ~p"/api/v1/sessions/#{session.uuid}/links")
       assert json_response(denied, 403)["error"] == "forbidden"
