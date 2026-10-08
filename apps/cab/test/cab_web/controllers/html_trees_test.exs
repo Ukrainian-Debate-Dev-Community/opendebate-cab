@@ -527,13 +527,12 @@ defmodule CabWeb.HtmlTreesTest do
       |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
       |> html_response(200)
 
-    # stage words in the crumb, chrome actions for :signup only
+    # stage words in the crumb, chrome actions for :signup only:
+    # the ONE gold action is Start session, submitting the allocator
     assert html =~ "sign-ups open"
-    assert html =~ "Close sign-ups"
-    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/close-signups"
-    assert html =~ "Cancel session"
-    refute html =~ "Make rooms"
-    refute html =~ "Compose rooms"
+    assert html =~ "Start session"
+    refute html =~ "Close sign-ups"
+    refute html =~ "Cancel session"
     refute html =~ "Reopen sign-ups"
     refute html =~ "Delete rooms"
 
@@ -545,8 +544,13 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/1/remove"
     assert html =~ ~s(id="add-signup-form")
     assert html =~ "benched"
-    assert html =~ "8 speakers · 1 judge"
-    assert html =~ "Rooms are composed after sign-ups close."
+
+    # the EMBEDDED allocator: automatic room count, EMPTY slots —
+    # nobody is ever placed automatically
+    assert html =~ ~s(id="allocator-form")
+    assert html =~ "data-dnd"
+    assert html =~ "count automatic"
+    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/start"
 
     # the owner surface is owner-tree only
     assert conn
@@ -555,7 +559,7 @@ defmodule CabWeb.HtmlTreesTest do
            |> response(403)
   end
 
-  test "owner surface at :closed: Make/Compose/Reopen; lifecycle twins redirect back",
+  test "owner surface at :closed: allocator + Make these rooms + Reopen; lifecycle twins redirect back",
        %{conn: conn, club: club, head: head} do
     session = closed_session_fixture(club, engine_event_id: 11)
     stub_signup_stage(signup_stage_signups())
@@ -566,12 +570,14 @@ defmodule CabWeb.HtmlTreesTest do
       |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
       |> html_response(200)
 
-    assert html =~ "Make rooms"
-    assert html =~ "Compose rooms"
-    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/compose"
+    # the allocator is embedded here too; Make these rooms submits it
+    assert html =~ "Make these rooms"
+    assert html =~ ~s(id="allocator-form")
+    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/rooms"
     assert html =~ "Reopen sign-ups"
     assert html =~ "sign-ups closed"
     refute html =~ "Close sign-ups"
+    refute html =~ "Compose rooms"
 
     reopened =
       conn
@@ -641,15 +647,15 @@ defmodule CabWeb.HtmlTreesTest do
   end
 
   # ---------------------------------------------------------------
-  # Compose (dnd) — unchanged behavior, new addresses
+  # The embedded allocator (dnd) — Start session consumes its state
   # ---------------------------------------------------------------
 
-  test "compose page is the dnd table; the form posts the composition", %{
+  test "the allocator is the dnd table; Start session posts the composition", %{
     conn: conn,
     club: club,
     head: head
   } do
-    session = closed_session_fixture(club, engine_event_id: 11)
+    session = session_fixture(club, engine_event_id: 11)
     test_pid = self()
 
     stub_signup_stage(signup_stage_signups(), fn conn, params ->
@@ -666,12 +672,12 @@ defmodule CabWeb.HtmlTreesTest do
     html =
       conn
       |> log_in(head)
-      |> get(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/compose")
+      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
       |> html_response(200)
 
     # the dnd table: a tray of draggable chips over droppable slots
-    # that mirror hidden inputs — NO dropdowns anywhere
-    assert html =~ ~s(id="compose-rooms-form")
+    # that mirror hidden inputs — NO dropdowns anywhere, slots EMPTY
+    assert html =~ ~s(id="allocator-form")
     assert html =~ "data-dnd"
     assert html =~ "data-tray"
     assert html =~ ~s(draggable="true")
@@ -683,56 +689,24 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(name="rooms[1][judge]")
     refute html =~ "<select"
 
-    # the submit segment lives in the chrome; 8 speakers allow a
-    # second room via the "+ room" link (plain REST reload)
-    assert html =~ ~s(form="compose-rooms-form")
-    assert html =~ "Make these rooms"
-    assert html =~ "+ room"
-    assert html =~ "compose?rooms=2"
+    # the submit segment is the chrome's one gold action; the room
+    # count is automatic — 8 speakers = 1 room, no "+ room" anywhere
+    assert html =~ ~s(form="allocator-form")
+    assert html =~ "Start session"
+    refute html =~ "+ room"
     refute html =~ ~s(name="rooms[2][og][1]")
 
-    two_rooms =
-      conn
-      |> log_in(head)
-      |> get(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/compose?rooms=2")
-      |> html_response(200)
+    # the count is ceiling-based — 13 speakers open 2 rooms, never 1
+    thirteen = for i <- 1..13, do: %{"role" => "speaker", "id" => i}
+    assert Cab.Sessions.room_count(thirteen) == 2
+    assert Cab.Sessions.room_count([%{"role" => "speaker", "id" => 1}]) == 1
 
-    assert two_rooms =~ ~s(name="rooms[2][og][1]")
-    refute two_rooms =~ "+ room"
-
-    # the dnd slots post rooms[i][side][slot] (+ judge); empty slots
-    # post "" — an iron team is a single filled slot
-    posted =
-      conn
-      |> log_in(head)
-      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/rooms", %{
-        "rooms" => %{
-          "1" => %{
-            "judge" => "99",
-            "og" => %{"1" => "7", "2" => "8"},
-            "oo" => %{"1" => "3", "2" => "4"},
-            "cg" => %{"1" => "5", "2" => "6"},
-            "co" => %{"1" => "1", "2" => ""}
-          }
-        }
-      })
-
-    assert redirected_to(posted) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-    assert Phoenix.Flash.get(posted.assigns.flash, :info) =~ "1 room(s) created"
-    assert_received {:room, room_params}
-
-    assert [
-             %{"participant_ids" => [7, 8], "position" => 1},
-             %{"participant_ids" => [3, 4], "position" => 2},
-             %{"participant_ids" => [5, 6], "position" => 3},
-             %{"participant_ids" => [1], "position" => 4}
-           ] = room_params["teams"]
-
-    # an impossible composition bounces back with the reason
+    # an impossible composition bounces back with the reason and the
+    # window ROLLS BACK open — the session stays at :signup
     bounced =
       conn
       |> log_in(head)
-      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/rooms", %{
+      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/start", %{
         "rooms" => %{
           "1" => %{
             "judge" => "99",
@@ -746,18 +720,50 @@ defmodule CabWeb.HtmlTreesTest do
 
     assert redirected_to(bounced) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
     assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~ "placed more than once"
+    assert Cab.Sessions.get_for_club(club, session.uuid).signups_closed_at == nil
 
-    # compose is owner-tree only — a member gets 403
+    # the dnd slots post rooms[i][side][slot] (+ judge); empty slots
+    # post "" — an iron team is a single filled slot. Start closes
+    # registration and makes exactly these rooms.
+    posted =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/start", %{
+        "rooms" => %{
+          "1" => %{
+            "judge" => "99",
+            "og" => %{"1" => "7", "2" => "8"},
+            "oo" => %{"1" => "3", "2" => "4"},
+            "cg" => %{"1" => "5", "2" => "6"},
+            "co" => %{"1" => "1", "2" => ""}
+          }
+        }
+      })
+
+    assert redirected_to(posted) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
+    assert Phoenix.Flash.get(posted.assigns.flash, :info) =~ "session started — 1 room(s)"
+    assert_received {:room, room_params}
+
+    assert [
+             %{"participant_ids" => [7, 8], "position" => 1},
+             %{"participant_ids" => [3, 4], "position" => 2},
+             %{"participant_ids" => [5, 6], "position" => 3},
+             %{"participant_ids" => [1], "position" => 4}
+           ] = room_params["teams"]
+
+    assert Cab.Sessions.get_for_club(club, session.uuid).signups_closed_at != nil
+
+    # starting is owner-tree only — a member gets 403
     member = user_fixture(%{node_user_id: 55})
     membership_fixture(member, club)
 
     denied =
-      conn |> log_in(member) |> get(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/compose")
+      conn |> log_in(member) |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/start")
 
     assert response(denied, 403)
   end
 
-  test "compose requires :closed — while :signup it bounces to the owner surface",
+  test "start without a dragged allocation errors — nothing is auto-placed",
        %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
     stub_signup_stage(signup_stage_signups())
@@ -765,10 +771,14 @@ defmodule CabWeb.HtmlTreesTest do
     bounced =
       conn
       |> log_in(head)
-      |> get(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/compose")
+      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/start")
 
     assert redirected_to(bounced) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-    assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~ "close sign-ups first"
+
+    assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~
+             "nothing is allocated automatically"
+
+    assert Cab.Sessions.get_for_club(club, session.uuid).signups_closed_at == nil
   end
 
   # ---------------------------------------------------------------

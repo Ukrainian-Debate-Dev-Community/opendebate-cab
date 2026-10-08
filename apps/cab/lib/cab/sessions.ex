@@ -141,6 +141,50 @@ defmodule Cab.Sessions do
   end
 
   @doc """
+  REOPEN REGISTRATION (M9): from a running session whose rooms are
+  still all pending — the rooms (and their temporary teams) are
+  deleted and the public window opens again.
+  """
+  def reopen_registration(%User{} = head, %Session{} = session) do
+    with {:ok, _count} <- delete_rooms(head, session),
+         {:ok, reopened} <- reopen_signups(session) do
+      {:ok, reopened}
+    end
+  end
+
+  @doc """
+  START SESSION (M9): one gold action — closes public registration
+  and creates the rooms FROM THE ALLOCATOR STATE. Only the room
+  COUNT is ever automatic; people are placed by the head's drag,
+  never by cab. If room creation fails the window reopens, so the
+  session stays at :signup with the error on the page.
+  """
+  def start(%User{} = head, %Session{} = session, rooms_spec) do
+    with {:ok, closed} <- close_signups(session) do
+      closed = %{closed | club: session.club}
+
+      case make_rooms(head, closed, rooms_spec) do
+        {:ok, _count} = ok ->
+          ok
+
+        error ->
+          reopen_signups(closed)
+          error
+      end
+    end
+  end
+
+  @doc """
+  The allocator's automatic ROOM COUNT (M9): enough rooms for every
+  speaker — ceil(speakers / #{@max_room_speakers}), minimum one. The
+  only automatic part of allocation; 13 speakers = 2 rooms.
+  """
+  def room_count(signups) do
+    speakers = Enum.count(signups, &(&1["role"] == "speaker"))
+    max(div(speakers + @max_room_speakers - 1, @max_room_speakers), 1)
+  end
+
+  @doc """
   The head reopens sign-ups: only possible while `:closed` (no rooms
   yet). Returns `{:ok, session}` or `{:error, :conflict, message}`.
   """

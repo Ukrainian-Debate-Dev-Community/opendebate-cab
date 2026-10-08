@@ -149,6 +149,36 @@ defmodule CabWeb.OwnerController do
     end
   end
 
+  # POST .../owner/sessions/:session_uuid/start — the gold action:
+  # closes registration and creates the rooms from the dragged
+  # allocator state (only the room count was automatic)
+  def start(conn, %{"session_uuid" => session_uuid} = params) do
+    with_session(conn, session_uuid, fn session ->
+      case params["rooms"] do
+        %{} = rooms ->
+          case Sessions.start(conn.assigns.current_user, session, compose_spec(rooms)) do
+            {:ok, count} -> {:ok, "session started — #{count} room(s)"}
+            error -> error
+          end
+
+        _missing ->
+          {:error, "drag people into the rooms first — nothing is allocated automatically"}
+      end
+    end)
+  end
+
+  # POST .../owner/sessions/:session_uuid/reopen-registration — from a
+  # running session with all rooms still pending: rooms die, the
+  # public window opens again
+  def reopen_registration(conn, %{"session_uuid" => session_uuid}) do
+    with_session(conn, session_uuid, fn session ->
+      case Sessions.reopen_registration(conn.assigns.current_user, session) do
+        {:ok, _session} -> {:ok, "registration reopened — pending rooms cleared"}
+        error -> error
+      end
+    end)
+  end
+
   # POST .../owner/sessions/:session_uuid/close-signups
   def close_signups(conn, %{"session_uuid" => session_uuid}) do
     with_session(conn, session_uuid, fn session ->
@@ -236,71 +266,19 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # GET .../owner/sessions/:session_uuid/compose — the drag-and-drop
-  # allocation page (the ONLY allocation UI). Rooms count derives
-  # from attendance — floor(speakers/8) baseline — and "+ room"
-  # reloads with ?rooms=N up to attendance/4.
-  def compose(conn, %{"session_uuid" => session_uuid} = params) do
-    club = conn.assigns.club
-
-    with %Session{} = session <- Sessions.get_for_club(club, session_uuid),
-         {:ok, state} <- Sessions.state(%{session | club: club}) do
-      case state.stage do
-        :closed ->
-          speakers = Enum.count(state.signups, &(&1["role"] == "speaker"))
-          max_rooms = max(div(speakers, 4), 1)
-          rooms = params["rooms"] |> rooms_param(max(div(speakers, 8), 1)) |> clamp(max_rooms)
-
-          render(conn, :compose,
-            session: session,
-            state: state,
-            rooms: rooms,
-            max_rooms: max_rooms,
-            page_title: "#{club.name} · compose rooms"
-          )
-
-        _stage ->
-          conn
-          |> put_flash(
-            :error,
-            "close sign-ups first — rooms are composed from the final attendance"
-          )
-          |> redirect(to: ~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
-      end
-    else
-      nil ->
-        conn |> send_resp(404, "not found") |> halt()
-
-      {:error, message} ->
-        conn
-        |> put_flash(:error, error_message(message))
-        |> redirect(to: ~p"/c/#{club.uuid}/owner")
-    end
-  end
-
-  defp rooms_param(value, default) do
-    case is_binary(value) && Integer.parse(value) do
-      {rooms, ""} -> rooms
-      _ -> default
-    end
-  end
-
-  defp clamp(rooms, max_rooms), do: rooms |> max(1) |> min(max_rooms)
-
-  # POST .../owner/sessions/:session_uuid/rooms — the gold one-click
-  # auto path; with "rooms" params (the compose form) the head's
-  # explicit composition is used instead
+  # POST .../owner/sessions/:session_uuid/rooms — the allocator form
+  # at :closed; the head's explicit composition, never auto-paired
   def make_rooms(conn, %{"session_uuid" => session_uuid} = params) do
     with_session(conn, session_uuid, fn session ->
-      result =
-        case params["rooms"] do
-          nil -> Sessions.make_rooms(conn.assigns.current_user, session)
-          rooms -> Sessions.make_rooms(conn.assigns.current_user, session, compose_spec(rooms))
-        end
+      case params["rooms"] do
+        %{} = rooms ->
+          case Sessions.make_rooms(conn.assigns.current_user, session, compose_spec(rooms)) do
+            {:ok, count} -> {:ok, "#{count} room(s) created"}
+            error -> error
+          end
 
-      case result do
-        {:ok, count} -> {:ok, "#{count} room(s) created"}
-        error -> error
+        _missing ->
+          {:error, "drag people into the rooms first — nothing is allocated automatically"}
       end
     end)
   end

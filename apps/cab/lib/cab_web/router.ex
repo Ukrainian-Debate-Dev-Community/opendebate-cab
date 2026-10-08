@@ -107,15 +107,20 @@ defmodule CabWeb.Router do
     post "/owner/members/:user_id/remove", OwnerController, :remove_member
 
     get "/owner/s/:session_uuid", OwnerController, :session
+    post "/owner/sessions/:session_uuid/start", OwnerController, :start
     post "/owner/sessions/:session_uuid/close-signups", OwnerController, :close_signups
     post "/owner/sessions/:session_uuid/reopen-signups", OwnerController, :reopen_signups
+
+    post "/owner/sessions/:session_uuid/reopen-registration",
+         OwnerController,
+         :reopen_registration
+
     post "/owner/sessions/:session_uuid/signups", OwnerController, :add_signup
 
     post "/owner/sessions/:session_uuid/signups/:participant_id/remove",
          OwnerController,
          :remove_signup
 
-    get "/owner/sessions/:session_uuid/compose", OwnerController, :compose
     post "/owner/sessions/:session_uuid/rooms", OwnerController, :make_rooms
     post "/owner/sessions/:session_uuid/rooms/delete", OwnerController, :delete_rooms
     post "/owner/sessions/:session_uuid/finish", OwnerController, :finish
@@ -157,8 +162,10 @@ defmodule CabWeb.Router do
     post "/clubs/:uuid/sessions", SessionController, :create
     get "/sessions/:uuid", SessionController, :show
     delete "/sessions/:uuid", SessionController, :delete
+    post "/sessions/:uuid/start", SessionController, :start
     post "/sessions/:uuid/close-signups", SessionController, :close_signups
     post "/sessions/:uuid/reopen-signups", SessionController, :reopen_signups
+    post "/sessions/:uuid/reopen-registration", SessionController, :reopen_registration
     post "/sessions/:uuid/signups", SignupController, :create
     delete "/sessions/:uuid/signups/:participant_id", SignupController, :delete
     post "/sessions/:uuid/rooms", RoomController, :create

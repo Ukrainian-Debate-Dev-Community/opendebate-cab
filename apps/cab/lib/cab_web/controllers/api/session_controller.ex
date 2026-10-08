@@ -11,7 +11,14 @@ defmodule CabWeb.Api.SessionController do
 
   plug ClubScope,
        [source: :session, require: :owner]
-       when action in [:finish, :delete, :close_signups, :reopen_signups]
+       when action in [
+              :finish,
+              :delete,
+              :close_signups,
+              :reopen_signups,
+              :start,
+              :reopen_registration
+            ]
 
   # POST /api/v1/clubs/:uuid/sessions
   # {"name": optional, "date": "YYYY-MM-DD" optional, "time": "HH:MM" optional}
@@ -62,6 +69,34 @@ defmodule CabWeb.Api.SessionController do
         winner: Sessions.winner_from_rooms(state.rooms),
         proposal: proposal
       })
+    end
+  end
+
+  # POST /api/v1/sessions/:uuid/start {"rooms": [...]} — M9's one
+  # action: closes registration and creates the rooms from the
+  # allocator state (the spec is REQUIRED; nothing is auto-placed)
+  def start(conn, %{"rooms" => rooms_spec}) when is_list(rooms_spec) do
+    with {:ok, count} <-
+           Sessions.start(conn.assigns.current_user, conn.assigns.session, rooms_spec) do
+      json(conn, %{uuid: conn.assigns.session.uuid, stage: :running, rooms_created: count})
+    end
+  end
+
+  def start(conn, _params) do
+    conn
+    |> put_status(422)
+    |> json(%{
+      error: "validation failed",
+      details: %{rooms: "the allocator spec is required — nothing is allocated automatically"}
+    })
+  end
+
+  # POST /api/v1/sessions/:uuid/reopen-registration — pending rooms
+  # die, the public window opens again
+  def reopen_registration(conn, _params) do
+    with {:ok, session} <-
+           Sessions.reopen_registration(conn.assigns.current_user, conn.assigns.session) do
+      json(conn, %{uuid: session.uuid, stage: :signup})
     end
   end
 

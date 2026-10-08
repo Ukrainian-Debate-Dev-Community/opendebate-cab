@@ -24,8 +24,8 @@ defmodule CabWeb.OwnerHTML do
     >
       <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="edit">
         <:seg href={~p"/c/#{@club.uuid}"} quiet>View as public</:seg>
-        <:seg form="open-session-form">Open new session</:seg>
-        <:seg form="club-profile-form" primary>Save</:seg>
+        <:seg form="open-session-form" primary={is_nil(@live)}>Open new session</:seg>
+        <:seg form="club-profile-form" primary={not is_nil(@live)}>Save</:seg>
       </.chrome>
 
       <div class="pbody">
@@ -214,27 +214,11 @@ defmodule CabWeb.OwnerHTML do
         ]}
         here={"#{@state.event["name"]} — #{stage_words(@state)}"}
       >
-        <:seg
-          :if={@state.stage == :signup}
-          href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/close-signups"}
-          method="post"
-          primary
-        >
-          Close sign-ups
+        <:seg :if={@state.stage == :signup} form="allocator-form" primary>
+          Start session
         </:seg>
-        <:seg
-          :if={@state.stage == :closed}
-          href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/compose"}
-        >
-          Compose rooms
-        </:seg>
-        <:seg
-          :if={@state.stage == :closed}
-          href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/rooms"}
-          method="post"
-          primary
-        >
-          Make rooms
+        <:seg :if={@state.stage == :closed} form="allocator-form" primary>
+          Make these rooms
         </:seg>
         <:seg
           :if={@state.stage == :closed}
@@ -252,20 +236,19 @@ defmodule CabWeb.OwnerHTML do
           Delete rooms
         </:seg>
         <:seg
+          :if={@state.stage == :running && deletable_rooms?(@state)}
+          href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-registration"}
+          method="post"
+        >
+          Reopen registration
+        </:seg>
+        <:seg
           :if={@state.stage == :running}
           href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/finish"}
           method="post"
           primary
         >
           Finish session
-        </:seg>
-        <:seg
-          :if={@state.stage in [:signup, :closed, :running]}
-          href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/cancel"}
-          method="post"
-          quiet
-        >
-          Cancel session
         </:seg>
       </.chrome>
 
@@ -432,28 +415,40 @@ defmodule CabWeb.OwnerHTML do
 
   defp rooms_block(%{state: %{stage: :signup}} = assigns) do
     ~H"""
-    <.section title="Rooms" pad>
-      Rooms are composed after sign-ups close.
-      <p>Close sign-ups from the chrome — composition works from the final attendance.</p>
+    <.section title={"Allocation — #{Cab.Sessions.room_count(@state.signups)} room(s), count automatic"}>
+      <div class="pad">
+        <p>
+          The room count follows the speaker count; <b>nobody is placed
+          automatically</b>
+          — drag people from the tray into the slots, then <b>Start session</b>
+          closes registration and opens these rooms.
+        </p>
+      </div>
+      <.dnd_table
+        id="allocator-form"
+        action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/start"}
+        rooms={Cab.Sessions.room_count(@state.signups)}
+        tray={dnd_tray(@state.signups)}
+      />
     </.section>
     """
   end
 
   defp rooms_block(%{state: %{stage: :closed}} = assigns) do
     ~H"""
-    <.banner
-      kind={:info}
-      href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/compose"}
-      link="Compose rooms →"
-    >
-      {attendance_line(@state.signups)}
-    </.banner>
-
-    <.section title="Rooms" pad>
-      No rooms yet.
-      <p>
-        <b>Make rooms</b> pairs automatically; <b>Compose rooms</b> opens the drag-and-drop table.
-      </p>
+    <.section title={"Allocation — #{Cab.Sessions.room_count(@state.signups)} room(s), count automatic"}>
+      <div class="pad">
+        <p>
+          {attendance_line(@state.signups)} <b>Nobody is placed automatically</b> —
+          drag people from the tray into the slots.
+        </p>
+      </div>
+      <.dnd_table
+        id="allocator-form"
+        action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/rooms"}
+        rooms={Cab.Sessions.room_count(@state.signups)}
+        tray={dnd_tray(@state.signups)}
+      />
     </.section>
     """
   end
@@ -498,52 +493,6 @@ defmodule CabWeb.OwnerHTML do
       Each room's motion is set on its page — open a room (R#) in the
       table above to publish the motion, infoslide and keyword.
     </.section>
-    """
-  end
-
-  # GET .../owner/sessions/:session_uuid/compose — the drag-and-drop
-  # allocation page: tray of signed-up chips over droppable room
-  # slots; the submit segment lives in the chrome (the ballot
-  # precedent) and "+ room" reloads with ?rooms=N (plain REST)
-  def compose(assigns) do
-    ~H"""
-    <Layouts.app
-      flash={@flash}
-      current_user={@current_user}
-      club={@club}
-      club_role={@club_role}
-      nav_session={@nav_session}
-      active="rooms"
-    >
-      <.chrome
-        crumbs={[
-          {@club.name, ~p"/c/#{@club.uuid}"},
-          {@state.event["name"], ~p"/c/#{@club.uuid}/owner/s/#{@session.uuid}"}
-        ]}
-        here="compose rooms — sign-ups closed"
-      >
-        <:seg
-          :if={@rooms < @max_rooms}
-          href={~p"/c/#{@club.uuid}/owner/sessions/#{@session.uuid}/compose?rooms=#{@rooms + 1}"}
-        >
-          + room
-        </:seg>
-        <:seg form="compose-rooms-form" primary>Make these rooms</:seg>
-      </.chrome>
-
-      <div class="pbody">
-        <.flash_banners flash={@flash} />
-
-        <.section title="Room composition">
-          <.dnd_table
-            id="compose-rooms-form"
-            action={~p"/c/#{@club.uuid}/owner/sessions/#{@session.uuid}/rooms"}
-            rooms={@rooms}
-            tray={dnd_tray(@state.signups)}
-          />
-        </.section>
-      </div>
-    </Layouts.app>
     """
   end
 
