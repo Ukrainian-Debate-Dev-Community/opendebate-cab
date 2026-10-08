@@ -214,6 +214,30 @@ defmodule CabWeb.GuestLinksTest do
       assert conn |> get(~p"/l/#{link.code}") |> response(404)
     end
 
+    test "a signed-in account is never replaced by someone's link",
+         %{conn: conn, club: club, session: session, link: link, head: head} do
+      stub_stage([guest_signup(41, 777)])
+
+      conn = conn |> init_test_session(%{user_id: head.id}) |> get(~p"/l/#{link.code}")
+
+      assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "Sign out first"
+      # the head stays the head
+      assert Plug.Conn.get_session(conn, :user_id) == head.id
+    end
+
+    test "a guest device may switch to another guest's link",
+         %{conn: conn, club: club, session: session, link: link} do
+      stub_stage([guest_signup(41, 777)])
+      other = user_fixture(%{node_user_id: 778, username: "guest-other"})
+      _other_link = link_fixture(other, session)
+
+      conn = conn |> init_test_session(%{user_id: other.id}) |> get(~p"/l/#{link.code}")
+
+      assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
+      assert Plug.Conn.get_session(conn, :user_id) == link.user_id
+    end
+
     test "link identity never satisfies the signed-in trees or the owner API",
          %{conn: conn, club: club, session: session, link: link, guest: guest} do
       stub_stage([guest_signup(41, 777)])

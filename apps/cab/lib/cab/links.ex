@@ -56,6 +56,16 @@ defmodule Cab.Links do
     )
   end
 
+  @doc """
+  Is this user a link guest (holds any personal link)? A guest
+  identity may be swapped for another guest's link on the same
+  device; a real account never is.
+  """
+  def guest?(user_id) when is_integer(user_id),
+    do: Repo.exists?(from l in Link, where: l.user_id == ^user_id)
+
+  def guest?(_user_id), do: false
+
   @doc ~S(The link's guest role in the session signups: "speaker" | "adjudicator" | nil.)
   def role_in(%Link{user: %User{node_user_id: node_user_id}}, signups)
       when is_integer(node_user_id) do

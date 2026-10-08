@@ -13,34 +13,42 @@ defmodule CabWeb.GuestLinkController do
 
   alias Cab.Links
 
-  # GET /l/:code — adopt the guest identity, land on P6
+  # GET /l/:code — adopt the guest identity, land on P6. A signed-in
+  # ACCOUNT is never replaced: opening someone's link (an owner
+  # checking it, a shared device) must not log anyone out.
   def show(conn, %{"code" => code}) do
     case Links.get_active_by_code(code) do
       nil ->
         conn |> send_resp(404, "not found") |> halt()
 
       link ->
-        conn
-        |> adopt_identity(link)
-        |> put_flash(
-          :info,
-          "You are here through your personal link, #{link.user.name}. " <>
-            "Keep it — anyone with it acts as you."
-        )
-        |> redirect(to: ~p"/c/#{link.session.club.uuid}/s/#{link.session.uuid}")
-    end
-  end
+        session_page = ~p"/c/#{link.session.club.uuid}/s/#{link.session.uuid}"
+        current = get_session(conn, :user_id)
 
-  # the browser session follows the link's identity: whoever holds
-  # the link acts as this guest — and ONLY as a guest (no membership
-  # anywhere, so no member/owner tree ever opens from it)
-  defp adopt_identity(conn, link) do
-    if get_session(conn, :user_id) == link.user_id do
-      conn
-    else
-      conn
-      |> configure_session(renew: true)
-      |> put_session(:user_id, link.user_id)
+        cond do
+          current == link.user_id ->
+            redirect(conn, to: session_page)
+
+          is_nil(current) or Links.guest?(current) ->
+            conn
+            |> configure_session(renew: true)
+            |> put_session(:user_id, link.user_id)
+            |> put_flash(
+              :info,
+              "You are here through your personal link, #{link.user.name}. " <>
+                "Keep it — anyone with it acts as you."
+            )
+            |> redirect(to: session_page)
+
+          true ->
+            conn
+            |> put_flash(
+              :error,
+              "You are signed in with your own account — this personal link " <>
+                "belongs to #{link.user.name}. Sign out first to use it."
+            )
+            |> redirect(to: session_page)
+        end
     end
   end
 end
