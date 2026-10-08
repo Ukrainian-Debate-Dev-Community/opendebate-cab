@@ -56,8 +56,8 @@ defmodule CabWeb.Layouts do
               <div>
                 <h6>cab runs on the uadebate platform</h6>
                 <p>
-                  Open infrastructure for debate clubs and tournaments, built by the
-                  NGO Debate Federation of Ukraine. Free for every Ukrainian club.
+                  Open infrastructure for debate clubs and tournaments.
+                  Free for every Ukrainian club.
                 </p>
               </div>
               <div>
@@ -74,19 +74,19 @@ defmodule CabWeb.Layouts do
                   (ВМГО «Дебатна Федерація України»).
                 </p>
               </div>
+              <div>
+                <h6>Data &amp; privacy</h6>
+                <p>
+                  cab is in beta testing. <a href="/privacy">Privacy &amp; data policy</a>
+                  · requests: <a href="mailto:support@uadebate.com">support@uadebate.com</a>
+                </p>
+              </div>
             </div>
             <div class="links">
               <a href="https://uadebate.com">uadebate.com</a>
               <a href="https://dfu.uadebate.com">DFU</a>
               <a href="mailto:support@uadebate.com">Support</a>
               <a href="mailto:ngo.dfu@uadebate.com">Contact</a>
-            </div>
-            <div class="legal">
-              <span>cab is in beta testing — thanks for your patience while it settles.</span>
-              <span>
-                Data &amp; GDPR requests:
-                <a href="mailto:support@uadebate.com">support@uadebate.com</a>
-              </span>
             </div>
           </div>
         </footer>
