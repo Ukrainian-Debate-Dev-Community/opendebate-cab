@@ -138,10 +138,10 @@ defmodule CabWeb.EightPagesTest do
       refute html =~ "class=\"stage"
       assert html =~ ~s(id="session-signups")
       assert html =~ "Anna K"
-      refute html =~ ~s(id="session-draw")
+      refute html =~ ~s(id="session-rooms")
     end
 
-    test "running: the draw with side-colored cells, my row tinted, judge sees you",
+    test "running: rooms with side-colored cells and status words, my row tinted, judge sees you",
          %{conn: conn, club: club, session: session} do
       viewer = user_fixture(%{node_user_id: 144})
 
@@ -160,7 +160,10 @@ defmodule CabWeb.EightPagesTest do
         |> html_response(200)
 
       assert html =~ "running"
-      assert html =~ ~s(id="session-draw")
+      assert html =~ ~s(id="session-rooms")
+      # the room row carries its status in words
+      assert html =~ "motion set"
+      assert html =~ "waiting for the ballot"
       for side <- ~w(s-og s-oo s-cg s-co), do: assert(html =~ side)
       # the viewer speaks in R71 (participant 301) -> the row is tinted
       assert html =~ ~s(class="me")

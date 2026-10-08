@@ -80,9 +80,9 @@ defmodule CabWeb.SessionPageHTML do
               Room {@my_room_id} motion: <b>{my_room_motion(@state, @my_room_id)}</b>
             </.banner>
 
-            <.section title="Draw">
+            <.section title="Rooms">
               <.table
-                id="session-draw"
+                id="session-rooms"
                 rows={@state.rooms}
                 row_class={fn room -> room["id"] == @my_room_id && "me" end}
               >
@@ -105,6 +105,9 @@ defmodule CabWeb.SessionPageHTML do
                   <% else %>
                     {judge_name(room, @state.signups)}
                   <% end %>
+                </:col>
+                <:col :let={room} label="Status" class="st">
+                  {room_words(room)}
                 </:col>
               </.table>
             </.section>
@@ -228,6 +231,12 @@ defmodule CabWeb.SessionPageHTML do
     else
       _ -> nil
     end
+  end
+
+  # the room row's status in words: motion state + ballot state
+  defp room_words(room) do
+    motion = if room["Motion"], do: "motion set", else: "motion pending"
+    "#{motion} · #{room_status_words(room["status"])}"
   end
 
   defp room_status_words("pending"), do: "waiting to start"
