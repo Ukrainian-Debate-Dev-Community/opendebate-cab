@@ -104,7 +104,7 @@ defmodule CabWeb.PageHTML do
   def privacy(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_user={@current_user}>
-      <.chrome here="privacy &amp; data"></.chrome>
+      <.chrome here="Privacy&amp;Policy"></.chrome>
 
       <div class="pbody">
         <.section title="What cab stores" pad>

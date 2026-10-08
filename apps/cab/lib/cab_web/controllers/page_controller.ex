@@ -38,7 +38,7 @@ defmodule CabWeb.PageController do
 
   # GET /privacy — the data & privacy policy, public
   def privacy(conn, _params) do
-    render(conn, :privacy, page_title: "privacy & data")
+    render(conn, :privacy, page_title: "Privacy&Policy")
   end
 
   # The Tonight column, written out as words: each club's latest

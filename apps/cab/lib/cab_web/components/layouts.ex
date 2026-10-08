@@ -77,11 +77,10 @@ defmodule CabWeb.Layouts do
               <div>
                 <h6>Data &amp; privacy</h6>
                 <p>
-                  cab is in beta testing. Data questions and deletion requests
-                  are answered within 30 days.
+                  cab is in beta testing.
                 </p>
                 <div class="flinks">
-                  <a href="/privacy">Privacy &amp; data policy</a>
+                  <a href="/privacy">Privacy&amp;Policy</a>
                   <a href="mailto:support@uadebate.com">Support</a>
                 </div>
               </div>
