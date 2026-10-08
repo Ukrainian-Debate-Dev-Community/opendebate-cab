@@ -24,6 +24,7 @@ defmodule CabWeb.OwnerHTML do
     >
       <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="edit">
         <:seg href={~p"/c/#{@club.uuid}"} quiet>View as public</:seg>
+        <:seg form="open-session-form">Open new session</:seg>
         <:seg form="club-profile-form" primary>Save</:seg>
       </.chrome>
 
@@ -68,32 +69,6 @@ defmodule CabWeb.OwnerHTML do
             />
           </.form_for>
         </.section>
-      </div>
-    </Layouts.app>
-    """
-  end
-
-  # ---------------------------------------------------------------
-  # Sessions archive, owner path: previous progress + Open new
-  # session (the chrome's gold segment submits the form below)
-  # ---------------------------------------------------------------
-
-  def sessions(assigns) do
-    ~H"""
-    <Layouts.app
-      flash={@flash}
-      current_user={@current_user}
-      club={@club}
-      club_role={@club_role}
-      nav_session={@nav_session}
-      active="sessions"
-    >
-      <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="sessions">
-        <:seg form="open-session-form" primary>Open new session</:seg>
-      </.chrome>
-
-      <div class="pbody">
-        <.flash_banners flash={@flash} />
 
         <.banner
           :if={@live}
@@ -235,7 +210,7 @@ defmodule CabWeb.OwnerHTML do
       <.chrome
         crumbs={[
           {@club.name, ~p"/c/#{@club.uuid}"},
-          {"sessions", ~p"/c/#{@club.uuid}/owner/sessions"}
+          {"club", ~p"/c/#{@club.uuid}/owner"}
         ]}
         here={"#{@state.event["name"]} — #{stage_words(@state)}"}
       >
@@ -303,7 +278,7 @@ defmodule CabWeb.OwnerHTML do
               ~p"/c/#{@club.uuid}/s/#{@current.uuid}"
             }>session page</.link>.
             <p>
-              Previous sessions live under <.link href={~p"/c/#{@club.uuid}/owner/sessions"}>Sessions</.link>.
+              Previous sessions live on the <.link href={~p"/c/#{@club.uuid}/owner"}>club page</.link>.
             </p>
           </.section>
         <% else %>

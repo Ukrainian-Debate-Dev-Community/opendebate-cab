@@ -13,9 +13,17 @@ defmodule CabWeb.OwnerController do
   # as an edit-in-place form (Save lives in the chrome)
   # ---------------------------------------------------------------
 
-  # GET /c/:club_uuid/owner
+  # GET /c/:club_uuid/owner — the club page as an edit-in-place form,
+  # with the session archive and the open-session form below (v3.1:
+  # there is no separate owner Sessions page)
   def club(conn, _params) do
-    render(conn, :club, page_title: "#{conn.assigns.club.name} · edit")
+    club = conn.assigns.club
+
+    render(conn, :club,
+      archive: Sessions.archive(club),
+      live: live_session(conn),
+      page_title: "#{club.name} · edit"
+    )
   end
 
   # POST /c/:club_uuid/owner/club — the in-place save; twin of
@@ -42,17 +50,6 @@ defmodule CabWeb.OwnerController do
   # open-session form (gold "Open new session" in the chrome)
   # ---------------------------------------------------------------
 
-  # GET /c/:club_uuid/owner/sessions
-  def sessions(conn, _params) do
-    club = conn.assigns.club
-
-    render(conn, :sessions,
-      archive: Sessions.archive(club),
-      live: live_session(conn),
-      page_title: "#{club.name} · sessions"
-    )
-  end
-
   # POST /c/:club_uuid/owner/sessions — name + optional date/time;
   # lands on the new session's owner surface
   def open_session(conn, params) do
@@ -71,7 +68,7 @@ defmodule CabWeb.OwnerController do
       {:error, message} ->
         conn
         |> put_flash(:error, error_message(message))
-        |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/sessions")
+        |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
     end
   end
 
@@ -148,7 +145,7 @@ defmodule CabWeb.OwnerController do
       {:error, message} ->
         conn
         |> put_flash(:error, error_message(message))
-        |> redirect(to: ~p"/c/#{club.uuid}/owner/sessions")
+        |> redirect(to: ~p"/c/#{club.uuid}/owner")
     end
   end
 
@@ -216,7 +213,7 @@ defmodule CabWeb.OwnerController do
       {:error, message} ->
         conn
         |> put_flash(:error, error_message(message))
-        |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/sessions")
+        |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
 
       _ ->
         conn |> send_resp(404, "not found") |> halt()
@@ -277,7 +274,7 @@ defmodule CabWeb.OwnerController do
       {:error, message} ->
         conn
         |> put_flash(:error, error_message(message))
-        |> redirect(to: ~p"/c/#{club.uuid}/owner/sessions")
+        |> redirect(to: ~p"/c/#{club.uuid}/owner")
     end
   end
 
@@ -371,7 +368,7 @@ defmodule CabWeb.OwnerController do
           {:ok, _session} ->
             conn
             |> put_flash(:info, "session cancelled")
-            |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/sessions")
+            |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
 
           {:error, message} ->
             conn

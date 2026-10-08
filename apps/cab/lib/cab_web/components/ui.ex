@@ -177,10 +177,10 @@ defmodule CabWeb.Ui do
     do: ~p"/c/#{club.uuid}/owner/s/#{uuid}"
 
   defp rooms_href(club, _role, %{uuid: uuid}), do: ~p"/c/#{club.uuid}/s/#{uuid}"
-  # no session yet: Rooms falls back to the archive — the owner's
-  # sessions page (where new ones open) or the club page itself
+  # no session yet: Rooms falls back to the club page (the archive;
+  # the owner's edit view also opens new sessions there)
   defp rooms_href(club, role, nil) when role in [:owner, :admin],
-    do: ~p"/c/#{club.uuid}/owner/sessions"
+    do: ~p"/c/#{club.uuid}/owner"
 
   defp rooms_href(club, _role, nil), do: ~p"/c/#{club.uuid}"
 

@@ -256,7 +256,7 @@ defmodule CabWeb.HtmlTreesTest do
   # Sessions archive + open new session
   # ---------------------------------------------------------------
 
-  test "sessions archive: previous progress only, owner chrome opens new sessions", %{
+  test "sessions archive: on the club pages; the owner opens new sessions from /owner", %{
     conn: conn,
     club: club,
     head: head
@@ -302,14 +302,17 @@ defmodule CabWeb.HtmlTreesTest do
     refute member_html =~ ~s(id="open-session-form")
     refute member_html =~ "Open new session"
 
-    # owner path: + the open-session form driven by the gold segment
+    # owner path: the archive + open-session form live on /owner now
     owner_html =
-      conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner/sessions") |> html_response(200)
+      conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
 
     assert owner_html =~ ~s(id="sessions-archive")
     assert owner_html =~ ~s(id="open-session-form")
     assert owner_html =~ ~s(form="open-session-form")
     assert owner_html =~ "Open new session"
+
+    # the separate owner Sessions page is gone (v3.1: two trees, no extras)
+    assert conn |> log_in(head) |> get("/c/#{club.uuid}/owner/sessions") |> response(404)
 
     opened =
       conn
@@ -1204,7 +1207,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> log_in(head)
       |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/cancel")
 
-    assert redirected_to(cancelled) == "/c/#{club.uuid}/owner/sessions"
+    assert redirected_to(cancelled) == "/c/#{club.uuid}/owner"
     assert_received :event_deleted
     assert Cab.Sessions.list_for_club(club) == []
   end

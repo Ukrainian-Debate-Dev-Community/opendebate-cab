@@ -100,7 +100,6 @@ defmodule CabWeb.Router do
     # interim owner session surface is /owner/s/:sess.
     get "/owner", OwnerController, :club
     post "/owner/club", OwnerController, :update_club
-    get "/owner/sessions", OwnerController, :sessions
     post "/owner/sessions", OwnerController, :open_session
     get "/owner/members", OwnerController, :members
     post "/owner/join-requests/:id/approve", OwnerController, :approve
