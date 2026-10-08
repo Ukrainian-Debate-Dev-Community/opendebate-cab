@@ -115,7 +115,9 @@ defmodule CabWeb.RegistrationController do
   defp with_session(conn, session_uuid, fun) do
     with %Session{} = session <- Sessions.get_by_uuid(session_uuid),
          {:ok, state} <- Sessions.state(session) do
-      fun.(conn, session, state)
+      conn
+      |> assign(:club_role, Cab.Clubs.role_for(session.club, conn.assigns[:current_user]))
+      |> fun.(session, state)
     else
       nil ->
         conn |> send_resp(404, "not found") |> halt()

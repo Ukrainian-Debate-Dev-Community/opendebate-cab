@@ -382,6 +382,18 @@ defmodule CabWeb.HtmlTreesTest do
 
     assert html =~ ~s(id="register-form")
     assert html =~ "Registering as"
+    # the sidenav follows the viewer's real role here too: a member
+    # sees the member roster link, Register is lit
+    assert html =~ ~s(href="/c/#{club.uuid}/members")
+    assert html =~ ~s(class="item on">Register<)
+
+    head_html =
+      conn
+      |> log_in(Cab.Clubs.head_of(club))
+      |> get(~p"/r/#{session.uuid}")
+      |> html_response(200)
+
+    assert head_html =~ ~s(href="/c/#{club.uuid}/owner/members")
     assert html =~ "Speaker"
     assert html =~ "Judge"
     assert html =~ ~s(name="as")

@@ -417,7 +417,7 @@ defmodule Cab.Sessions do
 
   defp approved_member(club, username) do
     with %User{} = user <- Accounts.get_user_by_username(username),
-         role when role in [:member, :owner] <- Clubs.role_for(club, user) do
+         true <- Clubs.covers?(Clubs.role_for(club, user), :member) do
       {:ok, user}
     else
       _ -> {:error, "#{username || "?"} is not an approved member of this club"}

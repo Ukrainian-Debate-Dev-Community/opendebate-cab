@@ -9,8 +9,9 @@ defmodule CabWeb.RegistrationHTML do
       flash={@flash}
       current_user={assigns[:current_user]}
       club={@club}
+      club_role={@club_role}
       nav_session={@session}
-      active="rooms"
+      active="register"
     >
       <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="register — sign-ups open">
       </.chrome>
@@ -71,8 +72,9 @@ defmodule CabWeb.RegistrationHTML do
       flash={@flash}
       current_user={assigns[:current_user]}
       club={@club}
+      club_role={@club_role}
       nav_session={@session}
-      active="rooms"
+      active="register"
     >
       <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="registered">
         <:seg href={~p"/l/#{@link.code}"} primary>Open my session page</:seg>
@@ -107,8 +109,9 @@ defmodule CabWeb.RegistrationHTML do
       flash={@flash}
       current_user={assigns[:current_user]}
       club={@club}
+      club_role={@club_role}
       nav_session={@session}
-      active="rooms"
+      active="register"
     >
       <.chrome
         crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
