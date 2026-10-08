@@ -145,7 +145,7 @@ defmodule CabWeb.PageHTML do
           </p>
           <p class="mut">
             cab is in beta testing; this policy grows with the platform. Operated by the
-            NGO Debate Federation of Ukraine (ВМГО «Дебатна Федерація України»).
+            NGO Debate Federation of Ukraine (ВМГО «Федерація Дебатів України»).
           </p>
         </.section>
       </div>

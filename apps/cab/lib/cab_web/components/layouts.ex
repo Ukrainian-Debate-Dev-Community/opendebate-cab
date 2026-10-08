@@ -56,27 +56,34 @@ defmodule CabWeb.Layouts do
               <div>
                 <h6>Find your club</h6>
                 <p>
-                  Clubs across Ukraine run weekly practice rounds — pick one on
-                  <a href="https://uadebate.com">uadebate.com</a>
-                  and come debate.
-                  Free for every Ukrainian club.
+                  Clubs across Ukraine run weekly practice rounds — pick one and
+                  come debate. Free for every Ukrainian club.
                 </p>
+                <div class="flinks">
+                  <a href="https://uadebate.com">Main page</a>
+                </div>
               </div>
               <div>
                 <h6>Our organisation</h6>
                 <p>
                   Run by the NGO Debate Federation of Ukraine
-                  (ВМГО «Дебатна Федерація України») ·
-                  <a href="https://dfu.uadebate.com">dfu.uadebate.com</a>
-                  · <a href="mailto:ngo.dfu@uadebate.com">ngo.dfu@uadebate.com</a>
+                  (ВМГО «Федерація Дебатів України»).
                 </p>
+                <div class="flinks">
+                  <a href="https://dfu.uadebate.com">DFU</a>
+                  <a href="mailto:ngo.dfu@uadebate.com">Contact us</a>
+                </div>
               </div>
               <div>
                 <h6>Data &amp; privacy</h6>
                 <p>
-                  cab is in beta testing · <a href="/privacy">Privacy &amp; data policy</a>
-                  · <a href="mailto:support@uadebate.com">support@uadebate.com</a>
+                  cab is in beta testing. Data questions and deletion requests
+                  are answered within 30 days.
                 </p>
+                <div class="flinks">
+                  <a href="/privacy">Privacy &amp; data policy</a>
+                  <a href="mailto:support@uadebate.com">Support</a>
+                </div>
               </div>
             </div>
           </div>
