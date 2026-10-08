@@ -36,9 +36,11 @@ defmodule CabWeb.CabinetHomeTest do
     refute html =~ "/auth/github"
     refute html =~ ">Admin<"
 
-    # the one-line pitch banner
-    assert html =~ ~s(class="banner info")
-    assert html =~ "free for every Ukrainian club"
+    # the welcome block explains the platform
+    assert html =~ ~s(id="welcome")
+    assert html =~ "Welcome to"
+    assert html =~ "needs no account"
+    assert html =~ "Free for every Ukrainian club"
 
     # directory: name, city, members, Tonight words
     assert html =~ ~s(id="clubs-directory")
@@ -236,6 +238,7 @@ defmodule CabWeb.CabinetHomeTest do
     # the session row links to its page
     assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
   end
+
   defp stub_empty_schedule do
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
@@ -302,5 +305,4 @@ defmodule CabWeb.CabinetHomeTest do
     assert html =~ "speaker"
     assert html =~ "judge"
   end
-
 end

@@ -605,7 +605,6 @@ defmodule CabWeb.ApiFlowTest do
            |> log_in(head)
            |> delete(~p"/api/v1/sessions/#{session.uuid}/rooms")
            |> json_response(200) == %{"rooms_deleted" => 1}
-
   end
 
   test "session cancel removes the gateway row", %{conn: conn, club: club, head: head} do

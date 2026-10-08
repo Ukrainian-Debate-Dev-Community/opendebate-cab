@@ -43,8 +43,7 @@ defmodule CabWeb.AccountHTML do
             land here later.
           </p>
           <p>
-            Data requests or deletion:
-            <a href="mailto:support@uadebate.com">support@uadebate.com</a>.
+            Data requests or deletion: <a href="mailto:support@uadebate.com">support@uadebate.com</a>.
           </p>
         </.section>
       </div>

@@ -1026,7 +1026,10 @@ defmodule CabWeb.HtmlTreesTest do
     refute show =~ "tag-"
 
     html =
-      conn |> log_in(head) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot") |> html_response(200)
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
+      |> html_response(200)
 
     assert html =~ ~s(class="ballot")
     assert html =~ ~s(action="/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")

@@ -46,47 +46,52 @@ defmodule CabWeb.Layouts do
         nav_session={@nav_session}
         active={@active}
       />
-      <main class="mainc page-main">
-        {render_slot(@inner_block)}
-      </main>
-    </div>
-    <footer class="footer">
-      <div class="in">
-        <div class="cols">
-          <div>
-            <h6>cab runs on the uadebate platform</h6>
-            <p>
-              Open infrastructure for debate clubs and tournaments, built by the
-              NGO Debate Federation of Ukraine. Free for every Ukrainian club.
-            </p>
+      <div class="mainc">
+        <main class="page-main">
+          {render_slot(@inner_block)}
+        </main>
+        <footer class="footer">
+          <div class="in">
+            <div class="cols">
+              <div>
+                <h6>cab runs on the uadebate platform</h6>
+                <p>
+                  Open infrastructure for debate clubs and tournaments, built by the
+                  NGO Debate Federation of Ukraine. Free for every Ukrainian club.
+                </p>
+              </div>
+              <div>
+                <h6>Find your club</h6>
+                <p>
+                  Clubs across Ukraine run weekly practice rounds.
+                  Pick one on <a href="https://uadebate.com">uadebate.com</a> and come debate.
+                </p>
+              </div>
+              <div>
+                <h6>Our organisation</h6>
+                <p>
+                  Run by the NGO Debate Federation of Ukraine
+                  (ВМГО «Дебатна Федерація України»).
+                </p>
+              </div>
+            </div>
+            <div class="links">
+              <a href="https://uadebate.com">uadebate.com</a>
+              <a href="https://dfu.uadebate.com">DFU</a>
+              <a href="mailto:support@uadebate.com">Support</a>
+              <a href="mailto:ngo.dfu@uadebate.com">Contact</a>
+            </div>
+            <div class="legal">
+              <span>cab is in beta testing — thanks for your patience while it settles.</span>
+              <span>
+                Data &amp; GDPR requests:
+                <a href="mailto:support@uadebate.com">support@uadebate.com</a>
+              </span>
+            </div>
           </div>
-          <div>
-            <h6>Find your club</h6>
-            <p>
-              Clubs across Ukraine run weekly practice rounds.
-              Pick one on <a href="https://uadebate.com">uadebate.com</a> and come debate.
-            </p>
-          </div>
-          <div>
-            <h6>Our organisation</h6>
-            <p>
-              Run by the NGO Debate Federation of Ukraine
-              (ВМГО «Дебатна Федерація України»).
-            </p>
-          </div>
-        </div>
-        <div class="links">
-          <a href="https://uadebate.com">uadebate.com</a>
-          <a href="https://dfu.uadebate.com">DFU</a>
-          <a href="mailto:support@uadebate.com">Support</a>
-          <a href="mailto:ngo.dfu@uadebate.com">Contact</a>
-        </div>
-        <p class="beta-note">
-          cab is in beta testing · GDPR concerns →
-          <a href="mailto:support@uadebate.com">support@uadebate.com</a>
-        </p>
+        </footer>
       </div>
-    </footer>
+    </div>
     """
   end
 

@@ -71,9 +71,21 @@ defmodule CabWeb.PageHTML do
         <.chrome here="debate clubs of Ukraine"></.chrome>
         <div class="pbody">
           <.flash_banners flash={@flash} />
-          <.banner kind={:info} href={~p"/signin"} link="Sign in →">
-            Play, judge and run debate sessions — free for every Ukrainian club.
-          </.banner>
+
+          <div class="welcome" id="welcome">
+            <h2>Welcome to <span class="brand-script">cab</span></h2>
+            <p>
+              The home of Ukrainian debate clubs: find a club, register for a
+              session, debate — and follow standings and your own results in
+              one place. Free for every Ukrainian club, run by the Debate
+              Federation of Ukraine.
+            </p>
+            <p class="mut">
+              Registering for a session needs no account — the club shares one
+              link. <.link href={~p"/signin"}>Sign in</.link>
+              to keep your history, schedule and personal stats.
+            </p>
+          </div>
 
           <.section title="Clubs">
             <.table id="clubs-directory" rows={@clubs} empty="No clubs here yet.">
