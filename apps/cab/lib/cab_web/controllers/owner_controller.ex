@@ -21,7 +21,8 @@ defmodule CabWeb.OwnerController do
   # POST /c/:club_uuid/owner/club — the in-place save; twin of
   # PATCH /api/v1/clubs/:uuid
   def update_club(conn, params) do
-    attrs = Map.take(params, ["name", "city", "meeting_info", "description", "contacts"])
+    attrs =
+      Map.take(params, ["name", "city", "meeting_info", "description", "contacts", "is_private"])
 
     case Clubs.update_club(conn.assigns.club, attrs) do
       {:ok, _club} ->

@@ -37,7 +37,7 @@ defmodule Cab.Standings do
     Repo.all(
       from s in Session,
         join: c in assoc(s, :club),
-        where: is_nil(c.archived_at),
+        where: is_nil(c.archived_at) and not c.is_private,
         order_by: [desc: s.id],
         limit: @scan_limit,
         preload: [club: c]
@@ -138,7 +138,7 @@ defmodule Cab.Standings do
   members first.
   """
   def clubs(clubs \\ nil) do
-    clubs = clubs || Clubs.list_clubs()
+    clubs = (clubs || Clubs.list_clubs()) |> Enum.reject(& &1.is_private)
     ids = Enum.map(clubs, & &1.id)
     members = Clubs.member_counts(ids)
     sessions = Sessions.session_counts(ids)

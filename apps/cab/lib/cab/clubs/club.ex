@@ -10,6 +10,9 @@ defmodule Cab.Clubs.Club do
     field :meeting_info, :string
     field :description, :string
     field :contacts, :string
+    # private = standings only (excluded from global standings, own
+    # standings members-only); everything else stays public
+    field :is_private, :boolean, default: false
     # admin archive flag — set server-side, never cast
     field :archived_at, :utc_datetime
     field :engine_organisation_id, :integer
@@ -22,7 +25,7 @@ defmodule Cab.Clubs.Club do
 
   def changeset(club, attrs) do
     club
-    |> cast(attrs, [:name, :city, :meeting_info, :description, :contacts])
+    |> cast(attrs, [:name, :city, :meeting_info, :description, :contacts, :is_private])
     |> validate_required([:name])
     |> put_uuid()
     |> unique_constraint(:uuid)

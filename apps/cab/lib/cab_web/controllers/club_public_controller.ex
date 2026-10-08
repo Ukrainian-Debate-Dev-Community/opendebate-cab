@@ -30,17 +30,57 @@ defmodule CabWeb.ClubPublicController do
       tab when tab in ~w(teams speakers judges) ->
         scope = Standings.latest_finished(club)
 
-        conn
-        |> CabWeb.Caching.no_store()
-        |> render(:standings,
-          tab: tab,
-          scope: scope,
-          rows: standings_rows(tab, scope),
-          page_title: "#{club.name} · standings"
-        )
+        if standings_allowed?(club, conn, scope) do
+          conn
+          |> CabWeb.Caching.no_store()
+          |> render(:standings,
+            tab: tab,
+            scope: scope,
+            rows: standings_rows(tab, scope),
+            page_title: "#{club.name} · standings"
+          )
+        else
+          deny_private_standings(conn, club)
+        end
 
       _tab ->
         conn |> send_resp(404, "not found") |> halt()
+    end
+  end
+
+  # private = standings only: members (ladder) always pass; a guest or
+  # user who PLAYED the shown session keeps that session's data — any
+  # other session is lost to them
+  defp standings_allowed?(%{is_private: false}, _conn, _scope), do: true
+
+  defp standings_allowed?(_club, conn, scope) do
+    Clubs.covers?(conn.assigns.club_role, :member) or
+      participant_of?(conn.assigns.current_user, scope)
+  end
+
+  defp participant_of?(nil, _scope), do: false
+  defp participant_of?(_user, nil), do: false
+
+  defp participant_of?(%{node_user_id: id}, %{actor: actor, session: session})
+       when is_integer(id) do
+    case Cab.EngineApi.list_participants(actor, session.engine_event_id) do
+      {:ok, participants} -> Enum.any?(participants, &(&1["user_id"] == id))
+      _ -> false
+    end
+  end
+
+  defp participant_of?(_user, _scope), do: false
+
+  defp deny_private_standings(conn, _club) do
+    case conn.assigns.current_user do
+      nil ->
+        conn
+        |> put_flash(:error, "This club's standings are members-only — please sign in.")
+        |> redirect(to: ~p"/signin")
+        |> halt()
+
+      _user ->
+        conn |> send_resp(403, "standings are members-only in this club") |> halt()
     end
   end
 

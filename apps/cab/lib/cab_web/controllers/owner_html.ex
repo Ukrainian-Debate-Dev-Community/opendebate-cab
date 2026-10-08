@@ -58,6 +58,14 @@ defmodule CabWeb.OwnerHTML do
               value={@club.contacts}
               hint="Telegram, email — how newcomers reach the club."
             />
+            <:block
+              name={:is_private}
+              type={:select}
+              label="Standings"
+              value={if @club.is_private, do: "true", else: "false"}
+              options={[{"public", "false"}, {"members only", "true"}]}
+              hint="Members only also keeps the club out of the global standings. Everything else stays public."
+            />
           </.form_for>
         </.section>
       </div>
