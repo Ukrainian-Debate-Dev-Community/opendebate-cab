@@ -42,6 +42,10 @@ defmodule CabWeb.AccountHTML do
             Google can be linked when it ships. Claim codes (guest history)
             land here later.
           </p>
+          <p>
+            Data requests or deletion:
+            <a href="mailto:support@uadebate.com">support@uadebate.com</a>.
+          </p>
         </.section>
       </div>
     </Layouts.app>

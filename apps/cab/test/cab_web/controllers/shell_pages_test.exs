@@ -46,6 +46,17 @@ defmodule CabWeb.ShellPagesTest do
       assert html =~ ~s(id="sidenav-profile")
       assert html =~ "Sign in"
       refute html =~ ~s(href="/account")
+      refute html =~ ">My page<"
+
+      Req.Test.stub(Core.Engine, fn req ->
+        case req.request_path do
+          "/api/users/schedule" ->
+            Req.Test.json(req, %{
+              "status" => "success",
+              "data" => %{"as_adjudicator" => [], "as_player" => []}
+            })
+        end
+      end)
 
       user_html = conn |> log_in(user_fixture()) |> get(~p"/") |> html_response(200)
       refute user_html =~ ">Admin<"

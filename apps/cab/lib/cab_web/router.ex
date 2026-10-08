@@ -32,6 +32,9 @@ defmodule CabWeb.Router do
     # the ONLY auth entry; /auth/:provider is just the hop
     get "/signin", SigninController, :show
 
+    # my page — engine stats verbatim + participation history
+    get "/me", MeController, :show
+
     # profile — entry only via the sidenav bottom
     get "/account", AccountController, :show
     post "/account", AccountController, :update

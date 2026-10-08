@@ -62,6 +62,7 @@ defmodule CabWeb.CabinetHomeTest do
   test "signed-in cabinet lists my clubs with Tonight words, no pills", %{conn: conn} do
     user = user_fixture(%{username: "anna"})
     head = user_fixture()
+    stub_empty_schedule()
 
     club =
       club_fixture(head, %{
@@ -122,6 +123,12 @@ defmodule CabWeb.CabinetHomeTest do
 
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
+        "/api/users/schedule" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{"as_adjudicator" => [], "as_player" => []}
+          })
+
         "/api/events/organisation/3" ->
           Req.Test.json(req, %{"status" => "success", "data" => []})
 
@@ -168,6 +175,12 @@ defmodule CabWeb.CabinetHomeTest do
 
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
+        "/api/users/schedule" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{"as_adjudicator" => [], "as_player" => []}
+          })
+
         "/api/events/organisation/3" ->
           Req.Test.json(req, %{
             "status" => "success",
@@ -223,4 +236,71 @@ defmodule CabWeb.CabinetHomeTest do
     # the session row links to its page
     assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
   end
+  defp stub_empty_schedule do
+    Req.Test.stub(Core.Engine, fn req ->
+      case req.request_path do
+        "/api/users/schedule" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{"as_adjudicator" => [], "as_player" => []}
+          })
+      end
+    end)
+  end
+
+  test "my schedule lists upcoming signups across clubs", %{conn: conn} do
+    user = user_fixture(%{username: "vera", node_user_id: 344})
+    head_a = user_fixture(%{node_user_id: 9})
+    head_b = user_fixture(%{node_user_id: 10})
+    club_a = club_fixture(head_a, %{name: "Kyiv A #{System.unique_integer([:positive])}"})
+    club_b = club_fixture(head_b, %{name: "Lviv B #{System.unique_integer([:positive])}"})
+    membership_fixture(user, club_a)
+
+    s1 = session_fixture(club_a, engine_event_id: 11, scheduled_at: ~U[2026-10-09 18:30:00Z])
+    s2 = session_fixture(club_b, engine_event_id: 12, scheduled_at: ~U[2026-10-10 19:00:00Z])
+
+    Req.Test.stub(Core.Engine, fn req ->
+      case req.request_path do
+        "/api/users/schedule" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{
+              "as_adjudicator" => [%{"id" => 12, "name" => "Friday open"}],
+              "as_player" => [%{"id" => 11, "name" => "Thursday practice"}]
+            }
+          })
+
+        "/api/events/organisation/" <> _ ->
+          Req.Test.json(req, %{"status" => "success", "data" => []})
+
+        "/api/events/11/rounds" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => [%{"id" => 21, "sequence" => 1}]
+          })
+
+        "/api/events/11/participants" ->
+          Req.Test.json(req, %{"status" => "success", "data" => []})
+
+        "/api/rounds/21/rooms" ->
+          Req.Test.json(req, %{"status" => "success", "data" => []})
+
+        "/api/events/11" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{"id" => 11, "status" => "scheduled"}
+          })
+      end
+    end)
+
+    html = conn |> log_in(user) |> get(~p"/") |> html_response(200)
+
+    assert html =~ ~s(id="my-schedule")
+    # one row per signup, across clubs — membership not required
+    assert html =~ ~s(href="/c/#{club_a.uuid}/s/#{s1.uuid}")
+    assert html =~ ~s(href="/c/#{club_b.uuid}/s/#{s2.uuid}")
+    assert html =~ "speaker"
+    assert html =~ "judge"
+  end
+
 end

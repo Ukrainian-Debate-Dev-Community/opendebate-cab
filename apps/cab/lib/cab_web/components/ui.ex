@@ -133,6 +133,7 @@ defmodule CabWeb.Ui do
       <% else %>
         <.nav_item active={@active} key="clubs" href={~p"/"} label="Clubs" />
         <.nav_item active={@active} key="standings" href={~p"/standings/teams"} label="Standings" />
+        <.nav_item :if={@current_user} active={@active} key="me" href={~p"/me"} label="My page" />
         <.nav_item
           :if={@current_user && @current_user.is_admin}
           active={@active}

@@ -32,6 +32,20 @@ defmodule CabWeb.PageHTML do
             </.table>
           </.section>
 
+          <.section :if={@schedule != []} title="My schedule">
+            <.table id="my-schedule" rows={@schedule}>
+              <:col :let={row} label="Session">
+                <.link href={~p"/c/#{row.club.uuid}/s/#{row.session.uuid}"}>
+                  {row.club.name}
+                </.link>
+                <.sub :if={row.session.scheduled_at}>
+                  {Calendar.strftime(row.session.scheduled_at, "%-d %b %H:%M")}
+                </.sub>
+              </:col>
+              <:col :let={row} label="Signed up as">{row.role}</:col>
+            </.table>
+          </.section>
+
           <.section title="My sessions">
             <.table id="my-sessions" rows={@history} empty="Past sessions will appear here.">
               <:col :let={row} label="Session">

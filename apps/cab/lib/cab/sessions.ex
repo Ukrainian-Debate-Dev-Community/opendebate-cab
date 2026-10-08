@@ -1008,6 +1008,40 @@ defmodule Cab.Sessions do
   def user_club_history(%Club{}, %User{}), do: []
 
   @doc """
+  The user's upcoming signups ACROSS CLUBS (the cabinet's schedule):
+  the engine's self-scoped schedule read mapped back onto gateway
+  sessions — `%{session, club, role}` rows, soonest first. Sessions
+  the gateway does not know (foreign events) are dropped.
+  """
+  def user_schedule(%User{node_user_id: node_user_id} = user) when is_integer(node_user_id) do
+    with {:ok, actor} <- actor_for(user),
+         {:ok, data} <- EngineApi.user_schedule(actor) do
+      by_role =
+        Enum.flat_map([{"judge", "as_adjudicator"}, {"speaker", "as_player"}], fn {role, key} ->
+          for event <- data[key] || [], do: {event["id"], role}
+        end)
+
+      sessions =
+        Repo.all(
+          from s in Session,
+            where: s.engine_event_id in ^Enum.map(by_role, &elem(&1, 0)),
+            preload: :club
+        )
+
+      by_event = Map.new(sessions, &{&1.engine_event_id, &1})
+
+      for {event_id, role} <- by_role, session = by_event[event_id], session != nil do
+        %{session: session, club: session.club, role: role}
+      end
+      |> Enum.sort_by(&(&1.session.scheduled_at || &1.session.inserted_at), DateTime)
+    else
+      _ -> []
+    end
+  end
+
+  def user_schedule(%User{}), do: []
+
+  @doc """
   The sessions ARCHIVE (previous progress): the club's FINISHED
   engine events as rows `%{session_uuid, name, date, winner}`, newest
   first — every value an engine fact, verbatim (rule 0: the winner is

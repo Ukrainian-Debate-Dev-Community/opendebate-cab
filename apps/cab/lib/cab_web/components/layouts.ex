@@ -81,6 +81,10 @@ defmodule CabWeb.Layouts do
           <a href="mailto:support@uadebate.com">Support</a>
           <a href="mailto:ngo.dfu@uadebate.com">Contact</a>
         </div>
+        <p class="beta-note">
+          cab is in beta testing · GDPR concerns →
+          <a href="mailto:support@uadebate.com">support@uadebate.com</a>
+        </p>
       </div>
     </footer>
     """
