@@ -4,9 +4,8 @@ defmodule CabWeb.PageController do
   alias Cab.{Clubs, Sessions}
   alias Cab.Sessions.Session
 
-  # GET / — the global welcome on the sidenav shell: public = the
-  # clubs directory (with the words "Tonight" column); signed in =
-  # the same page with my clubs and my sessions added (the cabinet)
+  # GET / — public: the clubs directory with each club's next
+  # session; signed in: the cabinet (my clubs + my schedule)
   def home(conn, _params) do
     case conn.assigns.current_user do
       nil ->

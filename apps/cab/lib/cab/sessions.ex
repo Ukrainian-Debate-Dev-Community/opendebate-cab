@@ -1,12 +1,11 @@
 defmodule Cab.Sessions do
   @moduledoc """
   Routine club sessions: a gateway row (public uuid) over a one-round
-  engine event. All debate state lives in the engine — the gateway
-  never duplicates it; `state/1` derives the stage from engine data
-  on every read.
-
-  Engine-call sequences (teams pairing, scored ballot, finishing) are
-  ported from the proven v1-mvp `Cab.Clubs`/`Cab.Tournaments`.
+  engine event. Debate state (signups, rooms, ballots) lives in the
+  engine and `state/1` reads it for the live pages. cab records the
+  lifecycle facts it performs itself — open, rooms made, finish and
+  the winner — on the row, so lists never walk the engine
+  (`stage_of/1`, `club_sessions/1`, `archive/1`).
   """
 
   import Ecto.Query
@@ -790,8 +789,7 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Submits a room's scored BP ballot (ported from the proven v1-mvp
-  `Cab.Tournaments.ballot_payload/3`): 8 speaker scores — two per team
+  Submits a room's scored BP ballot: 8 speaker scores — two per team
   in og/oo/cg/co table order — team ranks DERIVE from team totals
   (winner = rank 1, the judge never picks places), tied team totals
   rejected because BP demands a strict order of all four teams.
@@ -1121,7 +1119,7 @@ defmodule Cab.Sessions do
   end
 
   # ---------------------------------------------------------------
-  # Engine composition helpers (ported from v1-mvp Cab.Tournaments)
+  # Engine helpers
   # ---------------------------------------------------------------
 
   def round_by_sequence(actor, event_id, sequence) do

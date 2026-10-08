@@ -22,7 +22,7 @@ defmodule CabWeb.Ui do
   # ---------------------------------------------------------------
 
   @doc """
-  The control mechanism of every page (pages-v6): crumb + THIS page's
+  The control mechanism of every page: crumb + THIS page's
   actions only, as flush tape-deck segments — navigation and the
   profile live in the sidenav, status lives in the page content as
   words. Max one `primary` (gold) segment per page; `quiet` =
@@ -83,10 +83,10 @@ defmodule CabWeb.Ui do
   end
 
   @doc """
-  The left sidenav (pages-v6 shell) — ONLY navigation: brand script
-  cap -> home, plain place-name items for the current context
-  (global: Clubs / Standings / + Admin for admins; club: Club /
-  Rooms / Sessions / Standings / Members) and the profile block
+  The left sidenav — ONLY navigation: brand script cap -> home, plain
+  place-name items for the current context (global: Clubs / Standings
+  / My page / + Admin for admins; club: Club / Rooms / Standings /
+  Members / Register) and the profile block
   pinned to the bottom (avatar initials + username -> /account, sign
   out; anonymous: Sign in). No badges, counters or suffixes; the
   active item carries a left border.
@@ -198,7 +198,7 @@ defmodule CabWeb.Ui do
   end
 
   @doc """
-  The tab row under the chrome (pages-v6 `.selrow`) — picks WHICH
+  The tab row under the chrome (`.selrow`) — picks WHICH
   view of the page is shown (the four standings tabs). Real borders,
   no badges. `tabs` entries are `{key, label, href}`.
   """

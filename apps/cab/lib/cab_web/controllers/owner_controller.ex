@@ -46,8 +46,7 @@ defmodule CabWeb.OwnerController do
   end
 
   # ---------------------------------------------------------------
-  # Sessions archive (owner path): previous progress + the
-  # open-session form (gold "Open new session" in the chrome)
+  # Opening a session (the form lives on /owner)
   # ---------------------------------------------------------------
 
   # POST /c/:club_uuid/owner/sessions — name + optional date/time;
@@ -120,9 +119,7 @@ defmodule CabWeb.OwnerController do
   end
 
   # ---------------------------------------------------------------
-  # The interim owner session surface (M8a): the M7 Registration +
-  # Tonight + Rooms tab content on one page — same behavior, new
-  # address. M8b re-behaves it.
+  # The owner session page and its lifecycle actions
   # ---------------------------------------------------------------
 
   # GET /c/:club_uuid/owner/s/:session_uuid

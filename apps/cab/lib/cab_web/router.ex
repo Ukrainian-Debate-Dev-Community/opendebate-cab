@@ -19,9 +19,8 @@ defmodule CabWeb.Router do
     plug :fetch_current_user
   end
 
-  # pages-v6 (M8a): the sidenav shell. Navigation lives in the
-  # sidenav, every page's chrome carries only that page's actions,
-  # status is written out as words in the page content.
+  # Global pages. Navigation lives in the sidenav, every page's chrome
+  # carries only that page's actions, status is written out as words.
   scope "/", CabWeb do
     pipe_through :browser
 
@@ -96,10 +95,9 @@ defmodule CabWeb.Router do
     # sessions archive)
     get "/members", MemberController, :members
 
-    # owner tree. The M7 ?tab console is gone: /owner IS the club
-    # page as an edit-in-place form; sessions archive carries the
-    # open-session form; members carries requests + revoke; the
-    # interim owner session surface is /owner/s/:sess.
+    # owner tree: /owner is the club page as an edit-in-place form
+    # with the Club Sessions table and the open-session form; members
+    # carries requests + revoke; /owner/s/:sess runs a session.
     get "/owner", OwnerController, :club
     post "/owner/club", OwnerController, :update_club
     post "/owner/sessions", OwnerController, :open_session

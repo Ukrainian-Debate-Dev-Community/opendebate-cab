@@ -1,10 +1,9 @@
 defmodule CabWeb.StandingsController do
   @moduledoc """
   `/standings/{teams|speakers|judges|clubs}` — the global standings,
-  RULE 0: engine output verbatim, PER SESSION (default: the latest
-  finished session platform-wide; previous ones live under each
-  club's Sessions archive). Judges = plain count of engine room
-  chairs in that session; clubs = plain counts. No cab-side math.
+  RULE 0: engine output verbatim for the latest finished session of a
+  public club (teams, speakers, judge stats); clubs = plain counts from
+  cab's records. No cab-side math.
   """
 
   use CabWeb, :controller

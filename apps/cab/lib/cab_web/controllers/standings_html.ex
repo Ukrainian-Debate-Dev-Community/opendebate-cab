@@ -8,7 +8,7 @@ defmodule CabWeb.StandingsHTML do
   embed_templates "standings_html/*"
 
   @doc """
-  The standings tabs (pages-v6 .selrow), shared by both scopes —
+  The standings tabs (`.selrow`), shared by both scopes —
   the Clubs tab is GLOBAL-ONLY (a club comparing clubs inside its
   own scope makes no sense).
   """
