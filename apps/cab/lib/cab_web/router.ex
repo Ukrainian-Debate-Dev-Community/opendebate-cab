@@ -75,7 +75,9 @@ defmodule CabWeb.Router do
     # tree-gated: a member judge, the head and a guest judge (session
     # identity from /l/:code) all ballot here; anyone cancels only
     # their OWN registration.
-    get "/s/:session_uuid", SessionPageController, :show
+    live_session :club_public, on_mount: [{CabWeb.LiveScope, :club}] do
+      live "/s/:session_uuid", SessionLive, :show
+    end
 
     post "/s/:session_uuid/signups/:participant_id/remove",
          SessionPageController,

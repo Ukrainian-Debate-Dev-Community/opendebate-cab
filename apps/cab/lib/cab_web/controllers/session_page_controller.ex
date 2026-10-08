@@ -1,8 +1,8 @@
 defmodule CabWeb.SessionPageController do
   @moduledoc """
-  P6 `/c/:club_uuid/s/:session_uuid` — THE session page: one page per
-  session, public, stage-aware (signup -> who's registered; running ->
-  the playing page with the draw; done -> results and winner).
+  The session page's REST actions (the page itself is
+  `CabWeb.SessionLive`): cancel a registration, the room page, the
+  motion and the ballot.
 
   Its actions are identity-gated, not tree-gated: cancel removes only
   the viewer's OWN registration, the ballot opens only for the room's
@@ -18,37 +18,6 @@ defmodule CabWeb.SessionPageController do
   alias CabWeb.BallotForm
 
   plug CabWeb.ClubScope, source: :club, require: :public
-
-  # GET /c/:club_uuid/s/:session_uuid
-  def show(conn, %{"session_uuid" => session_uuid}) do
-    club = conn.assigns.club
-
-    with %Session{} = session <- Sessions.get_for_club(club, session_uuid),
-         {:ok, state} <- Sessions.state(%{session | club: club}) do
-      user = conn.assigns.current_user
-      my_signup = my_signup(state, user)
-
-      conn
-      |> CabWeb.Caching.no_store()
-      |> render(:show,
-        session: session,
-        state: state,
-        winner: Sessions.winner_from_rooms(state.rooms),
-        my_signup: my_signup,
-        my_ballot_room: my_ballot_room(state, user),
-        my_room_id: my_room_id(state, user, my_signup),
-        page_title: "#{club.name} · #{state.event["name"]}"
-      )
-    else
-      nil ->
-        conn |> send_resp(404, "not found") |> halt()
-
-      {:error, message} ->
-        conn
-        |> put_flash(:error, error_message(message))
-        |> redirect(to: ~p"/c/#{club.uuid}")
-    end
-  end
 
   # POST .../signups/:participant_id/remove — the viewer cancels
   # their OWN registration (member or guest alike; the context
@@ -213,45 +182,6 @@ defmodule CabWeb.SessionPageController do
       _ -> conn |> send_resp(404, "not found") |> halt()
     end
   end
-
-  defp my_signup(%{signups: signups}, %User{node_user_id: node_user_id})
-       when is_integer(node_user_id) do
-    Enum.find(signups, &(&1["user_id"] == node_user_id))
-  end
-
-  defp my_signup(_state, _user), do: nil
-
-  # the chrome's gold "Fill ballot" segment: the open room this
-  # viewer chairs — a completed (not yet confirmed) ballot is still
-  # editable by resubmission
-  defp my_ballot_room(%{stage: :running, rooms: rooms}, %User{} = user) do
-    Enum.find(rooms, fn room ->
-      room["status"] in ["pending", "judging", "completed"] and Sessions.room_chair?(room, user)
-    end)
-  end
-
-  defp my_ballot_room(_state, _user), do: nil
-
-  # the draw row tint: the room carrying the viewer's participant
-  # (speaker slot or chair)
-  defp my_room_id(%{stage: :running, rooms: rooms}, user, my_signup) do
-    my_pid = my_signup && my_signup["id"]
-
-    Enum.find_value(rooms, fn room ->
-      speaking =
-        is_integer(my_pid) and
-          Enum.any?(room["RoomTeams"] || [], fn room_team ->
-            Enum.any?(
-              room_team["RoomSpeakers"] || [],
-              &(get_in(&1, ["EventParticipant", "id"]) == my_pid)
-            )
-          end)
-
-      if speaking or (user && Sessions.room_chair?(room, user)), do: room["id"]
-    end)
-  end
-
-  defp my_room_id(_state, _user, _my_signup), do: nil
 
   defp signin_or_404(conn, session_uuid) do
     case {conn.assigns.current_user, Sessions.get_for_club(conn.assigns.club, session_uuid)} do

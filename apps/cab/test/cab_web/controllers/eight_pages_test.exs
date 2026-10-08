@@ -200,7 +200,7 @@ defmodule CabWeb.EightPagesTest do
     test "a foreign session uuid under this club is 404", %{conn: conn, club: club} do
       other = club_fixture(user_fixture(%{node_user_id: 20}), %{engine_organisation_id: 4})
       foreign = session_fixture(other, engine_event_id: 12)
-      assert conn |> get(~p"/c/#{club.uuid}/s/#{foreign.uuid}") |> response(404)
+      assert_error_sent 404, fn -> get(conn, ~p"/c/#{club.uuid}/s/#{foreign.uuid}") end
     end
   end
 
