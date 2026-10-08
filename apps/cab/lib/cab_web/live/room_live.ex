@@ -44,6 +44,7 @@ defmodule CabWeb.RoomLive do
       |> assign(:state, state)
       |> assign(:room, room)
       |> assign(:can_act, can_act?(room, socket.assigns))
+      |> assign(:can_edit_ballot, can_edit_ballot?(room, socket.assigns))
       |> assign(:page_title, "#{club.name} · R#{room_id}")
     else
       nil ->
@@ -64,6 +65,17 @@ defmodule CabWeb.RoomLive do
     |> put_flash(:info, "the rooms were rebuilt — back to the session")
     |> redirect(to: ~p"/c/#{club.uuid}/s/#{session.uuid}")
   end
+
+  # a confirmed ballot is the head's to edit (the chair's while open),
+  # same rule as Cab.Sessions.submit_ballot/4
+  defp can_edit_ballot?(%{"status" => "confirmed"}, %{club_role: role}),
+    do: Cab.Clubs.covers?(role, :owner)
+
+  defp can_edit_ballot?(%{"status" => status} = room, assigns)
+       when status in ["pending", "judging", "completed"],
+       do: can_act?(room, assigns)
+
+  defp can_edit_ballot?(_room, _assigns), do: false
 
   defp can_act?(room, %{current_user: user, club_role: role}) do
     (user != nil and Sessions.room_chair?(room, user)) or Cab.Clubs.covers?(role, :owner)

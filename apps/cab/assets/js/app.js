@@ -94,7 +94,7 @@ document.querySelectorAll(".ballot [data-ballot]").forEach(grid => {
     const order = teams.slice().sort((a, b) => b.sum - a.sum)
     const names = ["1st", "2nd", "3rd", "4th"]
     teams.forEach(t => {
-      t.el.querySelector(".tot").textContent = t.sum.toFixed(1)
+      t.el.querySelector(".tot").textContent = String(t.sum)
       t.el.querySelector(".rk").textContent = names[order.indexOf(t)] || `${order.indexOf(t) + 1}th`
       t.el.querySelector(".bsum").classList.toggle("tied", teams.some(o => o !== t && o.sum === t.sum))
     })

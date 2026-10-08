@@ -171,11 +171,13 @@ defmodule CabWeb.SessionPageHTML do
           Publish motion
         </:seg>
         <:seg
-          :if={@can_act && @room["status"] in ["pending", "judging", "completed"]}
+          :if={@can_edit_ballot}
           href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/ballot"}
           primary={@room["Motion"] != nil}
         >
-          {if @room["status"] == "completed", do: "Edit ballot", else: "Fill ballot"}
+          {if @room["status"] in ["completed", "confirmed"],
+            do: "Edit ballot",
+            else: "Fill ballot"}
         </:seg>
       </.chrome>
 

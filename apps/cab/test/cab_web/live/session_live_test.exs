@@ -84,4 +84,31 @@ defmodule CabWeb.SessionLiveTest do
     assert html =~ "THW go live"
     refute html =~ "Not set yet"
   end
+
+  test "a confirmed ballot is the head's to edit, not the chair's", %{conn: conn} do
+    head = user_fixture(%{node_user_id: 9})
+    club = club_fixture(head, %{engine_organisation_id: 3})
+    session = session_fixture(club, engine_event_id: 11)
+    chair = user_fixture(%{node_user_id: 44})
+
+    room = %{
+      "id" => 71,
+      "status" => "confirmed",
+      "Motion" => %{"motion_text" => "THW done"},
+      "RoomTeams" => [],
+      "RoomAdjudicators" => [
+        %{"role" => "chair", "EventParticipant" => %{"id" => 90, "user_id" => 44}}
+      ]
+    }
+
+    stub_engine([], [room])
+    path = ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71"
+
+    {:ok, _view, head_html} = live(init_test_session(conn, %{user_id: head.id}), path)
+    assert head_html =~ "Edit ballot"
+
+    {:ok, _view, chair_html} = live(init_test_session(conn, %{user_id: chair.id}), path)
+    refute chair_html =~ "Edit ballot"
+    refute chair_html =~ "Fill ballot"
+  end
 end

@@ -94,7 +94,7 @@ defmodule CabWeb.SessionPageController do
       case Sessions.submit_ballot(conn.assigns.current_user, session, room["id"], scores) do
         :ok ->
           conn
-          |> put_flash(:info, "ballot submitted — the room is confirmed")
+          |> put_flash(:info, "ballot submitted")
           |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}")
 
         {:error, :forbidden} ->
