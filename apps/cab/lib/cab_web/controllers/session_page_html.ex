@@ -167,10 +167,13 @@ defmodule CabWeb.SessionPageHTML do
         ]}
         here={"room R#{@room["id"]} — #{room_status_words(@room["status"])}"}
       >
+        <:seg :if={@can_act && is_nil(@room["Motion"])} form={"room-motion-#{@room["id"]}"} primary>
+          Set motion
+        </:seg>
         <:seg
           :if={@can_act && @room["status"] in ["pending", "judging", "completed"]}
           href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/ballot"}
-          primary
+          primary={@room["Motion"] != nil}
         >
           {if @room["status"] == "completed", do: "Edit ballot", else: "Fill ballot"}
         </:seg>
