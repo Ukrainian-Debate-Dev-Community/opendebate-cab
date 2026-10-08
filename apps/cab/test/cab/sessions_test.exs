@@ -120,6 +120,21 @@ defmodule Cab.SessionsTest do
     assert message =~ "sign-ups are not open (session is closed)"
   end
 
+  test "successful writes announce the session; refused ones stay silent", %{club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+    uuid = session.uuid
+    Sessions.subscribe(session)
+
+    stub(fn conn, _params -> state_stub(conn, []) end)
+
+    assert {:ok, closed} = Sessions.close_signups(session)
+    assert_receive {:session_changed, ^uuid}
+
+    # a refused write (409 gate) broadcasts nothing
+    assert {:error, :conflict, _} = Sessions.close_signups(%{closed | club: club})
+    refute_receive {:session_changed, _}, 50
+  end
+
   test "close_signups / reopen_signups flip the registration window", %{club: club} do
     session = session_fixture(club, engine_event_id: 11)
 

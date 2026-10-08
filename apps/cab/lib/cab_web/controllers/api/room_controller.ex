@@ -44,7 +44,13 @@ defmodule CabWeb.Api.RoomController do
 
     with {:ok, room_id} <- room_id(id),
          {:ok, data} <-
-           Sessions.set_room_motion(conn.assigns.current_user, room_id, motion_text, attrs) do
+           Sessions.set_room_motion(
+             conn.assigns.current_user,
+             conn.assigns.session,
+             room_id,
+             motion_text,
+             attrs
+           ) do
       json(conn, %{room_id: room_id, motion: data["motion"]})
     end
   end

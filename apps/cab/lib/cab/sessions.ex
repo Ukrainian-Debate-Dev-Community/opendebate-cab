@@ -27,6 +27,22 @@ defmodule Cab.Sessions do
   # Rows
   # ---------------------------------------------------------------
 
+  @doc """
+  Live updates: every write that changes what a session page shows
+  announces it on the session's topic; live pages re-read the state.
+  """
+  def subscribe(%Session{uuid: uuid}), do: Phoenix.PubSub.subscribe(Cab.PubSub, topic(uuid))
+
+  def broadcast(%Session{uuid: uuid}),
+    do: Phoenix.PubSub.broadcast(Cab.PubSub, topic(uuid), {:session_changed, uuid})
+
+  defp topic(uuid), do: "session:" <> uuid
+
+  defp notify(result, session) do
+    if result == :ok or match?({:ok, _}, result), do: broadcast(session)
+    result
+  end
+
   def get_by_uuid(uuid) do
     case Ecto.UUID.cast(uuid) do
       {:ok, uuid} -> Repo.one(from s in Session, where: s.uuid == ^uuid, preload: :club)
@@ -127,17 +143,20 @@ defmodule Cab.Sessions do
   `{:error, :conflict, message}` — the 409 gate.
   """
   def close_signups(%Session{} = session) do
-    with {:ok, state} <- state(session) do
-      case state.stage do
-        :signup ->
-          session
-          |> Ecto.Changeset.change(signups_closed_at: DateTime.utc_now(:second))
-          |> Repo.update()
+    result =
+      with {:ok, state} <- state(session) do
+        case state.stage do
+          :signup ->
+            session
+            |> Ecto.Changeset.change(signups_closed_at: DateTime.utc_now(:second))
+            |> Repo.update()
 
-        stage ->
-          {:error, :conflict, "sign-ups can only be closed while open (session is #{stage})"}
+          stage ->
+            {:error, :conflict, "sign-ups can only be closed while open (session is #{stage})"}
+        end
       end
-    end
+
+    notify(result, session)
   end
 
   @doc """
@@ -189,17 +208,20 @@ defmodule Cab.Sessions do
   yet). Returns `{:ok, session}` or `{:error, :conflict, message}`.
   """
   def reopen_signups(%Session{} = session) do
-    with {:ok, state} <- state(session) do
-      case state.stage do
-        :closed ->
-          session
-          |> Ecto.Changeset.change(signups_closed_at: nil)
-          |> Repo.update()
+    result =
+      with {:ok, state} <- state(session) do
+        case state.stage do
+          :closed ->
+            session
+            |> Ecto.Changeset.change(signups_closed_at: nil)
+            |> Repo.update()
 
-        stage ->
-          {:error, :conflict, "sign-ups can only reopen while closed (session is #{stage})"}
+          stage ->
+            {:error, :conflict, "sign-ups can only reopen while closed (session is #{stage})"}
+        end
       end
-    end
+
+    notify(result, session)
   end
 
   @doc """
@@ -210,13 +232,17 @@ defmodule Cab.Sessions do
   """
   def signup(%User{} = user, %Session{} = session, kind) when kind in ["speak", "judge"] do
     role = if kind == "speak", do: "speaker", else: "adjudicator"
+
     display_name = presence(user.name) || user.username
 
-    with {:ok, state} <- state(session),
-         :ok <- require_stage(state, :signup),
-         {:ok, actor} <- actor_for(user) do
-      EngineApi.add_participant(actor, session.engine_event_id, display_name, role, actor)
-    end
+    result =
+      with {:ok, state} <- state(session),
+           :ok <- require_stage(state, :signup),
+           {:ok, actor} <- actor_for(user) do
+        EngineApi.add_participant(actor, session.engine_event_id, display_name, role, actor)
+      end
+
+    notify(result, session)
   end
 
   @doc """
@@ -228,23 +254,27 @@ defmodule Cab.Sessions do
   def signup_for(%User{} = head, %Session{} = session, username, kind)
       when kind in ["speak", "judge"] do
     role = if kind == "speak", do: "speaker", else: "adjudicator"
+
     club = session_club(session)
 
-    with {:ok, state} <- state(session),
-         :ok <- require_stage(state, :signup),
-         {:ok, member} <- approved_member(club, username),
-         {:ok, member_actor} <- actor_for(member),
-         {:ok, head_actor} <- actor_for(head) do
-      display_name = presence(member.name) || member.username
+    result =
+      with {:ok, state} <- state(session),
+           :ok <- require_stage(state, :signup),
+           {:ok, member} <- approved_member(club, username),
+           {:ok, member_actor} <- actor_for(member),
+           {:ok, head_actor} <- actor_for(head) do
+        display_name = presence(member.name) || member.username
 
-      EngineApi.add_participant(
-        head_actor,
-        session.engine_event_id,
-        display_name,
-        role,
-        member_actor
-      )
-    end
+        EngineApi.add_participant(
+          head_actor,
+          session.engine_event_id,
+          display_name,
+          role,
+          member_actor
+        )
+      end
+
+    notify(result, session)
   end
 
   def signup_for(%User{}, %Session{}, _username, _kind),
@@ -270,14 +300,18 @@ defmodule Cab.Sessions do
       when is_integer(participant_id) do
     club = session_club(session)
 
-    with {:ok, head_actor} <- Clubs.club_actor(club),
-         {:ok, participants} <- EngineApi.list_participants(head_actor, session.engine_event_id),
-         {:ok, participant} <- find_participant(participants, participant_id),
-         :ok <- authorize_remove(participant, user, club),
-         {:ok, _} <-
-           EngineApi.delete_participant(head_actor, session.engine_event_id, participant_id) do
-      :ok
-    end
+    result =
+      with {:ok, head_actor} <- Clubs.club_actor(club),
+           {:ok, participants} <-
+             EngineApi.list_participants(head_actor, session.engine_event_id),
+           {:ok, participant} <- find_participant(participants, participant_id),
+           :ok <- authorize_remove(participant, user, club),
+           {:ok, _} <-
+             EngineApi.delete_participant(head_actor, session.engine_event_id, participant_id) do
+        :ok
+      end
+
+    notify(result, session)
   end
 
   defp find_participant(participants, participant_id) do
@@ -493,12 +527,15 @@ defmodule Cab.Sessions do
   is what makes the delete-and-recompose loop possible.
   """
   def make_rooms(%User{} = head, %Session{} = session) do
-    with {:ok, state} <- state(session),
-         :ok <- require_stage(state, :closed),
-         {:ok, rooms} <- auto_composition(session, state),
-         {:ok, actor} <- actor_for(head) do
-      create_composition(actor, state, rooms)
-    end
+    result =
+      with {:ok, state} <- state(session),
+           :ok <- require_stage(state, :closed),
+           {:ok, rooms} <- auto_composition(session, state),
+           {:ok, actor} <- actor_for(head) do
+        create_composition(actor, state, rooms)
+      end
+
+    notify(result, session)
   end
 
   @doc """
@@ -514,12 +551,15 @@ defmodule Cab.Sessions do
   changeset-style `{:error, %{rooms: message}}`.
   """
   def make_rooms(%User{} = head, %Session{} = session, rooms_spec) do
-    with {:ok, state} <- state(session),
-         :ok <- require_stage(state, :closed),
-         {:ok, rooms} <- parse_composition(rooms_spec, state.signups),
-         {:ok, actor} <- actor_for(head) do
-      create_composition(actor, state, rooms)
-    end
+    result =
+      with {:ok, state} <- state(session),
+           :ok <- require_stage(state, :closed),
+           {:ok, rooms} <- parse_composition(rooms_spec, state.signups),
+           {:ok, actor} <- actor_for(head) do
+        create_composition(actor, state, rooms)
+      end
+
+    notify(result, session)
   end
 
   defp create_composition(actor, state, rooms) do
@@ -677,25 +717,28 @@ defmodule Cab.Sessions do
   Returns `{:ok, rooms_deleted}`.
   """
   def delete_rooms(%User{} = head, %Session{} = session) do
-    with {:ok, actor} <- actor_for(head),
-         {:ok, round_id} <- session_round_id(actor, session),
-         {:ok, rooms} <- EngineApi.list_rooms(actor, round_id) do
-      cond do
-        rooms == [] ->
-          {:error, "this session has no rooms to delete"}
+    result =
+      with {:ok, actor} <- actor_for(head),
+           {:ok, round_id} <- session_round_id(actor, session),
+           {:ok, rooms} <- EngineApi.list_rooms(actor, round_id) do
+        cond do
+          rooms == [] ->
+            {:error, "this session has no rooms to delete"}
 
-        Enum.any?(rooms, &(&1["status"] != "pending")) ->
-          {:error, "only pending rooms can be deleted — this session is already in play"}
+          Enum.any?(rooms, &(&1["status"] != "pending")) ->
+            {:error, "only pending rooms can be deleted — this session is already in play"}
 
-        true ->
-          Enum.reduce_while(rooms, {:ok, 0}, fn room, {:ok, count} ->
-            case EngineApi.delete_room(actor, room["id"]) do
-              {:ok, _} -> {:cont, {:ok, count + 1}}
-              {:error, message} -> {:halt, {:error, message}}
-            end
-          end)
+          true ->
+            Enum.reduce_while(rooms, {:ok, 0}, fn room, {:ok, count} ->
+              case EngineApi.delete_room(actor, room["id"]) do
+                {:ok, _} -> {:cont, {:ok, count + 1}}
+                {:error, message} -> {:halt, {:error, message}}
+              end
+            end)
+        end
       end
-    end
+
+    notify(result, session)
   end
 
   @doc """
@@ -705,10 +748,13 @@ defmodule Cab.Sessions do
   for history instead.
   """
   def cancel(%User{} = head, %Session{} = session) do
-    with {:ok, actor} <- actor_for(head),
-         {:ok, _} <- EngineApi.delete_event(actor, session.engine_event_id) do
-      Repo.delete(session)
-    end
+    result =
+      with {:ok, actor} <- actor_for(head),
+           {:ok, _} <- EngineApi.delete_event(actor, session.engine_event_id) do
+        Repo.delete(session)
+      end
+
+    notify(result, session)
   end
 
   @doc """
@@ -716,10 +762,13 @@ defmodule Cab.Sessions do
   of one session may debate different ones). Chair-guarded by the
   engine, with owner/organiser fall-through for the head.
   """
-  def set_room_motion(%User{} = user, room_id, motion_text, attrs \\ %{}) do
-    with {:ok, actor} <- actor_for(user) do
-      EngineApi.set_room_motion(actor, room_id, motion_text, attrs)
-    end
+  def set_room_motion(%User{} = user, %Session{} = session, room_id, motion_text, attrs \\ %{}) do
+    result =
+      with {:ok, actor} <- actor_for(user) do
+        EngineApi.set_room_motion(actor, room_id, motion_text, attrs)
+      end
+
+    notify(result, session)
   end
 
   @doc """
@@ -748,19 +797,22 @@ defmodule Cab.Sessions do
   def submit_ballot(%User{} = user, %Session{} = session, room_id, scores) do
     club = session_club(session)
 
-    with {:ok, entries} <- parse_ballot_entries(scores),
-         {:ok, actor} <- actor_for(user),
-         {:ok, head_actor} <- Clubs.club_actor(club),
-         {:ok, round_id} <- session_round_id(actor, session),
-         {:ok, rooms} <- EngineApi.list_rooms(actor, round_id),
-         {:ok, room} <- find_room(rooms, room_id),
-         :ok <- authorize_ballot(room, user, club),
-         {:ok, rankings, speaker_scores} <- ballot_payload(room, entries),
-         {:ok, _} <- maybe_unconfirm(head_actor, room),
-         {:ok, _} <- EngineApi.submit_scores(actor, room["id"], rankings, speaker_scores),
-         {:ok, _} <- EngineApi.confirm_room(head_actor, room["id"]) do
-      :ok
-    end
+    result =
+      with {:ok, entries} <- parse_ballot_entries(scores),
+           {:ok, actor} <- actor_for(user),
+           {:ok, head_actor} <- Clubs.club_actor(club),
+           {:ok, round_id} <- session_round_id(actor, session),
+           {:ok, rooms} <- EngineApi.list_rooms(actor, round_id),
+           {:ok, room} <- find_room(rooms, room_id),
+           :ok <- authorize_ballot(room, user, club),
+           {:ok, rankings, speaker_scores} <- ballot_payload(room, entries),
+           {:ok, _} <- maybe_unconfirm(head_actor, room),
+           {:ok, _} <- EngineApi.submit_scores(actor, room["id"], rankings, speaker_scores),
+           {:ok, _} <- EngineApi.confirm_room(head_actor, room["id"]) do
+        :ok
+      end
+
+    notify(result, session)
   end
 
   # editing a confirmed ballot: the lock/unlock dance is internal —
@@ -967,13 +1019,16 @@ defmodule Cab.Sessions do
   history.
   """
   def finish(%User{} = head, %Session{} = session) do
-    with {:ok, actor} <- actor_for(head),
-         {:ok, round_id} <- session_round_id(actor, session),
-         {:ok, _} <- EngineApi.update_round(actor, round_id, %{status: "completed"}),
-         {:ok, _} <-
-           EngineApi.update_event(actor, session.engine_event_id, %{status: "completed"}) do
-      :ok
-    end
+    result =
+      with {:ok, actor} <- actor_for(head),
+           {:ok, round_id} <- session_round_id(actor, session),
+           {:ok, _} <- EngineApi.update_round(actor, round_id, %{status: "completed"}),
+           {:ok, _} <-
+             EngineApi.update_event(actor, session.engine_event_id, %{status: "completed"}) do
+        :ok
+      end
+
+    notify(result, session)
   end
 
   # ---------------------------------------------------------------

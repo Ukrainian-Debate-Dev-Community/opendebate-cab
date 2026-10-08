@@ -117,6 +117,7 @@ defmodule CabWeb.SessionPageController do
 
       case Sessions.set_room_motion(
              conn.assigns.current_user,
+             session,
              room["id"],
              params["motion_text"],
              attrs
