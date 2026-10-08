@@ -101,8 +101,7 @@ defmodule CabWeb.StandingsHTML do
     where = if tab == "judges", do: " — plain count of engine room chairs", else: ""
 
     "#{tab_label(tab)} · session: #{scope.event["name"]}, " <>
-      "#{Calendar.strftime(scope_date(scope), "%-d %b")} · #{scope.club.name} " <>
-      "(latest finished · previous ones under Sessions)#{where}"
+      "#{Calendar.strftime(scope_date(scope), "%-d %b")} · #{scope.club.name}#{where}"
   end
 
   defp scope_date(%{session: session}), do: session.scheduled_at || session.inserted_at

@@ -208,6 +208,9 @@ defmodule CabWeb.EightPagesTest do
   defp stub_calculated do
     stub(fn conn, _params ->
       case conn.request_path do
+        "/api/events/organisation/3" ->
+          ok(conn, [%{"id" => 11, "name" => "Walk night", "status" => "completed"}])
+
         "/api/events/11" ->
           ok(conn, %{"id" => 11, "name" => "Walk night", "status" => "completed"})
 
@@ -261,7 +264,6 @@ defmodule CabWeb.EightPagesTest do
       assert html =~ "Anna Kovalenko"
       assert html =~ "101.53"
       assert html =~ "Walk night"
-      assert html =~ "latest finished"
 
       # NO wins/winrate/played strings anywhere on standings pages
       refute html =~ "wins"
@@ -291,6 +293,56 @@ defmodule CabWeb.EightPagesTest do
       assert judges =~ "Rooms judged"
 
       assert conn |> get(~p"/c/#{club.uuid}/standings/clubs") |> response(404)
+    end
+
+    test "?session walks the archive; earlier sessions are linked",
+         %{conn: conn, club: club, session: first_session} do
+      # a second, newer session — the default scope lands on it
+      _newer = session_fixture(club, engine_event_id: 10)
+
+      stub(fn conn, _params ->
+        case conn.request_path do
+          "/api/events/organisation/3" ->
+            ok(conn, [
+              %{"id" => 11, "name" => "Walk night", "status" => "completed"},
+              %{"id" => 10, "name" => "Newer night", "status" => "completed"}
+            ])
+
+          "/api/events/11" ->
+            ok(conn, %{"id" => 11, "name" => "Walk night", "status" => "completed"})
+
+          "/api/events/10" ->
+            ok(conn, %{"id" => 10, "name" => "Newer night", "status" => "completed"})
+
+          "/api/events/10/standings/calculated/speakers" ->
+            ok(conn, [%{"id" => 8, "name" => "Newer Winner", "total_points" => 99.0}])
+
+          "/api/events/11/standings/calculated/speakers" ->
+            ok(conn, [%{"id" => 7, "name" => "Anna Kovalenko", "total_points" => 101.53}])
+
+          "/api/events/" <> _rounds ->
+            ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+          "/api/rounds/21/rooms" ->
+            ok(conn, [])
+        end
+      end)
+
+      # default: the latest finished, with the earlier one linked below
+      html = conn |> get(~p"/c/#{club.uuid}/standings/speakers") |> html_response(200)
+      assert html =~ "Newer Winner"
+      assert html =~ "Earlier sessions"
+      assert html =~ "?session=#{first_session.uuid}"
+
+      # the selector shows exactly that session's engine rows
+      old_html =
+        conn
+        |> get(~p"/c/#{club.uuid}/standings/speakers?session=#{first_session.uuid}")
+        |> html_response(200)
+
+      assert old_html =~ "Anna Kovalenko"
+      assert old_html =~ "Walk night"
+      refute old_html =~ "Newer Winner"
     end
 
     test "no finished session degrades to the empty notice", %{conn: conn, club: club} do

@@ -28,7 +28,7 @@ defmodule CabWeb.ClubPublicController do
 
     case params["tab"] || "teams" do
       tab when tab in ~w(teams speakers judges) ->
-        scope = Standings.latest_finished(club)
+        scope = standings_scope(club, params["session"])
 
         if standings_allowed?(club, conn, scope) do
           conn
@@ -37,6 +37,7 @@ defmodule CabWeb.ClubPublicController do
             tab: tab,
             scope: scope,
             rows: standings_rows(tab, scope),
+            archive: Sessions.archive(club),
             page_title: "#{club.name} · standings"
           )
         else
@@ -45,6 +46,17 @@ defmodule CabWeb.ClubPublicController do
 
       _tab ->
         conn |> send_resp(404, "not found") |> halt()
+    end
+  end
+
+  # default: the club's latest finished session; ?session=uuid walks
+  # the archive (only finished sessions resolve)
+  defp standings_scope(club, nil), do: Standings.latest_finished(club)
+
+  defp standings_scope(club, session_uuid) do
+    case Sessions.get_for_club(club, session_uuid) do
+      nil -> nil
+      session -> Standings.finished(%{session | club: club})
     end
   end
 

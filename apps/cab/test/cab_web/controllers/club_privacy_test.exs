@@ -30,6 +30,15 @@ defmodule CabWeb.ClubPrivacyTest do
   defp stub_finished(participants \\ []) do
     stub(fn conn, _params ->
       case conn.request_path do
+        "/api/events/organisation/3" ->
+          ok(conn, [%{"id" => 11, "name" => "Quiet night", "status" => "completed"}])
+
+        "/api/events/11/rounds" ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        "/api/rounds/21/rooms" ->
+          ok(conn, [])
+
         "/api/events/11" ->
           ok(conn, %{"id" => 11, "name" => "Quiet night", "status" => "completed"})
 

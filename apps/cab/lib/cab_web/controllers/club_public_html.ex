@@ -86,9 +86,25 @@ defmodule CabWeb.ClubPublicHTML do
       <div class="pbody">
         <.flash_banners flash={@flash} />
         <.standings_body tab={@tab} scope={@scope} rows={@rows} club={@club} />
+
+        <.section :if={earlier_sessions(@archive, @scope) != []} title="Earlier sessions" pad>
+          <.link
+            :for={row <- earlier_sessions(@archive, @scope)}
+            href={"/c/#{@club.uuid}/standings/#{@tab}?session=#{row.session_uuid}"}
+            class="earlier"
+          >
+            {row.name} · {Calendar.strftime(row.date, "%-d %b %Y")}
+          </.link>
+        </.section>
       </div>
     </Layouts.app>
     """
+  end
+
+  # the archive minus the shown session — the selector rows
+  defp earlier_sessions(archive, scope) do
+    shown = scope && scope.session.uuid
+    Enum.reject(archive, &(&1.session_uuid == shown))
   end
 
   # the join-request FORM: two required answers the head reads in

@@ -56,6 +56,13 @@ defmodule Cab.Standings do
     |> Enum.find_value(&finished_scope/1)
   end
 
+  @doc """
+  The scope for ONE chosen session (the club standings selector) —
+  same shape as `latest_finished/1`, nil unless that session is
+  finished.
+  """
+  def finished(%Session{} = session), do: finished_scope(session)
+
   defp finished_scope(%Session{} = session) do
     with {:ok, actor} <- Clubs.club_actor(session.club),
          %{} = event <- finished_event(actor, session.engine_event_id) do

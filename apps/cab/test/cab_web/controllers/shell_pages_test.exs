@@ -286,7 +286,6 @@ defmodule CabWeb.ShellPagesTest do
       assert html =~ ~s(id="standings-teams")
       assert html =~ "Anna &amp; Bohdan"
       assert html =~ "Thursday practice"
-      assert html =~ "latest finished"
 
       speakers = conn |> get(~p"/standings/speakers") |> html_response(200)
       assert speakers =~ "Anna Kovalenko"
