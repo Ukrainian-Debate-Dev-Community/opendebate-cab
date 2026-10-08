@@ -343,35 +343,6 @@ defmodule CabWeb.UiTest do
     assert html =~ ~s(class="bfoot")
   end
 
-  test "elim ballot renders an advances checkbox per team and the exact-count message" do
-    assigns = %{
-      teams: [
-        %{side: :og, name: "Anna & Bohdan", advances: true},
-        %{side: :oo, name: "Daryna & Olesia", advances: true},
-        %{side: :cg, name: "Hlib & Marko", advances: false},
-        %{side: :co, name: "Iryna & Sofia", advances: false}
-      ]
-    }
-
-    html =
-      rendered_to_string(~H"""
-      <.elim_ballot room="Semifinal · Room A" advance={2} teams={@teams} />
-      """)
-
-    assert html =~ ~s(class="ballot elim")
-    assert html =~ ~s(data-advance="2")
-    assert length(String.split(html, ~s(type="checkbox"))) == 5
-    assert length(String.split(html, "advances")) == 5
-    assert html =~ "Top 2 advance."
-    assert html =~ "Tick exactly 2 teams."
-    refute html =~ ~s(type="number")
-    refute html =~ "<select"
-  end
-
-  # ---------------------------------------------------------------
-  # tag, banner, section
-  # ---------------------------------------------------------------
-
   test "dnd_table renders the tray of kind-marked chips, droppable slots and hidden inputs" do
     assigns = %{
       tray: [
@@ -418,21 +389,6 @@ defmodule CabWeb.UiTest do
 
     # never dropdowns or swap controls for allocation
     refute html =~ "<select"
-  end
-
-  test "tag renders its three kinds" do
-    assigns = %{}
-
-    html =
-      rendered_to_string(~H"""
-      <.tag kind={:ok}>active</.tag>
-      <.tag kind={:warn}>pending</.tag>
-      <.tag kind={:mut}>archive</.tag>
-      """)
-
-    assert html =~ ~s(class="tag tag-ok")
-    assert html =~ ~s(class="tag tag-warn")
-    assert html =~ ~s(class="tag tag-mut")
   end
 
   test "banner renders kind and the optional trailing link" do

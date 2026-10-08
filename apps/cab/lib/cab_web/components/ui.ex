@@ -1,8 +1,7 @@
 defmodule CabWeb.Ui do
   @moduledoc """
-  The design-system kit, ported from `design/components-v2.html` and
-  `design/pages-v2.html`: the 4 core components (chrome/action bar,
-  table, form, ballot) plus the 3 extras (tag, banner, section).
+  The design-system kit: the core components (chrome/action bar,
+  sidenav, table, form, ballot, allocator) plus banner and section.
 
   Every page is a chrome bar and a stack of sections — nothing
   actionable exists outside the chrome, and no element outside this
@@ -611,43 +610,6 @@ defmodule CabWeb.Ui do
     """
   end
 
-  @doc """
-  The elimination ballot (tournaments): checkbox only — tick who
-  passes, exactly `advance` ticks required (live-validated). No
-  order, no scores. `teams` is `%{side:, name:, advances: boolean}`.
-  """
-  attr :id, :string, default: nil
-  attr :room, :string, default: nil
-  attr :advance, :integer, required: true
-  attr :prompt, :string, default: nil
-  attr :teams, :list, required: true
-  attr :action, :string, default: nil, doc: "wired in M3; render-only until then"
-
-  def elim_ballot(assigns) do
-    ~H"""
-    <form class="ballot elim" id={@id} action={@action} method="post">
-      <input :if={@action} type="hidden" name="_csrf_token" value={get_csrf_token()} />
-      <div class="b-motion">
-        <span class="k">{@room}</span>
-        <b>{@prompt || "Order the teams. Top #{@advance} advance."}</b>
-      </div>
-      <div class="bgrid" data-advance={@advance}>
-        <div :for={team <- @teams} class={["bteam", to_string(team.side)]}>
-          <div class="side">
-            <span class="pos">{team.side |> to_string() |> String.upcase()}</span>
-            <span class="tname">{team.name}</span>
-          </div>
-          <div class="brow">
-            <input type="checkbox" name={"advance[#{team.side}]"} checked={team[:advances]} />
-            <span class="who">advances</span>
-          </div>
-        </div>
-      </div>
-      <div class="bfoot">Tick exactly {@advance} teams.</div>
-    </form>
-    """
-  end
-
   defp side_label(side), do: @sides[side] || side |> to_string() |> String.upcase()
 
   # ---------------------------------------------------------------
@@ -739,18 +701,8 @@ defmodule CabWeb.Ui do
   end
 
   # ---------------------------------------------------------------
-  # Rest of the kit: tag, banner, section
+  # Rest of the kit: banner, copy, section
   # ---------------------------------------------------------------
-
-  @doc "Status tag: three kinds, used inside the chrome and table cells."
-  attr :kind, :atom, default: :mut, values: [:ok, :warn, :mut]
-  slot :inner_block, required: true
-
-  def tag(assigns) do
-    ~H"""
-    <span class={"tag tag-#{@kind}"}>{render_slot(@inner_block)}</span>
-    """
-  end
 
   @doc "Flash + notices: three kinds, one optional trailing link."
   attr :kind, :atom, default: :info, values: [:info, :good, :bad]

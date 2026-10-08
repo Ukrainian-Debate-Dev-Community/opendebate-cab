@@ -170,16 +170,6 @@ defmodule Cab.EngineApi do
 
   @bp_format_id 1
 
-  def bp_format_id, do: @bp_format_id
-
-  # ---------------------------------------------------------------
-  # Public
-  # ---------------------------------------------------------------
-
-  def list_public_events(params \\ []) do
-    Engine.public_get("/api/events", params: params) |> unwrap()
-  end
-
   # ---------------------------------------------------------------
   # Organisations (org creation is admin-only in the engine)
   # ---------------------------------------------------------------
@@ -219,14 +209,6 @@ defmodule Cab.EngineApi do
     Engine.get(actor, "/api/events/#{event_id}") |> unwrap()
   end
 
-  @doc """
-  Does the actor hold event privileges (admin / org owner /
-  organiser)? Returns `{:ok, %{"isPrivileged" => boolean}}`.
-  """
-  def event_access(actor, event_id) do
-    Engine.get(actor, "/api/events/#{event_id}/access") |> unwrap()
-  end
-
   def update_event(actor, event_id, attrs) do
     Engine.put(actor, "/api/events/#{event_id}", attrs) |> unwrap()
   end
@@ -234,22 +216,6 @@ defmodule Cab.EngineApi do
   @doc "Archives an event (soft delete; owner/organiser)."
   def delete_event(actor, event_id) do
     Engine.delete(actor, "/api/events/#{event_id}") |> unwrap()
-  end
-
-  # ---------------------------------------------------------------
-  # Organizers
-  # ---------------------------------------------------------------
-
-  def add_organizer(actor, event_id, target_user_id, role \\ "organiser") do
-    Engine.post(actor, "/api/events/#{event_id}/organizers", %{
-      targetUserId: target_user_id,
-      role: role
-    })
-    |> unwrap()
-  end
-
-  def list_organizers(actor, event_id) do
-    Engine.get(actor, "/api/events/#{event_id}/organizers") |> unwrap()
   end
 
   # ---------------------------------------------------------------
@@ -267,35 +233,6 @@ defmodule Cab.EngineApi do
 
   def update_round(actor, round_id, attrs) do
     Engine.put(actor, "/api/rounds/#{round_id}", attrs) |> unwrap()
-  end
-
-  # ---------------------------------------------------------------
-  # Motions
-  # ---------------------------------------------------------------
-
-  def create_motion(actor, event_id, text, attrs \\ %{}) do
-    Engine.post(
-      actor,
-      "/api/events/#{event_id}/motions",
-      Map.merge(%{motion_text: text}, attrs)
-    )
-    |> unwrap()
-  end
-
-  def list_motions(actor, event_id) do
-    case Engine.get(actor, "/api/events/#{event_id}/motions") |> unwrap() do
-      # the engine 404s when an event has no motions yet; that is not an error here
-      {:error, "No motions found" <> _} -> {:ok, []}
-      other -> other
-    end
-  end
-
-  def update_motion(actor, event_id, motion_id, attrs) do
-    Engine.put(actor, "/api/events/#{event_id}/motions/#{motion_id}", attrs) |> unwrap()
-  end
-
-  def release_motion(actor, event_id, motion_id) do
-    update_motion(actor, event_id, motion_id, %{is_released: true})
   end
 
   # ---------------------------------------------------------------
@@ -319,52 +256,6 @@ defmodule Cab.EngineApi do
   """
   def delete_participant(actor, event_id, participant_id) do
     Engine.delete(actor, "/api/events/#{event_id}/participants/#{participant_id}") |> unwrap()
-  end
-
-  def check_in(actor, event_id, participant_ids, status \\ true) do
-    Engine.patch(actor, "/api/events/#{event_id}/check-ins", %{
-      status: status,
-      participant_ids: participant_ids
-    })
-    |> unwrap()
-  end
-
-  def eliminate_teams(actor, event_id, team_ids, status \\ true) do
-    Engine.patch(actor, "/api/events/#{event_id}/eliminations", %{
-      status: status,
-      team_ids: team_ids
-    })
-    |> unwrap()
-  end
-
-  # ---------------------------------------------------------------
-  # Teams
-  # ---------------------------------------------------------------
-
-  @doc """
-  Asks the engine to propose random teams from free (attendance-aware)
-  speakers. Returns `{:ok, %{"total_free_speakers" => n,
-  "proposed_teams" => [%{"name" => _, "participant_ids" => [...]}]}}`.
-  Proposals are not persisted — create them with `create_team/5`.
-  """
-  def propose_teams(actor, event_id, format_id \\ @bp_format_id) do
-    Engine.get(actor, "/api/events/#{event_id}/teams/auto-generate",
-      params: [format_id: format_id]
-    )
-    |> unwrap()
-  end
-
-  def create_team(actor, event_id, name, participant_ids, attrs \\ %{}) do
-    Engine.post(
-      actor,
-      "/api/events/#{event_id}/teams",
-      Map.merge(%{name: name, participant_ids: participant_ids}, attrs)
-    )
-    |> unwrap()
-  end
-
-  def list_teams(actor, event_id) do
-    Engine.get(actor, "/api/events/#{event_id}/teams") |> unwrap()
   end
 
   # ---------------------------------------------------------------
@@ -401,14 +292,6 @@ defmodule Cab.EngineApi do
   """
   def delete_room(actor, room_id) do
     Engine.delete(actor, "/api/rooms/#{room_id}") |> unwrap()
-  end
-
-  def swap_teams(actor, round_id, room_team_id_a, room_team_id_b) do
-    Engine.patch(actor, "/api/rounds/#{round_id}/rooms/swap-teams", %{
-      room_team_id_a: room_team_id_a,
-      room_team_id_b: room_team_id_b
-    })
-    |> unwrap()
   end
 
   @doc """
@@ -453,10 +336,6 @@ defmodule Cab.EngineApi do
   # Users (self-scoped reads run as that user's actor)
   # ---------------------------------------------------------------
 
-  def judge_stats(actor, event_id) do
-    Engine.get(actor, "/api/events/#{event_id}/stats/judges") |> unwrap()
-  end
-
   def user_stats(actor, user_id) do
     Engine.get(actor, "/api/users/#{user_id}/stats") |> unwrap()
   end
@@ -481,53 +360,9 @@ defmodule Cab.EngineApi do
     Engine.get(actor, "/api/events/#{event_id}/standings/calculated/speakers") |> unwrap()
   end
 
-  # ---------------------------------------------------------------
-  # Composite helpers used by the LiveViews
-  # ---------------------------------------------------------------
-
-  @doc """
-  Provisions a shadow engine user for `display_name` and registers them
-  as an event participant with `role` ("speaker" | "adjudicator").
-  Returns `{:ok, participant}`.
-  """
-  def provision_participant(actor, event_id, display_name, role) do
-    username = shadow_username(display_name)
-
-    with {:ok, engine_user_id} <- provision_error(Core.Engine.provision_user(username)),
-         {:ok, participant} <-
-           add_participant(actor, event_id, display_name, role, engine_user_id) do
-      {:ok, participant}
-    end
+  def judge_stats(actor, event_id) do
+    Engine.get(actor, "/api/events/#{event_id}/stats/judges") |> unwrap()
   end
-
-  @doc """
-  Creates a fresh organisation owned by `actor` (org creation is
-  admin-only in the engine, so the org is created with an isAdmin
-  token and the actor as initial owner) and an event in it.
-  Returns `{:ok, %{"org" => org, "event" => event}}`.
-  """
-  def create_tournament(actor, name, attrs \\ %{}) do
-    with {:ok, org} <- create_organisation(actor, "#{name} (org)"),
-         {:ok, event} <- create_event(actor, org["id"], name, attrs) do
-      {:ok, %{"org" => org, "event" => event}}
-    end
-  end
-
-  defp shadow_username(display_name) do
-    slug =
-      display_name
-      |> String.downcase()
-      |> String.replace(~r/[^a-z0-9]+/, "-")
-      |> String.trim("-")
-
-    suffix = :crypto.strong_rand_bytes(2) |> Base.encode16(case: :lower)
-    "shadow-#{slug}-#{suffix}"
-  end
-
-  defp provision_error({:ok, id}), do: {:ok, id}
-
-  defp provision_error({:error, reason}),
-    do: {:error, "engine user provisioning failed: #{inspect(reason)}"}
 
   # ---------------------------------------------------------------
   # Response normalisation

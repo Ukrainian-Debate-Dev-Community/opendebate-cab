@@ -47,8 +47,8 @@ liveSocket.connect()
 window.liveSocket = liveSocket
 
 // ----------------------------------------------------------------
-// Design-system v2 widgets (vanilla JS, no LiveView) — ported from
-// design/components-v2.html: table sort, ballot math, elim count.
+// Design-system widgets (vanilla JS): table sort, ballot math, the
+// allocator, copy buttons, the prep clock.
 // ----------------------------------------------------------------
 
 // table: client-side sort on th.sort + header select-all checkbox
@@ -214,22 +214,6 @@ document.addEventListener("click", e => {
     area.remove()
     done(ok)
   }
-})
-
-// elim ballot: exactly N teams advance
-document.querySelectorAll(".ballot [data-advance]").forEach(grid => {
-  const msg = grid.closest(".ballot").querySelector(".bfoot")
-  const n = parseInt(grid.dataset.advance, 10)
-  const check = () => {
-    const ticked = grid.querySelectorAll("input:checked").length
-    if (!msg) return
-    msg.innerHTML =
-      ticked === n
-        ? `${ticked} of ${n} advancing - valid.`
-        : `<span class="err">${ticked} of ${n} advancing - tick exactly ${n} teams.</span>`
-  }
-  grid.addEventListener("input", check)
-  check()
 })
 
 // The lines below enable quality of life phoenix_live_reload

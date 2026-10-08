@@ -84,8 +84,6 @@ defmodule CabWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components (the design-system kit owns `table/1`)
-      import CabWeb.CoreComponents, except: [table: 1]
       # Design-system kit: chrome, table, form_for, ballot, tag, banner, section
       import CabWeb.Ui
 
