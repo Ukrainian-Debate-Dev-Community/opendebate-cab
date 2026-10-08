@@ -1,20 +1,27 @@
 defmodule CabWeb.MemberHTML do
   use CabWeb, :html
 
-  @doc "The session archive — previous progress; shared by the club and owner pages."
+  @doc "The Club Sessions table (M9) — every session with its status in words; shared by the club and owner pages."
   attr :club, :any, required: true
   attr :archive, :list, required: true
 
   def archive_section(assigns) do
     ~H"""
-    <.section title="Session archive — previous progress">
-      <.table id="sessions-archive" rows={@archive} empty="No finished sessions yet.">
+    <.section title="Club Sessions">
+      <.table id="club-sessions" rows={@archive} empty="No sessions yet.">
         <:col :let={row} label="Session">
           <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"}>{row.name}</.link>
           <.sub>{Calendar.strftime(row.date, "%-d %b %Y")}</.sub>
         </:col>
-        <:col :let={row} label="Progress">
-          {if row.winner, do: "won by #{row.winner}", else: "finished"}
+        <:col :let={row} label="Status" class="st">
+          <%= case row.status do %>
+            <% :done -> %>
+              {if row.winner, do: "done — won by #{row.winner}", else: "done"}
+            <% :live -> %>
+              <b>live</b>
+            <% :open -> %>
+              sign-ups open
+          <% end %>
         </:col>
       </.table>
     </.section>

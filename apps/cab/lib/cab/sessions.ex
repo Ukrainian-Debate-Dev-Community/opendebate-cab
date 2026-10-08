@@ -1042,6 +1042,46 @@ defmodule Cab.Sessions do
   def user_schedule(%User{}), do: []
 
   @doc """
+  The club page's "Club Sessions" table (M9): EVERY gateway session,
+  newest first, with its status in words — done (+ winner) | live |
+  open. One engine listing; winners only for finished rows.
+  """
+  def club_sessions(%Club{} = club) do
+    with sessions when sessions != [] <- list_for_club(club),
+         {:ok, actor} <- Clubs.club_actor(club),
+         {:ok, events} <-
+           EngineApi.list_organisation_events(actor, club.engine_organisation_id) do
+      names = Map.new(events, &{&1["id"], &1["name"]})
+
+      completed =
+        for event <- events, event["status"] == "completed", into: MapSet.new() do
+          event["id"]
+        end
+
+      Enum.map(sessions, fn session ->
+        done? = MapSet.member?(completed, session.engine_event_id)
+
+        status =
+          cond do
+            done? -> :done
+            session.signups_closed_at == nil -> :open
+            true -> :live
+          end
+
+        %{
+          session_uuid: session.uuid,
+          name: names[session.engine_event_id],
+          date: session.scheduled_at || session.inserted_at,
+          status: status,
+          winner: done? && event_winner(actor, %{"id" => session.engine_event_id})
+        }
+      end)
+    else
+      _ -> []
+    end
+  end
+
+  @doc """
   The sessions ARCHIVE (previous progress): the club's FINISHED
   engine events as rows `%{session_uuid, name, date, winner}`, newest
   first — every value an engine fact, verbatim (rule 0: the winner is

@@ -20,7 +20,7 @@ defmodule CabWeb.OwnerController do
     club = conn.assigns.club
 
     render(conn, :club,
-      archive: Sessions.archive(club),
+      archive: Sessions.club_sessions(club),
       live: live_session(conn),
       page_title: "#{club.name} · edit"
     )

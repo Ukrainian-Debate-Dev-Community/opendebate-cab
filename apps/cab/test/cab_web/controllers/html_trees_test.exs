@@ -81,7 +81,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ "@kyivdebate"
 
     # recent sessions: rows -> session page, progress as words
-    assert html =~ ~s(id="recent-sessions")
+    assert html =~ ~s(id="club-sessions")
     assert html =~ "Night 1"
     assert html =~ "won by Winners"
     assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
@@ -296,7 +296,7 @@ defmodule CabWeb.HtmlTreesTest do
     member_html =
       conn |> log_in(member) |> get(~p"/c/#{club.uuid}") |> html_response(200)
 
-    assert member_html =~ ~s(id="recent-sessions")
+    assert member_html =~ ~s(id="club-sessions")
     assert member_html =~ "Done night"
     assert member_html =~ ~s(href="/c/#{club.uuid}/s/#{done.uuid}")
     refute member_html =~ ~s(id="open-session-form")
@@ -306,7 +306,7 @@ defmodule CabWeb.HtmlTreesTest do
     owner_html =
       conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
 
-    assert owner_html =~ ~s(id="sessions-archive")
+    assert owner_html =~ ~s(id="club-sessions")
     assert owner_html =~ ~s(id="open-session-form")
     assert owner_html =~ ~s(form="open-session-form")
     assert owner_html =~ "Open new session"

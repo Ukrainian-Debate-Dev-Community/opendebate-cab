@@ -45,19 +45,7 @@ defmodule CabWeb.ClubPublicHTML do
           <p :if={@club.contacts}>Contacts: {@club.contacts}</p>
         </.section>
 
-        <.section title="Recent sessions">
-          <.table id="recent-sessions" rows={@recent} empty="No completed sessions yet.">
-            <:col :let={row} label="Date">
-              <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"}>
-                {Calendar.strftime(row.date, "%-d %b %Y")}
-              </.link>
-            </:col>
-            <:col :let={row} label="Session">{row.name}</:col>
-            <:col :let={row} label="Progress">
-              {if row.winner, do: "won by #{row.winner}", else: "finished"}
-            </:col>
-          </.table>
-        </.section>
+        <CabWeb.MemberHTML.archive_section club={@club} archive={@recent} />
 
         <.section title="Standings" pad>
           Per-session engine standings live under
