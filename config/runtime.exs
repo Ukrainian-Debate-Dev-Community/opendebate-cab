@@ -19,10 +19,27 @@ config :ueberauth, Ueberauth.Strategy.Github.OAuth,
 
 # Node engine + portal API. Test config pins its own deterministic
 # values in config/test.exs; runtime.exs runs after it, so skip :test.
+# The engine trusts any token signed with this secret (admin included),
+# so production refuses to boot without a real one.
 if config_env() != :test do
+  engine_secret =
+    case {config_env(), System.get_env("ENGINE_JWT_SECRET")} do
+      {:prod, secret} when secret in [nil, ""] ->
+        raise "ENGINE_JWT_SECRET is missing — the engine would trust a public default"
+
+      {:prod, "insecure-dev-engine-secret"} ->
+        raise "ENGINE_JWT_SECRET is the public dev default — set a real secret"
+
+      {_env, nil} ->
+        "insecure-dev-engine-secret"
+
+      {_env, secret} ->
+        secret
+    end
+
   config :core, Core.Engine,
     base_url: System.get_env("ENGINE_URL", "http://localhost:3100"),
-    jwt_secret: System.get_env("ENGINE_JWT_SECRET", "insecure-dev-engine-secret")
+    jwt_secret: engine_secret
 
   config :cab, :portal_api_token, System.get_env("PORTAL_API_TOKEN")
 end
