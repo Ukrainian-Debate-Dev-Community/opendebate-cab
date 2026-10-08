@@ -45,6 +45,23 @@ defmodule Cab.ClubsTest do
       assert [%{role: "head"}] = Clubs.list_members(club)
     end
 
+    test "the role ladder: admin covers every tree, each step covers the ones below" do
+      head = user_fixture()
+      club = club_fixture(head)
+
+      admin = user_fixture() |> Ecto.Changeset.change(is_admin: true) |> Cab.Repo.update!()
+      assert Clubs.role_for(club, admin) == :admin
+
+      for role <- [:public, :member, :owner, :admin], do: assert(Clubs.covers?(:admin, role))
+      for role <- [:public, :member, :owner], do: assert(Clubs.covers?(:owner, role))
+      for role <- [:public, :member], do: assert(Clubs.covers?(:member, role))
+      assert Clubs.covers?(:public, :public)
+
+      refute Clubs.covers?(:owner, :admin)
+      refute Clubs.covers?(:member, :owner)
+      refute Clubs.covers?(:public, :member)
+    end
+
     test "engine failure creates no rows" do
       head = user_fixture()
 

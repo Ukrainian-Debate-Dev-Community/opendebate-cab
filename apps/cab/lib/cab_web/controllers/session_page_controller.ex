@@ -143,7 +143,7 @@ defmodule CabWeb.SessionPageController do
           |> redirect(to: ~p"/signin")
           |> halt()
 
-        Sessions.room_chair?(room, user) or conn.assigns.club_role == :owner ->
+        Sessions.room_chair?(room, user) or Cab.Clubs.covers?(conn.assigns.club_role, :owner) ->
           fun.(conn, %{session | club: club}, room)
 
         true ->
@@ -162,8 +162,8 @@ defmodule CabWeb.SessionPageController do
   defp my_signup(_state, _user), do: nil
 
   # the chrome's gold "Fill ballot" segment: the open room this
-  # viewer chairs — completed means the head unlocked the ballot and
-  # the chair can resubmit a correction
+  # viewer chairs — a completed (not yet confirmed) ballot is still
+  # editable by resubmission
   defp my_ballot_room(%{stage: :running, rooms: rooms}, %User{} = user) do
     Enum.find(rooms, fn room ->
       room["status"] in ["pending", "judging", "completed"] and Sessions.room_chair?(room, user)

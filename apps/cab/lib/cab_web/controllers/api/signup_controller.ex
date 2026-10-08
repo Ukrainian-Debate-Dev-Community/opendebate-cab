@@ -46,7 +46,7 @@ defmodule CabWeb.Api.SignupController do
   end
 
   defp require_owner(conn) do
-    if conn.assigns.club_role == :owner, do: :ok, else: {:error, :forbidden}
+    if Cab.Clubs.covers?(conn.assigns.club_role, :owner), do: :ok, else: {:error, :forbidden}
   end
 
   defp parse_id(id) do

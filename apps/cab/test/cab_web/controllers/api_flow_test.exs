@@ -513,7 +513,7 @@ defmodule CabWeb.ApiFlowTest do
            |> json_response(200) == %{"participant_id" => 43, "status" => "removed"}
   end
 
-  test "explicit composition, rooms rebuild and ballot unlock are head-only",
+  test "explicit composition and rooms rebuild are head-only",
        %{conn: conn, club: club, head: head} do
     member = user_fixture(%{node_user_id: 44})
     membership_fixture(member, club)
@@ -531,7 +531,6 @@ defmodule CabWeb.ApiFlowTest do
     for {method, path, body} <- [
           {:post, ~p"/api/v1/sessions/#{session.uuid}/rooms", composition},
           {:delete, ~p"/api/v1/sessions/#{session.uuid}/rooms", nil},
-          {:patch, ~p"/api/v1/rooms/71/unlock", %{"session_uuid" => session.uuid}},
           {:delete, ~p"/api/v1/sessions/#{session.uuid}", nil}
         ] do
       conn = log_in(conn, member)
@@ -607,24 +606,6 @@ defmodule CabWeb.ApiFlowTest do
            |> delete(~p"/api/v1/sessions/#{session.uuid}/rooms")
            |> json_response(200) == %{"rooms_deleted" => 1}
 
-    # unlock: confirmed -> unconfirm -> completed, editable by resubmission
-    stub(fn conn, _params ->
-      case {conn.method, conn.request_path} do
-        {"GET", "/api/events/11/rounds"} ->
-          ok(conn, [%{"id" => 21, "sequence" => 1}])
-
-        {"GET", "/api/rounds/21/rooms"} ->
-          ok(conn, [%{"id" => 71, "status" => "confirmed"}])
-
-        {"PATCH", "/api/rooms/71/unconfirm"} ->
-          Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
-      end
-    end)
-
-    assert conn
-           |> log_in(head)
-           |> patch(~p"/api/v1/rooms/71/unlock", %{"session_uuid" => session.uuid})
-           |> json_response(200) == %{"room_id" => 71, "status" => "completed"}
   end
 
   test "session cancel removes the gateway row", %{conn: conn, club: club, head: head} do

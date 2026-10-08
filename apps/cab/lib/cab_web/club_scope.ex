@@ -22,11 +22,12 @@ defmodule CabWeb.ClubScope do
     * `:room_session` — `session_uuid` body param names the session
       the room belongs to (assigns `:session` too)
 
-  Requirements (what the tree demands):
+  Requirements (what the tree demands), one strict ladder — every
+  role covers all trees below it (`Cab.Clubs.covers?/2`):
     * `:public` — anyone, resolution only
     * `:authenticated` — any signed-in user
-    * `:member` — approved membership (head included)
-    * `:owner` — head membership
+    * `:member` — approved membership (owner and admin included)
+    * `:owner` — head membership (admin included)
   """
 
   import Plug.Conn
@@ -138,15 +139,11 @@ defmodule CabWeb.ClubScope do
 
   defp enforce(conn, role, required) when required in [:member, :owner] do
     cond do
-      covers?(role, required) -> conn
+      Clubs.covers?(role, required) -> conn
       conn.assigns[:current_user] == nil -> unauthenticated(conn)
       true -> halt_with(conn, 403, "forbidden")
     end
   end
-
-  defp covers?(:owner, _required), do: true
-  defp covers?(:member, :member), do: true
-  defp covers?(_role, _required), do: false
 
   # HTML auth walls land on P1 /signin (the only auth entry); the
   # API keeps its plain 401.

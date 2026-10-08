@@ -384,29 +384,6 @@ defmodule CabWeb.OwnerController do
     end
   end
 
-  # POST .../owner/rooms/:id/unlock — unconfirm the ballot so a
-  # corrected resubmission can replace it (the result is never wiped)
-  def unlock(conn, %{"id" => id}) do
-    club = conn.assigns.club
-
-    with {room_id, ""} <- Integer.parse(id),
-         %Session{} = session <- List.first(Sessions.list_for_club(club)) do
-      case Sessions.unlock_room(conn.assigns.current_user, %{session | club: club}, room_id) do
-        :ok ->
-          conn
-          |> put_flash(:info, "room R#{room_id} ballot unlocked — edit and resubmit it")
-          |> redirect(to: ~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
-
-        {:error, message} ->
-          conn
-          |> put_flash(:error, error_message(message))
-          |> redirect(to: ~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
-      end
-    else
-      _ -> conn |> send_resp(404, "not found") |> halt()
-    end
-  end
-
   # POST .../owner/sessions/:session_uuid/finish — results live on
   # the public session page
   def finish(conn, %{"session_uuid" => session_uuid}) do

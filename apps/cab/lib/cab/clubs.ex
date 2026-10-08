@@ -125,18 +125,32 @@ defmodule Cab.Clubs do
   end
 
   @doc """
-  The viewer's actual role in a club: `:owner` (head membership),
-  `:member` (approved membership) or `:public`.
+  The viewer's actual role in a club: `:admin` (platform admin),
+  `:owner` (head membership), `:member` (approved membership) or
+  `:public`. One strict ladder — see `covers?/2`.
   """
   def role_for(%Club{}, nil), do: :public
 
   def role_for(%Club{} = club, %User{} = user) do
-    case Repo.get_by(Membership, club_id: club.id, user_id: user.id) do
-      %Membership{role: "head", status: "approved"} -> :owner
-      %Membership{status: "approved"} -> :member
-      _ -> :public
+    if user.is_admin do
+      :admin
+    else
+      case Repo.get_by(Membership, club_id: club.id, user_id: user.id) do
+        %Membership{role: "head", status: "approved"} -> :owner
+        %Membership{status: "approved"} -> :member
+        _ -> :public
+      end
     end
   end
+
+  @doc """
+  The role ladder: public -> participant/judge (session-scoped, not a
+  club role) -> member -> owner -> admin. Every step keeps all pages
+  and rights of the steps below it and adds its own.
+  """
+  @role_rank %{public: 0, member: 1, owner: 2, admin: 3}
+  def covers?(role, required),
+    do: Map.fetch!(@role_rank, role) >= Map.fetch!(@role_rank, required)
 
   @doc """
   The node user every club-scoped engine read/write-as-the-club runs

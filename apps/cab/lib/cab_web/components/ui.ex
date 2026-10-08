@@ -166,19 +166,22 @@ defmodule CabWeb.Ui do
     """
   end
 
-  defp club_href(club, :owner), do: ~p"/c/#{club.uuid}/owner"
+  defp club_href(club, role) when role in [:owner, :admin], do: ~p"/c/#{club.uuid}/owner"
   defp club_href(club, _role), do: ~p"/c/#{club.uuid}"
 
   # the LIVE session lives under Rooms; with no session yet the item
   # falls back to the archive (owner opens new sessions there)
-  defp rooms_href(club, :owner, %{uuid: uuid}), do: ~p"/c/#{club.uuid}/owner/s/#{uuid}"
+  defp rooms_href(club, role, %{uuid: uuid}) when role in [:owner, :admin],
+    do: ~p"/c/#{club.uuid}/owner/s/#{uuid}"
   defp rooms_href(club, _role, %{uuid: uuid}), do: ~p"/c/#{club.uuid}/s/#{uuid}"
   defp rooms_href(club, role, nil), do: sessions_href(club, role)
 
-  defp sessions_href(club, :owner), do: ~p"/c/#{club.uuid}/owner/sessions"
+  defp sessions_href(club, role) when role in [:owner, :admin],
+    do: ~p"/c/#{club.uuid}/owner/sessions"
   defp sessions_href(club, _role), do: ~p"/c/#{club.uuid}/member/sessions"
 
-  defp members_href(club, :owner), do: ~p"/c/#{club.uuid}/owner/members"
+  defp members_href(club, role) when role in [:owner, :admin],
+    do: ~p"/c/#{club.uuid}/owner/members"
   defp members_href(club, _role), do: ~p"/c/#{club.uuid}/member/members"
 
   defp initials(user) do

@@ -963,12 +963,21 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(class="ballot")
     assert html =~ ~s(action="/c/#{club.uuid}/owner/rooms/71/ballot")
 
-    # the owner tree stays owner-only
-    conn = conn |> log_in(member) |> get(~p"/c/#{club.uuid}/owner/rooms/71/ballot")
-    assert response(conn, 403)
+    # the owner tree stays owner-only for members…
+    denied = conn |> log_in(member) |> get(~p"/c/#{club.uuid}/owner/rooms/71/ballot")
+    assert response(denied, 403)
+
+    # …but the ladder lets a platform admin (no membership) through
+    admin =
+      user_fixture(%{node_user_id: 56})
+      |> Ecto.Changeset.change(is_admin: true)
+      |> Cab.Repo.update!()
+
+    allowed = conn |> log_in(admin) |> get(~p"/c/#{club.uuid}/owner/rooms/71/ballot")
+    assert html_response(allowed, 200) =~ ~s(class="ballot")
   end
 
-  test "running stage: delete rooms while pending, unlock once confirmed",
+  test "running stage: delete rooms while pending, edit ballot once in",
        %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
     test_pid = self()
@@ -1006,7 +1015,7 @@ defmodule CabWeb.HtmlTreesTest do
 
     assert html =~ "Delete rooms"
     assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/rooms/delete"
-    refute html =~ "unlock"
+    refute html =~ "edit ballot"
 
     deleted =
       conn
@@ -1017,7 +1026,8 @@ defmodule CabWeb.HtmlTreesTest do
     assert Phoenix.Flash.get(deleted.assigns.flash, :info) =~ "1 room(s) deleted"
     assert_received :room_deleted
 
-    # confirmed room: no delete segment, an unlock link instead
+    # confirmed room: no delete segment, an edit ballot link instead
+    # (lock/unlock stays internal — the page never says it)
     confirmed_room = %{running_room(44) | "status" => "confirmed"}
 
     stub(fn conn, _params ->
@@ -1050,14 +1060,20 @@ defmodule CabWeb.HtmlTreesTest do
       |> html_response(200)
 
     refute html =~ "Delete rooms"
-    assert html =~ "/c/#{club.uuid}/owner/rooms/71/unlock"
+    assert html =~ "edit ballot"
+    assert html =~ "/c/#{club.uuid}/owner/rooms/71/ballot"
     assert html =~ "ballot in"
+    refute html =~ "unlock"
+    refute html =~ "unconfirm"
 
-    unlocked = conn |> log_in(head) |> post(~p"/c/#{club.uuid}/owner/rooms/71/unlock")
-    assert redirected_to(unlocked) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-    assert Phoenix.Flash.get(unlocked.assigns.flash, :info) =~ "unlocked"
-    assert_received {:step, "unconfirm"}
-    refute_received {:step, _}
+    # the link opens the ordinary ballot form for the confirmed room
+    ballot_html =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner/rooms/71/ballot")
+      |> html_response(200)
+
+    assert ballot_html =~ ~s(class="ballot")
   end
 
   test "session cancel lands on the archive; finish lands on the session page",

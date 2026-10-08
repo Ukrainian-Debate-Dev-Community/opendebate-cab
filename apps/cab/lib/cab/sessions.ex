@@ -244,7 +244,7 @@ defmodule Cab.Sessions do
 
   defp authorize_remove(participant, %User{} = user, club) do
     cond do
-      Clubs.role_for(club, user) == :owner -> :ok
+      Clubs.covers?(Clubs.role_for(club, user), :owner) -> :ok
       is_integer(user.node_user_id) and participant["user_id"] == user.node_user_id -> :ok
       true -> {:error, :forbidden}
     end
@@ -613,31 +613,6 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Unlocks a room's ballot for correction (head only — enforce at the
-  boundary): a confirmed room is unconfirmed back to completed, where
-  the ballot stays intact and a resubmission atomically replaces it.
-  A submitted result is never wiped. Already-completed rooms are a
-  no-op — the ballot form is open for them.
-  """
-  def unlock_room(%User{} = head, %Session{} = session, room_id) do
-    with {:ok, actor} <- actor_for(head),
-         {:ok, round} <- round_by_sequence(actor, session.engine_event_id, 1),
-         {:ok, rooms} <- EngineApi.list_rooms(actor, round["id"]),
-         {:ok, room} <- find_room(rooms, room_id) do
-      unlock_steps(actor, room)
-    end
-  end
-
-  defp unlock_steps(actor, %{"id" => id, "status" => "confirmed"}) do
-    with {:ok, _} <- EngineApi.unconfirm_room(actor, id), do: :ok
-  end
-
-  defp unlock_steps(_actor, %{"status" => "completed"}), do: :ok
-
-  defp unlock_steps(_actor, %{"status" => status}),
-    do: {:error, "only a submitted ballot can be unlocked (room is #{status})"}
-
-  @doc """
   Cancels the session: the engine event is archived (soft delete —
   owner-only) and the gateway row removed, so the club is back to
   "no session". Works at any stage; finished sessions should be left
@@ -695,11 +670,20 @@ defmodule Cab.Sessions do
          {:ok, room} <- find_room(rooms, room_id),
          :ok <- authorize_ballot(room, user, club),
          {:ok, rankings, speaker_scores} <- ballot_payload(room, entries),
+         {:ok, _} <- maybe_unconfirm(head_actor, room),
          {:ok, _} <- EngineApi.submit_scores(actor, room["id"], rankings, speaker_scores),
          {:ok, _} <- EngineApi.confirm_room(head_actor, room["id"]) do
       :ok
     end
   end
+
+  # editing a confirmed ballot: the lock/unlock dance is internal —
+  # the head just edits, cab unconfirms, the resubmission atomically
+  # replaces the ballot (never wiped) and it re-confirms right after
+  defp maybe_unconfirm(head_actor, %{"id" => id, "status" => "confirmed"}),
+    do: EngineApi.unconfirm_room(head_actor, id)
+
+  defp maybe_unconfirm(_head_actor, _room), do: {:ok, :open}
 
   @doc "Is this user the room's chair (the signed-up judge)?"
   def room_chair?(room, %User{node_user_id: node_user_id}) do
@@ -712,10 +696,17 @@ defmodule Cab.Sessions do
 
   def room_chair?(_room, _user), do: false
 
+  # a confirmed ballot is the head's to edit; otherwise chair or head
+  defp authorize_ballot(%{"status" => "confirmed"}, %User{} = user, club) do
+    if Clubs.covers?(Clubs.role_for(club, user), :owner),
+      do: :ok,
+      else: {:error, :forbidden}
+  end
+
   defp authorize_ballot(room, %User{} = user, club) do
     cond do
       room_chair?(room, user) -> :ok
-      Clubs.role_for(club, user) == :owner -> :ok
+      Clubs.covers?(Clubs.role_for(club, user), :owner) -> :ok
       true -> {:error, :forbidden}
     end
   end

@@ -16,7 +16,7 @@ defmodule CabWeb.ClubPublicHTML do
       active="club"
     >
       <.chrome here={@club.name}>
-        <:seg :if={@club_role == :owner} href={~p"/c/#{@club.uuid}/owner"}>
+        <:seg :if={@club_role in [:owner, :admin]} href={~p"/c/#{@club.uuid}/owner"}>
           Edit club
         </:seg>
         <:seg :if={@club_role == :public and is_nil(@current_user)} href={~p"/signin"} primary>

@@ -578,43 +578,47 @@ defmodule Cab.SessionsTest do
     assert {:error, "this session has no rooms" <> _} = Sessions.delete_rooms(head, session)
   end
 
-  test "unlock_room unconfirms a confirmed room, no-ops on completed", %{head: head, club: club} do
+  test "editing a confirmed ballot: head only, unconfirm + replace + reconfirm, never wiped",
+       %{head: head, club: club} do
+    judge = user_fixture(%{node_user_id: 77})
     session = session_fixture(club, engine_event_id: 11)
     test_pid = self()
+    confirmed = %{engine_room() | "status" => "confirmed"}
 
-    room_stub = fn status ->
-      stub(fn conn, _params ->
-        case {conn.method, conn.request_path} do
-          {"GET", "/api/events/11/rounds"} ->
-            ok(conn, [%{"id" => 21, "sequence" => 1}])
+    stub(fn conn, params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
 
-          {"GET", "/api/rounds/21/rooms"} ->
-            ok(conn, [%{"id" => 71, "status" => status}])
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [confirmed])
 
-          {"PATCH", "/api/rooms/71/" <> step} ->
-            send(test_pid, {:step, step})
-            Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
-        end
-      end)
-    end
+        {"PATCH", "/api/rooms/71/unconfirm"} ->
+          send(test_pid, {:unconfirmed, claims(conn)})
+          Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
 
-    room_stub.("confirmed")
-    assert :ok = Sessions.unlock_room(head, session, 71)
-    assert_received {:step, "unconfirm"}
+        {"POST", "/api/rooms/71/scores"} ->
+          send(test_pid, {:scores, params})
+          Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
 
-    # completed = already editable; the ballot is never wiped
-    room_stub.("completed")
-    assert :ok = Sessions.unlock_room(head, session, 71)
-    refute_received {:step, _}
+        {"PATCH", "/api/rooms/71/confirm"} ->
+          send(test_pid, :confirmed)
+          Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
+      end
+    end)
 
-    room_stub.("pending")
-    assert {:error, message} = Sessions.unlock_room(head, session, 71)
-    assert message =~ "room is pending"
+    scores = ballot_scores([{1, 151.5}, {2, 157.5}, {3, 149.5}, {4, 147.5}])
 
-    room_stub.("confirmed")
+    # the chair cannot edit once confirmed — the ballot is the head's
+    assert {:error, :forbidden} = Sessions.submit_ballot(judge, session, 71, scores)
+    refute_received {:unconfirmed, _}
 
-    assert {:error, "room 72 is not part of this session"} =
-             Sessions.unlock_room(head, session, 72)
+    # the head edits: cab unconfirms as the head, the resubmission
+    # replaces the ballot atomically and it re-confirms right after
+    assert :ok = Sessions.submit_ballot(head, session, 71, scores)
+    assert_received {:unconfirmed, %{"id" => 9}}
+    assert_received {:scores, %{"teamRankings" => [_ | _]}}
+    assert_received :confirmed
   end
 
   test "cancel archives the engine event and removes the gateway row",
