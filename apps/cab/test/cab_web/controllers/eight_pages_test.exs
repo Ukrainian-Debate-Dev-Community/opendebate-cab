@@ -262,7 +262,7 @@ defmodule CabWeb.EightPagesTest do
       # three tabs at club scope — Clubs is global-only
       assert html =~ ~s(id="standings-tabs")
 
-      for tab <- ~w(teams speakers judges) do
+      for tab <- ~w(teams speakers adjudicators) do
         assert html =~ ~s(href="/c/#{club.uuid}/standings/#{tab}")
       end
 
@@ -296,8 +296,8 @@ defmodule CabWeb.EightPagesTest do
          %{conn: conn, club: club} do
       stub_calculated()
 
-      judges = conn |> get(~p"/c/#{club.uuid}/standings/judges") |> html_response(200)
-      assert judges =~ ~s(id="standings-judges")
+      judges = conn |> get(~p"/c/#{club.uuid}/standings/adjudicators") |> html_response(200)
+      assert judges =~ ~s(id="standings-adjudicators")
       assert judges =~ "Petro"
       assert judges =~ "Rooms adjudicated"
       assert judges =~ "Avg feedback"

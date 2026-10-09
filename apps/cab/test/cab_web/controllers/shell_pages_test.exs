@@ -292,7 +292,7 @@ defmodule CabWeb.ShellPagesTest do
       html = conn |> get(~p"/standings/teams") |> html_response(200)
       assert html =~ ~s(id="standings-tabs")
 
-      for tab <- ~w(teams speakers judges clubs) do
+      for tab <- ~w(teams speakers adjudicators clubs) do
         assert html =~ ~s(href="/standings/#{tab}")
       end
 
@@ -304,7 +304,7 @@ defmodule CabWeb.ShellPagesTest do
       assert speakers =~ "Anna Kovalenko"
       assert speakers =~ "101.53"
 
-      judges = conn |> get(~p"/standings/judges") |> html_response(200)
+      judges = conn |> get(~p"/standings/adjudicators") |> html_response(200)
       assert judges =~ "Petro"
       assert judges =~ "Rooms adjudicated"
 

@@ -243,7 +243,7 @@ defmodule CabWeb.OwnerController do
 
   # the dnd page posts rooms[i][og|oo|cg|co][1|2] + rooms[i][judge]
   # (empty slots post ""); the API takes the canonical
-  # {"judge_participant_id", "teams"} shape directly. Rows left
+  # {"adjudicator_participant_id", "teams"} shape directly. Rows left
   # entirely empty (an unused "+ room" row) are dropped.
   defp compose_spec(%{} = rooms) do
     rooms
@@ -255,7 +255,7 @@ defmodule CabWeb.OwnerController do
     end)
     |> Enum.map(fn {_index, room} ->
       %{
-        "judge_participant_id" => presence(room["judge"]),
+        "adjudicator_participant_id" => presence(room["judge"]),
         "teams" =>
           for side <- ~w(og oo cg co) do
             team = room[side] || %{}
@@ -271,7 +271,7 @@ defmodule CabWeb.OwnerController do
 
   defp compose_spec(other), do: other
 
-  defp empty_room?(%{"judge_participant_id" => nil, "teams" => teams}),
+  defp empty_room?(%{"adjudicator_participant_id" => nil, "teams" => teams}),
     do: Enum.all?(teams, &(&1 == []))
 
   defp empty_room?(_room), do: false

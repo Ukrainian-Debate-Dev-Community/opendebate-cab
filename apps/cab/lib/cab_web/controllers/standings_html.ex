@@ -46,6 +46,6 @@ defmodule CabWeb.StandingsHTML do
 
   defp tab_label("teams"), do: "Teams"
   defp tab_label("speakers"), do: "Speakers"
-  defp tab_label("judges"), do: "Adjudicators"
+  defp tab_label("adjudicators"), do: "Adjudicators"
   defp tab_label("clubs"), do: "Clubs"
 end

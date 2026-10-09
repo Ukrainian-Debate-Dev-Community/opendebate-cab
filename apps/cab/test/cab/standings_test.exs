@@ -87,7 +87,7 @@ defmodule Cab.StandingsTest do
     assert [%{"name" => "Anna Kovalenko", "total_points" => 101.53}] = Standings.speakers(scope)
 
     assert [%{"name" => "Petro", "rooms_judged" => 2, "avg_feedback" => 8.5}] =
-             Standings.judges(scope)
+             Standings.adjudicators(scope)
   end
 
   test "clubs rows are plain counts from cab's records; archived and private clubs absent" do

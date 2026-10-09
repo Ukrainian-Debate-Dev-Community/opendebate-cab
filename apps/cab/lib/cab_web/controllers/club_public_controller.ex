@@ -21,13 +21,13 @@ defmodule CabWeb.ClubPublicController do
     )
   end
 
-  # GET /c/:club_uuid/standings[/:tab] — teams, speakers, judges
+  # GET /c/:club_uuid/standings[/:tab] — teams, speakers, adjudicators
   # scoped to this club (RULE 0 passthrough); Clubs is global-only
   def standings(conn, params) do
     club = conn.assigns.club
 
     case params["tab"] || "teams" do
-      tab when tab in ~w(teams speakers judges) ->
+      tab when tab in ~w(teams speakers adjudicators) ->
         own = own_sessions(club, conn)
 
         scope =
@@ -135,7 +135,7 @@ defmodule CabWeb.ClubPublicController do
   defp standings_rows(_tab, nil), do: []
   defp standings_rows("teams", scope), do: Standings.teams(scope)
   defp standings_rows("speakers", scope), do: Standings.speakers(scope)
-  defp standings_rows("judges", scope), do: Standings.judges(scope)
+  defp standings_rows("adjudicators", scope), do: Standings.adjudicators(scope)
 
   # GET /c/:club_uuid/join — the join-request FORM (required: about
   # me + contact). Never a bare button.

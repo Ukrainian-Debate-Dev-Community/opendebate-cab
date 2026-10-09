@@ -1,6 +1,6 @@
 defmodule CabWeb.StandingsController do
   @moduledoc """
-  `/standings/{teams|speakers|judges|clubs}` — the global standings,
+  `/standings/{teams|speakers|adjudicators|clubs}` — the global standings,
   RULE 0: engine output verbatim for the latest finished session of a
   public club (teams, speakers, judge stats); clubs = plain counts from
   cab's records. No cab-side math.
@@ -12,7 +12,7 @@ defmodule CabWeb.StandingsController do
 
   def index(conn, _params), do: redirect(conn, to: ~p"/standings/teams")
 
-  def show(conn, %{"tab" => tab}) when tab in ~w(teams speakers judges) do
+  def show(conn, %{"tab" => tab}) when tab in ~w(teams speakers adjudicators) do
     scope = Standings.latest_finished()
 
     conn
@@ -41,5 +41,5 @@ defmodule CabWeb.StandingsController do
   defp rows(_tab, nil), do: []
   defp rows("teams", scope), do: Standings.teams(scope)
   defp rows("speakers", scope), do: Standings.speakers(scope)
-  defp rows("judges", scope), do: Standings.judges(scope)
+  defp rows("adjudicators", scope), do: Standings.adjudicators(scope)
 end

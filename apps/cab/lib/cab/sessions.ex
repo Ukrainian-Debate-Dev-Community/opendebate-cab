@@ -395,7 +395,7 @@ defmodule Cab.Sessions do
   defp draft_spec(draft, signups) do
     for room <- 1..room_count(signups) do
       %{
-        "judge_participant_id" => draft["#{room}:judge"],
+        "adjudicator_participant_id" => draft["#{room}:judge"],
         "teams" =>
           for side <- ~w(og oo cg co) do
             Enum.reject([draft["#{room}:#{side}:1"], draft["#{room}:#{side}:2"]], &is_nil/1)
@@ -762,7 +762,7 @@ defmodule Cab.Sessions do
   @doc """
   EXPLICIT room composition: the head says who goes where.
   `rooms_spec` is a list of
-  `%{"judge_participant_id" => id, "teams" => [[pid] | [pid, pid] x #{@teams_per_room}]}`
+  `%{"adjudicator_participant_id" => id, "teams" => [[pid] | [pid, pid] x #{@teams_per_room}]}`
   (atom keys and integer-strings accepted) — a 1-speaker team is a
   declared iron. Only while `:closed`. People are ALWAYS placed by
   the head; cab never pairs anyone automatically. Validated
@@ -798,7 +798,7 @@ defmodule Cab.Sessions do
     wanted =
       Map.merge(
         Map.new(Enum.flat_map(rooms, &List.flatten(&1.teams)), &{&1, "speaker"}),
-        Map.new(rooms, &{&1.judge_participant_id, "adjudicator"})
+        Map.new(rooms, &{&1.adjudicator_participant_id, "adjudicator"})
       )
 
     signups
@@ -837,7 +837,7 @@ defmodule Cab.Sessions do
         }
       end)
 
-    judges = Enum.map(rooms, &by_id[&1.judge_participant_id])
+    judges = Enum.map(rooms, &by_id[&1.adjudicator_participant_id])
     create_session_rooms(actor, state.round, dedupe_names(specs), judges)
   end
 
@@ -847,7 +847,7 @@ defmodule Cab.Sessions do
 
     with {:ok, rooms} <- Enum.reduce_while(rooms_spec, {:ok, []}, &parse_room/2) do
       rooms = Enum.reverse(rooms)
-      judges = Enum.map(rooms, & &1.judge_participant_id)
+      judges = Enum.map(rooms, & &1.adjudicator_participant_id)
       pids = Enum.flat_map(rooms, fn room -> List.flatten(room.teams) end)
 
       cond do
@@ -868,7 +868,7 @@ defmodule Cab.Sessions do
     do: {:error, %{rooms: "rooms must be a non-empty list of room objects"}}
 
   defp parse_room(%{} = room, {:ok, acc}) do
-    judge = composition_int(composition_field(room, :judge_participant_id))
+    judge = composition_int(composition_field(room, :adjudicator_participant_id))
 
     teams =
       room
@@ -881,7 +881,7 @@ defmodule Cab.Sessions do
 
     cond do
       not is_integer(judge) ->
-        {:halt, {:error, %{rooms: "every room needs a judge_participant_id"}}}
+        {:halt, {:error, %{rooms: "every room needs a adjudicator_participant_id"}}}
 
       length(teams) != @teams_per_room or
           Enum.any?(teams, fn team ->
@@ -898,7 +898,7 @@ defmodule Cab.Sessions do
           }}}
 
       true ->
-        {:cont, {:ok, [%{judge_participant_id: judge, teams: teams} | acc]}}
+        {:cont, {:ok, [%{adjudicator_participant_id: judge, teams: teams} | acc]}}
     end
   end
 

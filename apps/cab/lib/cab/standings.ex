@@ -20,7 +20,7 @@ defmodule Cab.Standings do
   alias Cab.{EngineApi, Repo, Sessions}
   alias Cab.Sessions.Session
 
-  @tabs ~w(teams speakers judges clubs)
+  @tabs ~w(teams speakers adjudicators clubs)
 
   def tabs, do: @tabs
 
@@ -91,7 +91,7 @@ defmodule Cab.Standings do
   (`GET /events/:id/stats/judges`): `[{id, name, rooms_judged,
   avg_feedback}]`, rule 0.
   """
-  def judges(%{actor: actor, session: session}) do
+  def adjudicators(%{actor: actor, session: session}) do
     case EngineApi.judge_stats(actor, session.engine_event_id) do
       {:ok, rows} -> rows
       {:error, _message} -> []

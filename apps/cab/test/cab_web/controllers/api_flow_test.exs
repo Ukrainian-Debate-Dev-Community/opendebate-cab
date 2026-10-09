@@ -364,7 +364,7 @@ defmodule CabWeb.ApiFlowTest do
     assert conn
            |> log_in(head)
            |> post(~p"/api/v1/sessions/#{session.uuid}/rooms", %{
-             "rooms" => [%{"judge_participant_id" => 99, "teams" => [[1], [2], [3], [4]]}]
+             "rooms" => [%{"adjudicator_participant_id" => 99, "teams" => [[1], [2], [3], [4]]}]
            })
            |> json_response(409)
            |> Map.fetch!("error") =~ "after sign-ups close"
@@ -487,7 +487,7 @@ defmodule CabWeb.ApiFlowTest do
     composition = %{
       "rooms" => [
         %{
-          "judge_participant_id" => 99,
+          "adjudicator_participant_id" => 99,
           "teams" => [[1, 2], [3, 4], [5, 6], [7, 8]]
         }
       ]
@@ -544,7 +544,8 @@ defmodule CabWeb.ApiFlowTest do
     assert created["rooms_created"] == 1
 
     # a bad composition is a 422 with the reason under details.rooms
-    bad = put_in(composition["rooms"], [%{"judge_participant_id" => 1, "teams" => [[1, 2]]}])
+    bad =
+      put_in(composition["rooms"], [%{"adjudicator_participant_id" => 1, "teams" => [[1, 2]]}])
 
     assert conn
            |> log_in(head)

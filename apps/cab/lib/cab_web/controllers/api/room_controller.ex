@@ -12,7 +12,7 @@ defmodule CabWeb.Api.RoomController do
   # engine additionally enforces chair rights on its side
   plug ClubScope, [source: :room_session, require: :member] when action in [:motion, :ballot]
 
-  # POST /api/v1/sessions/:uuid/rooms {"rooms": [{"judge_participant_id",
+  # POST /api/v1/sessions/:uuid/rooms {"rooms": [{"adjudicator_participant_id",
   # "teams": [[pid,pid] x4]}]} — the head's composition; the spec is
   # REQUIRED, cab never pairs anyone automatically
   def create(conn, %{"rooms" => rooms_spec}) do

@@ -332,7 +332,7 @@ defmodule Cab.SessionsTest do
 
     composition = [
       %{
-        "judge_participant_id" => 99,
+        "adjudicator_participant_id" => 99,
         "teams" => [[8, 1], [2, 7], [3, 6], [4, 5]]
       }
     ]
@@ -352,7 +352,7 @@ defmodule Cab.SessionsTest do
     # single speaker goes in alone (speakers 4 and 5 sit out)
     iron_composition = [
       %{
-        "judge_participant_id" => 99,
+        "adjudicator_participant_id" => 99,
         "teams" => [[8, 1], [2, 7], [3, 6], [5]]
       }
     ]
@@ -393,7 +393,9 @@ defmodule Cab.SessionsTest do
     end)
 
     # speaker 8 chairs, the signed-up judge 99 speaks in an iron
-    composition = [%{"judge_participant_id" => 8, "teams" => [[1, 2], [3, 4], [5, 6], [99]]}]
+    composition = [
+      %{"adjudicator_participant_id" => 8, "teams" => [[1, 2], [3, 4], [5, 6], [99]]}
+    ]
 
     assert {:ok, 1} = Sessions.make_rooms(head, session, composition)
     assert_received {:role, 8, "adjudicator"}
@@ -409,7 +411,7 @@ defmodule Cab.SessionsTest do
     stub(fn conn, _params -> state_stub(conn, speakers ++ judges) end)
 
     composition = [
-      %{"judge_participant_id" => 99, "teams" => [[1, 2], [3, 4], [5, 6], [7, 8]]}
+      %{"adjudicator_participant_id" => 99, "teams" => [[1, 2], [3, 4], [5, 6], [7, 8]]}
     ]
 
     assert {:error, :conflict, message} = Sessions.make_rooms(head, session, composition)
@@ -424,7 +426,7 @@ defmodule Cab.SessionsTest do
     stub(fn conn, _params -> state_stub(conn, speakers ++ judges) end)
 
     compose = fn judge, teams ->
-      [%{"judge_participant_id" => judge, "teams" => teams}]
+      [%{"adjudicator_participant_id" => judge, "teams" => teams}]
     end
 
     full = [[1, 2], [3, 4], [5, 6], [7, 8]]
@@ -467,7 +469,7 @@ defmodule Cab.SessionsTest do
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, [%{"teams" => full}])
 
-    assert message =~ "judge_participant_id"
+    assert message =~ "adjudicator_participant_id"
 
     assert {:error, %{rooms: _}} = Sessions.make_rooms(head, session, [])
     assert {:error, %{rooms: _}} = Sessions.make_rooms(head, session, "nope")

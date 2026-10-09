@@ -6,7 +6,7 @@
 #
 # Covers: club seeding, join requests and approval, opening a session,
 # role-less sign-ups, closing, composing rooms (the seat decides who
-# judges), rebuilding them, motions with the prep clock, ballots with
+# adjudicates), rebuilding them, motions with the prep clock, ballots with
 # the tie gate and head-only edits of a confirmed ballot, an iron
 # team, waitlist-only removal, finishing with the recorded winner,
 # standings, My page, guests via the shared URL and personal links (a
@@ -201,7 +201,7 @@ say "explicit composition (the head places everyone), rebuild"
 assert head GET "/api/v1/sessions/$SESSION" 200 '.stage' closed
 # registration carries no role: the head decides j1 chairs, s1-s8 speak
 COMPOSE=$(jq -c '{rooms: [{
-  judge_participant_id: ([.signups[] | select(.display_name | endswith("-j1")) | .id][0]),
+  adjudicator_participant_id: ([.signups[] | select(.display_name | endswith("-j1")) | .id][0]),
   teams: ([.signups[] | select(.display_name | test("-s[1-8]$")) | .id][0:8]
           | [.[0:2], .[2:4], .[4:6], .[6:8]])}]}' "$BODY")
 
@@ -318,10 +318,10 @@ grep -q "$WINNER_HTML" "$BODY" || fail "teams tab misses the winning team (engin
 grep -qi "win rate\|winrate\|wins<" "$BODY" && fail "standings page carries cab-side win math"
 html_ok "club standings teams (rule 0)" GET "/c/$CLUB/standings/teams" 200
 
-req anon GET "/c/$CLUB/standings/judges"
-[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/standings/judges: status $STATUS, want 200"
-grep -q "Rooms adjudicated" "$BODY" || fail "judges tab misses the plain chair count"
-html_ok "club standings judges (plain count)" GET "/c/$CLUB/standings/judges" 200
+req anon GET "/c/$CLUB/standings/adjudicators"
+[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/standings/adjudicators: status $STATUS, want 200"
+grep -q "Rooms adjudicated" "$BODY" || fail "adjudicators tab misses the plain chair count"
+html_ok "club standings adjudicators (plain count)" GET "/c/$CLUB/standings/adjudicators" 200
 
 # global standings: the same four tabs, platform-wide latest finished
 req anon GET "/standings/teams"
@@ -376,7 +376,7 @@ assert head GET "/api/v1/sessions/$IRON_SESSION" 200 '.signups | length' 10
 IRON_COMPOSE=$(jq -c '
   ([.signups[] | select(.display_name | test("-s[1-8]$")) | .id] | sort) as $s
   | (.signups[] | select(.display_name | endswith("-j1")) | .id) as $j
-  | {rooms: [{judge_participant_id: $j,
+  | {rooms: [{adjudicator_participant_id: $j,
               teams: [[$s[0], $s[1]], [$s[2], $s[3]], [$s[4], $s[5]], [$s[6]]]}]}' "$BODY")
 assert head POST "/api/v1/sessions/$IRON_SESSION/rooms" 201 '.rooms_created' 1 "$IRON_COMPOSE"
 assert head GET "/api/v1/sessions/$IRON_SESSION" 200 '.stage' running
@@ -564,7 +564,7 @@ assert head GET "/api/v1/sessions/$GSESSION" 200 '.signups | length' 9
 GCOMPOSE=$(jq -c '
   ([.signups[] | select(.display_name != "Guest Judy") | .id] | sort) as $s
   | (.signups[] | select(.display_name == "Guest Judy") | .id) as $j
-  | {rooms: [{judge_participant_id: $j,
+  | {rooms: [{adjudicator_participant_id: $j,
               teams: [$s[0:2], $s[2:4], $s[4:6], $s[6:8]]}]}' "$BODY")
 assert head POST "/api/v1/sessions/$GSESSION/rooms" 201 '.rooms_created' 1 "$GCOMPOSE"
 assert head GET "/api/v1/sessions/$GSESSION" 200 '.stage' running
