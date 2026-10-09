@@ -236,9 +236,7 @@ const drawCard = (canvas, d, draw = true) => {
   font(800, 40)
   for (const l of wrapLines(ctx, d.session || "", inner)) { text(l, pad, y, CARD.ink); y += 50 }
   font(500, 30); text(`${d.club}, ${formatWhen(d.date, "date")}`, pad, y, CARD.muted); y += 44
-  // the room's own start (end of prep) wins over the session's planned one
-  const starts = d.prep_until || d.starts
-  if (starts) { font(700, 30); text(`Starts at ${clock(starts)}`, pad, y, CARD.ink); y += 44 }
+  if (d.starts) { font(700, 30); text(`Starts at ${clock(d.starts)}`, pad, y, CARD.ink); y += 44 }
   y += 20
 
   if (d.motion) {
@@ -249,6 +247,7 @@ const drawCard = (canvas, d, draw = true) => {
       y += 6; font(400, 26)
       for (const l of wrapLines(ctx, d.infoslide, inner)) { text(l, pad, y, CARD.muted); y += 34 }
     }
+    if (d.prep_until) { y += 8; font(600, 26); text(`Prep until ${clock(d.prep_until)}`, pad, y, CARD.brand); y += 34 }
     y += 30
   } else {
     font(500, 28); text("Motion: not published yet", pad, y, CARD.muted); y += 62
