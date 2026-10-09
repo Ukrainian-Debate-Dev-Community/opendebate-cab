@@ -92,10 +92,10 @@ defmodule CabWeb.PrivacyMatrixTest do
           ok(conn, [%{"id" => 22, "sequence" => 1}])
 
         {"GET", "/api/events/11/participants"} ->
-          ok(conn, [%{"id" => 41, "user_id" => 777, "role" => "speaker", "display_name" => "G"}])
+          ok(conn, [%{"id" => 41, "user_id" => nil, "role" => "speaker", "display_name" => "G"}])
 
         {"GET", "/api/events/12/participants"} ->
-          ok(conn, [%{"id" => 42, "user_id" => 888, "role" => "speaker", "display_name" => "O"}])
+          ok(conn, [%{"id" => 42, "user_id" => nil, "role" => "speaker", "display_name" => "O"}])
 
         {"GET", "/api/rounds/21/rooms"} ->
           ok(conn, [room(71, "confirmed", 44)])
@@ -155,10 +155,11 @@ defmodule CabWeb.PrivacyMatrixTest do
 
     member = user_fixture(%{node_user_id: 44})
     membership_fixture(member, club)
-    guest_played = user_fixture(%{node_user_id: 777, username: "guest-played"})
-    link_fixture(guest_played, finished)
-    guest_other = user_fixture(%{node_user_id: 888, username: "guest-other"})
-    link_fixture(guest_other, live)
+    # guests have no engine account: their link names their place
+    guest_played = user_fixture(%{node_user_id: nil, username: "guest-played"})
+    link_fixture(guest_played, finished, participant_id: 41)
+    guest_other = user_fixture(%{node_user_id: nil, username: "guest-other"})
+    link_fixture(guest_other, live, participant_id: 42)
 
     %{
       club: club,

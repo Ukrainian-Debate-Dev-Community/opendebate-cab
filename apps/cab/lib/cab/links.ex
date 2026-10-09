@@ -1,12 +1,13 @@
 defmodule Cab.Links do
   @moduledoc """
-  Guest links (M6 / launch-timeline L2): people register for a club
-  session WITHOUT an account via the shared `/r/:session_uuid` URL
-  the head gives out. Each guest becomes a gateway user (no OAuth
-  identity) with an engine shadow counterpart, signed up through the
-  proven `Cab.Sessions.signup/3` path, and receives a permanent
-  personal link row whose `code` IS their access to that club/session
-  (and, post-launch, the claim token — redemption is out of scope).
+  Guest links: people register for a club session WITHOUT an account
+  via the shared `/r/:session_uuid` URL the head gives out, or the
+  head adds them by name. Each guest is an engine participant with no
+  engine account behind it, and a gateway user (no OAuth identity)
+  holding a personal link whose `code` IS their access to that
+  session. The link keeps the participant id and the engine's
+  one-time claim token, which hands the participant to the person's
+  own account once they sign up.
 
   Link identity never satisfies the signed-in member/owner trees:
   guests hold no membership anywhere, so `Clubs.role_for/2` keeps
@@ -74,23 +75,33 @@ defmodule Cab.Links do
   def guest?(_user_id), do: false
 
   @doc """
-  CLAIM: a signed-in account takes over a guest's history. The engine
-  moves the guest's participations onto the account (renamed to the
-  account's display name) and anonymises the guest's engine user; cab
-  then deletes the guest account, and the personal link with it.
-  Returns `{:ok, moved}` or `{:error, message}`.
+  CLAIM: a signed-in account takes over a guest's place. The engine
+  hands the guest's participant to the account with the link's
+  one-time token, and the place takes the account's name; cab then
+  deletes the guest account, and the personal link with it.
+  Returns `{:ok, 1}` or `{:error, message}`.
   """
-  def claim(%Link{user: %User{} = guest}, %User{} = account) do
+  def claim(%Link{user: %User{} = guest} = link, %User{} = account) do
     cond do
       guest.id == account.id or guest?(account.id) ->
         {:error, "Sign in with your own account to claim a guest history."}
 
+      is_nil(link.engine_participant_id) or is_nil(link.claim_token) ->
+        {:error, "This personal link cannot be claimed."}
+
       true ->
-        with %User{node_user_id: target} when is_integer(target) <-
+        with %User{node_user_id: actor} when is_integer(actor) <-
                Cab.Accounts.ensure_node_user(account),
-             {:ok, moved} <- merge_into(guest, target, account) do
+             {:ok, _participant} <-
+               Cab.EngineApi.claim_participant(
+                 actor,
+                 link.engine_participant_id,
+                 link.claim_token
+               ) do
+          rename(link, account)
           Repo.delete(guest)
-          {:ok, moved}
+          Sessions.broadcast(link.session)
+          {:ok, 1}
         else
           %User{} -> {:error, "Something went wrong, try again."}
           error -> error
@@ -98,13 +109,15 @@ defmodule Cab.Links do
     end
   end
 
-  defp merge_into(%User{node_user_id: nil}, _target, _account), do: {:ok, 0}
-
-  defp merge_into(%User{node_user_id: source}, target, account) do
-    case Cab.EngineApi.merge_users(target, source, target, account.name || account.username) do
-      {:ok, %{"moved" => moved}} -> {:ok, moved}
-      {:ok, _other} -> {:ok, 0}
-      error -> error
+  # the claimed place carries the account's name from now on
+  defp rename(%Link{session: %Session{} = session} = link, account) do
+    with {:ok, head_actor} <- Cab.Clubs.club_actor(session_club(session)) do
+      Cab.EngineApi.update_participant(
+        head_actor,
+        session.engine_event_id,
+        link.engine_participant_id,
+        %{display_name: account.name || account.username}
+      )
     end
   end
 
@@ -124,9 +137,9 @@ defmodule Cab.Links do
   def find_by_pasted(_text), do: nil
 
   @doc ~S(The link's guest role in the session signups: "speaker" | "adjudicator" | nil.)
-  def role_in(%Link{user: %User{node_user_id: node_user_id}}, signups)
-      when is_integer(node_user_id) do
-    case Enum.find(signups, &(&1["user_id"] == node_user_id)) do
+  def role_in(%Link{engine_participant_id: participant_id}, signups)
+      when is_integer(participant_id) do
+    case Enum.find(signups, &(&1["id"] == participant_id)) do
       %{"role" => role} -> role
       nil -> nil
     end
@@ -140,28 +153,50 @@ defmodule Cab.Links do
 
   @doc """
   Registers a guest for the session: a guest gateway user (generated
-  username, the form's name as display name, NO oauth identity), the
-  engine signup through `Sessions.signup/2` (which provisions the
-  engine shadow user lazily and enforces the `:signup` stage gate),
-  and the personal link row. Returns `{:ok, link}` with the user
-  preloaded, `{:error, :conflict, message}` once sign-ups closed,
-  `{:error, %{name: message}}` for a blank name, or `{:error, message}`.
+  username, the form's name as display name, NO oauth identity), an
+  engine participant with no engine account (`Cab.Sessions.add_guest/2`,
+  which enforces the `:signup` stage gate), and the personal link row
+  keeping the participant and its claim token. Returns `{:ok, link}`
+  with the user preloaded, `{:error, :conflict, message}` once sign-ups
+  closed, `{:error, %{name: message}}` for a blank name, or
+  `{:error, message}`.
   """
   def register_guest(%Session{} = session, name) do
     with {:ok, name} <- validate_name(name),
          {:ok, guest} <- create_guest_user(name) do
-      case Sessions.signup(guest, session) do
-        {:ok, _participant} ->
-          issue(guest, session)
+      case Sessions.add_guest(session, name) do
+        {:ok, participant} ->
+          issue(guest, session, participant)
 
         error ->
-          # no orphan gateway rows for refused registrations (the
-          # engine shadow, if provisioned, stays — engine is frozen)
+          # no orphan gateway rows for refused registrations
           Repo.delete(guest)
           error
       end
     end
   end
+
+  @doc "The engine participants a guest holds through their active personal links."
+  def participant_ids(user_id) when is_integer(user_id) do
+    Repo.all(
+      from l in Link,
+        where:
+          l.user_id == ^user_id and is_nil(l.revoked_at) and not is_nil(l.engine_participant_id),
+        select: l.engine_participant_id
+    )
+  end
+
+  def participant_ids(_user_id), do: []
+
+  @doc "Does this guest hold a personal link for that session?"
+  def holds_session?(user_id, %Session{id: session_id}) when is_integer(user_id) do
+    Repo.exists?(
+      from l in Link,
+        where: l.user_id == ^user_id and l.session_id == ^session_id and is_nil(l.revoked_at)
+    )
+  end
+
+  def holds_session?(_user_id, _session), do: false
 
   @doc """
   Deletes a removed guest's cab account — their personal links go with
@@ -169,14 +204,17 @@ defmodule Cab.Links do
   real account is never touched: only a user holding links and no
   sign-in identity is a guest.
   """
-  def purge_guest(node_user_id) when is_integer(node_user_id) do
+  def purge_guest(participant_id) when is_integer(participant_id) do
     guest =
       Repo.one(
         from u in User,
           as: :user,
           where:
-            u.node_user_id == ^node_user_id and
-              exists(from l in Link, where: l.user_id == parent_as(:user).id) and
+            exists(
+              from l in Link,
+                where:
+                  l.user_id == parent_as(:user).id and l.engine_participant_id == ^participant_id
+            ) and
               not exists(from i in Cab.Accounts.Identity, where: i.user_id == parent_as(:user).id)
       )
 
@@ -184,10 +222,16 @@ defmodule Cab.Links do
     :ok
   end
 
-  def purge_guest(_node_user_id), do: :ok
+  def purge_guest(_participant_id), do: :ok
 
-  defp issue(%User{} = guest, %Session{} = session) do
-    %Link{user_id: guest.id, club_id: session_club(session).id, session_id: session.id}
+  defp issue(%User{} = guest, %Session{} = session, participant) do
+    %Link{
+      user_id: guest.id,
+      club_id: session_club(session).id,
+      session_id: session.id,
+      engine_participant_id: participant["id"],
+      claim_token: participant["raw_claim_token"]
+    }
     |> Link.changeset()
     |> Repo.insert()
     |> case do

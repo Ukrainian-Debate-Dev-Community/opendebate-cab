@@ -5,10 +5,14 @@ defmodule Cab.Links.Link do
   @code_bytes 24
 
   schema "links" do
-    # the code IS the credential (and, post-launch, the claim token):
-    # >= 24 bytes of url-safe randomness, generated server-side
+    # the code IS the credential: >= 24 bytes of url-safe randomness,
+    # generated server-side
     field :code, :string
     field :revoked_at, :utc_datetime
+    # the guest's engine participant (no engine account behind it) and
+    # the engine's one-time token that hands it to a real account
+    field :engine_participant_id, :integer
+    field :claim_token, :string, redact: true
 
     belongs_to :user, Cab.Accounts.User
     belongs_to :club, Cab.Clubs.Club

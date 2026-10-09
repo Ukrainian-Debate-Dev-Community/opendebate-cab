@@ -18,11 +18,8 @@ defmodule CabWeb.OwnerHTML do
     end)
   end
 
-  defp guest_link(%{"user_id" => node_id}, links) when is_integer(node_id) do
-    Enum.find(links, &(&1.user.node_user_id == node_id))
-  end
-
-  defp guest_link(_participant, _links), do: nil
+  defp guest_link(%{"id" => participant_id}, links),
+    do: Enum.find(links, &(&1.engine_participant_id == participant_id))
 
   defp person_kind(participant, links, members, invitations) do
     cond do
@@ -97,9 +94,4 @@ defmodule CabWeb.OwnerHTML do
     do: String.match?(String.trim(query), ~r/^[^@\s]+@[^@\s]+\.[^@\s]+$/)
 
   defp email_only?(_query, _suggestions), do: false
-
-  defp open_rooms(%{stage: :running, rooms: rooms}),
-    do: Enum.reject(rooms, &(&1["status"] in ["confirmed", "completed"]))
-
-  defp open_rooms(_state), do: []
 end

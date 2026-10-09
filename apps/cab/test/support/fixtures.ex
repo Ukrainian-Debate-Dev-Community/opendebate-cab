@@ -60,8 +60,16 @@ defmodule Cab.Fixtures do
   end
 
   @doc "A guest's personal link for the session (code generated server-side)."
-  def link_fixture(%User{} = guest, %Session{} = session) do
-    %Link{user_id: guest.id, club_id: session.club_id, session_id: session.id}
+  def link_fixture(%User{} = guest, %Session{} = session, opts \\ []) do
+    participant_id = Keyword.get(opts, :participant_id)
+
+    %Link{
+      user_id: guest.id,
+      club_id: session.club_id,
+      session_id: session.id,
+      engine_participant_id: participant_id,
+      claim_token: participant_id && "token-#{participant_id}"
+    }
     |> Link.changeset()
     |> Repo.insert!()
     |> Map.put(:user, guest)

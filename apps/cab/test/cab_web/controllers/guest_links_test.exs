@@ -101,19 +101,16 @@ defmodule CabWeb.GuestLinksTest do
       refute html =~ ~s(id="guest-register-form")
     end
 
-    test "POST creates guest user + engine signup + link and renders the personal URL",
+    test "POST creates guest user + engine participant + link and renders the personal URL",
          %{conn: conn, club: club} do
       session = session_fixture(club, engine_event_id: 11)
       test_pid = self()
 
       stub_stage([], [], fn conn, params ->
         case {conn.method, conn.request_path} do
-          {"POST", "/api/users/register"} ->
-            Req.Test.json(conn, %{"token" => Core.Engine.mint_token(777)})
-
           {"POST", "/api/events/11/participants"} ->
             send(test_pid, {:signup, params})
-            ok(conn, %{"id" => 41, "role" => params["role"]})
+            ok(conn, %{"id" => 41, "role" => params["role"], "raw_claim_token" => "tok-41"})
 
           _other ->
             nil
@@ -126,20 +123,23 @@ defmodule CabWeb.GuestLinksTest do
         |> post(~p"/r/#{session.uuid}", %{name: "Greta Guest", as: "speak"})
         |> html_response(200)
 
-      assert_received {:signup,
-                       %{"display_name" => "Greta Guest", "role" => "speaker", "user_id" => 777}}
+      # an engine participant with no engine account behind it
+      assert_received {:signup, %{"display_name" => "Greta Guest", "role" => "speaker"} = signup}
+      assert signup["user_id"] == nil
 
       assert [%Link{} = link] = Repo.all(Link)
       assert link.session_id == session.id
       assert link.club_id == club.id
       assert link.revoked_at == nil
+      assert link.engine_participant_id == 41
+      assert link.claim_token == "tok-41"
       # >= 24 bytes of url-safe randomness
       assert String.length(link.code) >= 32
 
       guest = Repo.get!(User, link.user_id)
       assert guest.name == "Greta Guest"
       assert String.starts_with?(guest.username, "guest-")
-      assert guest.node_user_id == 777
+      assert guest.node_user_id == nil
       # a guest has NO oauth identity
       refute Repo.exists?(from i in Cab.Accounts.Identity, where: i.user_id == ^guest.id)
 
@@ -187,15 +187,15 @@ defmodule CabWeb.GuestLinksTest do
 
   describe "personal link" do
     setup %{club: club} do
-      guest = user_fixture(%{node_user_id: 777, name: "Greta Guest", username: "guest-greta"})
+      guest = user_fixture(%{node_user_id: nil, name: "Greta Guest", username: "guest-greta"})
       session = session_fixture(club, engine_event_id: 11)
-      link = link_fixture(guest, session)
+      link = link_fixture(guest, session, participant_id: 41)
       %{guest: guest, session: session, link: link}
     end
 
     test "redirects to P6 with the guest identity; removed and unknown codes are 404",
          %{conn: conn, club: club, session: session, link: link} do
-      stub_stage([guest_signup(41, 777)])
+      stub_stage([guest_signup(41, nil)])
 
       conn = get(conn, ~p"/l/#{link.code}")
       assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
@@ -210,13 +210,13 @@ defmodule CabWeb.GuestLinksTest do
       assert conn |> get("/l/#{Cab.Links.Link.generate_code()}") |> response(404)
 
       # a removed guest's account goes, and the link with it
-      :ok = Links.purge_guest(777)
+      :ok = Links.purge_guest(41)
       assert conn |> get(~p"/l/#{link.code}") |> response(404)
     end
 
     test "a signed-in account is never replaced; the link offers to claim the history",
          %{conn: conn, club: club, session: session, link: link, head: head} do
-      stub_stage([guest_signup(41, 777)])
+      stub_stage([guest_signup(41, nil)])
 
       html =
         conn
@@ -229,16 +229,20 @@ defmodule CabWeb.GuestLinksTest do
       assert html =~ "/c/#{club.uuid}/s/#{session.uuid}"
     end
 
-    test "claiming moves the guest's history onto the account; guest and link are gone",
+    test "claiming hands the guest's place to the account by its token; guest and link are gone",
          %{conn: conn, link: link, guest: guest} do
       account = user_fixture(%{node_user_id: 501, name: "Real Greta"})
       test_pid = self()
 
-      stub_stage([guest_signup(41, 777)], [], fn conn, params ->
+      stub_stage([guest_signup(41, nil)], [], fn conn, params ->
         case {conn.method, conn.request_path} do
-          {"POST", "/api/admins/merge"} ->
-            send(test_pid, {:merge, params, conn})
-            ok(conn, %{"moved" => 1})
+          {"POST", "/api/users/claim-participant/41"} ->
+            send(test_pid, {:claim, params, conn})
+            ok(conn, %{"id" => 41, "user_id" => 501})
+
+          {"PUT", "/api/events/11/participants/41"} ->
+            send(test_pid, {:renamed, params["display_name"]})
+            ok(conn, %{})
 
           _other ->
             nil
@@ -253,17 +257,15 @@ defmodule CabWeb.GuestLinksTest do
       assert redirected_to(claimed) == "/me"
       assert Phoenix.Flash.get(claimed.assigns.flash, :info) =~ "now on your account"
 
-      assert_received {:merge, params, engine_conn}
-
-      assert params == %{
-               "sourceUserId" => 777,
-               "targetUserId" => 501,
-               "displayName" => "Real Greta"
-             }
-
+      # the engine's own one-time token, presented as the account
+      assert_received {:claim, %{"claim_token" => "token-41"}, engine_conn}
       ["Bearer " <> token] = Plug.Conn.get_req_header(engine_conn, "authorization")
       {:ok, claims} = Joken.verify(token, Joken.Signer.create("HS256", "test-engine-secret"))
-      assert claims["isAdmin"] == true
+      assert claims["id"] == 501
+      refute claims["isAdmin"]
+
+      # the place takes the account's name
+      assert_received {:renamed, "Real Greta"}
 
       assert Repo.get(User, guest.id) == nil
       assert conn |> get(~p"/l/#{link.code}") |> response(404)
@@ -273,14 +275,14 @@ defmodule CabWeb.GuestLinksTest do
          %{conn: conn, link: link, guest: guest} do
       account = user_fixture(%{node_user_id: 502})
 
-      stub_stage([guest_signup(41, 777)], [], fn conn, _params ->
+      stub_stage([guest_signup(41, nil)], [], fn conn, _params ->
         case {conn.method, conn.request_path} do
-          {"POST", "/api/admins/merge"} ->
+          {"POST", "/api/users/claim-participant/41"} ->
             conn
             |> Plug.Conn.put_resp_content_type("application/json")
             |> Plug.Conn.send_resp(
               409,
-              ~s({"status":"fail","message":"Both users are registered in event 11"})
+              ~s({"status":"fail","message":"This participant record has already been claimed."})
             )
 
           _other ->
@@ -289,7 +291,7 @@ defmodule CabWeb.GuestLinksTest do
       end)
 
       refused = conn |> log_in(account) |> post(~p"/l/#{link.code}/claim")
-      assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "event 11"
+      assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "already been claimed"
       assert Repo.get(User, guest.id)
     end
 
@@ -297,9 +299,10 @@ defmodule CabWeb.GuestLinksTest do
          %{conn: conn, link: link, guest: guest} do
       account = user_fixture(%{node_user_id: 503})
 
-      stub_stage([guest_signup(41, 777)], [], fn conn, _params ->
+      stub_stage([guest_signup(41, nil)], [], fn conn, _params ->
         case {conn.method, conn.request_path} do
-          {"POST", "/api/admins/merge"} -> ok(conn, %{"moved" => 1})
+          {"POST", "/api/users/claim-participant/41"} -> ok(conn, %{"id" => 41})
+          {"PUT", "/api/events/11/participants/41"} -> ok(conn, %{})
           _other -> nil
         end
       end)
@@ -321,10 +324,10 @@ defmodule CabWeb.GuestLinksTest do
 
     test "a guest identity cannot claim another guest's history",
          %{conn: conn, link: link} do
-      other = user_fixture(%{node_user_id: 889, username: "guest-other"})
+      other = user_fixture(%{node_user_id: nil, username: "guest-other"})
       session = Cab.Repo.preload(link, :session).session
-      link_fixture(other, session)
-      stub_stage([guest_signup(41, 777)])
+      link_fixture(other, session, participant_id: 99)
+      stub_stage([guest_signup(41, nil)])
 
       refused = conn |> log_in(other) |> post(~p"/l/#{link.code}/claim")
       assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "your own account"
@@ -332,9 +335,9 @@ defmodule CabWeb.GuestLinksTest do
 
     test "a guest device may switch to another guest's link",
          %{conn: conn, club: club, session: session, link: link} do
-      stub_stage([guest_signup(41, 777)])
-      other = user_fixture(%{node_user_id: 778, username: "guest-other"})
-      _other_link = link_fixture(other, session)
+      stub_stage([guest_signup(41, nil)])
+      other = user_fixture(%{node_user_id: nil, username: "guest-other"})
+      _other_link = link_fixture(other, session, participant_id: 99)
 
       conn = conn |> init_test_session(%{user_id: other.id}) |> get(~p"/l/#{link.code}")
 
@@ -344,7 +347,7 @@ defmodule CabWeb.GuestLinksTest do
 
     test "link identity never satisfies the signed-in trees or the owner API",
          %{conn: conn, club: club, session: session, link: link, guest: guest} do
-      stub_stage([guest_signup(41, 777)])
+      stub_stage([guest_signup(41, nil)])
 
       conn = get(conn, ~p"/l/#{link.code}")
       assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
@@ -365,7 +368,7 @@ defmodule CabWeb.GuestLinksTest do
          %{conn: conn, club: club, session: session, link: link} do
       test_pid = self()
 
-      stub_stage([guest_signup(41, 777)], [], fn conn, params ->
+      stub_stage([guest_signup(41, nil)], [], fn conn, params ->
         case {conn.method, conn.request_path} do
           {"PUT", "/api/events/11/participants/41"} ->
             send(test_pid, {:renamed, params["display_name"]})
@@ -397,7 +400,7 @@ defmodule CabWeb.GuestLinksTest do
 
     test "guest cannot cancel someone else's signup",
          %{conn: conn, club: club, session: session, link: link} do
-      stub_stage([guest_signup(41, 777), guest_signup(42, 888, "speaker", "Other")])
+      stub_stage([guest_signup(41, nil), guest_signup(42, 888, "speaker", "Other")])
 
       conn = get(conn, ~p"/l/#{link.code}")
       conn = conn |> anon() |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/signups/42/remove")
@@ -405,7 +408,7 @@ defmodule CabWeb.GuestLinksTest do
     end
 
     test "anonymous cancel hits the auth wall", %{conn: conn, club: club, session: session} do
-      stub_stage([guest_signup(41, 777)])
+      stub_stage([guest_signup(41, nil)])
 
       conn = conn |> anon() |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove")
       assert redirected_to(conn) == "/signin"
@@ -416,8 +419,9 @@ defmodule CabWeb.GuestLinksTest do
   # Guest judge ballot under /l/:code
   # ---------------------------------------------------------------
 
-  # a judging room 71 chaired by engine user `chair_user_id`
-  defp running_room(chair_user_id) do
+  # a judging room 71 chaired by participant `chair_id` (engine user
+  # `chair_user_id`, nil for a guest)
+  defp running_room(chair_user_id, chair_id \\ 90) do
     %{
       "id" => 71,
       "status" => "judging",
@@ -426,7 +430,7 @@ defmodule CabWeb.GuestLinksTest do
         %{
           "id" => 1,
           "role" => "chair",
-          "EventParticipant" => %{"id" => 90, "user_id" => chair_user_id}
+          "EventParticipant" => %{"id" => chair_id, "user_id" => chair_user_id}
         }
       ],
       "RoomTeams" =>
@@ -475,9 +479,9 @@ defmodule CabWeb.GuestLinksTest do
 
   describe "guest judge ballot" do
     setup %{club: club} do
-      guest = user_fixture(%{node_user_id: 777, name: "Judge Judy", username: "guest-judy"})
+      guest = user_fixture(%{node_user_id: nil, name: "Judge Judy", username: "guest-judy"})
       session = session_fixture(club, engine_event_id: 11)
-      link = link_fixture(guest, session)
+      link = link_fixture(guest, session, participant_id: 90)
       %{guest: guest, session: session, link: link}
     end
 
@@ -486,8 +490,8 @@ defmodule CabWeb.GuestLinksTest do
       test_pid = self()
 
       stub_stage(
-        [guest_signup(90, 777, "adjudicator", "Judge Judy")],
-        [running_room(777)],
+        [guest_signup(90, nil, "adjudicator", "Judge Judy")],
+        [running_room(nil)],
         fn conn, params ->
           case {conn.method, conn.request_path} do
             {"POST", "/api/rooms/71/scores"} ->
@@ -536,7 +540,7 @@ defmodule CabWeb.GuestLinksTest do
 
     test "a guest who is not the chair gets 403; a foreign room is 404",
          %{conn: conn, club: club, session: session, link: link} do
-      stub_stage([guest_signup(41, 777)], [running_room(555)])
+      stub_stage([guest_signup(41, nil)], [running_room(555, 91)])
 
       conn = get(conn, ~p"/l/#{link.code}")
 
@@ -552,6 +556,48 @@ defmodule CabWeb.GuestLinksTest do
       assert conn
              |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/99/ballot")
              |> response(404)
+
+      # nor may they set that room's motion
+      assert conn
+             |> anon()
+             |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/motion", %{
+               motion_text: "THW x"
+             })
+             |> response(403)
+    end
+
+    test "cab itself refuses a guest the motion of a room they do not chair",
+         %{session: session, guest: guest} do
+      # the engine would only see the club head, so the check is cab's
+      stub_stage([guest_signup(41, nil)], [running_room(555, 91)], fn conn, _params ->
+        if conn.request_path == "/api/rooms/71/motion", do: flunk("motion reached the engine")
+      end)
+
+      assert {:error, :forbidden} = Cab.Sessions.set_room_motion(guest, session, 71, "THW x")
+    end
+
+    test "the chair guest's motion goes to the engine as the club head",
+         %{session: session, guest: guest} do
+      test_pid = self()
+
+      stub_stage([guest_signup(90, nil, "adjudicator")], [running_room(nil)], fn conn, _params ->
+        case {conn.method, conn.request_path} do
+          {"POST", "/api/rooms/71/motion"} ->
+            send(test_pid, {:motion, conn})
+            ok(conn, %{})
+
+          _other ->
+            nil
+        end
+      end)
+
+      assert {:ok, _} = Cab.Sessions.set_room_motion(guest, session, 71, "THW trust guests")
+      assert_received {:motion, engine_conn}
+      ["Bearer " <> token] = Plug.Conn.get_req_header(engine_conn, "authorization")
+      {:ok, claims} = Joken.verify(token, Joken.Signer.create("HS256", "test-engine-secret"))
+      assert claims["id"] == 9
+      # no engine account was made for the guest along the way
+      assert Repo.get(User, guest.id).node_user_id == nil
     end
   end
 
@@ -562,10 +608,10 @@ defmodule CabWeb.GuestLinksTest do
   describe "owner registration surface" do
     test "owner page: the shared URL, the add form and one people table",
          %{conn: conn, club: club, head: head} do
-      guest = user_fixture(%{node_user_id: 777, name: "Greta Guest", username: "guest-greta"})
+      guest = user_fixture(%{node_user_id: nil, name: "Greta Guest", username: "guest-greta"})
       session = session_fixture(club, engine_event_id: 11)
-      link = link_fixture(guest, session)
-      stub_stage([guest_signup(41, 777)])
+      link = link_fixture(guest, session, participant_id: 41)
+      stub_stage([guest_signup(41, nil)])
 
       html =
         conn
@@ -595,12 +641,12 @@ defmodule CabWeb.GuestLinksTest do
 
     test "owner removes a guest: the name is scrubbed, account and link are gone",
          %{conn: conn, club: club, head: head} do
-      guest = user_fixture(%{node_user_id: 777, name: "Greta Guest"})
+      guest = user_fixture(%{node_user_id: nil, name: "Greta Guest"})
       session = session_fixture(club, engine_event_id: 11)
-      link = link_fixture(guest, session)
+      link = link_fixture(guest, session, participant_id: 41)
       test_pid = self()
 
-      stub_stage([guest_signup(41, 777)], [], fn conn, params ->
+      stub_stage([guest_signup(41, nil)], [], fn conn, params ->
         case {conn.method, conn.request_path} do
           {"PUT", "/api/events/11/participants/41"} ->
             send(test_pid, {:renamed, params["display_name"]})
@@ -632,12 +678,9 @@ defmodule CabWeb.GuestLinksTest do
 
       stub_stage([], [], fn conn, params ->
         case {conn.method, conn.request_path} do
-          {"POST", "/api/users/register"} ->
-            Req.Test.json(conn, %{"token" => Core.Engine.mint_token(778)})
-
           {"POST", "/api/events/11/participants"} ->
             send(test_pid, {:signup, params})
-            ok(conn, %{"id" => 42, "role" => params["role"]})
+            ok(conn, %{"id" => 42, "role" => params["role"], "raw_claim_token" => "tok-42"})
 
           _other ->
             nil
@@ -652,7 +695,8 @@ defmodule CabWeb.GuestLinksTest do
         })
 
       assert redirected_to(added) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-      assert_received {:signup, %{"role" => "speaker", "user_id" => 778}}
+      assert_received {:signup, %{"role" => "speaker"} = signup}
+      assert signup["user_id"] == nil
 
       assert [link] = Links.list_for_session(session)
       assert Phoenix.Flash.get(added.assigns.flash, :info) =~ "/l/#{link.code}"
@@ -674,10 +718,10 @@ defmodule CabWeb.GuestLinksTest do
   describe "links API" do
     test "index: 401 anonymous, 403 member, 200 head with roles",
          %{conn: conn, club: club, head: head} do
-      guest = user_fixture(%{node_user_id: 777, name: "Greta Guest"})
+      guest = user_fixture(%{node_user_id: nil, name: "Greta Guest"})
       session = session_fixture(club, engine_event_id: 11)
-      link = link_fixture(guest, session)
-      stub_stage([guest_signup(41, 777)])
+      link = link_fixture(guest, session, participant_id: 41)
+      stub_stage([guest_signup(41, nil)])
 
       assert conn
              |> get(~p"/api/v1/sessions/#{session.uuid}/links")
@@ -710,11 +754,8 @@ defmodule CabWeb.GuestLinksTest do
 
       stub_stage([], [], fn conn, params ->
         case {conn.method, conn.request_path} do
-          {"POST", "/api/users/register"} ->
-            Req.Test.json(conn, %{"token" => Core.Engine.mint_token(779)})
-
           {"POST", "/api/events/11/participants"} ->
-            ok(conn, %{"id" => 43, "role" => params["role"]})
+            ok(conn, %{"id" => 43, "role" => params["role"], "raw_claim_token" => "tok-43"})
 
           _other ->
             nil
@@ -761,11 +802,11 @@ defmodule CabWeb.GuestLinksTest do
 
     test "a guest leaves through DELETE signups: link dead, account gone",
          %{conn: conn, club: club, head: head} do
-      guest = user_fixture(%{node_user_id: 777, name: "Greta Guest"})
+      guest = user_fixture(%{node_user_id: nil, name: "Greta Guest"})
       session = session_fixture(club, engine_event_id: 11)
-      link = link_fixture(guest, session)
+      link = link_fixture(guest, session, participant_id: 41)
 
-      stub_stage([guest_signup(41, 777)], [], fn conn, _params ->
+      stub_stage([guest_signup(41, nil)], [], fn conn, _params ->
         case {conn.method, conn.request_path} do
           {"PUT", "/api/events/11/participants/41"} ->
             ok(conn, %{})

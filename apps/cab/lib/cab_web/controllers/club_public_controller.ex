@@ -117,6 +117,10 @@ defmodule CabWeb.ClubPublicController do
     end
   end
 
+  # a guest has no engine account: their personal link names the place
+  defp participant_of?(%{id: user_id}, %{session: session}),
+    do: Cab.Links.participant_ids(user_id) != [] and Cab.Links.holds_session?(user_id, session)
+
   defp participant_of?(_user, _scope), do: false
 
   defp deny_private_standings(conn, _club) do

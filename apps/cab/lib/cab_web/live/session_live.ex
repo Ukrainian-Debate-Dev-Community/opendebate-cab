@@ -71,10 +71,8 @@ defmodule CabWeb.SessionLive do
     end
   end
 
-  defp my_signup(%{signups: signups}, %User{node_user_id: node_user_id})
-       when is_integer(node_user_id) do
-    Enum.find(signups, &(&1["user_id"] == node_user_id))
-  end
+  defp my_signup(%{signups: signups}, %User{} = user),
+    do: Enum.find(signups, &Sessions.own_participant?(&1, user))
 
   defp my_signup(_state, _user), do: nil
 

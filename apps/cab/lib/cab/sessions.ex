@@ -530,6 +530,31 @@ defmodule Cab.Sessions do
   end
 
   @doc """
+  A guest registers through the shared URL or is added by name: an
+  engine participant with no engine account behind it, made as the
+  club head. Only while `:signup`. Returns the engine participant,
+  `raw_claim_token` included — the guest's link keeps both.
+  """
+  def add_guest(%Session{} = session, display_name) do
+    club = session_club(session)
+
+    result =
+      with {:ok, state} <- state(%{session | club: club}),
+           :ok <- require_stage(state, :signup),
+           {:ok, head_actor} <- Clubs.club_actor(club) do
+        EngineApi.add_participant(
+          head_actor,
+          session.engine_event_id,
+          display_name,
+          @signup_role,
+          nil
+        )
+      end
+
+    notify(result, session)
+  end
+
+  @doc """
   An invited person declines: off the waitlist their place goes like
   any removal; seated, the place stays (its scores are the session's
   record) but their name is overwritten. Runs as the club head.
@@ -621,7 +646,7 @@ defmodule Cab.Sessions do
              }),
            {:ok, _} <-
              EngineApi.delete_participant(head_actor, session.engine_event_id, participant_id) do
-        Cab.Links.purge_guest(participant["user_id"])
+        Cab.Links.purge_guest(participant["id"])
         Cab.Invitations.forget_participant(session, participant_id)
         :ok
       end
@@ -662,7 +687,7 @@ defmodule Cab.Sessions do
   defp authorize_remove(participant, %User{} = user, club) do
     cond do
       Clubs.covers?(Clubs.role_for(club, user), :owner) -> :ok
-      is_integer(user.node_user_id) and participant["user_id"] == user.node_user_id -> :ok
+      own_participant?(participant, user) -> :ok
       true -> {:error, :forbidden}
     end
   end
@@ -1053,7 +1078,7 @@ defmodule Cab.Sessions do
   """
   def set_room_motion(%User{} = user, %Session{} = session, room_id, motion_text, attrs \\ %{}) do
     result =
-      with {:ok, actor} <- actor_for(user) do
+      with {:ok, actor} <- acting_for(user, session, room_id) do
         EngineApi.set_room_motion(actor, room_id, motion_text, attrs)
       end
 
@@ -1087,7 +1112,7 @@ defmodule Cab.Sessions do
 
     result =
       with {:ok, entries} <- parse_ballot_entries(scores),
-           {:ok, actor} <- actor_for(user),
+           {:ok, actor} <- ballot_actor(user, club),
            {:ok, head_actor} <- Clubs.club_actor(club),
            {:ok, round_id} <- session_round_id(actor, session),
            {:ok, rooms} <- EngineApi.list_rooms(actor, round_id),
@@ -1120,12 +1145,10 @@ defmodule Cab.Sessions do
   end
 
   @doc "Is this user the room's chair (the signed-up judge)?"
-  def room_chair?(room, %User{node_user_id: node_user_id}) do
-    is_integer(node_user_id) and
-      Enum.any?(room["RoomAdjudicators"] || [], fn adj ->
-        adj["role"] == "chair" and
-          get_in(adj, ["EventParticipant", "user_id"]) == node_user_id
-      end)
+  def room_chair?(room, %User{} = user) do
+    Enum.any?(room["RoomAdjudicators"] || [], fn adj ->
+      adj["role"] == "chair" and own_participant?(adj["EventParticipant"] || %{}, user)
+    end)
   end
 
   def room_chair?(_room, _user), do: false
@@ -1596,6 +1619,38 @@ defmodule Cab.Sessions do
          Clubs.head_of(club).id != user.id,
        do: Clubs.club_actor(club),
        else: actor_for(user)
+  end
+
+  @doc """
+  Is this engine participant the user's own? A signed-in person by
+  their engine account; a guest by the participant their personal
+  link holds (a guest has no engine account).
+  """
+  def own_participant?(participant, %User{node_user_id: node_user_id} = user) do
+    (is_integer(node_user_id) and participant["user_id"] == node_user_id) or
+      participant["id"] in Cab.Links.participant_ids(user.id)
+  end
+
+  # a guest has no engine account: once cab has checked the seat, the
+  # engine call runs as the club head; everyone else acts as themselves
+  defp ballot_actor(%User{} = user, club) do
+    if Cab.Links.guest?(user.id), do: Clubs.club_actor(club), else: actor_for(user)
+  end
+
+  # the motion: a guest must chair the room (the engine would only see
+  # the head), everyone else is chair-checked by the engine itself
+  defp acting_for(%User{} = user, %Session{} = session, room_id) do
+    club = session_club(session)
+
+    if Cab.Links.guest?(user.id) do
+      with {:ok, state} <- state(%{session | club: club}),
+           %{} = room <- Enum.find(state.rooms, &(&1["id"] == room_id)) || {:error, :forbidden},
+           true <- room_chair?(room, user) || {:error, :forbidden} do
+        Clubs.club_actor(club)
+      end
+    else
+      actor_for(user)
+    end
   end
 
   defp actor_for(%User{} = user) do
