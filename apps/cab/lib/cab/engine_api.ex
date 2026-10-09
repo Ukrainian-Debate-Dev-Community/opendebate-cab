@@ -171,6 +171,15 @@ defmodule Cab.EngineApi do
   @bp_format_id 1
 
   # ---------------------------------------------------------------
+  # Public
+  # ---------------------------------------------------------------
+
+  @doc "The engine's public event list (the uadebate portal's tournament feed)."
+  def list_public_events(params \\ []) do
+    Engine.public_get("/api/events", params: params) |> unwrap()
+  end
+
+  # ---------------------------------------------------------------
   # Organisations (org creation is admin-only in the engine)
   # ---------------------------------------------------------------
 
