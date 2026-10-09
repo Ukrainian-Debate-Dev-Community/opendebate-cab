@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title default="cab" suffix=" | cab" phx-no-format>{assigns[:page_title]}</.live_title>
+    <script>
+      // the footer's theme choice, applied before the first paint
+      try {
+        const theme = localStorage.getItem("cab-theme")
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme
+      } catch (_e) {}
+    </script>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>

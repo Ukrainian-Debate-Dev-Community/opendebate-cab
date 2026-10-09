@@ -4,6 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{@heading} | cab</title>
+    <script>
+      try {
+        const theme = localStorage.getItem("cab-theme")
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme
+      } catch (_e) {}
+    </script>
     <link rel="stylesheet" href={~p"/assets/css/app.css"} />
   </head>
   <body>

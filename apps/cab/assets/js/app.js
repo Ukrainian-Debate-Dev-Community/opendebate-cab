@@ -290,6 +290,26 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
+// the footer's theme switch: light, dark, or follow the system
+const themeKey = "cab-theme"
+const markTheme = () => {
+  let current = "system"
+  try { current = localStorage.getItem(themeKey) || "system" } catch (_e) { /* private mode */ }
+  document.querySelectorAll("[data-theme-choice]").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.themeChoice === current)))
+}
+document.addEventListener("click", e => {
+  const btn = e.target.closest("[data-theme-choice]")
+  if (!btn) return
+  const choice = btn.dataset.themeChoice
+  if (choice === "system") delete document.documentElement.dataset.theme
+  else document.documentElement.dataset.theme = choice
+  try { choice === "system" ? localStorage.removeItem(themeKey) : localStorage.setItem(themeKey, choice) } catch (_e) { /* private mode */ }
+  markTheme()
+})
+markTheme()
+window.addEventListener("phx:page-loading-stop", markTheme)
+
 // copy affordance: [data-copy] buttons put their payload on the
 // clipboard (shared registration URL, personal guest links)
 document.addEventListener("click", e => {
