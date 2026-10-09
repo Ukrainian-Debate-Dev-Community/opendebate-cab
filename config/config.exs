@@ -64,8 +64,10 @@ config :phoenix, :json_library, Jason
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
 
-# OAuth login providers (google added later)
+# OAuth sign-in providers. Google asks only for the basic scopes:
+# the account's id, name, e-mail and picture.
 config :ueberauth, Ueberauth,
   providers: [
-    github: {Ueberauth.Strategy.Github, [default_scope: "read:user user:email"]}
+    github: {Ueberauth.Strategy.Github, [default_scope: "read:user user:email"]},
+    google: {Ueberauth.Strategy.Google, [default_scope: "openid email profile"]}
   ]

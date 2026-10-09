@@ -94,12 +94,13 @@ defmodule CabWeb.EightPagesTest do
       assert html =~ "cab.uadebate"
       assert html =~ "We don't use passwords"
 
-      # GitHub live, Google disabled ("soon"), guest note present
+      # GitHub and Google both live, guest note present
       assert html =~ ~s(id="signin-github")
       assert html =~ ~s(href="/auth/github")
       assert html =~ "Continue with GitHub"
       assert html =~ ~s(id="signin-google")
-      assert html =~ "Continue with Google — soon"
+      assert html =~ ~s(href="/auth/google")
+      assert html =~ "Continue with Google"
       assert html =~ "no account needed"
     end
 

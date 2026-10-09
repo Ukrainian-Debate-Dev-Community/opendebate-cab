@@ -20,6 +20,10 @@ config :ueberauth, Ueberauth.Strategy.Github.OAuth,
   client_id: System.get_env("GITHUB_CLIENT_ID"),
   client_secret: System.get_env("GITHUB_CLIENT_SECRET")
 
+config :ueberauth, Ueberauth.Strategy.Google.OAuth,
+  client_id: System.get_env("GOOGLE_CLIENT_ID"),
+  client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
+
 # Node engine + portal API. Test config pins its own deterministic
 # values in config/test.exs; runtime.exs runs after it, so skip :test.
 # The engine trusts any token signed with this secret (admin included),
