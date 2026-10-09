@@ -69,7 +69,7 @@
         action={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/motion"}
         description={
           if @room["Motion"],
-            do: "Updating shows the new motion right away.",
+            do: nil,
             else: "Publishing shows it to the room and starts 15 minutes of prep."
         }
       >
