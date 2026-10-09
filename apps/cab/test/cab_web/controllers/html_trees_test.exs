@@ -1032,6 +1032,45 @@ defmodule CabWeb.HtmlTreesTest do
     assert_in_delta DateTime.diff(prep.().ends_at, DateTime.utc_now()), 900, 5
   end
 
+  test "once the ballot is in, the room shows each speaker's points, team points and place",
+       %{conn: conn, club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+
+    scored =
+      running_room(44)
+      |> Map.put("status", "confirmed")
+      |> update_in(["RoomTeams"], fn teams ->
+        Enum.map(teams, fn team ->
+          speakers =
+            Enum.map(team["RoomSpeakers"], fn rs ->
+              Map.put(rs, "Scores", [%{"value" => "#{70 + team["position"]}.00"}])
+            end)
+
+          # CO is an iron: one speaker twice, the second speech unflagged
+          speakers =
+            if team["position"] == 4,
+              do: Enum.map(speakers, &put_in(&1, ["EventParticipant", "id"], 307)),
+              else: speakers
+
+          Map.merge(team, %{"RoomSpeakers" => speakers, "rank" => 5 - team["position"]})
+        end)
+      end)
+
+    stub_running_session(scored)
+
+    html =
+      conn
+      |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71")
+      |> html_response(200)
+
+    assert html =~ ~s(<b class="pts">71</b>)
+    assert html =~ ~s(<b class="pts">74</b>)
+    # team points: two speeches of 74 for CO
+    assert html =~ "148"
+    assert html =~ "1st"
+    assert html =~ "(iron)"
+  end
+
   test "a member who is not the room judge gets no ballot page", %{conn: conn, club: club} do
     speaker = user_fixture(%{node_user_id: 55})
     membership_fixture(speaker, club)

@@ -34,7 +34,21 @@
       <.table id={"room-#{@room["id"]}-draw"} rows={sorted_teams(@room)}>
         <:col :let={room_team} label="Side" code>{side_code(room_team["position"])}</:col>
         <:col :let={room_team} label="Team">{get_in(room_team, ["Team", "name"])}</:col>
-        <:col :let={room_team} label="Speakers">{speaker_names(room_team)}</:col>
+        <:col :let={room_team} :if={!ballot_in?(@room)} label="Speakers">
+          {speaker_names(room_team)}
+        </:col>
+        <:col :let={room_team} :if={ballot_in?(@room)} label="Speakers">
+          <div :for={speech <- speeches(room_team)} class="speech">
+            {speech.name}<span :if={speech.iron} class="mut"> (iron)</span>
+            <b class="pts">{points_words(speech.points)}</b>
+          </div>
+        </:col>
+        <:col :let={room_team} :if={ballot_in?(@room)} label="Points" num>
+          {points_words(team_points(room_team))}
+        </:col>
+        <:col :let={room_team} :if={ballot_in?(@room)} label="Place" num>
+          {if room_team["rank"], do: ordinal(room_team["rank"]), else: "—"}
+        </:col>
       </.table>
       <div class="pad">Adjudicator: <b>{judge_name(@room, @state.signups)}</b></div>
     </.section>

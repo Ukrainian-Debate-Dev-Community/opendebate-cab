@@ -562,3 +562,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 /* a table row that opens a page as a whole; its own links still win */
 table.t tr.linked { cursor:pointer; }
 table.t tr.linked:hover td { background:var(--brand-50); }
+
+/* a speaker and their points on one line in the room's draw */
+.speech { display:flex; justify-content:space-between; gap:12px; max-width:22rem; }
+.speech .pts { font-variant-numeric:tabular-nums; }

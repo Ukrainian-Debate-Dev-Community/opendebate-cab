@@ -84,6 +84,53 @@ defmodule CabWeb.SessionFormat do
     |> Enum.join(" & ")
   end
 
+  @doc "Is the room's ballot in (submitted or confirmed)?"
+  def ballot_in?(room), do: room["status"] in ["completed", "confirmed"]
+
+  @doc """
+  A team's speeches in speaking order: `%{name, points, iron}`. An
+  iron speaks twice; the engine flags the speech that stays out of the
+  speaker tab, and without a flag the later of the two is that one.
+  """
+  def speeches(room_team) do
+    (room_team["RoomSpeakers"] || [])
+    |> Enum.sort_by(&{&1["rank"] || 0, &1["id"] || 0})
+    |> Enum.map_reduce(MapSet.new(), fn rs, seen ->
+      pid = get_in(rs, ["EventParticipant", "id"])
+      flagged = Map.get(rs, "is_iron")
+      iron = if is_boolean(flagged), do: flagged, else: MapSet.member?(seen, pid)
+
+      {%{
+         name: get_in(rs, ["EventParticipant", "display_name"]),
+         points: rs |> Map.get("Scores", []) |> List.first() |> score_value(),
+         iron: iron
+       }, MapSet.put(seen, pid)}
+    end)
+    |> elem(0)
+  end
+
+  @doc "The team's points in the room: the sum of its speeches, or nil before the ballot."
+  def team_points(room_team) do
+    points = for %{points: p} <- speeches(room_team), is_number(p), do: p
+    if points == [], do: nil, else: Enum.sum(points)
+  end
+
+  @doc "Points as people write them: 76, 75.5."
+  def points_words(nil), do: "—"
+  def points_words(points) when points == trunc(points), do: Integer.to_string(trunc(points))
+  def points_words(points), do: :erlang.float_to_binary(points / 1, decimals: 1)
+
+  defp score_value(%{"value" => value}) when is_number(value), do: value
+
+  defp score_value(%{"value" => value}) when is_binary(value) do
+    case Float.parse(value) do
+      {number, _} -> number
+      :error -> nil
+    end
+  end
+
+  defp score_value(_score), do: nil
+
   def ordinal(1), do: "1st"
   def ordinal(2), do: "2nd"
   def ordinal(3), do: "3rd"
