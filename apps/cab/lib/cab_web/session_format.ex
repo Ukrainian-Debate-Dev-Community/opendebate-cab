@@ -16,6 +16,10 @@ defmodule CabWeb.SessionFormat do
   def stage_words(:running), do: "running"
   def stage_words(:done), do: "finished"
 
+  @doc "A room's name inside its session: R1, R2, … (the engine id only as a fallback)."
+  def room_label(%{"no" => no}) when is_integer(no), do: "R#{no}"
+  def room_label(%{"id" => id}), do: "R#{id}"
+
   @doc "A room's ballot state in words."
   def room_status_words("pending"), do: "waiting to start"
   def room_status_words("judging"), do: "debating — waiting for the ballot"

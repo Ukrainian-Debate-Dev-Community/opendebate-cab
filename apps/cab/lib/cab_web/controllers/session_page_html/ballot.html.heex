@@ -11,7 +11,7 @@
       {@club.name, ~p"/c/#{@club.uuid}"},
       {"session", ~p"/c/#{@club.uuid}/s/#{@session.uuid}"}
     ]}
-    here={"ballot R#{@room["id"]}"}
+    here={"ballot #{room_label(@room)}"}
   >
     <:seg form={"ballot-#{@room["id"]}"} primary>Submit ballot</:seg>
   </.chrome>
@@ -19,10 +19,10 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title={"Room R#{@room["id"]} ballot"}>
+    <.section title={"Room #{room_label(@room)} ballot"}>
       <Ui.ballot
         id={"ballot-#{@room["id"]}"}
-        room={"R#{@room["id"]}"}
+        room={room_label(@room)}
         motion={@room["Motion"] && @room["Motion"]["motion_text"]}
         teams={@teams}
         error={@error}

@@ -587,10 +587,19 @@ defmodule Cab.Sessions do
          event: event,
          round: round,
          signups: signups,
-         rooms: rooms,
+         rooms: number_rooms(rooms),
          stage: stage(event, rooms, session)
        }}
     end
+  end
+
+  # rooms carry their number inside the session ("no": 1, 2, …) in
+  # creation order; the engine id stays the room's address
+  defp number_rooms(rooms) do
+    rooms
+    |> Enum.sort_by(& &1["id"])
+    |> Enum.with_index(1)
+    |> Enum.map(fn {room, no} -> Map.put(room, "no", no) end)
   end
 
   # the four engine reads are independent once the round id is known

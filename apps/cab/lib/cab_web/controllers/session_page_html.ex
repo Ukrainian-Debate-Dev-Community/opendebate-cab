@@ -24,6 +24,13 @@ defmodule CabWeb.SessionPageHTML do
     end
   end
 
+  defp my_room_label(%{rooms: rooms}, my_room_id) do
+    case Enum.find(rooms, &(&1["id"] == my_room_id)) do
+      nil -> ""
+      room -> room_label(room)
+    end
+  end
+
   defp my_room_motion(%{rooms: rooms}, my_room_id) when is_integer(my_room_id) do
     case Enum.find(rooms, &(&1["id"] == my_room_id)) do
       %{"Motion" => %{"motion_text" => motion}} when is_binary(motion) -> motion

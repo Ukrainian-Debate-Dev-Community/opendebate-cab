@@ -39,7 +39,7 @@
       <.table id="session-rooms" rows={@state.rooms}>
         <:col :let={room} class="rank">
           <.link href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}"}>
-            R{room["id"]}
+            {room_label(room)}
           </.link>
         </:col>
         <:col

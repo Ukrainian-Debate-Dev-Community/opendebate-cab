@@ -40,14 +40,14 @@ defmodule CabWeb.OwnerHTML do
     Enum.find_value(rooms, "waitlist", fn room ->
       cond do
         Enum.any?(room["RoomAdjudicators"] || [], &seat_of?(&1, participant)) ->
-          "R#{room["id"]} judge"
+          "#{room_label(room)} judge"
 
         team =
             Enum.find(
               room["RoomTeams"] || [],
               &Enum.any?(&1["RoomSpeakers"] || [], fn s -> seat_of?(s, participant) end)
             ) ->
-          "R#{room["id"]} #{side_code(team["position"])}"
+          "#{room_label(room)} #{side_code(team["position"])}"
 
         true ->
           nil

@@ -85,7 +85,8 @@ defmodule Cab.SessionsTest do
     assert {:ok, state} = Sessions.state(%{session | club: club})
     assert state.round["id"] == 21
     assert [%{"id" => 41}] = state.signups
-    assert [%{"id" => 71}] = state.rooms
+    # rooms are numbered inside the session; the engine id stays the address
+    assert [%{"id" => 71, "no" => 1}] = state.rooms
     assert state.stage == :running
   end
 
