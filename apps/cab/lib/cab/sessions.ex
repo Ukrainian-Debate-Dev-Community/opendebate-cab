@@ -727,31 +727,13 @@ defmodule Cab.Sessions do
 
   defp attach_preps(rooms, _session), do: rooms
 
-  @doc """
-  Sets a room's prep timer: `nil` removes it; the same length keeps
-  the running clock (a motion typo fixed), a new length starts it now.
-  """
-  def set_prep(%Session{} = session, room_id, minutes) do
-    current = Repo.get_by(RoomPrep, session_id: session.id, room_id: room_id)
-
-    result =
-      case {current, minutes} do
-        {nil, nil} ->
-          {:ok, nil}
-
-        {prep, nil} ->
-          Repo.delete(prep)
-
-        {%RoomPrep{minutes: ^minutes} = prep, _} ->
-          {:ok, prep}
-
-        {prep, minutes} ->
-          (prep || %RoomPrep{session_id: session.id, room_id: room_id})
-          |> Ecto.Changeset.change(minutes: minutes, started_at: DateTime.utc_now(:second))
-          |> Repo.insert_or_update()
-      end
-
-    notify(result, session)
+  @doc "Starts the room's prep clock now: `minutes` from this moment, replacing any earlier one."
+  def start_prep(%Session{} = session, room_id, minutes \\ 15) do
+    (Repo.get_by(RoomPrep, session_id: session.id, room_id: room_id) ||
+       %RoomPrep{session_id: session.id, room_id: room_id})
+    |> Ecto.Changeset.change(minutes: minutes, started_at: DateTime.utc_now(:second))
+    |> Repo.insert_or_update()
+    |> notify(session)
   end
 
   # the four engine reads are independent once the round id is known

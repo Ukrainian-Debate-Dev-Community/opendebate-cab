@@ -891,29 +891,18 @@ defmodule Cab.SessionsTest do
     assert_received {:confirmed, %{"id" => 9}}
   end
 
-  test "set_prep: optional timer; the same length keeps the clock, a new one restarts it",
-       %{club: club} do
+  test "start_prep gives the room a fresh clock every time", %{club: club} do
     session = session_fixture(club, engine_event_id: 11)
 
-    assert {:ok, nil} = Sessions.set_prep(session, 71, nil)
-    refute Repo.get_by(Cab.Sessions.RoomPrep, session_id: session.id, room_id: 71)
-
-    {:ok, first} = Sessions.set_prep(session, 71, 15)
+    {:ok, first} = Sessions.start_prep(session, 71)
+    assert first.minutes == 15
     past = DateTime.add(first.started_at, -120, :second)
     first |> Ecto.Changeset.change(started_at: past) |> Repo.update!()
 
-    # a motion typo fixed with the same length keeps the running clock
-    {:ok, same} = Sessions.set_prep(session, 71, 15)
-    assert same.started_at == past
-
-    # a new length starts it again
-    {:ok, longer} = Sessions.set_prep(session, 71, 20)
-    assert longer.minutes == 20
-    assert DateTime.compare(longer.started_at, past) == :gt
-
-    # emptied: no timer
-    {:ok, _} = Sessions.set_prep(session, 71, nil)
-    refute Repo.get_by(Cab.Sessions.RoomPrep, session_id: session.id, room_id: 71)
+    # publishing again (an updated motion) restarts it
+    {:ok, again} = Sessions.start_prep(session, 71)
+    assert again.id == first.id
+    assert DateTime.compare(again.started_at, past) == :gt
   end
 
   test "submit_ballot waits for the room's motion", %{club: club, head: head} do

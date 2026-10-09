@@ -39,7 +39,11 @@
       <div class="pad">Adjudicator: <b>{judge_name(@room, @state.signups)}</b></div>
     </.section>
 
-    <.section :if={@room["Motion"]} title="Motion" pad>
+    <.section
+      :if={@room["Motion"] && !(@can_act && @room["status"] in ["pending", "judging"])}
+      title="Motion"
+      pad
+    >
       <b id="room-motion-text">{@room["Motion"]["motion_text"]}</b>
       <p :if={@room["Motion"]["infoslide"]}>{@room["Motion"]["infoslide"]}</p>
       <p :if={@room["Motion"]["keyword"]} class="mut">
@@ -54,15 +58,20 @@
     <.section :if={!@room["Motion"] && !@can_act} title="Motion" pad>
       Not set yet — the adjudicator sets it when the room begins.
     </.section>
-    <.section
-      :if={@can_act && @room["status"] in ["pending", "judging"]}
-      title={if @room["Motion"], do: "Edit motion", else: "Motion"}
-    >
+    <.section :if={@can_act && @room["status"] in ["pending", "judging"]} title="Motion">
+      <div :if={@room["prep_until"]} class="pad mut prep-line">
+        <span id="prep-clock" phx-hook="PrepClock" data-prep-deadline={@room["prep_until"]}>
+          {@room["prep_minutes"]} minutes of prep
+        </span>
+      </div>
       <.form_for
         id={"room-motion-#{@room["id"]}"}
         action={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/motion"}
-        title={if @room["Motion"], do: "Edit this room's motion", else: "This room's motion"}
-        description="Everyone in the room sees it right away."
+        description={
+          if @room["Motion"],
+            do: "Updating shows the new motion right away and restarts 15 minutes of prep.",
+            else: "Publishing shows it to the room and starts 15 minutes of prep."
+        }
       >
         <:block
           name={:motion_text}
@@ -84,20 +93,6 @@
           label="Keyword"
           hint="Optional tag for finding the motion later."
           value={get_in(@room, ["Motion", "keyword"])}
-        />
-        <:block
-          name={:prep_minutes}
-          type={:int}
-          label="Prep timer, minutes"
-          min={1}
-          max={60}
-          placeholder="no timer"
-          hint={
-            if @room["Motion"],
-              do: "A new length restarts the clock; the same one keeps it; empty stops it.",
-              else: "Starts when you publish. Empty: no timer."
-          }
-          value={if @room["Motion"], do: @room["prep_minutes"], else: 15}
         />
         <:submit note="Visible to everyone in the room right away.">
           {if @room["Motion"], do: "Update motion", else: "Publish motion"}

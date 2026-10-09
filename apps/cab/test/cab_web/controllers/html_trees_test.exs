@@ -967,9 +967,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert chair_html =~ "Infoslide"
     assert chair_html =~ "Keyword"
     assert chair_html =~ "Publish motion"
-    # the prep timer comes set to 15 minutes, to change or clear
-    assert chair_html =~ ~s(name="prep_minutes")
-    assert chair_html =~ ~s(value="15")
+    assert chair_html =~ "starts 15 minutes of prep"
 
     set =
       conn

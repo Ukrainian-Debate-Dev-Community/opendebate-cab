@@ -67,13 +67,8 @@ defmodule CabWeb.SessionPageController do
              attrs
            ) do
         {:ok, _} ->
-          # publishing starts 15 minutes unless the form says otherwise;
-          # an update without the field leaves the clock alone
-          case {room["Motion"], params["prep_minutes"]} do
-            {nil, nil} -> Sessions.set_prep(session, room["id"], 15)
-            {_motion, nil} -> :keep
-            {_motion, value} -> Sessions.set_prep(session, room["id"], prep_minutes(value))
-          end
+          # every publish or update gives the room a fresh 15 minutes of prep
+          Sessions.start_prep(session, room["id"])
 
           conn
           |> put_flash(
@@ -131,14 +126,6 @@ defmodule CabWeb.SessionPageController do
           |> render_ballot(session, room, params["ballot"], error_message(message))
       end
     end)
-  end
-
-  # the optional prep timer, whole minutes from 1 to 60; anything else is no timer
-  defp prep_minutes(value) do
-    case Integer.parse(to_string(value || "")) do
-      {minutes, ""} when minutes in 1..60 -> minutes
-      _ -> nil
-    end
   end
 
   defp render_ballot(conn, session, room, ballot_params, error) do
