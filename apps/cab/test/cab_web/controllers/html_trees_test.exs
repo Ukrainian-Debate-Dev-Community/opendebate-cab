@@ -533,8 +533,11 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(id="session-people")
     assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/1/remove"
     assert html =~ ~s(id="add-person-form")
-    # members are found by typing, never listed up front
-    refute html =~ "benched"
+    # before anything is typed, every member not in the session yet
+    # waits in the dropdown, one click away
+    assert html =~ ~s(class="suggest idle")
+    assert html =~ ~s(phx-click="add_member")
+    assert html =~ "benched"
 
     # the EMBEDDED allocator: automatic room count, EMPTY slots —
     # nobody is ever placed automatically

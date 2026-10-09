@@ -25,7 +25,6 @@ defmodule CabWeb.OwnerSessionLive do
          socket
          |> assign(:session_uuid, session.uuid)
          |> assign(:query, "")
-         |> assign(:suggestions, %{members: [], users: [], guest: nil})
          |> load()}
     end
   end
@@ -128,6 +127,10 @@ defmodule CabWeb.OwnerSessionLive do
       |> assign(:links, Links.list_for_session(session))
       |> assign(:invitations, Invitations.for_session(session))
       |> assign(:members, Clubs.list_members(club))
+      |> assign(
+        :suggestions,
+        Invitations.search(club, session, state.signups, socket.assigns.query)
+      )
       |> assign(:page_title, "#{club.name} — #{state.event["name"]}")
     else
       _ ->
@@ -153,7 +156,7 @@ defmodule CabWeb.OwnerSessionLive do
          socket
          |> put_flash(:info, info)
          |> assign(:query, "")
-         |> assign(:suggestions, %{members: [], users: [], guest: nil})}
+         |> load()}
 
       error ->
         reply(error, socket)

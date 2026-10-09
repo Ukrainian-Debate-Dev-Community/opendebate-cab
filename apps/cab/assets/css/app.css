@@ -486,7 +486,10 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .addp input[type=search] { width:100%; padding:9px 12px; border:1px solid var(--line);
                            border-radius:8px; font:inherit; background:var(--surface); color:var(--ink); }
 .addp input[type=search]:focus { outline:2px solid var(--brand); outline-offset:1px; }
-.suggest { display:grid; gap:4px; margin-top:8px; }
+.suggest { display:grid; gap:4px; margin-top:8px; max-height:20rem; overflow-y:auto; outline:none; }
+/* untouched, the member list opens like a dropdown while the field is in use */
+.suggest.idle { display:none; }
+.addp:focus-within .suggest.idle { display:grid; }
 .suggest button { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px;
                   text-align:left; padding:8px 12px; border:1px solid var(--line); border-radius:8px;
                   background:var(--surface); color:var(--ink); font:inherit; font-weight:600; cursor:pointer; }

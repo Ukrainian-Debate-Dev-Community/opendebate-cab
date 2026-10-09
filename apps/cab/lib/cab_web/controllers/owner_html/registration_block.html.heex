@@ -21,10 +21,14 @@
           name="q"
           value={@query}
           phx-debounce="250"
-          placeholder="Start typing a member's name, a user's exact username or email, or a guest's name"
+          placeholder="Pick a member, or type a name, a user's username or email"
         />
       </form>
-      <div :if={String.trim(@query) != ""} class="suggest" id="add-person-suggestions">
+      <div
+        class={["suggest", String.trim(@query) == "" && "idle"]}
+        id="add-person-suggestions"
+        tabindex="-1"
+      >
         <button
           :for={user <- @suggestions.members}
           type="button"
@@ -50,8 +54,12 @@
         >
           Add “{@suggestions.guest}” as a guest <span>gets a personal link</span>
         </button>
+        <p :if={String.trim(@query) == "" and @suggestions.members == []}>
+          Every member is in this session. Type a name to add a guest.
+        </p>
         <p :if={
-          @suggestions.members == [] and @suggestions.users == [] and is_nil(@suggestions.guest)
+          String.trim(@query) != "" and @suggestions.members == [] and @suggestions.users == [] and
+            is_nil(@suggestions.guest)
         }>
           No member or user matches that address.
         </p>

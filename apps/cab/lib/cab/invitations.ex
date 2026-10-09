@@ -24,8 +24,8 @@ defmodule Cab.Invitations do
   @member_hits 8
 
   @doc """
-  What the head's search field offers for `query`: matching members
-  not signed up yet, a registered non-member on an exact username or
+  What the head's search field offers for `query`: every member not
+  signed up yet while nothing is typed, then the matching ones, a registered non-member on an exact username or
   email match, and the typed text as a guest name. Returns
   `%{members: [user], users: [user], guest: name | nil}`.
   """
@@ -34,7 +34,18 @@ defmodule Cab.Invitations do
     taken = taken_ids(session, signups)
 
     if query == "" do
-      %{members: [], users: [], guest: nil}
+      # the dropdown before typing: every member not in the session yet
+      members =
+        for membership <- Clubs.list_members(club),
+            user = membership.user,
+            not MapSet.member?(taken, user.id),
+            do: user
+
+      %{
+        members: Enum.sort_by(members, &String.downcase(&1.name || &1.username)),
+        users: [],
+        guest: nil
+      }
     else
       members =
         for membership <- Clubs.list_members(club),

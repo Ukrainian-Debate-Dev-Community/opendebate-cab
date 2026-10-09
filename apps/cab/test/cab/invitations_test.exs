@@ -119,6 +119,28 @@ defmodule Cab.InvitationsTest do
       assert Invitations.search(club, session, [], "guest-anon").users == []
     end
 
+    test "with nothing typed, every member not in the session is listed by name",
+         %{club: club, session: session, head: head} do
+      zoe = user_fixture(%{username: "zoe", name: "Zoe Moroz", node_user_id: 511})
+      bo = user_fixture(%{username: "bo", name: "Bohdan Lys", node_user_id: 512})
+      membership_fixture(zoe, club)
+      membership_fixture(bo, club)
+      _outsider = user_fixture(%{username: "outsider"})
+
+      everyone = Invitations.search(club, session, [], "").members
+      assert Enum.map(everyone, & &1.id) |> Enum.sort() == Enum.sort([head.id, zoe.id, bo.id])
+
+      assert Enum.find_index(everyone, &(&1.id == bo.id)) <
+               Enum.find_index(everyone, &(&1.id == zoe.id))
+
+      signups = [%{"id" => 41, "user_id" => 511, "display_name" => "zoe"}]
+
+      refute Enum.any?(
+               Invitations.search(club, session, signups, "  ").members,
+               &(&1.id == zoe.id)
+             )
+    end
+
     test "people already in the session are not offered again",
          %{club: club, session: session, head: head} do
       anna = user_fixture(%{username: "anna", node_user_id: 501})
