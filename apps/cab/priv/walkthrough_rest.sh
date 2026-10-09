@@ -1,25 +1,20 @@
 #!/usr/bin/env bash
-# M1-M8a acceptance: curl through the ENTIRE club lifecycle REST flow
-# against the live stack (engine :3100 + cab :4000 — `make up`, dev DB
-# migrated). Every step asserts the HTTP status and a JSON field.
-# Exits non-zero on the first failed assertion.
-# M8a: the sidenav shell — join requests carry REQUIRED message +
-# contact, standings are rule-0 engine passthrough per session
-# (/standings/{teams,speakers,judges,clubs} global + the same four
-# tabs per club), the sessions archive lives at
-# /c/:club/{member,owner}/sessions, the owner ?tab console is gone
-# (club edit at /owner, owner session surface at /owner/s/:sess),
-# /account is the profile page and /admin is is_admin-gated HTML.
+# The full session roundtrip against the live stack (engine :3100 +
+# cab :4000; `make fresh` for a clean database, then `make test-e2e`).
+# Every step asserts the HTTP status and a JSON field or page marker;
+# exits non-zero on the first failed assertion.
 #
-#   platform/apps/cab/priv/walkthrough_rest.sh
+# Covers: club seeding, join requests and approval, opening a session,
+# role-less sign-ups, closing, composing rooms (the seat decides who
+# judges), rebuilding them, motions with the prep clock, ballots with
+# the tie gate and head-only edits of a confirmed ballot, an iron
+# team, waitlist-only removal, finishing with the recorded winner,
+# standings, My page, guests via the shared URL and personal links (a
+# guest judge fills the ballot, a removed guest's link dies), privacy
+# walls, club profile edits and member removal.
 #
-# Cast: 1 head + 8 speakers + 1 judge + x1, an extra member for the
-# head's full-control steps (signup on behalf, member removal) and
-# the 9th speaker of the iron run. M5 lifecycle: sign-ups must be
-# explicitly CLOSED before rooms are made (the flow-2 gate); teams
-# hold 1-2 speakers — a 1-speaker team is a declared iron.
 # Identities are /dev/switch-user cookie jars; the club is seeded via
-# `mix cab.seed_club`.
+# `mix cab.seed_club`. Safe to re-run: every run makes its own users.
 
 set -u
 BASE="${BASE:-http://localhost:4000}"
@@ -113,7 +108,8 @@ done
 assert j1 GET "/api/v1/clubs/$CLUB" 200 '.uuid' "$CLUB"
 
 say "role trees: a non-member/member never reaches the owner tree"
-assert s1 GET "/api/v1/clubs/$CLUB/members" 403 '.error' forbidden
+# a public club's roster is public; the owner tree never is
+assert s1 GET "/api/v1/clubs/$CLUB/members" 200 '.members | length' 1
 req s1 GET "/c/$CLUB/owner"
 [ "$STATUS" = "403" ] || fail "GET /c/$CLUB/owner as pending s1: status $STATUS, want 403"
 echo "ok     /c/.../owner as pending user -> 403"
@@ -200,9 +196,10 @@ assert head POST "/api/v1/sessions/$SESSION/close-signups" 200 '.stage' closed
 say "explicit composition (the head places everyone), rebuild"
 # ----------------------------------------------------------------
 assert head GET "/api/v1/sessions/$SESSION" 200 '.stage' closed
+# registration carries no role: the head decides j1 chairs, s1-s8 speak
 COMPOSE=$(jq -c '{rooms: [{
-  judge_participant_id: ([.signups[] | select(.role == "adjudicator") | .id][0]),
-  teams: ([.signups[] | select(.role == "speaker") | .id][0:8]
+  judge_participant_id: ([.signups[] | select(.display_name | endswith("-j1")) | .id][0]),
+  teams: ([.signups[] | select(.display_name | test("-s[1-8]$")) | .id][0:8]
           | [.[0:2], .[2:4], .[4:6], .[6:8]])}]}' "$BODY")
 
 assert s1 POST "/api/v1/sessions/$SESSION/rooms" 403 '.error' forbidden "$COMPOSE"
@@ -268,7 +265,8 @@ say "head finishes; history shows the winner"
 # ----------------------------------------------------------------
 assert head POST "/api/v1/sessions/$SESSION/finish" 200 '.status' completed
 assert j1 GET "/api/v1/sessions/$SESSION" 200 '.stage' done
-assert head GET "/api/v1/clubs/$CLUB" 200 '.history[0].winner' "$WINNER_NAME"
+assert head GET "/api/v1/clubs/$CLUB" 200 \
+  ".history | map(select(.session_uuid == \"$SESSION\")) | .[0].winner" "$WINNER_NAME"
 
 # ----------------------------------------------------------------
 say "session detail: API twin + the public HTML page"
@@ -299,14 +297,14 @@ grep -q 'Continue with Google' "$BODY" || fail "/signin misses the Google (soon)
 html_ok "P1 provider buttons" GET "/signin" 200
 
 # every anonymous auth wall redirects to /signin — never to the provider
-WALL=$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE/c/$CLUB/members")
-case "$WALL" in */signin) : ;; *) fail "anon member sessions wall went to '$WALL', want /signin" ;; esac
-html_ok "anon members page -> /signin" GET "/c/.../members" 302
+WALL=$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE/account")
+case "$WALL" in */signin) : ;; *) fail "anon account wall went to '$WALL', want /signin" ;; esac
+html_ok "anon /account -> /signin" GET "/account" 302
 
-# the M7 member page is gone: /c/:club/member redirects to the club page
-LEGACY=$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE/c/$CLUB/member")
-case "$LEGACY" in */c/$CLUB) : ;; *) fail "legacy /member went to '$LEGACY', want /c/$CLUB" ;; esac
-html_ok "legacy member page -> club page" GET "/c/.../member" 302
+# a public club's roster is readable by anyone
+req anon GET "/c/$CLUB/members"
+[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/members anonymous: status $STATUS, want 200"
+html_ok "public roster" GET "/c/.../members" 200
 
 # club standings: the four tabs, engine calculated output VERBATIM
 req anon GET "/c/$CLUB/standings/teams"
@@ -332,18 +330,14 @@ req anon GET "/standings/clubs"
 grep -q 'id="standings-clubs"' "$BODY" || fail "clubs tab misses the plain counts table"
 html_ok "global standings clubs" GET "/standings/clubs" 200
 
-# the sessions archive (owner path) + the owner session surface
-req head GET "/c/$CLUB/owner/sessions"
-[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/owner/sessions: status $STATUS, want 200"
-grep -q 'id="sessions-archive"' "$BODY" || fail "owner sessions misses the archive table"
-grep -q 'id="open-session-form"' "$BODY" || fail "owner sessions misses the open-session form"
-grep -q "Open new session" "$BODY" || fail "owner sessions misses the gold Open new session"
-html_ok "owner sessions archive + open form" GET "/c/$CLUB/owner/sessions" 200
-
+# the owner's club page: edit in place, the archive, the open form
 req head GET "/c/$CLUB/owner"
 [ "$STATUS" = "200" ] || fail "GET /c/$CLUB/owner: status $STATUS, want 200"
 grep -q 'id="club-profile-form"' "$BODY" || fail "/owner misses the edit-in-place club form"
-html_ok "club edit-in-place (owner)" GET "/c/$CLUB/owner" 200
+grep -q 'id="club-sessions"' "$BODY" || fail "/owner misses the Club Sessions archive"
+grep -q 'id="open-session-form"' "$BODY" || fail "/owner misses the open-session form"
+grep -q "Open new session" "$BODY" || fail "/owner misses Open new session"
+html_ok "club edit + archive + open form (owner)" GET "/c/$CLUB/owner" 200
 
 # /account is the profile page; /admin does not exist for non-admins
 req head GET "/account"
@@ -377,8 +371,8 @@ assert head POST "/api/v1/sessions/$IRON_SESSION/close-signups" 200 '.stage' clo
 # compose explicitly: 3 pairs + ONE 1-speaker team (iron), 2 sit out
 assert head GET "/api/v1/sessions/$IRON_SESSION" 200 '.signups | length' 10
 IRON_COMPOSE=$(jq -c '
-  ([.signups[] | select(.role == "speaker") | .id] | sort) as $s
-  | (.signups[] | select(.role == "adjudicator") | .id) as $j
+  ([.signups[] | select(.display_name | test("-s[1-8]$")) | .id] | sort) as $s
+  | (.signups[] | select(.display_name | endswith("-j1")) | .id) as $j
   | {rooms: [{judge_participant_id: $j,
               teams: [[$s[0], $s[1]], [$s[2], $s[3]], [$s[4], $s[5]], [$s[6]]]}]}' "$BODY")
 assert head POST "/api/v1/sessions/$IRON_SESSION/rooms" 201 '.rooms_created' 1 "$IRON_COMPOSE"
@@ -389,6 +383,18 @@ assert head GET "/api/v1/sessions/$IRON_SESSION" 200 \
   '.rooms[0].RoomTeams | sort_by(.position) | .[3].RoomSpeakers
    | map(.EventParticipant.id) | unique | length' 1
 IRON_ROOM=$(jq -r '.rooms[0].id' "$BODY")
+
+say "the seat decides the role; only the waitlist can be removed"
+# j1 registered without a role; sitting in the chair made them the adjudicator
+assert head GET "/api/v1/sessions/$IRON_SESSION" 200 \
+  '.signups | map(select(.display_name | endswith("-j1"))) | .[0].role' adjudicator
+SEATED_PID=$(jq -r '[.signups[] | select(.display_name | endswith("-s1")) | .id][0]' "$BODY")
+WAITING_PID=$(jq -r '[.signups[] | select(.display_name | endswith("-x1")) | .id][0]' "$BODY")
+assert head DELETE "/api/v1/sessions/$IRON_SESSION/signups/$SEATED_PID" 409 \
+  '.error | contains("seated in a room")' true
+assert head DELETE "/api/v1/sessions/$IRON_SESSION/signups/$WAITING_PID" 200 '.status' removed
+assert head GET "/api/v1/sessions/$IRON_SESSION" 200 '.signups | length' 9
+req head GET "/api/v1/sessions/$IRON_SESSION"
 IRON_WINNER=$(jq -r '.rooms[0].RoomTeams | sort_by(.position) | .[3].Team.name' "$BODY")
 echo "iron room: $IRON_ROOM, the iron team ($IRON_WINNER) takes rank 1"
 
@@ -405,6 +411,11 @@ IRON_SCORES=$(jq -c '[.rooms[0].RoomTeams | sort_by(.position)[]
 assert j1 POST "/api/v1/rooms/$IRON_ROOM/motion" 200 '.motion.motion_text' \
   "THW iron solo $RUN" \
   "{\"session_uuid\":\"$IRON_SESSION\",\"motion_text\":\"THW iron solo $RUN\"}"
+# the prep clock counts from the engine's publish time (engine #85)
+assert j1 GET "/api/v1/sessions/$IRON_SESSION" 200 '.rooms[0].Motion.created_at | type' string
+req anon GET "/c/$CLUB/s/$IRON_SESSION/rooms/$IRON_ROOM"
+grep -q 'data-prep-deadline=' "$BODY" || fail "room page misses the prep clock"
+html_ok "prep clock on the room page" GET "/c/.../s/.../rooms/$IRON_ROOM" 200
 
 assert j1 POST "/api/v1/rooms/$IRON_ROOM/ballot" 200 '.status' confirmed \
   "{\"session_uuid\":\"$IRON_SESSION\",\"scores\":$IRON_SCORES}"
@@ -413,13 +424,21 @@ assert head POST "/api/v1/sessions/$IRON_SESSION/finish" 200 '.status' completed
 assert head GET "/api/v1/sessions/$IRON_SESSION" 200 '.stage' done
 assert head GET "/api/v1/sessions/$IRON_SESSION" 200 '.winner' "$IRON_WINNER"
 # history lists events in creation order — the iron night is last
-assert head GET "/api/v1/clubs/$CLUB" 200 '.history[-1].winner' "$IRON_WINNER"
+assert head GET "/api/v1/clubs/$CLUB" 200 \
+  ".history | map(select(.session_uuid == \"$IRON_SESSION\")) | .[0].winner" "$IRON_WINNER"
 
 req anon GET "/c/$CLUB/s/$IRON_SESSION"
 [ "$STATUS" = "200" ] || fail "GET /c/$CLUB/s/$IRON_SESSION: status $STATUS, want 200"
 grep -q "$IRON_WINNER" "$BODY" || fail "iron session detail page misses the winner"
 STEP=$((STEP + 1))
 printf 'ok %2d  %-5s %-55s %s  %s\n' "$STEP" GET "/c/$CLUB/s/$IRON_SESSION" 200 "iron winner"
+
+# the judge's My page carries the night from the engine's history
+req j1 GET "/me"
+[ "$STATUS" = "200" ] || fail "GET /me as j1: status $STATUS, want 200"
+grep -q 'id="me-history"' "$BODY" || fail "My page misses the history table"
+grep -q "judged" "$BODY" || fail "j1's My page misses the judged night"
+html_ok "judge's My page history" GET "/me" 200
 
 # ----------------------------------------------------------------
 say "M6 guest access: shared registration URL + personal links"
@@ -437,8 +456,8 @@ done
 req head GET "/c/$CLUB/owner/s/$GSESSION"
 [ "$STATUS" = "200" ] || fail "GET /c/$CLUB/owner/s/$GSESSION: status $STATUS, want 200"
 grep -q 'id="shared-registration-url"' "$BODY" || fail "owner surface misses the shared URL"
-grep -q 'id="session-signups"' "$BODY" || fail "owner surface misses the signups table"
-grep -q "Close sign-ups" "$BODY" || fail "owner surface misses the Close sign-ups segment"
+grep -q 'id="session-people"' "$BODY" || fail "owner surface misses the people table"
+grep -q "Start session" "$BODY" || fail "owner surface misses the Start session segment"
 html_ok "owner session surface" GET "/c/$CLUB/owner/s/\$sess" 200
 
 say "anonymous shared URL -> the registration form (no account)"
@@ -470,19 +489,19 @@ say "two guests register: one speaker, one judge"
 register_guest g1 "Guest Greta" speak;  G1_LINK=$PERSONAL
 register_guest g2 "Guest Judy"  judge;  G2_LINK=$PERSONAL
 
-say "personal links adopt the identity and land on P6; the role shows there"
+say "personal links adopt the identity and land on P6; the registration shows there"
 reqc anon2 GET "$G1_LINK"
 [ "$STATUS" = "302" ] || fail "GET $G1_LINK anonymous: status $STATUS, want 302 to P6"
 req anon2 GET "/c/$CLUB/s/$GSESSION"
 [ "$STATUS" = "200" ] || fail "GET P6 as guest g1: status $STATUS, want 200"
-grep -q "registered to speak" "$BODY" || fail "P6 misses the guest speaker role"
-html_ok "speaker link -> P6 + role" GET "/l/<g1> -> /c/.../s/..." 200
+grep -q "registered for tonight" "$BODY" || fail "P6 misses the guest registration"
+html_ok "guest link -> P6 + registration" GET "/l/<g1> -> /c/.../s/..." 200
 reqc anon2 GET "$G2_LINK"
 [ "$STATUS" = "302" ] || fail "GET $G2_LINK anonymous: status $STATUS, want 302 to P6"
 req anon2 GET "/c/$CLUB/s/$GSESSION"
 [ "$STATUS" = "200" ] || fail "GET P6 as guest g2: status $STATUS, want 200"
-grep -q "registered to judge" "$BODY" || fail "P6 misses the guest judge role"
-html_ok "judge link -> P6 + role" GET "/l/<g2> -> /c/.../s/..." 200
+grep -q "registered for tonight" "$BODY" || fail "P6 misses the guest registration"
+html_ok "second guest link -> P6 + registration" GET "/l/<g2> -> /c/.../s/..." 200
 
 say "head lists the links; a guest link opens NOTHING beyond its scope"
 assert head GET "/api/v1/sessions/$GSESSION/links" 200 '.links | length' 2
@@ -531,15 +550,20 @@ grep -q "Registration is closed" "$BODY" || fail "shared URL misses the closed n
 html_ok "closed notice" GET "/r/$GSESSION" 200
 STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/late" -c "$JARS/late" \
   --data-urlencode "_csrf_token=$LATE_TOK" --data-urlencode "name=Late Larry" \
-  --data-urlencode "as=speak" "$BASE/r/$GSESSION")
+  "$BASE/r/$GSESSION")
 [ "$STATUS" = "200" ] || fail "POST /r/$GSESSION after close: status $STATUS, want 200"
 grep -q "Registration is closed" "$BODY" || fail "late registration got past the gate"
 html_ok "registration after close -> closed notice" POST "/r/$GSESSION" 200
-assert head GET "/api/v1/sessions/$GSESSION/links" 200 '.links | length' 2
+assert head GET "/api/v1/sessions/$GSESSION/links" 200 '.links | length' 3
 
 say "compose including guests; the guest judge chairs the room"
 assert head GET "/api/v1/sessions/$GSESSION" 200 '.signups | length' 9
-assert head POST "/api/v1/sessions/$GSESSION/rooms" 201 '.rooms_created' 1
+GCOMPOSE=$(jq -c '
+  ([.signups[] | select(.display_name != "Guest Judy") | .id] | sort) as $s
+  | (.signups[] | select(.display_name == "Guest Judy") | .id) as $j
+  | {rooms: [{judge_participant_id: $j,
+              teams: [$s[0:2], $s[2:4], $s[4:6], $s[6:8]]}]}' "$BODY")
+assert head POST "/api/v1/sessions/$GSESSION/rooms" 201 '.rooms_created' 1 "$GCOMPOSE"
 assert head GET "/api/v1/sessions/$GSESSION" 200 '.stage' running
 GROOM=$(jq -r '.rooms[0].id' "$BODY")
 # speakers in table order og1 og2 oo1 oo2 cg1 cg2 co1 co2
@@ -563,13 +587,13 @@ G2_TOK=$(csrf)
 STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/g2" -c "$JARS/g2" \
   --data-urlencode "_csrf_token=$G2_TOK" \
   --data-urlencode "ballot[og][PM][speaker]=$1"  --data-urlencode "ballot[og][PM][score]=79" \
-  --data-urlencode "ballot[og][DPM][speaker]=$2" --data-urlencode "ballot[og][DPM][score]=78.5" \
+  --data-urlencode "ballot[og][DPM][speaker]=$2" --data-urlencode "ballot[og][DPM][score]=78" \
   --data-urlencode "ballot[oo][LO][speaker]=$3"  --data-urlencode "ballot[oo][LO][score]=76" \
-  --data-urlencode "ballot[oo][DLO][speaker]=$4" --data-urlencode "ballot[oo][DLO][score]=75.5" \
+  --data-urlencode "ballot[oo][DLO][speaker]=$4" --data-urlencode "ballot[oo][DLO][score]=75" \
   --data-urlencode "ballot[cg][MG][speaker]=$5"  --data-urlencode "ballot[cg][MG][score]=75" \
   --data-urlencode "ballot[cg][GW][speaker]=$6"  --data-urlencode "ballot[cg][GW][score]=74" \
   --data-urlencode "ballot[co][MO][speaker]=$7"  --data-urlencode "ballot[co][MO][score]=73" \
-  --data-urlencode "ballot[co][OW][speaker]=$8"  --data-urlencode "ballot[co][OW][score]=72.5" \
+  --data-urlencode "ballot[co][OW][speaker]=$8"  --data-urlencode "ballot[co][OW][score]=72" \
   "$BASE/c/$CLUB/s/$GSESSION/rooms/$GROOM/ballot")
 [ "$STATUS" = "302" ] || fail "guest ballot POST: status $STATUS, want 302"
 html_ok "guest ballot submitted via P6" POST "/c/.../s/.../rooms/$GROOM/ballot" 302
