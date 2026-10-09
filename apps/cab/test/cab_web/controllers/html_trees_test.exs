@@ -1002,7 +1002,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert response(denied, 403)
   end
 
-  test "the prep end: the same time keeps it, a new time moves it, empty stops it",
+  test "the prep end: the same time keeps it, a new time moves it, empty means 15 minutes",
        %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
     stub_running_session(running_room(44))
@@ -1027,9 +1027,9 @@ defmodule CabWeb.HtmlTreesTest do
     post_motion.(DateTime.to_iso8601(later))
     assert prep.().ends_at == later
 
-    # emptied: no timer
+    # left empty (as for a motion from before the timer): 15 minutes from now
     post_motion.("")
-    refute prep.()
+    assert_in_delta DateTime.diff(prep.().ends_at, DateTime.utc_now()), 900, 5
   end
 
   test "a member who is not the room judge gets no ballot page", %{conn: conn, club: club} do

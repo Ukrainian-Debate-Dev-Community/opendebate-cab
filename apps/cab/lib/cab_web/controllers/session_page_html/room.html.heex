@@ -101,7 +101,8 @@
           placeholder="HH:MM"
           hint={
             if @room["Motion"],
-              do: "Change the time to move the end of prep; clear it to stop the timer.",
+              do:
+                "Change the time to move the end of prep; left empty, it is 15 minutes from now.",
               else: "Set to 15 minutes from publishing, or type a time."
           }
           value={@room["prep_until"]}

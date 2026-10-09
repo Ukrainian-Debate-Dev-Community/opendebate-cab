@@ -127,22 +127,19 @@ defmodule CabWeb.SessionPageController do
     end)
   end
 
-  # Publishing sets prep to end 15 minutes from now unless a time was
-  # typed; an update moves it only when the time changed, and an
-  # emptied field stops it. The browser sends the end as UTC.
+  # An empty field (a first publish, or a motion from before the
+  # timer) sets prep to end 15 minutes from now; a typed time moves it
+  # only when it changed. The browser sends the end as UTC.
   defp set_prep(session, room, params) do
     typed = params["prep_until"] |> to_string() |> String.trim()
 
     cond do
-      is_nil(room["Motion"]) and typed == "" ->
+      typed == "" ->
         Sessions.set_prep_until(
           session,
           room["id"],
           DateTime.add(DateTime.utc_now(), 15, :minute)
         )
-
-      typed == "" ->
-        Sessions.set_prep_until(session, room["id"], nil)
 
       true ->
         case DateTime.from_iso8601(typed) do
