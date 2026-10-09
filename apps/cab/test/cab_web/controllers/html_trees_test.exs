@@ -967,6 +967,9 @@ defmodule CabWeb.HtmlTreesTest do
     assert chair_html =~ "Infoslide"
     assert chair_html =~ "Keyword"
     assert chair_html =~ "Publish motion"
+    # the prep timer comes set to 15 minutes, to change or clear
+    assert chair_html =~ ~s(name="prep_minutes")
+    assert chair_html =~ ~s(value="15")
 
     set =
       conn
@@ -979,6 +982,10 @@ defmodule CabWeb.HtmlTreesTest do
 
     assert redirected_to(set) == "/c/#{club.uuid}/s/#{session.uuid}/rooms/71"
     assert_received {:motion, "THW debate", "Context slide", "economy"}
+
+    # publishing started the prep clock
+    assert %{minutes: 15} =
+             Cab.Repo.get_by(Cab.Sessions.RoomPrep, session_id: session.id, room_id: 71)
 
     # a plain member is neither chair nor head — no motion for them
     outsider = user_fixture(%{node_user_id: 55})

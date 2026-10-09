@@ -67,7 +67,13 @@ defmodule CabWeb.SessionPageController do
              attrs
            ) do
         {:ok, _} ->
-          Sessions.set_prep(session, room["id"], prep_minutes(params["prep_minutes"]))
+          # publishing starts 15 minutes unless the form says otherwise;
+          # an update without the field leaves the clock alone
+          case {room["Motion"], params["prep_minutes"]} do
+            {nil, nil} -> Sessions.set_prep(session, room["id"], 15)
+            {_motion, nil} -> :keep
+            {_motion, value} -> Sessions.set_prep(session, room["id"], prep_minutes(value))
+          end
 
           conn
           |> put_flash(

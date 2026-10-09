@@ -92,8 +92,12 @@
           min={1}
           max={60}
           placeholder="no timer"
-          hint="Optional. A new length starts the clock now; the same one keeps it running."
-          value={@room["prep_minutes"]}
+          hint={
+            if @room["Motion"],
+              do: "A new length restarts the clock; the same one keeps it; empty stops it.",
+              else: "Starts when you publish. Empty: no timer."
+          }
+          value={if @room["Motion"], do: @room["prep_minutes"], else: 15}
         />
         <:submit note="Visible to everyone in the room right away.">
           {if @room["Motion"], do: "Update motion", else: "Publish motion"}
