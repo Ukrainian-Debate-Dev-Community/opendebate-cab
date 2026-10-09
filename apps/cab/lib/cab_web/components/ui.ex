@@ -611,8 +611,9 @@ defmodule CabWeb.Ui do
   `unplace {id}` — and the server re-renders, so new signups simply
   appear in the tray and nothing is ever placed automatically.
 
-  `people` maps participant id => `%{id, name, kind}` (kind "spk" |
-  "judge"); `draft` maps slot key => participant id. The hidden form
+  `people` maps participant id => `%{id, name}` — registration carries
+  no role, so anyone fits any slot and the drag decides who judges;
+  `draft` maps slot key => participant id. The hidden form
   `form_id` carries the submit (the chrome's gold segment).
   """
   attr :id, :string, default: "allocator"
@@ -629,7 +630,7 @@ defmodule CabWeb.Ui do
       assigns.people
       |> Map.values()
       |> Enum.reject(&MapSet.member?(placed, &1.id))
-      |> Enum.sort_by(&{&1.kind == "judge", &1.name})
+      |> Enum.sort_by(& &1.name)
 
     assigns = assign(assigns, sides: @alloc_sides, tray: tray)
 
@@ -658,7 +659,6 @@ defmodule CabWeb.Ui do
               <div
                 :for={n <- 1..2}
                 class="slot"
-                data-kind="spk"
                 data-slot={"#{room}:#{side}:#{n}"}
               >
                 <%= if person = placed(@people, @draft, "#{room}:#{side}:#{n}") do %>
@@ -667,7 +667,7 @@ defmodule CabWeb.Ui do
               </div>
             </td>
             <td>
-              <div class="slot" data-kind="judge" data-slot={"#{room}:judge"}>
+              <div class="slot" data-slot={"#{room}:judge"}>
                 <%= if person = placed(@people, @draft, "#{room}:judge") do %>
                   <.chip person={person} />
                 <% end %>
@@ -690,14 +690,7 @@ defmodule CabWeb.Ui do
 
   defp chip(assigns) do
     ~H"""
-    <span
-      class={["chip", @person.kind == "judge" && "judge"]}
-      draggable="true"
-      data-id={@person.id}
-      data-kind={@person.kind}
-    >
-      {@person.name} <span class="k">{if @person.kind == "judge", do: "JUDGE", else: "SPK"}</span>
-    </span>
+    <span class="chip" draggable="true" data-id={@person.id}>{@person.name}</span>
     """
   end
 

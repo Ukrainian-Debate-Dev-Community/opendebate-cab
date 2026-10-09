@@ -83,7 +83,7 @@ const PrepClock = {
 const Allocator = {
   mounted() {
     let dragged = null
-    const accepts = slot => slot && dragged && slot.dataset.kind === dragged.dataset.kind
+    const accepts = slot => slot && dragged
     const clearOver = () => this.el.querySelectorAll(".slot.over").forEach(s => s.classList.remove("over"))
 
     this.el.addEventListener("dragstart", e => {

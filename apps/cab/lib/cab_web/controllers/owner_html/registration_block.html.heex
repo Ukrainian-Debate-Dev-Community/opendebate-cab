@@ -16,7 +16,6 @@
         {link.user.name}
         <.sub>guest ({link.user.username})</.sub>
       </:col>
-      <:col :let={link} label="Role">{Links.role_in(link, @state.signups) || "—"}</:col>
       <:col :let={link} label="Personal link" code>
         {url(~p"/l/#{link.code}")}
       </:col>
@@ -40,13 +39,6 @@
       description="Register a guest by hand — their personal link lands in the banner above."
     >
       <:block name={:name} type={:text} label="Guest name" required />
-      <:block
-        name={:as}
-        type={:select}
-        label="Signs up to"
-        value="speak"
-        options={[{"speak", "speak"}, {"judge", "judge"}]}
-      />
       <:submit note="The guest appears in tonight's list right away.">Create link</:submit>
     </.form_for>
   </.section>

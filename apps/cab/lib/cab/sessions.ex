@@ -19,7 +19,10 @@ defmodule Cab.Sessions do
 
   @teams_per_room 4
   @speakers_per_team 2
-  @max_room_speakers 8
+  @room_seats 9
+  # the engine needs a role on every participant; signups enter as
+  # speakers and Start re-roles whoever the head dragged into a chair
+  @signup_role "speaker"
 
   # ---------------------------------------------------------------
   # Rows
@@ -206,10 +209,11 @@ defmodule Cab.Sessions do
   @doc """
   THE ALLOCATOR DRAFT (server-held): the head drops a person on a
   slot — `"<room>:<og|oo|cg|co>:<1|2>"` for speakers,
-  `"<room>:judge"` for judges. The person leaves any previous slot;
-  an occupied target sends its occupant to that previous slot (a
-  swap) or back to the tray. Kinds are enforced. Editable while the
-  session is :signup or :closed. Returns `{:ok, session}`.
+  `"<room>:judge"` for the chair. Registration carries no role, so
+  anyone fits any slot — the drag decides who judges. The person
+  leaves any previous slot; an occupied target sends its occupant to
+  that previous slot (a swap) or back to the tray. Editable while
+  the session is :signup or :closed. Returns `{:ok, session}`.
   """
   def place(%Session{} = session, participant_id, slot) when is_integer(participant_id) do
     session = get_by_uuid(session.uuid)
@@ -217,9 +221,8 @@ defmodule Cab.Sessions do
     result =
       with {:ok, state} <- state(session),
            :ok <- require_draftable(state),
-           {:ok, person} <- find_participant(state.signups, participant_id),
-           {:ok, _room, side} <- parse_slot(slot, room_count(state.signups)),
-           :ok <- slot_fits(person, side) do
+           {:ok, _person} <- find_participant(state.signups, participant_id),
+           {:ok, _room, _side} <- parse_slot(slot, room_count(state.signups)) do
         draft = clean_draft(session.draft_allocation, state.signups)
         from = Enum.find_value(draft, fn {key, pid} -> pid == participant_id && key end)
         occupant = draft[slot]
@@ -321,11 +324,6 @@ defmodule Cab.Sessions do
 
   defp parse_slot(slot, _rooms), do: {:error, "no such slot: #{inspect(slot)}"}
 
-  defp slot_fits(%{"role" => "adjudicator"}, "judge"), do: :ok
-  defp slot_fits(%{"role" => "speaker"}, side) when side != "judge", do: :ok
-  defp slot_fits(_person, "judge"), do: {:error, "only judges chair a room"}
-  defp slot_fits(_person, _side), do: {:error, "judges cannot take a speaker slot"}
-
   defp clean_draft(draft, signups) do
     signed = MapSet.new(signups, & &1["id"])
     rooms = room_count(signups)
@@ -346,13 +344,14 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  The allocator's automatic ROOM COUNT (M9): enough rooms for every
-  speaker — ceil(speakers / #{@max_room_speakers}), minimum one. The
-  only automatic part of allocation; 13 speakers = 2 rooms.
+  The allocator's automatic ROOM COUNT: a room seats #{@room_seats}
+  people (eight speakers and a judge), so ceil(people / #{@room_seats}),
+  minimum one. Registration carries no role, so the count follows
+  everyone signed up; 13 speakers + 1 judge = 2 rooms. The only
+  automatic part of allocation.
   """
   def room_count(signups) do
-    speakers = Enum.count(signups, &(&1["role"] == "speaker"))
-    max(div(speakers + @max_room_speakers - 1, @max_room_speakers), 1)
+    max(div(length(signups) + @room_seats - 1, @room_seats), 1)
   end
 
   @doc """
@@ -377,21 +376,26 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Registration: the member registers themselves for this session as
-  "speak" or "judge" — only while the session is `:signup` (409 gate
-  once sign-ups close). Their engine counterpart is ensured lazily;
-  the engine enforces one registration per user per event.
+  Registration: the user registers themselves for this session — no
+  role; the head decides who judges and who speaks at allocation.
+  Only while the session is `:signup` (409 gate once sign-ups close).
+  Their engine counterpart is ensured lazily; the engine enforces one
+  registration per user per event.
   """
-  def signup(%User{} = user, %Session{} = session, kind) when kind in ["speak", "judge"] do
-    role = if kind == "speak", do: "speaker", else: "adjudicator"
-
+  def signup(%User{} = user, %Session{} = session) do
     display_name = presence(user.name) || user.username
 
     result =
       with {:ok, state} <- state(session),
            :ok <- require_stage(state, :signup),
            {:ok, actor} <- actor_for(user) do
-        EngineApi.add_participant(actor, session.engine_event_id, display_name, role, actor)
+        EngineApi.add_participant(
+          actor,
+          session.engine_event_id,
+          display_name,
+          @signup_role,
+          actor
+        )
       end
 
     notify(result, session)
@@ -403,10 +407,7 @@ defmodule Cab.Sessions do
   callers may register other users) but carries the member's engine
   user id, so the signup is indistinguishable from a self-signup.
   """
-  def signup_for(%User{} = head, %Session{} = session, username, kind)
-      when kind in ["speak", "judge"] do
-    role = if kind == "speak", do: "speaker", else: "adjudicator"
-
+  def signup_for(%User{} = head, %Session{} = session, username) do
     club = session_club(session)
 
     result =
@@ -421,16 +422,13 @@ defmodule Cab.Sessions do
           head_actor,
           session.engine_event_id,
           display_name,
-          role,
+          @signup_role,
           member_actor
         )
       end
 
     notify(result, session)
   end
-
-  def signup_for(%User{}, %Session{}, _username, _kind),
-    do: {:error, ~s(sign up "as" must be "speak" or "judge")}
 
   defp approved_member(club, username) do
     with %User{} = user <- Accounts.get_user_by_username(username),
@@ -583,12 +581,34 @@ defmodule Cab.Sessions do
            :ok <- require_stage(state, :closed),
            {:ok, rooms} <- parse_composition(rooms_spec, state.signups),
            {:ok, actor} <- actor_for(head),
+           :ok <- assign_roles(actor, session, state.signups, rooms),
            {:ok, count} <- create_composition(actor, state, rooms) do
         record(session, started_at: DateTime.utc_now(:second), rooms_count: count)
         {:ok, count}
       end
 
     notify(result, session)
+  end
+
+  # the drag decides roles: chairs become adjudicators, everyone in a
+  # team a speaker — only rows whose engine role differs are written
+  defp assign_roles(actor, session, signups, rooms) do
+    wanted =
+      Map.merge(
+        Map.new(Enum.flat_map(rooms, &List.flatten(&1.teams)), &{&1, "speaker"}),
+        Map.new(rooms, &{&1.judge_participant_id, "adjudicator"})
+      )
+
+    signups
+    |> Enum.filter(fn p -> wanted[p["id"]] && wanted[p["id"]] != p["role"] end)
+    |> Enum.reduce_while(:ok, fn p, :ok ->
+      case EngineApi.update_participant(actor, session.engine_event_id, p["id"], %{
+             role: wanted[p["id"]]
+           }) do
+        {:ok, _} -> {:cont, :ok}
+        error -> {:halt, error}
+      end
+    end)
   end
 
   defp create_composition(actor, state, rooms) do
@@ -610,10 +630,7 @@ defmodule Cab.Sessions do
 
   defp parse_composition(rooms_spec, participants)
        when is_list(rooms_spec) and rooms_spec != [] do
-    speaker_ids = for p <- participants, p["role"] == "speaker", into: MapSet.new(), do: p["id"]
-
-    judge_ids =
-      for p <- participants, p["role"] == "adjudicator", into: MapSet.new(), do: p["id"]
+    signed_ids = MapSet.new(participants, & &1["id"])
 
     with {:ok, rooms} <- Enum.reduce_while(rooms_spec, {:ok, []}, &parse_room/2) do
       rooms = Enum.reverse(rooms)
@@ -621,17 +638,11 @@ defmodule Cab.Sessions do
       pids = Enum.flat_map(rooms, fn room -> List.flatten(room.teams) end)
 
       cond do
-        bad = Enum.find(judges, &(not MapSet.member?(judge_ids, &1))) ->
-          {:error, %{rooms: "participant #{bad} is not a signed-up judge"}}
+        bad = Enum.find(judges ++ pids, &(not MapSet.member?(signed_ids, &1))) ->
+          {:error, %{rooms: "participant #{bad} is not signed up"}}
 
-        judges != Enum.uniq(judges) ->
-          {:error, %{rooms: "a judge cannot chair two rooms"}}
-
-        bad = Enum.find(pids, &(not MapSet.member?(speaker_ids, &1))) ->
-          {:error, %{rooms: "participant #{bad} is not a signed-up speaker"}}
-
-        pids != Enum.uniq(pids) ->
-          [dup | _] = pids -- Enum.uniq(pids)
+        judges ++ pids != Enum.uniq(judges ++ pids) ->
+          [dup | _] = (judges ++ pids) -- Enum.uniq(judges ++ pids)
           {:error, %{rooms: "participant #{dup} is placed more than once"}}
 
         true ->

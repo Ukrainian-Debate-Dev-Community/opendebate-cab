@@ -89,7 +89,7 @@ defmodule Cab.SessionsTest do
     assert state.stage == :running
   end
 
-  test "signup registers self as speaker or adjudicator while :signup", %{club: club} do
+  test "signup registers self without a role choice while :signup", %{club: club} do
     user = user_fixture(%{node_user_id: 44, name: "Ann B"})
     session = session_fixture(club, engine_event_id: 11)
 
@@ -99,15 +99,15 @@ defmodule Cab.SessionsTest do
           {"POST", "/api/events/11/participants"} ->
             assert params == %{
                      "display_name" => "Ann B",
-                     "role" => "adjudicator",
+                     "role" => "speaker",
                      "user_id" => 44
                    }
 
-            ok(conn, %{"id" => 41, "role" => "adjudicator"})
+            ok(conn, %{"id" => 41, "role" => "speaker"})
         end
     end)
 
-    assert {:ok, %{"id" => 41}} = Sessions.signup(user, session, "judge")
+    assert {:ok, %{"id" => 41}} = Sessions.signup(user, session)
   end
 
   test "signup is 409-gated once sign-ups close", %{club: club} do
@@ -116,7 +116,7 @@ defmodule Cab.SessionsTest do
 
     stub(fn conn, _params -> state_stub(conn, []) end)
 
-    assert {:error, :conflict, message} = Sessions.signup(user, closed, "speak")
+    assert {:error, :conflict, message} = Sessions.signup(user, closed)
     assert message =~ "sign-ups are not open (session is closed)"
   end
 
@@ -160,13 +160,10 @@ defmodule Cab.SessionsTest do
       assert Sessions.draft(session, signups) == %{"1:og:1" => 2}
     end
 
-    test "kinds are enforced and slots must exist", %{session: session} do
-      assert {:error, "judges cannot take a speaker slot"} =
-               Sessions.place(session, 90, "1:og:1")
-
-      assert {:error, "only judges chair a room"} = Sessions.place(session, 1, "1:judge")
+    test "anyone fits any slot; slots must exist", %{session: session} do
+      assert {:ok, _} = Sessions.place(session, 90, "1:og:1")
+      assert {:ok, _} = Sessions.place(session, 1, "1:judge")
       assert {:error, "no such slot: 3:og:1"} = Sessions.place(session, 1, "3:og:1")
-      assert {:ok, _} = Sessions.place(session, 90, "1:judge")
     end
 
     test "people who left the signups drop out of the draft", %{session: session} do
@@ -175,15 +172,15 @@ defmodule Cab.SessionsTest do
     end
   end
 
-  test "room_count is the only automatic part: ceil(speakers / 8), at least one" do
-    speakers = fn n -> for i <- 1..n, do: %{"id" => i, "role" => "speaker"} end
-    judge = [%{"id" => 99, "role" => "adjudicator"}]
+  test "room_count is the only automatic part: ceil(people / 9), at least one" do
+    people = fn n -> for i <- 1..n, do: %{"id" => i, "role" => "speaker"} end
 
     assert Sessions.room_count([]) == 1
-    assert Sessions.room_count(speakers.(8) ++ judge) == 1
-    assert Sessions.room_count(speakers.(9)) == 2
-    assert Sessions.room_count(speakers.(13)) == 2
-    assert Sessions.room_count(speakers.(17)) == 3
+    assert Sessions.room_count(people.(9)) == 1
+    assert Sessions.room_count(people.(10)) == 2
+    # 13 speakers and a judge
+    assert Sessions.room_count(people.(14)) == 2
+    assert Sessions.room_count(people.(19)) == 3
   end
 
   test "close_signups / reopen_signups flip the registration window", %{club: club} do
@@ -314,6 +311,34 @@ defmodule Cab.SessionsTest do
     assert Sessions.stage_of(recorded) == :running
   end
 
+  test "make_rooms/3 re-roles people to where the head dragged them",
+       %{head: head, club: club} do
+    session = closed_session_fixture(club, engine_event_id: 11)
+    {speakers, judges} = signup_cast()
+    test_pid = self()
+
+    stub(fn conn, params ->
+      state_stub(conn, speakers ++ judges) ||
+        case {conn.method, conn.request_path} do
+          {"PUT", "/api/events/11/participants/" <> id} ->
+            send(test_pid, {:role, String.to_integer(id), params["role"]})
+            ok(conn, %{"id" => id})
+
+          {"POST", "/api/rounds/21/rooms"} ->
+            ok(conn, %{"id" => 71})
+        end
+    end)
+
+    # speaker 8 chairs, the signed-up judge 99 speaks in an iron
+    composition = [%{"judge_participant_id" => 8, "teams" => [[1, 2], [3, 4], [5, 6], [99]]}]
+
+    assert {:ok, 1} = Sessions.make_rooms(head, session, composition)
+    assert_received {:role, 8, "adjudicator"}
+    assert_received {:role, 99, "speaker"}
+    # people already in the right role are not rewritten
+    refute_received {:role, 1, _}
+  end
+
   test "make_rooms/3 is gated on :closed", %{head: head, club: club} do
     session = session_fixture(club, engine_event_id: 11)
     {speakers, judges} = signup_cast()
@@ -341,14 +366,14 @@ defmodule Cab.SessionsTest do
 
     full = [[1, 2], [3, 4], [5, 6], [7, 8]]
 
-    # a speaker cannot chair; a stranger cannot speak; nobody twice
+    # a stranger cannot sit anywhere; nobody twice, chair included
     assert {:error, %{rooms: message}} = Sessions.make_rooms(head, session, compose.(1, full))
-    assert message =~ "not a signed-up judge"
+    assert message =~ "placed more than once"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6], [7, 999]]))
 
-    assert message =~ "999 is not a signed-up speaker"
+    assert message =~ "999 is not signed up"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6], [7, 1]]))
@@ -416,7 +441,7 @@ defmodule Cab.SessionsTest do
         end
     end)
 
-    assert {:ok, %{"id" => 41}} = Sessions.signup_for(head, session, member.username, "speak")
+    assert {:ok, %{"id" => 41}} = Sessions.signup_for(head, session, member.username)
 
     # registered AS the head, FOR the member's engine user
     assert_received {:added, %{"id" => 9}, params}
@@ -427,13 +452,11 @@ defmodule Cab.SessionsTest do
              "user_id" => 44
            }
 
-    # only approved members; only real kinds
-    assert {:error, message} = Sessions.signup_for(head, session, outsider.username, "speak")
+    # only approved members
+    assert {:error, message} = Sessions.signup_for(head, session, outsider.username)
     assert message =~ "not an approved member"
-    assert {:error, message} = Sessions.signup_for(head, session, "who-dis", "judge")
+    assert {:error, message} = Sessions.signup_for(head, session, "who-dis")
     assert message =~ "not an approved member"
-    assert {:error, message} = Sessions.signup_for(head, session, member.username, "watch")
-    assert message =~ ~s("speak" or "judge")
   end
 
   test "remove_signup: the head removes anyone, a member only themselves",

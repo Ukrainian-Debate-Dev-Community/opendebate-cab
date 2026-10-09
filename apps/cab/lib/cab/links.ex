@@ -84,16 +84,16 @@ defmodule Cab.Links do
   @doc """
   Registers a guest for the session: a guest gateway user (generated
   username, the form's name as display name, NO oauth identity), the
-  engine signup through `Sessions.signup/3` (which provisions the
+  engine signup through `Sessions.signup/2` (which provisions the
   engine shadow user lazily and enforces the `:signup` stage gate),
   and the personal link row. Returns `{:ok, link}` with the user
   preloaded, `{:error, :conflict, message}` once sign-ups closed,
   `{:error, %{name: message}}` for a blank name, or `{:error, message}`.
   """
-  def register_guest(%Session{} = session, name, kind) when kind in ["speak", "judge"] do
+  def register_guest(%Session{} = session, name) do
     with {:ok, name} <- validate_name(name),
          {:ok, guest} <- create_guest_user(name) do
-      case Sessions.signup(guest, session, kind) do
+      case Sessions.signup(guest, session) do
         {:ok, _participant} ->
           issue(guest, session)
 
@@ -105,9 +105,6 @@ defmodule Cab.Links do
       end
     end
   end
-
-  def register_guest(%Session{}, _name, _kind),
-    do: {:error, ~s(sign up "as" must be "speak" or "judge")}
 
   @doc "Revokes the link: the code stops resolving immediately."
   def revoke(%Link{} = link) do

@@ -373,7 +373,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert page =~ "Register"
     assert page =~ "/r/#{session.uuid}"
 
-    # THE registration URL, signed-in: prefilled, role pills, no name field
+    # THE registration URL, signed-in: prefilled, no role, no name field
     html =
       conn
       |> log_in(member)
@@ -394,9 +394,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> html_response(200)
 
     assert head_html =~ ~s(href="/c/#{club.uuid}/owner/members")
-    assert html =~ "Speaker"
-    assert html =~ "Judge"
-    assert html =~ ~s(name="as")
+    refute html =~ ~s(name="as")
     refute html =~ ~s(name="name")
 
     conn =
@@ -616,13 +614,12 @@ defmodule CabWeb.HtmlTreesTest do
       conn
       |> log_in(head)
       |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups", %{
-        username: "benched",
-        as: "judge"
+        username: "benched"
       })
 
     assert redirected_to(added) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
     assert Phoenix.Flash.get(added.assigns.flash, :info) =~ "benched"
-    assert_received {:added, %{"user_id" => 444, "role" => "adjudicator"}}
+    assert_received {:added, %{"user_id" => 444, "role" => "speaker"}}
 
     removed =
       conn
@@ -668,8 +665,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(phx-hook="Allocator")
     assert html =~ ~s(data-drop="tray")
     assert html =~ ~s(draggable="true")
-    assert html =~ ~s(data-kind="spk")
-    assert html =~ ~s(data-kind="judge")
+    refute html =~ "data-kind"
     assert html =~ "Speaker 8"
     assert html =~ ~s(data-slot="1:og:1")
     assert html =~ ~s(data-slot="1:co:2")
@@ -683,9 +679,9 @@ defmodule CabWeb.HtmlTreesTest do
     refute html =~ "+ room"
     refute html =~ ~s(data-slot="2:og:1")
 
-    # the count is ceiling-based — 13 speakers open 2 rooms, never 1
-    thirteen = for i <- 1..13, do: %{"role" => "speaker", "id" => i}
-    assert Cab.Sessions.room_count(thirteen) == 2
+    # the count is ceiling-based — 13 speakers and a judge open 2 rooms
+    fourteen = for i <- 1..14, do: %{"role" => "speaker", "id" => i}
+    assert Cab.Sessions.room_count(fourteen) == 2
     assert Cab.Sessions.room_count([%{"role" => "speaker", "id" => 1}]) == 1
 
     # an impossible composition bounces back with the reason and the

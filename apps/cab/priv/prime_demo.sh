@@ -77,16 +77,16 @@ req nina POST "/api/v1/clubs/$KYIV/join-requests" \
   '{"message":"Nina here — saw your club at the uni fair, want to try BP","contact":"@demo-nina"}'
 [ "$STATUS" = "201" ] || fail "join nina: $STATUS"
 
-echo "== open session + sign-ups (8 speak, 1 judge)"
+echo "== open session + sign-ups (9 people; you seat the judge by dragging)"
 req me POST "/api/v1/clubs/$KYIV/sessions" '{"name":"Thursday practice"}'
 [ "$STATUS" = "201" ] || fail "open session: $STATUS"
 SESS=$(jq -r '.uuid' "$BODY")
 echo "   shared registration URL (give this to guests): $BASE/r/$SESS"
 for u in s1 s2 s3 s4 s5 s6 s7 s8; do
-  req "$u" POST "/api/v1/sessions/$SESS/signups" '{"as":"speak"}'
+  req "$u" POST "/api/v1/sessions/$SESS/signups" '{}'
   [ "$STATUS" = "201" ] || fail "signup $u: $STATUS"
 done
-req j1 POST "/api/v1/sessions/$SESS/signups" '{"as":"judge"}'
+req j1 POST "/api/v1/sessions/$SESS/signups" '{}'
 [ "$STATUS" = "201" ] || fail "signup j1: $STATUS"
 
 echo "== Lviv Debate Society (you are an outsider)"

@@ -267,7 +267,7 @@ defmodule CabWeb.CabinetHomeTest do
     # one row per signup, across clubs — membership not required
     assert html =~ ~s(href="/c/#{club_a.uuid}/s/#{s1.uuid}")
     assert html =~ ~s(href="/c/#{club_b.uuid}/s/#{s2.uuid}")
-    assert html =~ "speaker"
-    assert html =~ "judge"
+    # registration carries no role, so the schedule shows none
+    refute html =~ "Signed up as"
   end
 end

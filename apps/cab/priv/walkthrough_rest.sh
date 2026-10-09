@@ -143,9 +143,9 @@ assert s1 GET "/api/v1/sessions/$SESSION" 200 '.scheduled_at' "2026-10-09T18:30:
 say "signups: 8 speakers + 1 judge"
 # ----------------------------------------------------------------
 for u in s1 s2 s3 s4 s5 s6 s7 s8; do
-  assert "$u" POST "/api/v1/sessions/$SESSION/signups" 201 '.role' speaker '{"as":"speak"}'
+  assert "$u" POST "/api/v1/sessions/$SESSION/signups" 201 '.participant_id | type' number '{}'
 done
-assert j1 POST "/api/v1/sessions/$SESSION/signups" 201 '.role' adjudicator '{"as":"judge"}'
+assert j1 POST "/api/v1/sessions/$SESSION/signups" 201 '.participant_id | type' number '{}'
 
 # ----------------------------------------------------------------
 say "signups on behalf + removal (head full control)"
@@ -157,9 +157,9 @@ assert head PATCH "/api/v1/join-requests/$X1_REQ" 200 '.status' approved '{"acti
 
 # only the head signs up others; the head may remove anyone
 assert s1 POST "/api/v1/sessions/$SESSION/signups" 403 '.error' forbidden \
-  "{\"as\":\"speak\",\"username\":\"wt-$RUN-x1\"}"
-assert head POST "/api/v1/sessions/$SESSION/signups" 201 '.role' speaker \
-  "{\"as\":\"speak\",\"username\":\"wt-$RUN-x1\"}"
+  "{\"username\":\"wt-$RUN-x1\"}"
+assert head POST "/api/v1/sessions/$SESSION/signups" 201 '.username' "wt-$RUN-x1" \
+  "{\"username\":\"wt-$RUN-x1\"}"
 X1_PID=$(jq -r '.participant_id' "$BODY")
 assert s1 DELETE "/api/v1/sessions/$SESSION/signups/$X1_PID" 403 '.error' forbidden
 assert head DELETE "/api/v1/sessions/$SESSION/signups/$X1_PID" 200 '.status' removed
@@ -169,7 +169,7 @@ assert s8 GET "/api/v1/sessions/$SESSION" 200 '.stage' signup
 S8_PID=$(jq -r --arg name "wt-$RUN-s8" \
   '.signups[] | select(.display_name == $name) | .id' "$BODY")
 assert s8 DELETE "/api/v1/sessions/$SESSION/signups/$S8_PID" 200 '.status' removed
-assert s8 POST "/api/v1/sessions/$SESSION/signups" 201 '.role' speaker '{"as":"speak"}'
+assert s8 POST "/api/v1/sessions/$SESSION/signups" 201 '.participant_id | type' number '{}'
 
 # ----------------------------------------------------------------
 say "the close-signups gate (rooms are composed after sign-ups close)"
@@ -187,7 +187,7 @@ assert head GET "/api/v1/sessions/$SESSION" 200 '.stage' closed
 
 say "signups after close -> 409; closing twice -> 409"
 assert x1 POST "/api/v1/sessions/$SESSION/signups" 409 \
-  '.error | contains("sign-ups are not open")' true '{"as":"speak"}'
+  '.error | contains("sign-ups are not open")' true '{}'
 assert head POST "/api/v1/sessions/$SESSION/close-signups" 409 \
   '.error | contains("session is closed")' true
 
@@ -369,9 +369,9 @@ assert head POST "/api/v1/clubs/$CLUB/sessions" 201 '.uuid | length' 36 \
 IRON_SESSION=$(jq -r '.uuid' "$BODY")
 
 for u in s1 s2 s3 s4 s5 s6 s7 s8 x1; do
-  assert "$u" POST "/api/v1/sessions/$IRON_SESSION/signups" 201 '.role' speaker '{"as":"speak"}'
+  assert "$u" POST "/api/v1/sessions/$IRON_SESSION/signups" 201 '.participant_id | type' number '{}'
 done
-assert j1 POST "/api/v1/sessions/$IRON_SESSION/signups" 201 '.role' adjudicator '{"as":"judge"}'
+assert j1 POST "/api/v1/sessions/$IRON_SESSION/signups" 201 '.participant_id | type' number '{}'
 assert head POST "/api/v1/sessions/$IRON_SESSION/close-signups" 200 '.stage' closed
 
 # compose explicitly: 3 pairs + ONE 1-speaker team (iron), 2 sit out
@@ -430,7 +430,7 @@ GSESSION=$(jq -r '.uuid' "$BODY")
 
 # 6 member speakers leave two speaker seats for the guests
 for u in s1 s2 s3 s4 s5 s6; do
-  assert "$u" POST "/api/v1/sessions/$GSESSION/signups" 201 '.role' speaker '{"as":"speak"}'
+  assert "$u" POST "/api/v1/sessions/$GSESSION/signups" 201 '.participant_id | type' number '{}'
 done
 
 # the interim owner session surface: registration + signups + rooms
@@ -511,7 +511,7 @@ req anon2 GET "$G1_LINK"
 [ "$STATUS" = "404" ] || fail "revoked $G1_LINK: status $STATUS, want 404"
 html_ok "revoked link -> 404" GET "/l/<g1>" 404
 assert head POST "/api/v1/sessions/$GSESSION/links" 201 '.url | contains("/l/")' true \
-  '{"name":"Handed Hanna","as":"speak"}'
+  '{"name":"Handed Hanna"}'
 assert head GET "/api/v1/sessions/$GSESSION/links" 200 '.links | length' 2
 
 say "close sign-ups: the shared URL turns into the closed notice"

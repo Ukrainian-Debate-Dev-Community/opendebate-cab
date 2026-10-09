@@ -359,9 +359,9 @@ defmodule CabWeb.UiTest do
   test "allocator renders the server draft: tray of the unplaced, keyed slots, row words" do
     assigns = %{
       people: %{
-        1 => %{id: 1, name: "Anna", kind: "spk"},
-        2 => %{id: 2, name: "Bohdan", kind: "spk"},
-        99 => %{id: 99, name: "Nadia", kind: "judge"}
+        1 => %{id: 1, name: "Anna"},
+        2 => %{id: 2, name: "Bohdan"},
+        99 => %{id: 99, name: "Nadia"}
       },
       draft: %{"1:og:1" => 1}
     }
@@ -379,13 +379,13 @@ defmodule CabWeb.UiTest do
     [tray, table] = String.split(html, "<table>", parts: 2)
     refute tray =~ "Anna"
     assert tray =~ "Bohdan"
-    assert tray =~ ~s(class="chip judge")
+    assert tray =~ "Nadia"
     assert tray =~ "Unallocated (2)"
 
     # slots carry their keys; the placed chip renders inside its slot
     assert table =~ ~s(data-slot="1:og:1")
     assert table =~ ~s(data-slot="2:judge")
-    assert table =~ "Anna <span class=\"k\">SPK</span>"
+    assert table =~ ">Anna</span>"
 
     # row state in words, never pills
     assert table =~ "incomplete"

@@ -82,9 +82,8 @@ defmodule CabWeb.GuestLinksTest do
       assert html =~ ~s(id="guest-register-form")
       assert html =~ ~s(action="/r/#{session.uuid}")
       assert html =~ ~s(name="name")
-      assert html =~ ~s(name="as")
-      assert html =~ "Speaker"
-      assert html =~ "Judge"
+      # no role choice: the head seats people at allocation
+      refute html =~ ~s(name="as")
       refute html =~ "Registration is closed"
     end
 
@@ -204,7 +203,7 @@ defmodule CabWeb.GuestLinksTest do
 
       # P6 greets the guest with their registration + cancel action
       html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
-      assert html =~ "You are registered to speak tonight."
+      assert html =~ "You are registered for tonight."
       assert html =~ "Cancel my registration"
       assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove"
 
@@ -469,7 +468,6 @@ defmodule CabWeb.GuestLinksTest do
       assert html =~ ~s(id="guest-links")
       assert html =~ "Greta Guest"
       assert html =~ link.code
-      assert html =~ "speaker"
       assert html =~ "/c/#{club.uuid}/owner/links/#{link.id}/revoke"
 
       assert html =~ ~s(id="issue-link-form")
@@ -522,12 +520,11 @@ defmodule CabWeb.GuestLinksTest do
         conn
         |> log_in(head)
         |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/links", %{
-          name: "Handed Hanna",
-          as: "judge"
+          name: "Handed Hanna"
         })
 
       assert redirected_to(conn) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-      assert_received {:signup, %{"role" => "adjudicator", "user_id" => 778}}
+      assert_received {:signup, %{"role" => "speaker", "user_id" => 778}}
 
       assert [link] = Links.list_for_session(session)
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "/l/#{link.code}"

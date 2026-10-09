@@ -26,19 +26,12 @@ defmodule CabWeb.RegistrationController do
   end
 
   # a signed-in user registers as themselves — no guest link involved
-  defp create_signed_in(conn, user, session, params) do
-    kind = params["as"] || ""
-
-    with true <- kind in ["speak", "judge"],
-         {:ok, _participant} <- Sessions.signup(user, session, kind) do
-      conn
-      |> put_flash(:info, "registered to #{kind}")
-      |> redirect(to: ~p"/c/#{session.club.uuid}/s/#{session.uuid}")
-    else
-      false ->
+  defp create_signed_in(conn, user, session) do
+    case Sessions.signup(user, session) do
+      {:ok, _participant} ->
         conn
-        |> put_flash(:error, ~s(sign up "as" must be "speak" or "judge"))
-        |> redirect(to: ~p"/r/#{session.uuid}")
+        |> put_flash(:info, "registered")
+        |> redirect(to: ~p"/c/#{session.club.uuid}/s/#{session.uuid}")
 
       {:error, :conflict, message} ->
         conn
@@ -52,27 +45,26 @@ defmodule CabWeb.RegistrationController do
     end
   end
 
-  # POST /r/:session_uuid {"name", "as"} — guest user + engine signup
+  # POST /r/:session_uuid {"name"} — guest user + engine signup
   # + link row, then the personal-link page (the URL must be SHOWN,
   # so this render is the one deliberate exception to redirect+flash)
   def create(conn, %{"session_uuid" => session_uuid} = params) do
     with_session(conn, session_uuid, fn conn, session, state ->
       case conn.assigns[:current_user] do
-        %Cab.Accounts.User{} = user -> create_signed_in(conn, user, session, params)
+        %Cab.Accounts.User{} = user -> create_signed_in(conn, user, session)
         nil -> create_guest(conn, session, state, params)
       end
     end)
   end
 
   defp create_guest(conn, session, state, params) do
-    case Links.register_guest(session, params["name"], params["as"] || "") do
+    case Links.register_guest(session, params["name"]) do
       {:ok, link} ->
         render(conn, :created,
           club: session.club,
           session: session,
           link: link,
           personal_url: url(~p"/l/#{link.code}"),
-          role: params["as"],
           page_title: "#{session.club.name} — registered"
         )
 
@@ -95,7 +87,6 @@ defmodule CabWeb.RegistrationController do
       session: session,
       state: state,
       name: params["name"],
-      as: params["as"] || "speak",
       errors: errors,
       page_title: "#{session.club.name} — register"
     )

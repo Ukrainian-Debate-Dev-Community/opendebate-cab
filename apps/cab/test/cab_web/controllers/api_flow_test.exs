@@ -166,16 +166,11 @@ defmodule CabWeb.ApiFlowTest do
     signup =
       conn
       |> log_in(member)
-      |> post(~p"/api/v1/sessions/#{session_uuid}/signups", %{as: "speak"})
+      |> post(~p"/api/v1/sessions/#{session_uuid}/signups", %{})
       |> json_response(201)
 
-    assert signup["role"] == "speaker"
-
-    # bad kind
-    assert conn
-           |> log_in(member)
-           |> post(~p"/api/v1/sessions/#{session_uuid}/signups", %{as: "watch"})
-           |> json_response(422)
+    assert is_integer(signup["participant_id"])
+    refute Map.has_key?(signup, "role")
 
     # member cannot make rooms or finish
     assert conn

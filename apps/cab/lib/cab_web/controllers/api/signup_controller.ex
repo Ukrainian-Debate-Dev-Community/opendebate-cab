@@ -8,28 +8,26 @@ defmodule CabWeb.Api.SignupController do
 
   plug ClubScope, source: :session, require: :member
 
-  # POST /api/v1/sessions/:uuid/signups {"as": "speak" | "judge",
-  # "username": optional — head only, signs up any approved member}
-  def create(conn, %{"as" => kind, "username" => username}) when is_binary(username) do
+  # POST /api/v1/sessions/:uuid/signups {"username": optional — head
+  # only, signs up any approved member}. No role: the head decides
+  # who judges at allocation.
+  def create(conn, %{"username" => username}) when is_binary(username) do
     with :ok <- require_owner(conn),
          {:ok, participant} <-
-           Sessions.signup_for(conn.assigns.current_user, conn.assigns.session, username, kind) do
+           Sessions.signup_for(conn.assigns.current_user, conn.assigns.session, username) do
       conn
       |> put_status(201)
-      |> json(%{participant_id: participant["id"], role: participant["role"], username: username})
+      |> json(%{participant_id: participant["id"], username: username})
     end
   end
 
-  def create(conn, %{"as" => kind}) when kind in ["speak", "judge"] do
-    with {:ok, participant} <-
-           Sessions.signup(conn.assigns.current_user, conn.assigns.session, kind) do
+  def create(conn, _params) do
+    with {:ok, participant} <- Sessions.signup(conn.assigns.current_user, conn.assigns.session) do
       conn
       |> put_status(201)
-      |> json(%{participant_id: participant["id"], role: participant["role"]})
+      |> json(%{participant_id: participant["id"]})
     end
   end
-
-  def create(_conn, _params), do: {:error, ~s(sign up "as" must be "speak" or "judge")}
 
   # DELETE /api/v1/sessions/:uuid/signups/:participant_id — the head
   # removes anyone, a member removes their own signup

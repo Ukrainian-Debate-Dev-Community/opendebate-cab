@@ -179,10 +179,9 @@ defmodule CabWeb.OwnerController do
       case Sessions.signup_for(
              conn.assigns.current_user,
              session,
-             params["username"],
-             params["as"]
+             params["username"]
            ) do
-        {:ok, _participant} -> {:ok, "signed #{params["username"]} up to #{params["as"]}"}
+        {:ok, _participant} -> {:ok, "signed #{params["username"]} up"}
         error -> error
       end
     end)
@@ -192,7 +191,7 @@ defmodule CabWeb.OwnerController do
   # guest link by hand; the personal URL lands in the flash
   def issue_link(conn, %{"session_uuid" => session_uuid} = params) do
     with_session(conn, session_uuid, fn session ->
-      case Links.register_guest(session, params["name"], params["as"] || "") do
+      case Links.register_guest(session, params["name"]) do
         {:ok, link} ->
           {:ok, "guest link for #{link.user.name}: #{url(~p"/l/#{link.code}")}"}
 

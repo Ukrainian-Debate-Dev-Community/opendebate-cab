@@ -165,9 +165,9 @@ defmodule CabWeb.SessionLiveTest do
     assert map_size(draft) == 9
     assert draft["1:judge"] == 99
 
-    # a judge dropped on a speaker slot is refused with words
-    assert render_hook(view, "place", %{"id" => 99, "slot" => "1:og:1"}) =~
-             "judges cannot take a speaker slot"
+    # a drop outside today's rooms is refused with words
+    assert render_hook(view, "place", %{"id" => 99, "slot" => "3:og:1"}) =~
+             "no such slot: 3:og:1"
 
     # Start session: the draft becomes exactly this room
     html = view |> element("#allocator-form") |> render_submit()

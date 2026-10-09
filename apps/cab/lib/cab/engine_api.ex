@@ -245,6 +245,11 @@ defmodule Cab.EngineApi do
     Engine.post(actor, "/api/events/#{event_id}/participants", body) |> unwrap()
   end
 
+  def update_participant(actor, event_id, participant_id, attrs) do
+    Engine.put(actor, "/api/events/#{event_id}/participants/#{participant_id}", attrs)
+    |> unwrap()
+  end
+
   def list_participants(actor, event_id) do
     Engine.get(actor, "/api/events/#{event_id}/participants") |> unwrap()
   end

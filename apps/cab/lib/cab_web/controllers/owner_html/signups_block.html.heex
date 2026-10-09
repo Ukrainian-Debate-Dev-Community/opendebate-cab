@@ -6,7 +6,6 @@
         guest — personal link above
       </.sub>
     </:col>
-    <:col :let={participant} label="Role">{participant["role"]}</:col>
     <:col :let={participant} :if={@state.stage == :signup}>
       <.link
         href={
@@ -34,13 +33,6 @@
       type={:select}
       label="Member"
       options={addable_members(@members, @state.signups)}
-    />
-    <:block
-      name={:as}
-      type={:select}
-      label="Signs up to"
-      value="speak"
-      options={[{"speak", "speak"}, {"judge", "judge"}]}
     />
     <:submit note="They appear in tonight's list right away.">Add</:submit>
   </.form_for>

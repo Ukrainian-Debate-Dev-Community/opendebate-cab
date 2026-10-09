@@ -24,11 +24,11 @@ defmodule CabWeb.Api.LinkController do
     end
   end
 
-  # POST /api/v1/sessions/:uuid/links {"name", "as"} — the head
+  # POST /api/v1/sessions/:uuid/links {"name"} — the head
   # issues a guest registration + personal link by hand
   def create(conn, params) do
     with {:ok, link} <-
-           Links.register_guest(conn.assigns.session, params["name"], params["as"] || "") do
+           Links.register_guest(conn.assigns.session, params["name"]) do
       conn |> put_status(201) |> json(link_json(link))
     end
   end
