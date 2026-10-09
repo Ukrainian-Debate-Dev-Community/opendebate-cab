@@ -44,11 +44,12 @@ defmodule CabWeb.SessionPageHTML do
       club: club.name,
       session: state.event["name"],
       date: Calendar.strftime(session.scheduled_at || session.inserted_at, "%-d %b %Y"),
-      starts: session.scheduled_at && Calendar.strftime(session.scheduled_at, "%H:%M"),
+      # exact instants; the browser shows them in the viewer's timezone
+      starts: session.scheduled_at && DateTime.to_iso8601(session.scheduled_at),
       room: room_label(room),
       motion: motion && motion["motion_text"],
       infoslide: motion && motion["infoslide"],
-      prep_until: prep_until(room),
+      prep_until: prep_deadline(room),
       teams:
         for room_team <- sorted_teams(room) do
           %{
@@ -62,15 +63,6 @@ defmodule CabWeb.SessionPageHTML do
       link_text: bare_url(link),
       qr: qr
     })
-  end
-
-  defp prep_until(room) do
-    with iso when is_binary(iso) <- prep_deadline(room),
-         {:ok, at, _} <- DateTime.from_iso8601(iso) do
-      Calendar.strftime(at, "%H:%M")
-    else
-      _ -> nil
-    end
   end
 
   defp my_room_label(%{rooms: rooms}, my_room_id) do
