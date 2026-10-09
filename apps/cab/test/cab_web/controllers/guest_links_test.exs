@@ -214,16 +214,120 @@ defmodule CabWeb.GuestLinksTest do
       assert conn |> get(~p"/l/#{link.code}") |> response(404)
     end
 
-    test "a signed-in account is never replaced by someone's link",
+    test "a signed-in account is never replaced; the link offers to claim the history",
          %{conn: conn, club: club, session: session, link: link, head: head} do
       stub_stage([guest_signup(41, 777)])
 
-      conn = conn |> init_test_session(%{user_id: head.id}) |> get(~p"/l/#{link.code}")
+      html =
+        conn
+        |> init_test_session(%{user_id: head.id})
+        |> get(~p"/l/#{link.code}")
+        |> html_response(200)
 
-      assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
-      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "Sign out first"
-      # the head stays the head
-      assert Plug.Conn.get_session(conn, :user_id) == head.id
+      assert html =~ "Add to my account"
+      assert html =~ ~s(action="/l/#{link.code}/claim")
+      assert html =~ "/c/#{club.uuid}/s/#{session.uuid}"
+    end
+
+    test "claiming moves the guest's history onto the account; guest and link are gone",
+         %{conn: conn, link: link, guest: guest} do
+      account = user_fixture(%{node_user_id: 501, name: "Real Greta"})
+      test_pid = self()
+
+      stub_stage([guest_signup(41, 777)], [], fn conn, params ->
+        case {conn.method, conn.request_path} do
+          {"POST", "/api/admins/merge"} ->
+            send(test_pid, {:merge, params, conn})
+            ok(conn, %{"moved" => 1})
+
+          _other ->
+            nil
+        end
+      end)
+
+      claimed =
+        conn
+        |> log_in(account)
+        |> post(~p"/l/#{link.code}/claim")
+
+      assert redirected_to(claimed) == "/me"
+      assert Phoenix.Flash.get(claimed.assigns.flash, :info) =~ "now on your account"
+
+      assert_received {:merge, params, engine_conn}
+
+      assert params == %{
+               "sourceUserId" => 777,
+               "targetUserId" => 501,
+               "displayName" => "Real Greta"
+             }
+
+      ["Bearer " <> token] = Plug.Conn.get_req_header(engine_conn, "authorization")
+      {:ok, claims} = Joken.verify(token, Joken.Signer.create("HS256", "test-engine-secret"))
+      assert claims["isAdmin"] == true
+
+      assert Repo.get(User, guest.id) == nil
+      assert conn |> get(~p"/l/#{link.code}") |> response(404)
+    end
+
+    test "an engine refusal keeps everything and says why",
+         %{conn: conn, link: link, guest: guest} do
+      account = user_fixture(%{node_user_id: 502})
+
+      stub_stage([guest_signup(41, 777)], [], fn conn, _params ->
+        case {conn.method, conn.request_path} do
+          {"POST", "/api/admins/merge"} ->
+            conn
+            |> Plug.Conn.put_resp_content_type("application/json")
+            |> Plug.Conn.send_resp(
+              409,
+              ~s({"status":"fail","message":"Both users are registered in event 11"})
+            )
+
+          _other ->
+            nil
+        end
+      end)
+
+      refused = conn |> log_in(account) |> post(~p"/l/#{link.code}/claim")
+      assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "event 11"
+      assert Repo.get(User, guest.id)
+    end
+
+    test "/account claims a pasted personal link; nonsense is refused in words",
+         %{conn: conn, link: link, guest: guest} do
+      account = user_fixture(%{node_user_id: 503})
+
+      stub_stage([guest_signup(41, 777)], [], fn conn, _params ->
+        case {conn.method, conn.request_path} do
+          {"POST", "/api/admins/merge"} -> ok(conn, %{"moved" => 1})
+          _other -> nil
+        end
+      end)
+
+      html = conn |> log_in(account) |> get(~p"/account") |> html_response(200)
+      assert html =~ ~s(action="/account/claim")
+
+      bad = conn |> log_in(account) |> post(~p"/account/claim", %{link: "nonsense"})
+      assert Phoenix.Flash.get(bad.assigns.flash, :error) =~ "does not exist"
+
+      done =
+        conn
+        |> log_in(account)
+        |> post(~p"/account/claim", %{link: "https://cab.uadebate.com/l/#{link.code}"})
+
+      assert redirected_to(done) == "/me"
+      assert Repo.get(User, guest.id) == nil
+    end
+
+    test "a guest identity cannot claim another guest's history",
+         %{conn: conn, link: link} do
+      other = user_fixture(%{node_user_id: 889, username: "guest-other"})
+      session = Cab.Repo.preload(link, :session).session
+      link_fixture(other, session)
+      stub_stage([guest_signup(41, 777)])
+
+      refused = conn |> log_in(other) |> post(~p"/l/#{link.code}/claim")
+      assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "your own account"
     end
 
     test "a guest device may switch to another guest's link",

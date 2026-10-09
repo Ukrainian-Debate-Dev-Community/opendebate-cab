@@ -25,16 +25,26 @@
       </div>
     </.section>
 
+    <.section title="Guest history">
+      <.form_for
+        id="claim-form"
+        action={~p"/account/claim"}
+        description="Played as a guest? Paste that session's personal link to move its results onto this account."
+      >
+        <:block name={:link} type={:text} label="Personal link" required />
+        <:submit note="The link stops working once its history is yours.">
+          Add to my account
+        </:submit>
+      </.form_for>
+    </.section>
+
     <.section title="Sign-in methods" pad>
       <%= if @identities == [] do %>
         Dev session — no provider linked.
       <% else %>
         Signed in with {Enum.map_join(@identities, ", ", & &1.provider)}.
       <% end %>
-      <p>
-        Google can be linked when it ships. Claim codes (guest history)
-        land here later.
-      </p>
+      <p>Google can be linked when it ships.</p>
       <p>
         Data requests or deletion: <a href="mailto:support@uadebate.com">support@uadebate.com</a>.
       </p>

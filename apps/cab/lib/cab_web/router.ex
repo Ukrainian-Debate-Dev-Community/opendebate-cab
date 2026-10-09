@@ -40,6 +40,7 @@ defmodule CabWeb.Router do
     # profile — entry only via the sidenav bottom
     get "/account", AccountController, :show
     post "/account", AccountController, :update
+    post "/account/claim", AccountController, :claim
 
     # platform admin (is_admin; 404 for everyone else). Club creation
     # is ADMIN-ONLY — users can only request membership.
@@ -144,6 +145,7 @@ defmodule CabWeb.Router do
     post "/r/:session_uuid", RegistrationController, :create
 
     get "/l/:code", GuestLinkController, :show
+    post "/l/:code/claim", GuestLinkController, :claim
   end
 
   # JSON API over the same contexts (club creation is admin-only:

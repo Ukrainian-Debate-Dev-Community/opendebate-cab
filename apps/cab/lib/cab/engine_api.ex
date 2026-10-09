@@ -193,6 +193,21 @@ defmodule Cab.EngineApi do
     |> unwrap()
   end
 
+  @doc """
+  Moves every participation of `source_id` onto `target_id` and
+  anonymises the emptied source (admin-only in the engine). Refused
+  with a message when both hold a registration in the same event.
+  """
+  def merge_users(actor, source_id, target_id, display_name) do
+    Engine.post(
+      actor,
+      "/api/admins/merge",
+      %{sourceUserId: source_id, targetUserId: target_id, displayName: display_name},
+      admin: true
+    )
+    |> unwrap()
+  end
+
   def list_organisation_events(actor, org_id) do
     Engine.get(actor, "/api/events/organisation/#{org_id}") |> unwrap()
   end

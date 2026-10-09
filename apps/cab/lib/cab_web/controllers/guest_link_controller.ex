@@ -6,7 +6,8 @@ defmodule CabWeb.GuestLinkController do
   link acts as you") and the guest lands on P6, their session's page,
   where cancel-registration and the judge ballot work through that
   identity. The identity holds no membership, so the member/owner
-  trees and every other club stay closed to it.
+  trees and every other club stay closed to it. Opened while signed in
+  with a real account, the link offers to claim the guest's history.
   """
 
   use CabWeb, :controller
@@ -41,14 +42,37 @@ defmodule CabWeb.GuestLinkController do
             |> redirect(to: session_page)
 
           true ->
-            conn
-            |> put_flash(
-              :error,
-              "You are signed in with your own account — this personal link " <>
-                "belongs to #{link.user.name}. Sign out first to use it."
+            render(conn, :claim,
+              link: link,
+              club: link.session.club,
+              session: link.session,
+              page_title: "your guest history"
             )
-            |> redirect(to: session_page)
         end
+    end
+  end
+
+  # POST /l/:code/claim — a signed-in account takes over the guest's
+  # history; the guest account and this link are gone afterwards
+  def claim(conn, %{"code" => code}) do
+    with %Cab.Accounts.User{} = account <- conn.assigns[:current_user],
+         link when not is_nil(link) <- Links.get_active_by_code(code) do
+      case Links.claim(link, account) do
+        {:ok, _moved} ->
+          conn
+          |> put_flash(:info, "#{link.user.name}'s guest history is now on your account")
+          |> redirect(to: ~p"/me")
+
+        {:error, message} ->
+          conn
+          |> put_flash(:error, message)
+          |> redirect(to: ~p"/c/#{link.session.club.uuid}/s/#{link.session.uuid}")
+      end
+    else
+      nil ->
+        if conn.assigns[:current_user],
+          do: CabWeb.ErrorHTML.respond(conn, 404),
+          else: conn |> put_flash(:error, "Please sign in.") |> redirect(to: ~p"/signin")
     end
   end
 end

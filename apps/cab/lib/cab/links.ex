@@ -60,6 +60,56 @@ defmodule Cab.Links do
 
   def guest?(_user_id), do: false
 
+  @doc """
+  CLAIM: a signed-in account takes over a guest's history. The engine
+  moves the guest's participations onto the account (renamed to the
+  account's display name) and anonymises the guest's engine user; cab
+  then deletes the guest account, and the personal link with it.
+  Returns `{:ok, moved}` or `{:error, message}`.
+  """
+  def claim(%Link{user: %User{} = guest}, %User{} = account) do
+    cond do
+      guest.id == account.id or guest?(account.id) ->
+        {:error, "sign in with your own account to claim a guest history"}
+
+      true ->
+        with %User{node_user_id: target} when is_integer(target) <-
+               Cab.Accounts.ensure_node_user(account),
+             {:ok, moved} <- merge_into(guest, target, account) do
+          Repo.delete(guest)
+          {:ok, moved}
+        else
+          %User{} -> {:error, "your account is not linked to the engine yet — try again"}
+          error -> error
+        end
+    end
+  end
+
+  defp merge_into(%User{node_user_id: nil}, _target, _account), do: {:ok, 0}
+
+  defp merge_into(%User{node_user_id: source}, target, account) do
+    case Cab.EngineApi.merge_users(target, source, target, account.name || account.username) do
+      {:ok, %{"moved" => moved}} -> {:ok, moved}
+      {:ok, _other} -> {:ok, 0}
+      error -> error
+    end
+  end
+
+  @doc "The link behind a pasted personal link (full URL or bare code)."
+  def find_by_pasted(text) when is_binary(text) do
+    text
+    |> String.trim()
+    |> String.split(["/l/", "?", "#"])
+    |> case do
+      [_before, code | _rest] -> code
+      [code] -> code
+      _ -> nil
+    end
+    |> then(&if &1, do: get_active_by_code(String.trim(&1, "/")))
+  end
+
+  def find_by_pasted(_text), do: nil
+
   @doc ~S(The link's guest role in the session signups: "speaker" | "adjudicator" | nil.)
   def role_in(%Link{user: %User{node_user_id: node_user_id}}, signups)
       when is_integer(node_user_id) do

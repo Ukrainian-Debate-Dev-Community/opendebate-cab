@@ -609,6 +609,30 @@ grep -q "Guest Greta" "$BODY" || fail "guest night page misses Guest Greta"
 grep -q "Handed Hanna" "$BODY" || fail "guest night page misses Handed Hanna"
 html_ok "guest names in history" GET "/c/.../s/<guest-night>" 200
 
+say "Greta signs up for real and claims her guest night"
+code=$(curl -s -o /dev/null -w '%{http_code}' -c "$JARS/claimer" \
+  "$BASE/dev/switch-user?username=wt-$RUN-greta")
+[ "$code" = "302" ] || fail "switch-user greta: status $code, want 302"
+reqc claimer GET "$G1_LINK"
+[ "$STATUS" = "200" ] || fail "GET $G1_LINK signed in: status $STATUS, want 200 (claim page)"
+grep -q "Add to my account" "$BODY" || fail "personal link misses the claim offer for an account"
+CLAIM_TOK=$(csrf)
+html_ok "personal link offers the claim" GET "/l/<g1>" 200
+STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/claimer" -c "$JARS/claimer" \
+  --data-urlencode "_csrf_token=$CLAIM_TOK" "$BASE$G1_LINK/claim")
+[ "$STATUS" = "302" ] || fail "POST $G1_LINK/claim: status $STATUS, want 302"
+html_ok "claim accepted by the engine" POST "/l/<g1>/claim" 302
+req claimer GET "/me"
+grep -q 'id="me-history"' "$BODY" || fail "claimer's My page misses the history table"
+grep -q "No sessions played yet" "$BODY" && fail "the claimed night is missing from My page"
+html_ok "claimed night on My page" GET "/me" 200
+req anon2 GET "$G1_LINK"
+[ "$STATUS" = "404" ] || fail "claimed $G1_LINK: status $STATUS, want 404"
+html_ok "claimed guest link is gone" GET "/l/<g1>" 404
+req anon2 GET "/c/$CLUB/s/$GSESSION"
+grep -q "wt-$RUN-greta" "$BODY" || fail "the guest night does not show the claimer's name"
+html_ok "the night shows the real account's name" GET "/c/.../s/<guest-night>" 200
+
 # ----------------------------------------------------------------
 say "club management: profile PATCH (incl. the M8a profile columns) + member removal"
 # ----------------------------------------------------------------
