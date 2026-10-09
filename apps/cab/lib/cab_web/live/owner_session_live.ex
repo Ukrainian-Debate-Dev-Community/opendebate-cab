@@ -157,7 +157,8 @@ defmodule CabWeb.OwnerSessionLive do
   # the room the head chairs while its ballot is still open
   defp my_ballot_room(%{stage: :running, rooms: rooms}, user) do
     Enum.find(rooms, fn room ->
-      room["status"] in ["pending", "judging", "completed"] and Sessions.room_chair?(room, user)
+      room["status"] in ["pending", "judging", "completed"] and Sessions.motion?(room) and
+        Sessions.room_chair?(room, user)
     end)
   end
 

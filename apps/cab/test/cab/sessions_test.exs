@@ -719,6 +719,7 @@ defmodule Cab.SessionsTest do
     %{
       "id" => 71,
       "status" => "judging",
+      "Motion" => %{"motion_text" => "THW test", "created_at" => "2026-10-09T18:00:00Z"},
       "RoomAdjudicators" => [
         %{
           "id" => 1,
@@ -888,6 +889,17 @@ defmodule Cab.SessionsTest do
     assert :ok = Sessions.submit_ballot(head, session, 71, scores)
     assert_received {:scores, %{"id" => 9}, _params}
     assert_received {:confirmed, %{"id" => 9}}
+  end
+
+  test "submit_ballot waits for the room's motion", %{club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11)
+    scores = ballot_scores([{1, 151}, {2, 157}, {3, 149}, {4, 147}])
+    stub_ballot_room(Map.delete(engine_room(77), "Motion"), self())
+
+    assert {:error, "Publish the room's motion first."} =
+             Sessions.submit_ballot(head, session, 71, scores)
+
+    refute_received {:scores, _claims, _params}
   end
 
   test "submit_ballot rejects foreign speakers and foreign rooms", %{club: club} do

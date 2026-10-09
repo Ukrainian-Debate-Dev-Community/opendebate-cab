@@ -60,7 +60,7 @@
         </:col>
         <:col :let={room}>
           <.link
-            :if={room["status"] in ["pending", "judging"]}
+            :if={room["status"] in ["pending", "judging"] and room["Motion"] != nil}
             href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}/ballot"}
           >
             ballot

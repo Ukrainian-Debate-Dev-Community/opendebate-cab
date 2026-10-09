@@ -79,7 +79,7 @@ defmodule CabWeb.RoomLive do
 
   defp can_edit_ballot?(%{"status" => status} = room, assigns)
        when status in ["pending", "judging", "completed"],
-       do: can_act?(room, assigns)
+       do: Sessions.motion?(room) and can_act?(room, assigns)
 
   defp can_edit_ballot?(_room, _assigns), do: false
 

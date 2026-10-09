@@ -202,6 +202,7 @@ defmodule CabWeb.ApiFlowTest do
     room = %{
       "id" => 71,
       "status" => "judging",
+      "Motion" => %{"motion_text" => "THW test", "created_at" => "2026-10-09T18:00:00Z"},
       "RoomAdjudicators" => [
         %{"id" => 1, "role" => "chair", "EventParticipant" => %{"id" => 90, "user_id" => 77}}
       ],

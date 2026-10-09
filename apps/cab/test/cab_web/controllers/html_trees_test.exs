@@ -1021,6 +1021,25 @@ defmodule CabWeb.HtmlTreesTest do
     assert redirected_to(page) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
   end
 
+  test "no motion, no ballot: links stay hidden and the ballot page sends you to the room",
+       %{conn: conn, club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11)
+    stub_running_session(Map.put(running_room(9), "Motion", nil))
+
+    rooms =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+      |> html_response(200)
+
+    refute rooms =~ "/rooms/71/ballot"
+    refute rooms =~ "Fill ballot"
+
+    ballot = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
+    assert redirected_to(ballot) == "/c/#{club.uuid}/s/#{session.uuid}/rooms/71"
+    assert Phoenix.Flash.get(ballot.assigns.flash, :error) =~ "Publish the room's motion first"
+  end
+
   test "a head who chairs a room gets Fill ballot on the Rooms page too",
        %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)

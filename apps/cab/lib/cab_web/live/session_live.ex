@@ -83,7 +83,8 @@ defmodule CabWeb.SessionLive do
   # editable by resubmission
   defp my_ballot_room(%{stage: :running, rooms: rooms}, %User{} = user) do
     Enum.find(rooms, fn room ->
-      room["status"] in ["pending", "judging", "completed"] and Sessions.room_chair?(room, user)
+      room["status"] in ["pending", "judging", "completed"] and Sessions.motion?(room) and
+        Sessions.room_chair?(room, user)
     end)
   end
 

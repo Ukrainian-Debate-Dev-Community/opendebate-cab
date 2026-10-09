@@ -1061,6 +1061,7 @@ defmodule Cab.Sessions do
            {:ok, rooms} <- EngineApi.list_rooms(actor, round_id),
            {:ok, room} <- find_room(rooms, room_id),
            :ok <- authorize_ballot(room, user, club),
+           :ok <- require_motion(room),
            {:ok, rankings, speaker_scores} <- ballot_payload(room, entries),
            {:ok, _} <- maybe_unconfirm(head_actor, room),
            {:ok, _} <- EngineApi.submit_scores(actor, room["id"], rankings, speaker_scores),
@@ -1078,6 +1079,13 @@ defmodule Cab.Sessions do
     do: EngineApi.unconfirm_room(head_actor, id)
 
   defp maybe_unconfirm(_head_actor, _room), do: {:ok, :open}
+
+  @doc "Has this room's motion been published? Ballots open only then."
+  def motion?(room), do: is_map(room["Motion"])
+
+  defp require_motion(room) do
+    if motion?(room), do: :ok, else: {:error, "Publish the room's motion first."}
+  end
 
   @doc "Is this user the room's chair (the signed-up judge)?"
   def room_chair?(room, %User{node_user_id: node_user_id}) do

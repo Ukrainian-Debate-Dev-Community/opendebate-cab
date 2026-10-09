@@ -82,8 +82,17 @@ defmodule CabWeb.SessionPageController do
   # GET .../rooms/:id/ballot — the room judge's ballot (chair or head)
   def ballot(conn, %{"id" => id} = params) do
     with_chaired_room(conn, params["session_uuid"], id, fn conn, session, room ->
-      render_ballot(conn, session, room, nil, nil)
+      if Sessions.motion?(room),
+        do: render_ballot(conn, session, room, nil, nil),
+        else: motion_first(conn, session, room)
     end)
+  end
+
+  # no motion, no ballot: back to the room, where the motion is set
+  defp motion_first(conn, session, room) do
+    conn
+    |> put_flash(:error, "Publish the room's motion first.")
+    |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}/rooms/#{room["id"]}")
   end
 
   # POST .../rooms/:id/ballot — redirect + flash, amber re-render
