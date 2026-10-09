@@ -248,7 +248,8 @@ defmodule CabWeb.GuestLinksTest do
       assert Plug.Conn.get_session(conn, :user_id) == guest.id
 
       # ... which opens NOTHING beyond P6's public view
-      assert conn |> get(~p"/c/#{club.uuid}/members") |> response(403)
+      {:ok, private} = Cab.Clubs.update_club(club, %{"is_private" => "true"})
+      assert conn |> get(~p"/c/#{private.uuid}/members") |> response(403)
       assert conn |> get(~p"/c/#{club.uuid}/owner") |> response(403)
       assert_error_sent 403, fn -> get(conn, ~p"/c/#{club.uuid}/owner/s/#{session.uuid}") end
 

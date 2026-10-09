@@ -29,8 +29,19 @@ defmodule CabWeb.ClubScopeTest do
       assert get(conn, "/c/not-a-uuid") |> response(404)
     end
 
-    test "member tree: /signin for anonymous, 403 for pending, 200 for approved",
+    test "roster of a public club is public", %{conn: conn, club: club} do
+      assert get(conn, ~p"/c/#{club.uuid}/members") |> html_response(200) =~ "Members"
+
+      assert conn
+             |> log_in(user_fixture())
+             |> get(~p"/c/#{club.uuid}/members")
+             |> html_response(200)
+    end
+
+    test "roster of a private club: /signin for anonymous, 403 for pending, 200 for approved",
          %{conn: conn, club: club} do
+      {:ok, club} = Cab.Clubs.update_club(club, %{"is_private" => "true"})
+
       # the anonymous auth wall lands on P1
       assert get(conn, ~p"/c/#{club.uuid}/members") |> redirected_to() == "/signin"
 
@@ -71,8 +82,15 @@ defmodule CabWeb.ClubScopeTest do
   end
 
   describe "JSON role derivation" do
-    test "members endpoint: 401 anonymous, 403 stranger, 200 member",
+    test "members endpoint of a public club is public", %{conn: conn, club: club} do
+      assert %{"members" => [_]} =
+               conn |> get(~p"/api/v1/clubs/#{club.uuid}/members") |> json_response(200)
+    end
+
+    test "members endpoint of a private club: 401 anonymous, 403 stranger, 200 member",
          %{conn: conn, club: club} do
+      {:ok, club} = Cab.Clubs.update_club(club, %{"is_private" => "true"})
+
       conn0 = get(conn, ~p"/api/v1/clubs/#{club.uuid}/members")
       assert json_response(conn0, 401)["error"] == "unauthenticated"
 

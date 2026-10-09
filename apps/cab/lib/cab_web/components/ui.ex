@@ -117,6 +117,7 @@ defmodule CabWeb.Ui do
           label="Standings"
         />
         <.nav_item
+          :if={not @club.is_private or Cab.Clubs.covers?(@club_role, :member)}
           active={@active}
           key="members"
           href={members_href(@club, @club_role)}

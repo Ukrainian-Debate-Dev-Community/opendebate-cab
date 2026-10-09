@@ -92,7 +92,7 @@ defmodule CabWeb.UiTest do
 
   test "sidenav club context: place items, role-scoped targets" do
     assigns = %{
-      club: %{uuid: "abc", name: "Kyiv Debate Club"},
+      club: %{uuid: "abc", name: "Kyiv Debate Club", is_private: false},
       session: %{uuid: "s1"}
     }
 
@@ -133,6 +133,23 @@ defmodule CabWeb.UiTest do
 
     refute no_session =~ "/c/abc/s/"
     refute no_session =~ ">Register<"
+
+    # a private club's roster is members-only, so outsiders lose the item
+    assigns = %{assigns | club: %{assigns.club | is_private: true}}
+
+    private_public =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:public} nav_session={nil} />
+      """)
+
+    refute private_public =~ ">Members<"
+
+    private_member =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:member} nav_session={nil} />
+      """)
+
+    assert private_member =~ ">Members<"
   end
 
   test "selrow renders the tab row with the active state and no badges" do

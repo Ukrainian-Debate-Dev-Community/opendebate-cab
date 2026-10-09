@@ -7,7 +7,7 @@ defmodule CabWeb.Api.ClubController do
   action_fallback CabWeb.Api.FallbackController
 
   plug ClubScope, [source: :club, require: :public] when action == :show
-  plug ClubScope, [source: :club, require: :member] when action == :members
+  plug ClubScope, [source: :club, require: :roster] when action == :members
   plug ClubScope, [source: :club, require: :owner] when action in [:update, :remove_member]
 
   # GET /api/v1/clubs/:uuid — public profile + history (with winners)

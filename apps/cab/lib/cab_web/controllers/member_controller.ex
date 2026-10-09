@@ -3,10 +3,11 @@ defmodule CabWeb.MemberController do
 
   alias Cab.Clubs
 
-  plug CabWeb.ClubScope, source: :club, require: :member
+  plug CabWeb.ClubScope, source: :club, require: :roster
 
-  # GET /c/:club_uuid/members — the roster, the one member-gated page
-  # (the owner's view with requests and revoke lives in the owner tree)
+  # GET /c/:club_uuid/members — the roster: public for a public club,
+  # members-only for a private one (the owner's view with requests and
+  # revoke lives in the owner tree)
   def members(conn, _params) do
     club = conn.assigns.club
 

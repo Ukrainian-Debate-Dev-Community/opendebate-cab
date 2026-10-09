@@ -26,6 +26,7 @@ defmodule CabWeb.ClubScope do
   role covers all trees below it (`Cab.Clubs.covers?/2`):
     * `:public` — anyone, resolution only
     * `:authenticated` — any signed-in user
+    * `:roster` — anyone for a public club, `:member` for a private one
     * `:member` — approved membership (owner and admin included)
     * `:owner` — head membership (admin included)
   """
@@ -135,6 +136,10 @@ defmodule CabWeb.ClubScope do
 
   defp enforce(conn, _role, :authenticated) do
     if conn.assigns[:current_user], do: conn, else: unauthenticated(conn)
+  end
+
+  defp enforce(conn, role, :roster) do
+    if conn.assigns.club.is_private, do: enforce(conn, role, :member), else: conn
   end
 
   defp enforce(conn, role, required) when required in [:member, :owner] do
