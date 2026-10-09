@@ -363,12 +363,12 @@ defmodule CabWeb.UiTest do
         2 => %{id: 2, name: "Bohdan"},
         99 => %{id: 99, name: "Nadia"}
       },
-      draft: %{"1:og:1" => 1}
+      draft: %{"1:og:1" => 1, "2:judge" => 99}
     }
 
     html =
       rendered_to_string(~H"""
-      <.allocator rooms={2} people={@people} draft={@draft} form_id="allocator-form" submit="start" />
+      <.allocator rooms={3} people={@people} draft={@draft} form_id="allocator-form" submit="start" />
       """)
 
     # the hook reports drops; the hidden form carries the submit event
@@ -379,13 +379,16 @@ defmodule CabWeb.UiTest do
     [tray, table] = String.split(html, "<table>", parts: 2)
     refute tray =~ "Anna"
     assert tray =~ "Bohdan"
-    assert tray =~ "Nadia"
-    assert tray =~ "Unallocated (2)"
+    refute tray =~ "Nadia"
+    # the tray carries no role tags; placed chips take their seat's tag
+    refute tray =~ ~s(class="k")
+    assert tray =~ "Unallocated (1)"
 
     # slots carry their keys; the placed chip renders inside its slot
     assert table =~ ~s(data-slot="1:og:1")
     assert table =~ ~s(data-slot="2:judge")
-    assert table =~ ">Anna</span>"
+    assert table =~ ~s(Anna<span class="k">SPK</span>)
+    assert table =~ ~s(Nadia<span class="k">ADJ</span>)
 
     # row state in words, never pills
     assert table =~ "incomplete"

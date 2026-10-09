@@ -662,14 +662,14 @@ defmodule CabWeb.Ui do
                 data-slot={"#{room}:#{side}:#{n}"}
               >
                 <%= if person = placed(@people, @draft, "#{room}:#{side}:#{n}") do %>
-                  <.chip person={person} />
+                  <.chip person={person} tag="SPK" />
                 <% end %>
               </div>
             </td>
             <td>
               <div class="slot" data-slot={"#{room}:judge"}>
                 <%= if person = placed(@people, @draft, "#{room}:judge") do %>
-                  <.chip person={person} />
+                  <.chip person={person} tag="ADJ" />
                 <% end %>
               </div>
             </td>
@@ -687,10 +687,13 @@ defmodule CabWeb.Ui do
   end
 
   attr :person, :map, required: true
+  attr :tag, :string, default: nil, doc: "the seat's role once placed: SPK or ADJ"
 
   defp chip(assigns) do
     ~H"""
-    <span class="chip" draggable="true" data-id={@person.id}>{@person.name}</span>
+    <span class={["chip", @tag == "ADJ" && "adj"]} draggable="true" data-id={@person.id}>
+      {@person.name}<span :if={@tag} class="k">{@tag}</span>
+    </span>
     """
   end
 
