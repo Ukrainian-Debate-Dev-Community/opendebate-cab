@@ -1,12 +1,13 @@
 defmodule CabWeb.MeController do
   @moduledoc """
-  GET /me — the signed-in user's personal page: engine statistics
-  VERBATIM (`GET /users/:id/stats`, rule 0 — cab never derives its
-  own numbers) plus the participation history rows.
+  GET /me — the signed-in user's personal page: invitations to
+  accept, my clubs and schedule, engine statistics VERBATIM
+  (`GET /users/:id/stats`, rule 0 — cab never derives its own
+  numbers) plus the participation history rows.
   """
   use CabWeb, :controller
 
-  alias Cab.{Accounts, EngineApi, Sessions}
+  alias Cab.{Accounts, Clubs, EngineApi, Invitations, Sessions}
 
   import CabWeb.UserAuth, only: [require_account: 2]
 
@@ -14,8 +15,16 @@ defmodule CabWeb.MeController do
 
   def show(conn, _params) do
     user = conn.assigns.current_user
+    memberships = Clubs.list_user_memberships(user)
+
+    clubs =
+      for membership <- memberships, membership.status == "approved", do: membership.club
 
     render(conn, :show,
+      invitations: Invitations.for_user(user),
+      memberships: memberships,
+      tonight: Sessions.next_by_club(clubs),
+      schedule: Sessions.user_schedule(user),
       stats: fetch_stats(user),
       history: Sessions.user_history(user),
       page_title: "My page"

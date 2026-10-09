@@ -9,6 +9,72 @@
       <span :if={@current_user.name}> ({@current_user.username})</span>
     </.section>
 
+    <.section :if={@invitations != []} title="Invitations">
+      <.table id="my-invitations" rows={@invitations}>
+        <:col :let={invitation} label="Session">
+          <.link href={~p"/c/#{invitation.session.club.uuid}/s/#{invitation.session.uuid}"}>
+            {invitation.session.name || "Session"}
+          </.link>
+          <.sub>{invitation.session.club.name}</.sub>
+        </:col>
+        <:col :let={invitation} label="Added by">
+          {invitation.invited_by &&
+            (invitation.invited_by.name || invitation.invited_by.username)}
+        </:col>
+        <:col :let={invitation}>
+          <.link href={~p"/invitations/#{invitation.id}/accept"} method="post">accept</.link>
+        </:col>
+        <:col :let={invitation}>
+          <.link href={~p"/invitations/#{invitation.id}/decline"} method="post">decline</.link>
+        </:col>
+      </.table>
+      <div class="pad">
+        <p class="mut">
+          A club head added you to these sessions. Accept to see them on My page under your
+          name; decline to have your name removed.
+        </p>
+      </div>
+    </.section>
+
+    <.section title="My clubs">
+      <.table id="my-clubs" rows={@memberships} empty="You are not in any club yet.">
+        <:col :let={m} label="Club">
+          <.link href={~p"/c/#{m.club.uuid}"}>{m.club.name}</.link>
+          <.sub>
+            {if m.status == "approved", do: m.role, else: "request pending"}{if m.club.city,
+              do: ", #{m.club.city}"}
+          </.sub>
+        </:col>
+        <:col :let={m} label="Next session" class="st">
+          <%= cond do %>
+            <% m.status != "approved" -> %>
+              —
+            <% match?({%{scheduled_at: %DateTime{}}, :signup, _}, @tonight[m.club_id]) -> %>
+              registration open,
+              <.local_time
+                at={elem(@tonight[m.club_id], 0).scheduled_at}
+                as={:weekday_time}
+              />
+            <% true -> %>
+              {tonight_words(@tonight[m.club_id])}
+          <% end %>
+        </:col>
+      </.table>
+    </.section>
+
+    <.section :if={@schedule != []} title="My schedule">
+      <.table id="my-schedule" rows={@schedule}>
+        <:col :let={row} label="Session">
+          <.link href={~p"/c/#{row.club.uuid}/s/#{row.session.uuid}"}>
+            {row.club.name}
+          </.link>
+          <.sub :if={row.session.scheduled_at}>
+            <.local_time at={row.session.scheduled_at} as={:short} />
+          </.sub>
+        </:col>
+      </.table>
+    </.section>
+
     <%= if @stats do %>
       <.section title="Stats">
         <.table id="me-stats" rows={[@stats]}>

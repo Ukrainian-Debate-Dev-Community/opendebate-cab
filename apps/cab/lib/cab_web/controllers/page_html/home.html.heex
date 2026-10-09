@@ -1,136 +1,64 @@
 <Layouts.app flash={@flash} current_user={@current_user} active="clubs">
-  <%= if @current_user do %>
-    <.chrome here="My cab"></.chrome>
-    <div class="pbody">
-      <.flash_banners flash={@flash} />
-      <.banner
-        :if={@open_club}
-        kind={:info}
-        href={~p"/c/#{@open_club.uuid}"}
-        link="Open →"
-      >
-        {@open_club.name}: a session is open.
-      </.banner>
+  <.chrome here="Debate clubs of Ukraine"></.chrome>
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+    <.banner
+      :if={@open_club}
+      kind={:info}
+      href={~p"/c/#{@open_club.uuid}"}
+      link="Open →"
+    >
+      {@open_club.name}: a session is open.
+    </.banner>
+    <.banner :if={@invitations > 0} kind={:info} href={~p"/me"} link="My page →">
+      {if @invitations == 1,
+        do: "A club head added you to a session.",
+        else: "Club heads added you to #{@invitations} sessions."} Accept or decline on My page.
+    </.banner>
 
-      <.section :if={@invitations != []} title="Invitations">
-        <.table id="my-invitations" rows={@invitations}>
-          <:col :let={invitation} label="Session">
-            <.link href={~p"/c/#{invitation.session.club.uuid}/s/#{invitation.session.uuid}"}>
-              {invitation.session.name || "Session"}
-            </.link>
-            <.sub>{invitation.session.club.name}</.sub>
-          </:col>
-          <:col :let={invitation} label="Added by">
-            {invitation.invited_by &&
-              (invitation.invited_by.name || invitation.invited_by.username)}
-          </:col>
-          <:col :let={invitation}>
-            <.link href={~p"/invitations/#{invitation.id}/accept"} method="post">accept</.link>
-          </:col>
-          <:col :let={invitation}>
-            <.link href={~p"/invitations/#{invitation.id}/decline"} method="post">decline</.link>
-          </:col>
-        </.table>
-        <div class="pad">
-          <p class="mut">
-            A club head added you to these sessions. Accept to see them on My page under your
-            name; decline to have your name removed.
-          </p>
-        </div>
-      </.section>
-
-      <.section title="My clubs">
-        <.table id="my-clubs" rows={@memberships} empty="You are not in any club yet.">
-          <:col :let={m} label="Club">
-            <.link href={~p"/c/#{m.club.uuid}"}>{m.club.name}</.link>
-            <.sub>
-              {if m.status == "approved", do: m.role, else: "request pending"}{if m.club.city,
-                do: ", #{m.club.city}"}
-            </.sub>
-          </:col>
-          <:col :let={m} label="Next session" class="st">
-            <%= cond do %>
-              <% m.status != "approved" -> %>
-                —
-              <% match?({%{scheduled_at: %DateTime{}}, :signup, _}, @tonight[m.club_id]) -> %>
-                registration open,
-                <.local_time
-                  at={elem(@tonight[m.club_id], 0).scheduled_at}
-                  as={:weekday_time}
-                />
-              <% true -> %>
-                {tonight_words(@tonight[m.club_id])}
-            <% end %>
-          </:col>
-        </.table>
-      </.section>
-
-      <.section :if={@schedule != []} title="My schedule">
-        <.table id="my-schedule" rows={@schedule}>
-          <:col :let={row} label="Session">
-            <.link href={~p"/c/#{row.club.uuid}/s/#{row.session.uuid}"}>
-              {row.club.name}
-            </.link>
-            <.sub :if={row.session.scheduled_at}>
-              <.local_time at={row.session.scheduled_at} as={:short} />
-            </.sub>
-          </:col>
-        </.table>
-      </.section>
-
-      <.section title="My sessions" pad>
-        Past sessions and personal stats live on <.link href={~p"/me"}>My page</.link>.
-      </.section>
+    <div :if={!@current_user} class="welcome" id="welcome">
+      <h2>Welcome to <span class="brand-script">cab</span></h2>
+      <p>
+        The home of Ukrainian debate clubs: find a club, register for a
+        session, debate — and follow standings and your own results in
+        one place. Free for every Ukrainian club, run by the Debate
+        Federation of Ukraine.
+      </p>
+      <p class="mut">
+        Registering for a session needs no account — the club shares one
+        link. <.link href={~p"/signin"}>Sign in</.link>
+        to keep your history, schedule and personal stats.
+      </p>
     </div>
-  <% else %>
-    <.chrome here="Debate clubs of Ukraine"></.chrome>
-    <div class="pbody">
-      <.flash_banners flash={@flash} />
 
-      <div class="welcome" id="welcome">
-        <h2>Welcome to <span class="brand-script">cab</span></h2>
-        <p>
-          The home of Ukrainian debate clubs: find a club, register for a
-          session, debate — and follow standings and your own results in
-          one place. Free for every Ukrainian club, run by the Debate
-          Federation of Ukraine.
-        </p>
-        <p class="mut">
-          Registering for a session needs no account — the club shares one
-          link. <.link href={~p"/signin"}>Sign in</.link>
-          to keep your history, schedule and personal stats.
-        </p>
-      </div>
-
-      <.section title="Clubs">
-        <.table id="clubs-directory" rows={@clubs} empty="No clubs here yet.">
-          <:col :let={club} label="Club">
-            <.link href={~p"/c/#{club.uuid}"}>{club.name}</.link>
-          </:col>
-          <:col :let={club} label="City">{club.city}</:col>
-          <:col :let={club} label="Members" num>{@member_counts[club.id] || 0}</:col>
-          <:col :let={club} label="Next session" class="st">
-            <%= case @tonight[club.id] do %>
-              <% nil -> %>
-                not planned yet
-              <% {session, :signup, _rooms} -> %>
-                <%= if session.scheduled_at do %>
-                  <.local_time at={session.scheduled_at} as={:weekday_time} />
-                <% else %>
-                  registration open
-                <% end %>
-                — <.link href={~p"/r/#{session.uuid}"}>register</.link>
-              <% {_session, :closed, _rooms} -> %>
-                registration closed
-              <% {session, :running, _rooms} -> %>
-                running —
-                <.link href={~p"/c/#{club.uuid}/s/#{session.uuid}"}>
-                  watch rooms
-                </.link>
-            <% end %>
-          </:col>
-        </.table>
-      </.section>
-    </div>
-  <% end %>
+    <.section title="Clubs">
+      <.table id="clubs-directory" rows={@clubs} empty="No clubs here yet.">
+        <:col :let={club} label="Club">
+          <.link href={~p"/c/#{club.uuid}"}>{club.name}</.link>
+        </:col>
+        <:col :let={club} label="City">{club.city}</:col>
+        <:col :let={club} label="Members" num>{@member_counts[club.id] || 0}</:col>
+        <:col :let={club} label="Next session" class="st">
+          <%= case @tonight[club.id] do %>
+            <% nil -> %>
+              not planned yet
+            <% {session, :signup, _rooms} -> %>
+              <%= if session.scheduled_at do %>
+                <.local_time at={session.scheduled_at} as={:weekday_time} />
+              <% else %>
+                registration open
+              <% end %>
+              — <.link href={~p"/r/#{session.uuid}"}>register</.link>
+            <% {_session, :closed, _rooms} -> %>
+              registration closed
+            <% {session, :running, _rooms} -> %>
+              running —
+              <.link href={~p"/c/#{club.uuid}/s/#{session.uuid}"}>
+                watch rooms
+              </.link>
+          <% end %>
+        </:col>
+      </.table>
+    </.section>
+  </div>
 </Layouts.app>

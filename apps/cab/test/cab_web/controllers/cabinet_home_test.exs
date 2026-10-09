@@ -1,8 +1,8 @@
 defmodule CabWeb.CabinetHomeTest do
   @moduledoc """
-  GET / on the sidenav shell: the anonymous front page (clubs
-  directory with the words Next-session column) and the signed-in cabinet
-  (my clubs, my sessions).
+  GET / on the sidenav shell: the clubs directory with the words
+  Next-session column, the same signed in or not; my clubs, schedule
+  and history live on My page.
   """
 
   use CabWeb.ConnCase, async: true
@@ -62,7 +62,23 @@ defmodule CabWeb.CabinetHomeTest do
     refute html =~ club.name
   end
 
-  test "signed-in cabinet lists my clubs with Tonight words, no pills", %{conn: conn} do
+  test "signed in, home is still the whole directory, not my clubs", %{conn: conn} do
+    user = user_fixture(%{username: "dana"})
+
+    other =
+      club_fixture(user_fixture(), %{name: "Not Mine #{System.unique_integer([:positive])}"})
+
+    html = conn |> log_in(user) |> get(~p"/") |> html_response(200)
+
+    assert html =~ ~s(id="clubs-directory")
+    assert html =~ other.name
+    assert html =~ "Debate clubs of Ukraine"
+    refute html =~ "My cab"
+    refute html =~ ~s(id="my-clubs")
+    refute html =~ ~s(id="welcome")
+  end
+
+  test "My page lists my clubs with Next session words, no pills", %{conn: conn} do
     user = user_fixture(%{username: "anna"})
     head = user_fixture()
     stub_empty_schedule()
@@ -83,7 +99,7 @@ defmodule CabWeb.CabinetHomeTest do
 
     {:ok, _} = Cab.Clubs.request_join(user, pending_club, %{"message" => "hi", "contact" => "@a"})
 
-    html = conn |> log_in(user) |> get(~p"/") |> html_response(200)
+    html = conn |> log_in(user) |> get(~p"/me") |> html_response(200)
 
     # the profile block pinned to the sidenav bottom
     assert html =~ ~s(id="sidenav-profile")
@@ -104,10 +120,6 @@ defmodule CabWeb.CabinetHomeTest do
     assert html =~ "Odesa Debates"
     assert html =~ "request pending"
     refute html =~ "tag-warn"
-
-    # history lives on My page — the cabinet only points there
-    assert html =~ "live on"
-    assert html =~ ~s(href="/me")
   end
 
   test "tonight banner and sign-ups-open words when a club has an open session",
@@ -126,6 +138,15 @@ defmodule CabWeb.CabinetHomeTest do
 
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
+        "/api/users/" <> _ = path when binary_part(path, byte_size(path) - 6, 6) == "/stats" ->
+          Req.Test.json(req, %{"status" => "success", "data" => nil})
+
+        "/api/users/history" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{"as_adjudicator" => [], "as_player" => []}
+          })
+
         "/api/users/schedule" ->
           Req.Test.json(req, %{
             "status" => "success",
@@ -182,6 +203,12 @@ defmodule CabWeb.CabinetHomeTest do
 
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
+        "/api/users/schedule" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{"as_adjudicator" => [], "as_player" => []}
+          })
+
         "/api/users/344/stats" ->
           Req.Test.json(req, %{"status" => "success", "data" => nil})
 
@@ -207,6 +234,15 @@ defmodule CabWeb.CabinetHomeTest do
   defp stub_empty_schedule do
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
+        "/api/users/" <> _ = path when binary_part(path, byte_size(path) - 6, 6) == "/stats" ->
+          Req.Test.json(req, %{"status" => "success", "data" => nil})
+
+        "/api/users/history" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{"as_adjudicator" => [], "as_player" => []}
+          })
+
         "/api/users/schedule" ->
           Req.Test.json(req, %{
             "status" => "success",
@@ -229,6 +265,15 @@ defmodule CabWeb.CabinetHomeTest do
 
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
+        "/api/users/" <> _ = path when binary_part(path, byte_size(path) - 6, 6) == "/stats" ->
+          Req.Test.json(req, %{"status" => "success", "data" => nil})
+
+        "/api/users/history" ->
+          Req.Test.json(req, %{
+            "status" => "success",
+            "data" => %{"as_adjudicator" => [], "as_player" => []}
+          })
+
         "/api/users/schedule" ->
           Req.Test.json(req, %{
             "status" => "success",
@@ -261,7 +306,7 @@ defmodule CabWeb.CabinetHomeTest do
       end
     end)
 
-    html = conn |> log_in(user) |> get(~p"/") |> html_response(200)
+    html = conn |> log_in(user) |> get(~p"/me") |> html_response(200)
 
     assert html =~ ~s(id="my-schedule")
     # one row per signup, across clubs — membership not required

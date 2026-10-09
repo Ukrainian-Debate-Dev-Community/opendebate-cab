@@ -1,39 +1,32 @@
 defmodule CabWeb.PageController do
   use CabWeb, :controller
 
-  alias Cab.{Clubs, Sessions}
-  alias Cab.Sessions.Session
+  alias Cab.{Clubs, Invitations, Sessions}
 
-  # GET / — public: the clubs directory with each club's next
-  # session; signed in: the cabinet (my clubs + my schedule)
+  # GET / — the clubs directory with each club's next session, the
+  # same for everyone; signed in, banners point at a session open in
+  # one of my clubs and at invitations waiting on My page
   def home(conn, _params) do
-    case conn.assigns.current_user do
-      nil ->
-        clubs = Clubs.list_clubs()
+    clubs = Clubs.list_clubs()
+    next = Sessions.next_by_club(clubs)
 
-        render(conn, :home,
-          clubs: clubs,
-          member_counts: Clubs.member_counts(Enum.map(clubs, & &1.id)),
-          tonight: tonight_by_club(clubs)
-        )
+    {open_club, invitations} =
+      case conn.assigns.current_user do
+        nil ->
+          {nil, 0}
 
-      user ->
-        memberships = Clubs.list_user_memberships(user)
+        user ->
+          {find_open_club(Clubs.list_user_memberships(user), next),
+           length(Invitations.for_user(user))}
+      end
 
-        clubs =
-          for membership <- memberships, membership.status == "approved", do: membership.club
-
-        tonight = tonight_by_club(clubs)
-
-        render(conn, :home,
-          memberships: memberships,
-          tonight: tonight,
-          open_club: find_open_club(memberships, tonight),
-          schedule: Sessions.user_schedule(user),
-          invitations: Cab.Invitations.for_user(user),
-          page_title: "My cab"
-        )
-    end
+    render(conn, :home,
+      clubs: clubs,
+      member_counts: Clubs.member_counts(Enum.map(clubs, & &1.id)),
+      tonight: next,
+      open_club: open_club,
+      invitations: invitations
+    )
   end
 
   # GET /policy — how cab handles personal data
@@ -45,26 +38,11 @@ defmodule CabWeb.PageController do
   # GET /privacy — the policy's old address
   def privacy_moved(conn, _params), do: redirect(conn, to: ~p"/policy")
 
-  # The Next session column: each club's unfinished session and its
-  # stage, as %{club_id => {session, stage, rooms}} — cab's own
-  # records, no engine call; no unfinished session reads as nil.
-  defp tonight_by_club(clubs) do
-    for club <- clubs, into: %{} do
-      case Sessions.current_for_club(club) do
-        %Session{} = session ->
-          {club.id, {session, Sessions.stage_of(session), session.rooms_count}}
-
-        nil ->
-          {club.id, nil}
-      end
-    end
-  end
-
-  # The first of my clubs with a session open right now (sign-up or
-  # running) — the cabinet's tonight banner.
-  defp find_open_club(memberships, tonight) do
+  # The first of my clubs with a session open right now (registration
+  # or running), for the banner above the directory.
+  defp find_open_club(memberships, next) do
     Enum.find_value(memberships, fn membership ->
-      case tonight[membership.club_id] do
+      case membership.status == "approved" && next[membership.club_id] do
         {_session, stage, _rooms} when stage in [:signup, :running] -> membership.club
         _ -> nil
       end

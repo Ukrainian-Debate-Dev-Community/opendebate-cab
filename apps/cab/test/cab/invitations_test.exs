@@ -64,6 +64,12 @@ defmodule Cab.InvitationsTest do
         {"GET", "/api/users/schedule"} ->
           ok(conn, %{"as_adjudicator" => [], "as_player" => []})
 
+        {"GET", "/api/users/history"} ->
+          ok(conn, %{"as_adjudicator" => [], "as_player" => []})
+
+        {"GET", "/api/users/" <> _stats} ->
+          ok(conn, nil)
+
         {"PUT", "/api/events/11/participants/" <> _pid} ->
           ok(conn, %{})
 
@@ -192,12 +198,15 @@ defmodule Cab.InvitationsTest do
       assert length(calls(agent, "POST", "/api/events/11/participants")) == 1
     end
 
-    test "the cabinet lists the invitation with accept and decline",
+    test "home points at My page, which lists the invitation with accept and decline",
          %{conn: conn, head: head, session: session} do
       olena = user_fixture(%{username: "olena", node_user_id: 600})
       {:ok, invitation} = Invitations.invite(head, session, olena)
 
-      html = conn |> init_test_session(%{user_id: olena.id}) |> get(~p"/") |> html_response(200)
+      home = conn |> init_test_session(%{user_id: olena.id}) |> get(~p"/") |> html_response(200)
+      assert home =~ "A club head added you to a session."
+
+      html = conn |> init_test_session(%{user_id: olena.id}) |> get(~p"/me") |> html_response(200)
       assert html =~ ~s(id="my-invitations")
       assert html =~ "/invitations/#{invitation.id}/accept"
       assert html =~ "/invitations/#{invitation.id}/decline"

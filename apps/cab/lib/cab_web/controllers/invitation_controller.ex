@@ -22,12 +22,12 @@ defmodule CabWeb.InvitationController do
           conn
           |> put_flash(
             :info,
-            "you are in #{session.name || "the session"} at #{session.club.name}"
+            "You are in #{session.name || "the session"} at #{session.club.name}."
           )
           |> redirect(to: ~p"/c/#{session.club.uuid}/s/#{session.uuid}")
 
         {:error, message} ->
-          conn |> put_flash(:error, message) |> redirect(to: ~p"/")
+          conn |> put_flash(:error, message) |> redirect(to: ~p"/me")
       end
     end)
   end
@@ -39,10 +39,10 @@ defmodule CabWeb.InvitationController do
         :ok ->
           conn
           |> put_flash(:info, "Invitation declined. Your name is removed.")
-          |> redirect(to: ~p"/")
+          |> redirect(to: ~p"/me")
 
         {:error, message} ->
-          conn |> put_flash(:error, message) |> redirect(to: ~p"/")
+          conn |> put_flash(:error, message) |> redirect(to: ~p"/me")
       end
     end)
   end

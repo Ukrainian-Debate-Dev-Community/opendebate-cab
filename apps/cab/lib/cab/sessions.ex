@@ -1355,6 +1355,20 @@ defmodule Cab.Sessions do
     )
   end
 
+  @doc """
+  Each club's unfinished session and its stage, as
+  %{club_id => {session, stage, rooms}} — cab's own records, no engine
+  call; a club with no unfinished session maps to nil.
+  """
+  def next_by_club(clubs) do
+    for club <- clubs, into: %{} do
+      case current_for_club(club) do
+        %Session{} = session -> {club.id, {session, stage_of(session), session.rooms_count}}
+        nil -> {club.id, nil}
+      end
+    end
+  end
+
   # ---------------------------------------------------------------
   # Engine helpers
   # ---------------------------------------------------------------
