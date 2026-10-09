@@ -221,19 +221,21 @@ defmodule Cab.ClubsTest do
   end
 
   describe "change_head/2" do
-    test "engine org gains the new head as owner; memberships swap roles" do
+    test "the engine org's owner changes too; memberships swap roles" do
       old_head = user_fixture(%{node_user_id: 9})
       new_head = user_fixture(%{node_user_id: 10})
       club = club_fixture(old_head, %{engine_organisation_id: 3})
+      test_pid = self()
 
       stub(fn conn, params ->
-        assert conn.method == "POST"
-        assert conn.request_path == "/api/organisations/3/owners"
-        assert params == %{"targetUserId" => 10}
+        send(test_pid, {conn.method, conn.request_path, params})
         ok(conn, %{"id" => 1})
       end)
 
       assert {:ok, _club} = Clubs.change_head(club, new_head)
+      assert_received {"POST", "/api/organisations/3/owners", %{"targetUserId" => 10}}
+      # the old head stops owning it, so that account can be merged later
+      assert_received {"DELETE", "/api/organisations/3/owners/9", _}
       assert Clubs.role_for(club, new_head) == :owner
       assert Clubs.role_for(club, old_head) == :member
       assert Clubs.head_of(club).id == new_head.id

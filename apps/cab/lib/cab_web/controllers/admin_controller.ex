@@ -49,6 +49,21 @@ defmodule CabWeb.AdminController do
     end
   end
 
+  # POST /admin/merge {"first_id", "second_id"} — one person's two
+  # accounts, for when they cannot sign in to both themselves
+  def merge(conn, params) do
+    with {:ok, first} <- picked_user(params["first_id"]),
+         {:ok, second} <- picked_user(params["second_id"]),
+         {:ok, kept} <- Accounts.merge_accounts(first, second) do
+      conn
+      |> put_flash(:info, "The accounts are merged into #{kept.username}.")
+      |> redirect(to: ~p"/admin")
+    else
+      {:error, message} when is_binary(message) -> bounce(conn, message)
+      {:error, _} -> bounce(conn, "The merge did not go through. Nothing changed.")
+    end
+  end
+
   # POST /admin/clubs/:uuid/archive — the club disappears from every
   # public surface; history stays in the engine
   def archive(conn, %{"uuid" => uuid}) do
@@ -81,7 +96,7 @@ defmodule CabWeb.AdminController do
          %Accounts.User{} = user <- Accounts.get_user(id) do
       {:ok, user}
     else
-      _ -> {:error, "Pick the head."}
+      _ -> {:error, "Pick an account."}
     end
   end
 

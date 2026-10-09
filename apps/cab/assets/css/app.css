@@ -466,6 +466,9 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .auth .oauth--google:hover { background:#f8f9fa; }
 /* the provider buttons keep their own white face in both themes */
 .auth .oauth.dis { color:#5F6368; cursor:default; pointer-events:none; }
+.auth .oauth--plain { background:transparent; color:var(--ink); border:1px solid var(--line); }
+.auth .oauth--plain:hover { background:var(--brand-50); }
+.auth .start-over { display:block; font-size:.78rem; margin-top:4px; }
 .auth .oauth.dis svg { opacity:.45; }
 
 .auth .first-note { background:var(--brand-50); border-radius:10px; padding:12px 14px;

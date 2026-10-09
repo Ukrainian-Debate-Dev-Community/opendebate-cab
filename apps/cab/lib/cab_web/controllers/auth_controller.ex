@@ -64,20 +64,47 @@ defmodule CabWeb.AuthController do
   defp sign_in(conn, auth, _params) do
     case Accounts.upsert_from_oauth(auth) do
       {:ok, user} ->
-        # Best-effort engine provisioning; sign-in must not depend on it.
-        user = Accounts.ensure_node_user(user)
+        conn |> link_pending(user) |> signed_in(user)
 
+      # the provider vouches for an address an account already has:
+      # the person picks that account or a separate one on /signin
+      {:existing, user, pending} ->
         conn
-        |> configure_session(renew: true)
-        |> put_session(:user_id, user.id)
-        |> put_flash(:info, "Signed in as #{user.username}.")
-        |> redirect(to: ~p"/")
+        |> put_session(:pending_identity, %{pending: pending, user_id: user.id})
+        |> redirect(to: ~p"/signin")
 
       {:error, _reason} ->
         conn
         |> put_flash(:error, "Sign-in failed.")
         |> redirect(to: ~p"/signin")
     end
+  end
+
+  # signing in to the account /signin pointed at adds the sign-in that
+  # led there; any other sign-in just drops it
+  defp link_pending(conn, user) do
+    pending = get_session(conn, :pending_identity)
+    conn = delete_session(conn, :pending_identity)
+
+    with %{pending: pending, user_id: user_id} when user_id == user.id <- pending,
+         {:ok, :linked} <- Accounts.link_identity(user, pending) do
+      put_flash(conn, :info, "#{provider_name(pending.provider)} is now linked to this account.")
+    else
+      _ -> conn
+    end
+  end
+
+  @doc false
+  def signed_in(conn, user) do
+    # Best-effort engine provisioning; sign-in must not depend on it.
+    user = Accounts.ensure_node_user(user)
+    linked = Phoenix.Flash.get(conn.assigns.flash, :info)
+
+    conn
+    |> configure_session(renew: true)
+    |> put_session(:user_id, user.id)
+    |> put_flash(:info, linked || "Signed in as #{user.username}.")
+    |> redirect(to: ~p"/")
   end
 
   def logout(conn, _params) do

@@ -204,6 +204,12 @@ defmodule Cab.EngineApi do
     |> unwrap()
   end
 
+  @doc "Removes an owner of an organisation (admin-only; never the last owner)."
+  def remove_owner(actor, org_id, target_user_id) do
+    Engine.delete(actor, "/api/organisations/#{org_id}/owners/#{target_user_id}", admin: true)
+    |> unwrap()
+  end
+
   @doc """
   Moves every participation of `source_id` onto `target_id` and
   anonymises the emptied source (admin-only in the engine). Refused

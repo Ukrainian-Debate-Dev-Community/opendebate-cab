@@ -65,6 +65,7 @@ defmodule CabWeb.AccountController do
       other ->
         render(conn, :merge,
           other: other,
+          kept: Accounts.kept_in_merge(conn.assigns.current_user, other),
           clubs: Cab.Clubs.list_user_memberships(other),
           page_title: "Merge accounts"
         )
@@ -85,9 +86,11 @@ defmodule CabWeb.AccountController do
 
       {other, "merge"} ->
         case Accounts.merge_accounts(conn.assigns.current_user, other) do
-          {:ok, _user} ->
+          {:ok, kept} ->
             conn
-            |> put_flash(:info, "#{other.username} is merged into this account.")
+            |> configure_session(renew: true)
+            |> put_session(:user_id, kept.id)
+            |> put_flash(:info, "The accounts are merged into #{kept.username}.")
             |> redirect(to: ~p"/account")
 
           {:error, message} when is_binary(message) ->

@@ -1,7 +1,7 @@
 <Layouts.app flash={@flash} current_user={@current_user}>
   <.chrome crumbs={[{"Account", ~p"/account"}]} here="Merge accounts">
     <:seg form="keep-form" quiet>Keep them separate</:seg>
-    <:seg form="merge-form" primary>Merge into this account</:seg>
+    <:seg form="merge-form" primary>Merge the accounts</:seg>
   </.chrome>
 
   <div class="pbody">
@@ -10,19 +10,21 @@
     <.section title="That sign-in has its own account" pad>
       <p>
         It belongs to <b>{@other.name || @other.username}</b> ({@other.username}).
-        You can keep the two accounts apart, or merge that one into <b>{@current_user.name || @current_user.username}</b>, the account you are signed in to.
+        You can keep the two accounts apart, or merge them into one.
       </p>
       <p :if={@clubs != []}>
         Its clubs: {Enum.map_join(@clubs, ", ", & &1.club.name)}.
       </p>
       <p>
-        Merging moves its debate history (shown under this account's name), its clubs,
-        invitations and sign-in method here, then closes it. A club where both are members
-        keeps the stronger membership. It cannot be undone.
+        The merged account is <b>{@kept.username}</b>: the one that heads a club, or else the
+        older one. It gets the other account's debate history (shown under its name), clubs,
+        club head positions, invitations and sign-in methods, and you stay signed in to it.
+        The other account is closed. A club where both are members keeps the stronger
+        membership. It cannot be undone.
       </p>
       <p class="mut">
-        The merge is refused when that account heads a club, or when both accounts took part in
-        the same session; nothing changes then.
+        The merge is refused when both accounts took part in the same session; nothing changes
+        then.
       </p>
       <form id="merge-form" action={~p"/account/merge"} method="post">
         <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />

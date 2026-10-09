@@ -197,8 +197,8 @@ defmodule CabWeb.ShellPagesTest do
       club = club_fixture(old_head, %{engine_organisation_id: 3})
 
       stub(fn conn, params ->
-        assert conn.request_path == "/api/organisations/3/owners"
-        assert params["targetUserId"] == 10
+        assert conn.request_path =~ "/api/organisations/3/owners"
+        if conn.method == "POST", do: assert(params["targetUserId"] == 10)
         ok(conn, %{"id" => 1})
       end)
 

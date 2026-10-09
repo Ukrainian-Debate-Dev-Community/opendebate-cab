@@ -62,33 +62,35 @@ defmodule Cab.Accounts do
   end
 
   @doc """
-  Finds the user for an Ueberauth result, creating user + identity on
-  first login. Profile fields are refreshed from the provider each time.
+  Finds the user for an Ueberauth result. A known sign-in returns
+  `{:ok, user}` with the profile refreshed from the provider. A new
+  sign-in creates user + identity, unless the provider vouches for an
+  e-mail address an existing account already has: then it returns
+  `{:existing, user, pending}` and the person chooses between adding
+  this sign-in to that account and a separate one (`create_pending/1`).
   """
   def upsert_from_oauth(%Ueberauth.Auth{} = auth) do
-    provider = to_string(auth.provider)
-    uid = to_string(auth.uid)
+    pending = pending_identity(auth)
 
-    attrs = %{
-      # a username is shown on rosters, so never the e-mail address
-      username: auth.info.nickname || slug(auth.info.name) || "member",
-      name: auth.info.name,
-      email: auth.info.email,
-      avatar_url: auth.info.image
-    }
-
-    case Repo.one(from i in Identity, where: [provider: ^provider, provider_uid: ^uid]) do
+    case Repo.one(
+           from i in Identity,
+             where: [provider: ^pending.provider, provider_uid: ^pending.uid]
+         ) do
       %Identity{user_id: user_id} ->
         get_user(user_id)
-        |> User.changeset(Map.delete(attrs, :username))
+        |> User.changeset(Map.delete(pending.attrs, :username))
         |> Repo.update()
 
       nil ->
-        create_from_oauth(provider, uid, attrs)
+        case account_with_email(verified_email(auth)) do
+          nil -> create_pending(pending)
+          user -> {:existing, user, pending}
+        end
     end
   end
 
-  defp create_from_oauth(provider, uid, attrs) do
+  @doc "Creates the account a pending sign-in describes (see `upsert_from_oauth/1`)."
+  def create_pending(%{provider: provider, uid: uid, attrs: attrs}) do
     Repo.transaction(fn ->
       user =
         %User{}
@@ -102,6 +104,58 @@ defmodule Cab.Accounts do
 
       user
     end)
+  end
+
+  defp pending_identity(auth) do
+    %{
+      provider: to_string(auth.provider),
+      uid: to_string(auth.uid),
+      attrs: %{
+        # a username is shown on rosters, so never the e-mail address
+        username: auth.info.nickname || slug(auth.info.name) || "member",
+        name: auth.info.name,
+        email: auth.info.email,
+        avatar_url: auth.info.image
+      }
+    }
+  end
+
+  # the address only when the provider vouches for it: Google says so
+  # outright; GitHub shows only verified addresses on a profile and
+  # flags each address in the list it hands over
+  defp verified_email(%Ueberauth.Auth{info: %{email: email}} = auth) when is_binary(email) do
+    user = raw_user(auth)
+
+    verified? =
+      case to_string(auth.provider) do
+        "google" ->
+          user["email_verified"] in [true, "true"]
+
+        "github" ->
+          user["email"] == email or
+            Enum.any?(List.wrap(user["emails"]), &(&1["email"] == email and &1["verified"]))
+
+        _ ->
+          false
+      end
+
+    if verified?, do: email
+  end
+
+  defp verified_email(_auth), do: nil
+
+  defp raw_user(%Ueberauth.Auth{extra: %{raw_info: %{user: user}}}) when is_map(user), do: user
+  defp raw_user(_auth), do: %{}
+
+  defp account_with_email(nil), do: nil
+
+  defp account_with_email(email) do
+    Repo.one(
+      from u in User,
+        where: fragment("lower(?)", u.email) == ^String.downcase(email),
+        order_by: [asc: u.inserted_at, asc: u.id],
+        limit: 1
+    )
   end
 
   defp slug(nil), do: nil
@@ -122,10 +176,10 @@ defmodule Cab.Accounts do
   `{:other_account, user}` when that sign-in has its own cab account
   (the caller may offer to merge), or `{:error, message}`.
   """
-  def link_identity(%User{} = user, %Ueberauth.Auth{} = auth) do
-    provider = to_string(auth.provider)
-    uid = to_string(auth.uid)
+  def link_identity(%User{} = user, %Ueberauth.Auth{} = auth),
+    do: link_identity(user, pending_identity(auth))
 
+  def link_identity(%User{} = user, %{provider: provider, uid: uid}) do
     case Repo.one(from i in Identity, where: [provider: ^provider, provider_uid: ^uid]) do
       %Identity{user_id: id} when id == user.id ->
         {:ok, :already}
@@ -162,16 +216,20 @@ defmodule Cab.Accounts do
   end
 
   @doc """
-  MERGE: two accounts of one person become one. The engine moves the
-  other account's debate history onto this one (under this account's
-  name); cab moves its sign-in methods, club memberships (the stronger
-  of two in the same club stays) and invitations, then deletes it.
-  The engine refuses when the other account heads a club, or when both
-  took part in the same session.
+  MERGE: two accounts of one person become one. The account that
+  heads a club is kept, or else the older one, whichever was signed
+  in; `{:ok, kept}` names it. The engine moves the other account's
+  debate history onto the kept one (under its name) after the clubs
+  that account heads change hands; cab moves its sign-in methods, club
+  memberships (the stronger of two in the same club stays) and
+  invitations, then deletes it. Refused, with nothing changed, when
+  both took part in the same session. A merge that stopped halfway
+  finishes when run again.
   """
   def merge_accounts(%User{id: id}, %User{id: id}), do: {:error, "That is this account."}
 
-  def merge_accounts(%User{} = target, %User{} = source) do
+  def merge_accounts(%User{} = one, %User{} = other) do
+    {target, source} = keep_and_fold(one, other)
     target = ensure_node_user(target)
 
     with :ok <- merge_engine(target, source) do
@@ -195,29 +253,122 @@ defmodule Cab.Accounts do
     end
   end
 
+  @doc "The account `merge_accounts/2` keeps for these two."
+  def kept_in_merge(one, other), do: one |> keep_and_fold(other) |> elem(0)
+
+  # {kept, folded}: a head over a non-head, else the older account
+  defp keep_and_fold(one, other) do
+    case {heads_a_club?(one), heads_a_club?(other)} do
+      {true, false} -> {one, other}
+      {false, true} -> {other, one}
+      _ -> if older?(other, one), do: {other, one}, else: {one, other}
+    end
+  end
+
+  defp heads_a_club?(user) do
+    Repo.exists?(
+      from m in Cab.Clubs.Membership,
+        where: m.user_id == ^user.id and m.role == "head" and m.status == "approved"
+    )
+  end
+
+  defp older?(a, b) do
+    case NaiveDateTime.compare(a.inserted_at, b.inserted_at) do
+      :lt -> true
+      :gt -> false
+      :eq -> a.id < b.id
+    end
+  end
+
   defp merge_engine(_target, %User{node_user_id: nil}), do: :ok
 
-  defp merge_engine(%User{node_user_id: target_node} = target, %User{node_user_id: source_node})
+  defp merge_engine(%User{node_user_id: target_node} = target, %User{} = source)
        when is_integer(target_node) do
-    case Cab.EngineApi.merge_users(
-           target_node,
-           source_node,
-           target_node,
-           target.name || target.username
-         ) do
-      {:ok, _} ->
-        :ok
+    with {:ok, handed} <- hand_over_clubs(target, source) do
+      case Cab.EngineApi.merge_users(
+             target_node,
+             source.node_user_id,
+             target_node,
+             target.name || target.username
+           ) do
+        {:ok, _} ->
+          :ok
 
-      {:error, "The source user holds roles" <> _} ->
-        {:error, "That account heads a club. Make someone else head first."}
+        # an earlier run got this far before stopping
+        {:error, "Source user not found."} ->
+          :ok
 
-      error ->
-        error
+        {:error, message} ->
+          take_back_clubs(target, source, handed)
+          {:error, merge_message(message)}
+      end
     end
   end
 
   defp merge_engine(_target, _source),
     do: {:error, "Something went wrong, try again."}
+
+  defp merge_message("Both users are registered in event" <> _),
+    do:
+      "Both accounts took part in the same session. " <>
+        "Ask the club head to remove one of them from it first."
+
+  defp merge_message("The source user holds roles" <> _),
+    do: "That account still holds a role in a club. Ask a platform admin to merge them."
+
+  defp merge_message(message), do: message
+
+  # The engine merges only an account that owns no organisation, so
+  # the clubs the folded account heads get the kept account as owner
+  # first, and the folded account stops owning every club it belongs
+  # to (a former head may still own one). Returns what changed, to
+  # undo it should the merge itself be refused.
+  defp hand_over_clubs(target, source) do
+    memberships =
+      Repo.all(
+        from m in Cab.Clubs.Membership,
+          join: c in assoc(m, :club),
+          where: m.user_id == ^source.id and not is_nil(c.engine_organisation_id),
+          select: {m.role, m.status, c.engine_organisation_id}
+      )
+
+    led = for {"head", "approved", org} <- memberships, uniq: true, do: org
+    belonged = memberships |> Enum.map(&elem(&1, 2)) |> Enum.uniq()
+    actor = target.node_user_id
+
+    added =
+      Enum.flat_map(led, fn org ->
+        case Cab.EngineApi.add_owner(actor, org, actor) do
+          {:ok, _} -> [org]
+          {:error, "User is already an owner" <> _} -> []
+          {:error, _} -> [{:failed, org}]
+        end
+      end)
+
+    removed =
+      Enum.flat_map(belonged, fn org ->
+        case Cab.EngineApi.remove_owner(actor, org, source.node_user_id) do
+          {:ok, _} -> [org]
+          {:error, _} -> []
+        end
+      end)
+
+    handed = %{added: Enum.reject(added, &match?({:failed, _}, &1)), removed: removed}
+
+    if Enum.any?(added, &match?({:failed, _}, &1)) do
+      take_back_clubs(target, source, handed)
+      {:error, "Something went wrong, try again."}
+    else
+      {:ok, handed}
+    end
+  end
+
+  defp take_back_clubs(target, source, %{added: added, removed: removed}) do
+    actor = target.node_user_id
+    for org <- removed, do: Cab.EngineApi.add_owner(actor, org, source.node_user_id)
+    for org <- added, do: Cab.EngineApi.remove_owner(actor, org, actor)
+    :ok
+  end
 
   @rank %{{"head", "approved"} => 3, {"member", "approved"} => 2}
 

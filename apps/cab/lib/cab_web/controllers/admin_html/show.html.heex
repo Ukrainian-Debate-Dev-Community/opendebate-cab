@@ -79,5 +79,29 @@
         <:submit note="Takes effect immediately.">Change head</:submit>
       </.form_for>
     </.section>
+
+    <.section title="Merge two accounts">
+      <.form_for
+        id="merge-accounts-form"
+        action={~p"/admin/merge"}
+        description="For one person who ended up with two accounts and cannot sign in to both. The account that heads a club is kept, or else the older one; it gets the other's history, clubs, head positions and sign-in methods. It cannot be undone."
+      >
+        <:block
+          name={:first_id}
+          type={:select}
+          label="Account"
+          required
+          options={user_options(@users)}
+        />
+        <:block
+          name={:second_id}
+          type={:select}
+          label="Same person's other account"
+          required
+          options={user_options(@users)}
+        />
+        <:submit note="Refused when both took part in the same session.">Merge accounts</:submit>
+      </.form_for>
+    </.section>
   </div>
 </Layouts.app>

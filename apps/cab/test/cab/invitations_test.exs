@@ -97,7 +97,7 @@ defmodule Cab.InvitationsTest do
          %{club: club, session: session} do
       anna = user_fixture(%{username: "anna", name: "Anna Kovalenko"})
       membership_fixture(anna, club)
-      andriy = user_fixture(%{username: "andriy-k", email: "andriy@example.com"})
+      _andriy = user_fixture(%{username: "andriy-k", email: "andriy@example.com"})
       guest = user_fixture(%{username: "guest-anon", name: "Andrii"})
       link_fixture(guest, session)
 

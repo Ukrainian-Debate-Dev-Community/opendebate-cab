@@ -31,6 +31,7 @@ defmodule CabWeb.Router do
 
     # the ONLY auth entry; /auth/:provider is just the hop
     get "/signin", SigninController, :show
+    post "/signin/separate", SigninController, :separate
 
     # my page — engine stats verbatim + participation history
     get "/me", MeController, :show
@@ -59,6 +60,7 @@ defmodule CabWeb.Router do
     get "/admin", AdminController, :show
     post "/admin/clubs", AdminController, :create_club
     post "/admin/head", AdminController, :change_head
+    post "/admin/merge", AdminController, :merge
     post "/admin/clubs/:uuid/archive", AdminController, :archive
 
     # global standings: four tabs, RULE 0 — engine output verbatim

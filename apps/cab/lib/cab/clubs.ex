@@ -101,8 +101,21 @@ defmodule Cab.Clubs do
   def change_head(%Club{} = club, %User{} = new_head) do
     new_head = Accounts.ensure_node_user(new_head)
 
+    old_heads =
+      Repo.all(
+        from m in Membership,
+          join: u in assoc(m, :user),
+          where: m.club_id == ^club.id and m.role == "head" and u.id != ^new_head.id,
+          select: u.node_user_id
+      )
+
     with {:ok, actor} <- require_node_user(new_head),
-         {:ok, _} <- EngineApi.add_owner(actor, club.engine_organisation_id, actor) do
+         {:ok, _} <- add_engine_owner(actor, club.engine_organisation_id) do
+      # the old head stops owning the engine organisation too, so the
+      # account can later be merged; a miss only leaves a spare owner
+      for old when is_integer(old) <- old_heads,
+          do: EngineApi.remove_owner(actor, club.engine_organisation_id, old)
+
       Repo.transaction(fn ->
         from(m in Membership, where: m.club_id == ^club.id and m.role == "head")
         |> Repo.update_all(set: [role: "member"])
@@ -121,6 +134,13 @@ defmodule Cab.Clubs do
 
         club
       end)
+    end
+  end
+
+  defp add_engine_owner(actor, org) do
+    case EngineApi.add_owner(actor, org, actor) do
+      {:error, "User is already an owner" <> _} -> {:ok, :already}
+      result -> result
     end
   end
 
