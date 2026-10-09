@@ -73,6 +73,19 @@ defmodule CabWeb.OwnerSessionLive do
 
   def handle_event("add_guest", %{"name" => name}, socket), do: add(socket, {:guest, name})
 
+  # the address is only shown back to the head, never stored
+  def handle_event("add_guest_by_email", %{"name" => name, "email" => email}, socket) do
+    case String.trim(name) do
+      "" ->
+        {:noreply, put_flash(socket, :error, "Enter a name.")}
+
+      name ->
+        add(socket, {:guest, name}, fn _info ->
+          "#{name} added as a guest. Copy their personal link from People and send it to #{String.trim(email)}."
+        end)
+    end
+  end
+
   def handle_event("add_typed", %{"q" => q}, socket) do
     %{club: club, current: current, state: state} = socket.assigns
     add(socket, Invitations.resolve(club, current, state.signups, q))
@@ -127,6 +140,7 @@ defmodule CabWeb.OwnerSessionLive do
       |> assign(:links, Links.list_for_session(session))
       |> assign(:invitations, Invitations.for_session(session))
       |> assign(:members, Clubs.list_members(club))
+      |> assign(:my_ballot_room, my_ballot_room(state, socket.assigns.current_user))
       |> assign(
         :suggestions,
         Invitations.search(club, session, state.signups, socket.assigns.query)
@@ -140,6 +154,15 @@ defmodule CabWeb.OwnerSessionLive do
     end
   end
 
+  # the room the head chairs while its ballot is still open
+  defp my_ballot_room(%{stage: :running, rooms: rooms}, user) do
+    Enum.find(rooms, fn room ->
+      room["status"] in ["pending", "judging", "completed"] and Sessions.room_chair?(room, user)
+    end)
+  end
+
+  defp my_ballot_room(_state, _user), do: nil
+
   defp with_user(id, wrap) do
     case Accounts.get_user(to_int(id)) do
       nil -> nil
@@ -147,14 +170,14 @@ defmodule CabWeb.OwnerSessionLive do
     end
   end
 
-  defp add(socket, resolved) do
+  defp add(socket, resolved, words \\ & &1) do
     %{current_user: head, current: session} = socket.assigns
 
     case CabWeb.OwnerController.add_resolved(head, session, resolved) do
       {:ok, info} ->
         {:noreply,
          socket
-         |> put_flash(:info, info)
+         |> put_flash(:info, words.(info))
          |> assign(:query, "")
          |> load()}
 

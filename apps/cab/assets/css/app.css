@@ -496,6 +496,13 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .suggest button span { color:var(--muted); font-weight:500; font-size:.8rem; }
 .suggest button:hover, .suggest button:focus-visible { border-color:var(--brand); outline:none; }
 .suggest p { margin:4px 0 0; color:var(--muted); font-size:.85rem; }
+.guest-offer { display:grid; gap:6px; }
+.guest-offer p { margin:0; }
+.guest-offer label { font-size:.85rem; color:var(--ink); text-transform:none; letter-spacing:normal; font-weight:500; }
+.guest-offer .row { display:flex; gap:8px; }
+.guest-offer .row input { flex:1; min-width:0; padding:9px 12px; border:1px solid var(--line);
+                          border-radius:8px; font:inherit; background:var(--surface); color:var(--ink); }
+.guest-offer .row button { flex:none; justify-content:center; }
 
 /* the room card preview: the PNG people paste into a messenger */
 .sharecard canvas { display:block; width:100%; max-width:540px; height:auto;

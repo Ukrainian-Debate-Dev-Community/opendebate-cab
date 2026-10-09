@@ -1013,6 +1013,21 @@ defmodule CabWeb.HtmlTreesTest do
     assert redirected_to(anon) == "/signin"
   end
 
+  test "a head who chairs a room gets Fill ballot on the Rooms page too",
+       %{conn: conn, club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11)
+    stub_running_session(running_room(9))
+
+    html =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+      |> html_response(200)
+
+    assert html =~ "Fill ballot"
+    assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
+  end
+
   test "the owner surface serves the same ballot per open room; rooms status is words", %{
     conn: conn,
     club: club,

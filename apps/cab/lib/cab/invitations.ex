@@ -64,18 +64,22 @@ defmodule Cab.Invitations do
             not MapSet.member?(taken, user.id),
             do: user
 
+      # a guest only for a name nobody in cab answers to
+      guest? = members == [] and users == [] and not String.contains?(query, "@")
+
       %{
         members: Enum.take(members, @member_hits),
         users: users,
-        guest: if(String.contains?(query, "@"), do: nil, else: query)
+        guest: if(guest?, do: query)
       }
     end
   end
 
   @doc """
   One typed value to one action, for the form without JavaScript and
-  the API: an exact member username, an exact registered user
-  (username or email), otherwise a guest by that name.
+  the API: an exact member username or the one member the text
+  matches, an exact registered user (username or email), otherwise a
+  guest by that name.
   """
   def resolve(%Club{} = club, %Session{} = session, signups, query) do
     query = query |> to_string() |> String.trim()
@@ -85,6 +89,7 @@ defmodule Cab.Invitations do
     cond do
       query == "" -> nil
       member = Enum.find(hits.members, &(String.downcase(&1.username) == q)) -> {:member, member}
+      match?([_], hits.members) -> {:member, hd(hits.members)}
       user = List.first(hits.users) -> {:user, user}
       hits.guest -> {:guest, hits.guest}
       true -> nil

@@ -35,7 +35,7 @@
           phx-click="add_member"
           phx-value-id={user.id}
         >
-          {user.name || user.username} <span>member, add now</span>
+          {user.name || user.username} <span>member</span>
         </button>
         <button
           :for={user <- @suggestions.users}
@@ -46,22 +46,36 @@
           {user.name || user.username}
           <span>registered user, will accept on My page</span>
         </button>
-        <button
-          :if={@suggestions.guest}
-          type="button"
-          phx-click="add_guest"
-          phx-value-name={@suggestions.guest}
+        <div :if={@suggestions.guest} class="guest-offer">
+          <button type="button" phx-click="add_guest" phx-value-name={@suggestions.guest}>
+            Add “{@suggestions.guest}” as a guest <span>not in cab</span>
+          </button>
+          <p>
+            A guest gets a personal link: copy it from People below and send it to them. With it
+            they follow this session, and later add it to their own account if they sign up.
+          </p>
+        </div>
+        <.form
+          :if={email_only?(@query, @suggestions)}
+          for={%{}}
+          id="add-guest-by-email"
+          class="guest-offer by-email"
+          phx-submit="add_guest_by_email"
         >
-          Add “{@suggestions.guest}” as a guest <span>gets a personal link</span>
-        </button>
+          <input type="hidden" name="email" value={String.trim(@query)} />
+          <label for="add-guest-name">Nobody in cab uses {String.trim(@query)}. Their name</label>
+          <div class="row">
+            <input id="add-guest-name" type="text" name="name" required autocomplete="off" />
+            <button type="submit">Add as a guest</button>
+          </div>
+          <p>
+            Sending the link by email comes later; for now copy it from People and send it to {String.trim(
+              @query
+            )} yourself.
+          </p>
+        </.form>
         <p :if={String.trim(@query) == "" and @suggestions.members == []}>
           Every member is in this session. Type a name to add a guest.
-        </p>
-        <p :if={
-          String.trim(@query) != "" and @suggestions.members == [] and @suggestions.users == [] and
-            is_nil(@suggestions.guest)
-        }>
-          No member or user matches that address.
         </p>
       </div>
     </div>

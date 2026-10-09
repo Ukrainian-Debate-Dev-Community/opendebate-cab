@@ -197,7 +197,7 @@ defmodule CabWeb.OwnerController do
         with {:ok, _} <- Cab.Invitations.invite(head, session, user),
              do:
                {:ok,
-                "#{user.name || user.username} is in the session; they accept from their cab page"}
+                "#{user.name || user.username} is in the session. They accept on their My page."}
 
       {:guest, name} ->
         with {:ok, link} <- Links.register_guest(session, name),

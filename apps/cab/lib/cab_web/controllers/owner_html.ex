@@ -92,6 +92,12 @@ defmodule CabWeb.OwnerHTML do
 
   defp deletable_rooms?(_state), do: false
 
+  # an address no account uses: the guest gets a name, the link goes out by hand
+  defp email_only?(query, %{users: []}),
+    do: String.match?(String.trim(query), ~r/^[^@\s]+@[^@\s]+\.[^@\s]+$/)
+
+  defp email_only?(_query, _suggestions), do: false
+
   defp open_rooms(%{stage: :running, rooms: rooms}),
     do: Enum.reject(rooms, &(&1["status"] in ["confirmed", "completed"]))
 

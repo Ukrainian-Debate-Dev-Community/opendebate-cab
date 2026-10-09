@@ -58,6 +58,9 @@ defmodule Cab.InvitationsTest do
             do: ok(conn, row),
             else: ok(conn, Map.put(row, "raw_claim_token", "token-#{id}"))
 
+        {"POST", "/api/users/register"} ->
+          Req.Test.json(conn, %{"token" => Core.Engine.mint_token(900)})
+
         {"POST", "/api/users/claim-participant/" <> _pid} ->
           ok(conn, %{})
 
@@ -104,7 +107,9 @@ defmodule Cab.InvitationsTest do
       hits = Invitations.search(club, session, [], "an")
       assert Enum.map(hits.members, & &1.username) == ["anna"]
       assert hits.users == []
-      assert hits.guest == "an"
+      # a member answers to it, so it is not offered as a guest
+      assert hits.guest == nil
+      assert Invitations.search(club, session, [], "Zara").guest == "Zara"
 
       # surnames match too
       assert [%{username: "anna"}] = Invitations.search(club, session, [], "kov").members
@@ -261,8 +266,9 @@ defmodule Cab.InvitationsTest do
       |> live(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
 
     html = view |> form("#add-person-form", %{q: "an"}) |> render_change()
-    assert html =~ "member, add now"
-    assert html =~ "Add “an” as a guest"
+    assert html =~ "<span>member</span>"
+    # a member answers to it, so no guest is offered
+    refute html =~ "as a guest"
 
     view |> element("#add-person-suggestions button", "anna") |> render_click()
     assert [{_, %{"user_id" => 501}}] = calls(agent, "POST", "/api/events/11/participants")
@@ -272,6 +278,31 @@ defmodule Cab.InvitationsTest do
     view |> element("#add-person-suggestions button", "olena") |> render_click()
     assert [%Invitation{}] = Repo.all(Invitation)
     assert render(view) =~ "invited, not accepted yet"
+
+    # a name nobody in cab answers to: a guest, with what to do next
+    html = view |> form("#add-person-form", %{q: "Zara Nova"}) |> render_change()
+    assert html =~ "Add “Zara Nova” as a guest"
+    assert html =~ "copy it from People below"
+
+    # an address nobody uses: a name field, the address never stored
+    html = view |> form("#add-person-form", %{q: "nova@example.com"}) |> render_change()
+    assert html =~ ~s(id="add-guest-by-email")
+    refute html =~ "as a guest <span>"
+
+    html =
+      view
+      |> form("#add-guest-by-email", %{name: "Zara Nova"})
+      |> render_submit()
+
+    assert html =~ "Zara Nova added as a guest"
+    assert html =~ "send it to nova@example.com"
+
+    assert Enum.any?(
+             calls(agent, "POST", "/api/events/11/participants"),
+             fn {_, params} -> params["display_name"] == "Zara Nova" end
+           )
+
+    refute Repo.get_by(Cab.Accounts.User, email: "nova@example.com")
   end
 
   defp name_error({:error, message}), do: {:error, String.downcase(message)}

@@ -27,6 +27,12 @@
       Reopen registration
     </:seg>
     <:seg
+      :if={@my_ballot_room}
+      href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{@my_ballot_room["id"]}/ballot"}
+    >
+      Fill ballot — {room_label(@my_ballot_room)}
+    </:seg>
+    <:seg
       :if={@state.stage == :running && deletable_rooms?(@state)}
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-registration"}
       method="post"
