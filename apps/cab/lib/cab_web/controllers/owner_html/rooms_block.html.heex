@@ -42,10 +42,7 @@
         row_href={fn room -> ~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}" end}
       >
         <:col :let={room} class="rank">
-          <.link
-            class="room-open"
-            href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}"}
-          >
+          <.link href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}"}>
             {room_label(room)}
           </.link>
         </:col>

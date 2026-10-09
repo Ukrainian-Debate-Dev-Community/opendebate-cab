@@ -562,6 +562,3 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 /* a table row that opens a page as a whole; its own links still win */
 table.t tr.linked { cursor:pointer; }
 table.t tr.linked:hover td { background:var(--brand-50); }
-.room-open { display:inline-block; padding:2px 8px; border:1px solid var(--brand);
-             border-radius:6px; color:var(--brand); font-weight:750; text-decoration:none; }
-tr.linked:hover .room-open { background:var(--brand-fill); color:var(--on-brand); }
