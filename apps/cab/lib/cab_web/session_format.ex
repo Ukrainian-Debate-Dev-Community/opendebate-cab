@@ -88,4 +88,14 @@ defmodule CabWeb.SessionFormat do
   def ordinal(2), do: "2nd"
   def ordinal(3), do: "3rd"
   def ordinal(rank), do: "#{rank}th"
+
+  @doc "When the room's prep ends: 15 minutes after its motion was published, or nil."
+  def prep_until(room) do
+    with %{"created_at" => created} when is_binary(created) <- room["Motion"],
+         {:ok, at, _offset} <- DateTime.from_iso8601(created) do
+      DateTime.add(at, 15, :minute)
+    else
+      _ -> nil
+    end
+  end
 end

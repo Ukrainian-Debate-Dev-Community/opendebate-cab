@@ -1034,6 +1034,7 @@ defmodule CabWeb.HtmlTreesTest do
 
     refute rooms =~ "/rooms/71/ballot"
     refute rooms =~ "Fill ballot"
+    assert rooms =~ "not published yet"
 
     ballot = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
     assert redirected_to(ballot) == "/c/#{club.uuid}/s/#{session.uuid}/rooms/71"
@@ -1055,6 +1056,10 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
     # the whole room row opens the room page
     assert html =~ ~s(data-href="/c/#{club.uuid}/s/#{session.uuid}/rooms/71")
+
+    # the motions table: each room's motion, infoslide and keyword
+    assert html =~ ~s(id="session-motions")
+    assert html =~ "THW fill ballots"
   end
 
   test "the owner surface serves the same ballot per open room; rooms status is words", %{
