@@ -20,7 +20,7 @@
       <div class="pad">
         <p>
           Username: <b>{@current_user.username}</b>
-          {if @current_user.email, do: " · #{@current_user.email}"}
+          {if @current_user.email, do: ", #{@current_user.email}"}
         </p>
       </div>
     </.section>

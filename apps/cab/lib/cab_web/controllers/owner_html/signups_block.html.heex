@@ -1,4 +1,4 @@
-<.section title={"Signed up · #{signed_up_counts(@state.signups)}"}>
+<.section title={"Signed up (#{signed_up_counts(@state.signups)})"}>
   <.table id="session-signups" rows={@state.signups} empty="Nobody signed up yet.">
     <:col :let={participant} label="Who">
       {participant["display_name"]}

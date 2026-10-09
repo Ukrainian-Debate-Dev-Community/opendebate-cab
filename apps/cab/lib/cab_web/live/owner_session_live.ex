@@ -88,7 +88,7 @@ defmodule CabWeb.OwnerSessionLive do
       |> assign(:draft, Sessions.draft(session, state.signups))
       |> assign(:links, Links.list_for_session(session))
       |> assign(:members, Clubs.list_members(club))
-      |> assign(:page_title, "#{club.name} · #{state.event["name"]}")
+      |> assign(:page_title, "#{club.name} — #{state.event["name"]}")
     else
       _ ->
         socket

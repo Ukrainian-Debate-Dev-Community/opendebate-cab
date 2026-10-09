@@ -18,7 +18,7 @@ defmodule CabWeb.Ui do
     statics: CabWeb.static_paths()
 
   # ---------------------------------------------------------------
-  # 1 · Chrome / action bar
+  # 1. Chrome / action bar
   # ---------------------------------------------------------------
 
   @doc """
@@ -218,7 +218,7 @@ defmodule CabWeb.Ui do
   end
 
   # ---------------------------------------------------------------
-  # 2 · Table / standings
+  # 2. Table / standings
   # ---------------------------------------------------------------
 
   @doc """
@@ -308,7 +308,7 @@ defmodule CabWeb.Ui do
   end
 
   # ---------------------------------------------------------------
-  # 3 · Form
+  # 3. Form
   # ---------------------------------------------------------------
 
   @doc """
@@ -504,14 +504,14 @@ defmodule CabWeb.Ui do
   defp same?(value, candidate), do: to_string(value) == to_string(candidate)
 
   # ---------------------------------------------------------------
-  # 4 · Ballot
+  # 4. Ballot
   # ---------------------------------------------------------------
 
   @sides %{
-    og: "OG · OPENING GOV",
-    oo: "OO · OPENING OPP",
-    cg: "CG · CLOSING GOV",
-    co: "CO · CLOSING OPP"
+    og: "OG — OPENING GOV",
+    oo: "OO — OPENING OPP",
+    cg: "CG — CLOSING GOV",
+    co: "CO — CLOSING OPP"
   }
 
   @doc """
@@ -543,7 +543,7 @@ defmodule CabWeb.Ui do
     <form class="ballot" id={@id} action={@action} method="post" phx-hook="BallotMath">
       <input :if={@action} type="hidden" name="_csrf_token" value={get_csrf_token()} />
       <div class="b-motion">
-        <span class="k">Motion{@room && " · #{@room}"}</span>
+        <span class="k">Motion{@room && " — #{@room}"}</span>
         <b>{@motion}</b>
       </div>
       <div class="bgrid" data-ballot>
@@ -598,7 +598,7 @@ defmodule CabWeb.Ui do
   defp side_label(side), do: @sides[side] || side |> to_string() |> String.upcase()
 
   # ---------------------------------------------------------------
-  # 5 · Allocator (drag-and-drop, server-held draft)
+  # 5. Allocator (drag-and-drop, server-held draft)
   # ---------------------------------------------------------------
 
   @alloc_sides ~w(og oo cg co)
@@ -636,7 +636,7 @@ defmodule CabWeb.Ui do
     ~H"""
     <div class="dnd" id={@id} phx-hook="Allocator">
       <div class="tray" data-drop="tray">
-        <span class="tlabel">Unallocated · {length(@tray)}</span>
+        <span class="tlabel">Unallocated ({length(@tray)})</span>
         <.chip :for={person <- @tray} person={person} />
       </div>
       <table>
@@ -715,7 +715,7 @@ defmodule CabWeb.Ui do
 
     cond do
       Enum.sum(teams) == 0 and not judge? -> "empty"
-      Enum.all?(teams, &(&1 >= 1)) and judge? and irons > 0 -> "ready · #{irons} iron"
+      Enum.all?(teams, &(&1 >= 1)) and judge? and irons > 0 -> "ready, #{irons} iron"
       Enum.all?(teams, &(&1 >= 1)) and judge? -> "ready"
       true -> "incomplete"
     end

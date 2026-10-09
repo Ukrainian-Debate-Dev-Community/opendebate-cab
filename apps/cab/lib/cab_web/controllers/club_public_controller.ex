@@ -21,7 +21,7 @@ defmodule CabWeb.ClubPublicController do
     )
   end
 
-  # GET /c/:club_uuid/standings[/:tab] — teams · speakers · judges
+  # GET /c/:club_uuid/standings[/:tab] — teams, speakers, judges
   # scoped to this club (RULE 0 passthrough); Clubs is global-only
   def standings(conn, params) do
     club = conn.assigns.club
@@ -38,7 +38,7 @@ defmodule CabWeb.ClubPublicController do
             scope: scope,
             rows: standings_rows(tab, scope),
             archive: Sessions.archive(club),
-            page_title: "#{club.name} · standings"
+            page_title: "#{club.name} — standings"
           )
         else
           deny_private_standings(conn, club)
@@ -130,7 +130,7 @@ defmodule CabWeb.ClubPublicController do
       message: params["message"],
       contact: params["contact"],
       errors: errors,
-      page_title: "#{conn.assigns.club.name} · join"
+      page_title: "#{conn.assigns.club.name} — join"
     )
   end
 

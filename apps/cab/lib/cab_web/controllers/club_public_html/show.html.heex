@@ -26,10 +26,10 @@
     <.flash_banners flash={@flash} />
 
     <.section title="About" pad>
-      <b id="club-name">{@club.name}</b>{if @club.city, do: " · #{@club.city}"}
+      <b id="club-name">{@club.name}</b>{if @club.city, do: ", #{@club.city}"}
       <p>
         {length(@members)} member{if length(@members) != 1, do: "s"}{if head_name(@members),
-          do: " · head: #{head_name(@members)}"}
+          do: ", head: #{head_name(@members)}"}
       </p>
       <p :if={@club.description}>{@club.description}</p>
       <p :if={@club.meeting_info}>Meetings: {@club.meeting_info}</p>

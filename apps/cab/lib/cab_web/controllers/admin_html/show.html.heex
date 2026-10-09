@@ -11,10 +11,10 @@
         <:col :let={club} label="Club">
           {club.name}
           <.sub>
-            {club.city || "—"} · {@member_counts[club.id] || 0} member{if (@member_counts[
-                                                                             club.id
-                                                                           ] || 0) != 1,
-                                                                          do: "s"}
+            {club.city || "—"}, {@member_counts[club.id] || 0} member{if (@member_counts[
+                                                                            club.id
+                                                                          ] || 0) != 1,
+                                                                         do: "s"}
           </.sub>
         </:col>
         <:col :let={club} label="Head">

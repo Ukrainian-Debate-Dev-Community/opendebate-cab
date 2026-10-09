@@ -18,7 +18,7 @@
             <.link href={~p"/c/#{m.club.uuid}"}>{m.club.name}</.link>
             <.sub>
               {if m.status == "approved", do: m.role, else: "request pending"}{if m.club.city,
-                do: " · #{m.club.city}"}
+                do: ", #{m.club.city}"}
             </.sub>
           </:col>
           <:col :let={m} label="Next session" class="st">

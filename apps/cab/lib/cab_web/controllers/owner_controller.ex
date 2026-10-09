@@ -22,7 +22,7 @@ defmodule CabWeb.OwnerController do
     render(conn, :club,
       archive: Sessions.club_sessions(club),
       live: Sessions.current_for_club(club),
-      page_title: "#{club.name} · edit"
+      page_title: "#{club.name} — edit"
     )
   end
 
@@ -83,7 +83,7 @@ defmodule CabWeb.OwnerController do
     render(conn, :members,
       members: Clubs.list_members(club),
       join_requests: Clubs.list_join_requests(club),
-      page_title: "#{club.name} · members"
+      page_title: "#{club.name} — members"
     )
   end
 

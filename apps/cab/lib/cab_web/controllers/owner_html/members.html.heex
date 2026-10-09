@@ -11,7 +11,7 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title={"Join requests · #{length(@join_requests)}"}>
+    <.section title={"Join requests (#{length(@join_requests)})"}>
       <.table
         id="join-requests"
         rows={@join_requests}
@@ -20,7 +20,7 @@
       >
         <:col :let={request} label="Who">
           {request.user.username}
-          <.sub>signed-in user{if request.user.name, do: " · #{request.user.name}"}</.sub>
+          <.sub>signed-in user{if request.user.name, do: " (#{request.user.name})"}</.sub>
         </:col>
         <:col :let={request} label="About them">
           {request.message || "—"}
@@ -48,7 +48,7 @@
       </.table>
     </.section>
 
-    <.section title={"Members · #{length(@members)}"}>
+    <.section title={"Members (#{length(@members)})"}>
       <.table id="members-list" rows={@members} empty="No members yet.">
         <:col :let={membership} label="Member">
           {membership.user.username}

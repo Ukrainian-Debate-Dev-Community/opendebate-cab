@@ -119,7 +119,7 @@ defmodule CabWeb.SessionPageController do
       room: room,
       teams: BallotForm.teams(room, ballot_params),
       error: error,
-      page_title: "ballot · R#{room["id"]}"
+      page_title: "ballot — R#{room["id"]}"
     )
   end
 

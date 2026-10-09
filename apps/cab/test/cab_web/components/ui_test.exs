@@ -336,12 +336,12 @@ defmodule CabWeb.UiTest do
 
     assert html =~ ~s(class="ballot")
     assert html =~ "THW let judges pick the motions."
-    assert html =~ "Motion · Room 1"
+    assert html =~ "Motion — Room 1"
     assert html =~ ~s(data-ballot)
 
     for side <- ~w(og oo cg co), do: assert(html =~ ~s(class="bteam #{side}"))
-    assert html =~ "OG · OPENING GOV"
-    assert html =~ "CO · CLOSING OPP"
+    assert html =~ "OG — OPENING GOV"
+    assert html =~ "CO — CLOSING OPP"
 
     # per row: speaker dropdown, iron check, score input 50-100 step .5
     assert html =~ ~s(class="who")
@@ -380,7 +380,7 @@ defmodule CabWeb.UiTest do
     refute tray =~ "Anna"
     assert tray =~ "Bohdan"
     assert tray =~ ~s(class="chip judge")
-    assert tray =~ "Unallocated · 2"
+    assert tray =~ "Unallocated (2)"
 
     # slots carry their keys; the placed chip renders inside its slot
     assert table =~ ~s(data-slot="1:og:1")

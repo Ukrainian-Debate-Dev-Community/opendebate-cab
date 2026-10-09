@@ -45,7 +45,7 @@ defmodule CabWeb.RoomLive do
       |> assign(:room, room)
       |> assign(:can_act, can_act?(room, socket.assigns))
       |> assign(:can_edit_ballot, can_edit_ballot?(room, socket.assigns))
-      |> assign(:page_title, "#{club.name} · R#{room_id}")
+      |> assign(:page_title, "#{club.name} — R#{room_id}")
     else
       nil ->
         if socket.assigns[:room], do: rooms_gone(socket), else: raise(CabWeb.NotFoundError)

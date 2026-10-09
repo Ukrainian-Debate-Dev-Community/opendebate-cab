@@ -116,7 +116,7 @@ main.page-main { width:100%; flex:1 0 auto; }
 @media (max-width:700px) { .footer .cols { grid-template-columns:1fr; gap:14px; } }
 
 /* ================================================================
-   1 · CHROME / ACTION BAR — thin strip, actions are SEGMENTS of it
+   1. CHROME / ACTION BAR — thin strip, actions are SEGMENTS of it
    ================================================================ */
 .chrome { display:flex; align-items:stretch; height:34px; background:#fff;
           font-size:.8rem; border-bottom:1px solid var(--line); }
@@ -145,7 +145,7 @@ main.page-main { width:100%; flex:1 0 auto; }
 .chrome .seg .me { color:var(--brand-700); font-weight:650; }
 
 /* ================================================================
-   2 · TABLE / STANDINGS — dense, every cell format
+   2. TABLE / STANDINGS — dense, every cell format
    ================================================================ */
 table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .t th { text-align:left; font-size:.64rem; letter-spacing:.08em;
@@ -168,7 +168,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
             font-size:.84rem; }
 
 /* ================================================================
-   3 · FORM — one flowing piece: title block + field blocks + submit,
+   3. FORM — one flowing piece: title block + field blocks + submit,
        divided by hairlines inside one container (google-form style)
    ================================================================ */
 .form { font-size:.86rem; }
@@ -227,7 +227,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .f-submit .note { font-size:.74rem; color:var(--muted); }
 
 /* ================================================================
-   4 · BALLOT — tabbycat-style BP ballot: scores in, ranks derived
+   4. BALLOT — tabbycat-style BP ballot: scores in, ranks derived
    ================================================================ */
 .ballot .b-motion { padding:12px var(--px); border-bottom:1px solid var(--line);
                     font-size:.84rem; }
@@ -274,7 +274,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .bfoot .err { color:var(--warn); font-weight:650; }
 
 /* ================================================================
-   5 · DRAG-AND-DROP TABLE — tabbycat allocation model:
+   5. DRAG-AND-DROP TABLE — tabbycat allocation model:
        unallocated tray + droppable slots in rows
    ================================================================ */
 .dnd .tray { display:flex; flex-wrap:wrap; align-items:flex-start; gap:6px;

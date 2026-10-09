@@ -464,7 +464,7 @@ defmodule CabWeb.GuestLinksTest do
       assert html =~ ~s(id="shared-registration-url")
       assert html =~ "/r/#{session.uuid}"
       assert html =~ ~s(data-copy=)
-      assert html =~ "Guest registrations · 1"
+      assert html =~ "Guest registrations (1)"
 
       assert html =~ ~s(id="guest-links")
       assert html =~ "Greta Guest"

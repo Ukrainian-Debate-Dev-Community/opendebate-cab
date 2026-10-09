@@ -48,7 +48,7 @@
 
     <.section title="Session" pad>
       <b id="session-name">{@state.event["name"]}</b>
-      · {session_date(@session)}
+      <p>{session_date(@session)}</p>
       <%= if @winner do %>
         <p>Winner: <b>{@winner}</b></p>
       <% end %>

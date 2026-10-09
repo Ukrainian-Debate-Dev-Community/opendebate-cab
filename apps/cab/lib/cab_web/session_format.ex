@@ -27,7 +27,7 @@ defmodule CabWeb.SessionFormat do
   @doc "A room row's status: motion state + ballot state."
   def room_words(room) do
     motion = if room["Motion"], do: "motion set", else: "motion pending"
-    "#{motion} · #{room_status_words(room["status"])}"
+    "#{motion}, #{room_status_words(room["status"])}"
   end
 
   @doc "The team at a side position; a 1-speaker team is marked (iron)."
@@ -84,7 +84,7 @@ defmodule CabWeb.SessionFormat do
 
   @doc "The session's date — the planned start when there is one."
   def session_date(%{scheduled_at: %DateTime{} = at}),
-    do: Calendar.strftime(at, "%-d %b %Y · %H:%M")
+    do: Calendar.strftime(at, "%-d %b %Y, %H:%M")
 
   def session_date(session), do: Calendar.strftime(session.inserted_at, "%-d %b %Y")
 end

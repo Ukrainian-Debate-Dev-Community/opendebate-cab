@@ -73,7 +73,7 @@ defmodule CabWeb.RegistrationController do
           link: link,
           personal_url: url(~p"/l/#{link.code}"),
           role: params["as"],
-          page_title: "#{session.club.name} · registered"
+          page_title: "#{session.club.name} — registered"
         )
 
       {:error, :conflict, _message} ->
@@ -97,7 +97,7 @@ defmodule CabWeb.RegistrationController do
       name: params["name"],
       as: params["as"] || "speak",
       errors: errors,
-      page_title: "#{session.club.name} · register"
+      page_title: "#{session.club.name} — register"
     )
   end
 
@@ -106,7 +106,7 @@ defmodule CabWeb.RegistrationController do
       club: session.club,
       session: session,
       state: state,
-      page_title: "#{session.club.name} · registration closed"
+      page_title: "#{session.club.name} — registration closed"
     )
   end
 

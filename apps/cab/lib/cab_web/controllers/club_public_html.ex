@@ -1,7 +1,7 @@
 defmodule CabWeb.ClubPublicHTML do
   @moduledoc """
   The club's public pages: the club page (profile + Club Sessions), the
-  club standings (teams · speakers · judges) and the join-request form.
+  club standings (teams, speakers, judges) and the join-request form.
   """
   use CabWeb, :html
 

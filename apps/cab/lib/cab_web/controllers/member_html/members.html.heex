@@ -11,7 +11,7 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title={"Members · #{length(@members)}"}>
+    <.section title={"Members (#{length(@members)})"}>
       <.table id="members-list" rows={@members} empty="No members yet.">
         <:col :let={membership} label="Member">
           {membership.user.username}

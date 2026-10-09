@@ -48,7 +48,7 @@ defmodule CabWeb.SessionLive do
         |> assign(:my_signup, my_signup)
         |> assign(:my_ballot_room, my_ballot_room(state, user))
         |> assign(:my_room_id, my_room_id(state, user, my_signup))
-        |> assign(:page_title, "#{club.name} · #{state.event["name"]}")
+        |> assign(:page_title, "#{club.name} — #{state.event["name"]}")
 
       {:error, _message} ->
         # the session vanished (cancelled) or the engine is down —

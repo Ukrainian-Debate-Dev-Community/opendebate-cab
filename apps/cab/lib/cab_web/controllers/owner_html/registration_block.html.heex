@@ -5,7 +5,7 @@
 <% end %>
 
 <%= if @state.stage == :signup or @links != [] do %>
-  <.section title={"Guest registrations · #{length(@links)}"}>
+  <.section title={"Guest registrations (#{length(@links)})"}>
     <div class="pad">
       <p>
         Personal links below are each guest's ONLY access — share one only with its guest.
@@ -14,7 +14,7 @@
     <.table id="guest-links" rows={@links} empty="No guest links issued yet.">
       <:col :let={link} label="Name">
         {link.user.name}
-        <.sub>guest · {link.user.username}</.sub>
+        <.sub>guest ({link.user.username})</.sub>
       </:col>
       <:col :let={link} label="Role">{Links.role_in(link, @state.signups) || "—"}</:col>
       <:col :let={link} label="Personal link" code>

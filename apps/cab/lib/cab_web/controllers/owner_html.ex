@@ -43,7 +43,7 @@ defmodule CabWeb.OwnerHTML do
   defp signed_up_counts(signups) do
     speakers = Enum.count(signups, &(&1["role"] == "speaker"))
     judges = Enum.count(signups, &(&1["role"] == "adjudicator"))
-    "#{speakers} speaker#{if speakers != 1, do: "s"} · #{judges} judge#{if judges != 1, do: "s"}"
+    "#{speakers} speaker#{if speakers != 1, do: "s"}, #{judges} judge#{if judges != 1, do: "s"}"
   end
 
   defp attendance_line(signups) do
