@@ -1034,6 +1034,8 @@ defmodule CabWeb.HtmlTreesTest do
 
     assert html =~ "Fill ballot"
     assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
+    # the whole room row opens the room page
+    assert html =~ ~s(data-href="/c/#{club.uuid}/s/#{session.uuid}/rooms/71")
   end
 
   test "the owner surface serves the same ballot per open room; rooms status is words", %{

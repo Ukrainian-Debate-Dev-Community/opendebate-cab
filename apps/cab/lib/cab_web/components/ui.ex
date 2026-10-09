@@ -293,6 +293,10 @@ defmodule CabWeb.Ui do
     default: nil,
     doc: "row -> extra tr class (e.g. the viewer's \"me\" tint)"
 
+  attr :row_href, :any,
+    default: nil,
+    doc: "row -> url the whole row opens (its links and buttons keep their own)"
+
   attr :empty, :string, default: "Nothing here yet."
 
   slot :col do
@@ -330,7 +334,8 @@ defmodule CabWeb.Ui do
         <tr
           :for={{row, index} <- Enum.with_index(@rows, 1)}
           id={@row_id && @row_id.(row)}
-          class={@row_class && @row_class.(row)}
+          class={[@row_class && @row_class.(row), @row_href && "linked"]}
+          data-href={@row_href && @row_href.(row)}
         >
           <td :if={@rank} class="rank">{index}</td>
           <td

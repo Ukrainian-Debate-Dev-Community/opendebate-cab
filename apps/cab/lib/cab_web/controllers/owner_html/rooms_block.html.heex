@@ -36,9 +36,16 @@
     </.section>
   <% _running_or_done -> %>
     <.section title="Rooms">
-      <.table id="session-rooms" rows={@state.rooms}>
+      <.table
+        id="session-rooms"
+        rows={@state.rooms}
+        row_href={fn room -> ~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}" end}
+      >
         <:col :let={room} class="rank">
-          <.link href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}"}>
+          <.link
+            class="room-open"
+            href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}"}
+          >
             {room_label(room)}
           </.link>
         </:col>
@@ -72,7 +79,6 @@
     </.section>
 
     <.section :if={open_rooms(@state) != []} title="Motions" pad>
-      Each room's motion is set on its page — open a room (R#) in the
-      table above to publish the motion, infoslide and keyword.
+      Click a room to open it: publish its motion, follow prep and share the room card there.
     </.section>
 <% end %>

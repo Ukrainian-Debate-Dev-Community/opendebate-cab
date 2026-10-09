@@ -355,6 +355,16 @@ const markTheme = () => {
     b.setAttribute("aria-label", `Theme: ${current}`)
   })
 }
+// a linked table row opens its page; links, buttons and fields inside
+// keep their own click, and a text selection is left alone
+document.addEventListener("click", e => {
+  const row = e.target.closest("tr[data-href]")
+  if (!row || e.target.closest("a, button, input, select, textarea, label")) return
+  if (String(window.getSelection())) return
+  if (e.metaKey || e.ctrlKey) window.open(row.dataset.href, "_blank")
+  else window.location.assign(row.dataset.href)
+})
+
 document.addEventListener("click", e => {
   const theme = e.target.closest('[data-cycle="theme"]')
   if (theme) applyTheme(THEMES[(THEMES.indexOf(storedTheme()) + 1) % THEMES.length])
