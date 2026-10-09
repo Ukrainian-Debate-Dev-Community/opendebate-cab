@@ -22,7 +22,7 @@
 
 /* ================================================================
    cab design system v2 — ported verbatim from
-   design/components-v2.html + design/pages-v2.html.
+   legacy/design/components-v2.html + legacy/design/pages-v2.html.
    Tokens + 4 core components (chrome, table, form, ballot) and the
    3 extras (tag, banner, section). Plain CSS on purpose.
    ================================================================ */
@@ -340,7 +340,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .card .pad p { color:var(--muted); font-size:.82rem; margin-top:3px; }
 
 /* ================================================================
-   M7 additions — ported from design/pages-v3.html
+   M7 additions — ported from legacy/design/pages-v3.html
    ================================================================ */
 
 /* tab row under the chrome (pages-v6 .selrow): real borders, no
@@ -360,7 +360,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .t tr.me td { background:#FBF7EE; }
 
 /* ================================================================
-   P1 sign-in — design/signin.html verbatim, tokens mapped onto the
+   P1 sign-in — legacy/design/signin.html verbatim, tokens mapped onto the
    current kit (violet-* -> brand scale)
    ================================================================ */
 .auth { display:grid; grid-template-columns:1.1fr 1fr; min-height:100vh; flex:1 0 auto; }

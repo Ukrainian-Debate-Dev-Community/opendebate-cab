@@ -46,7 +46,7 @@
           alias tree='tree -C'
           # pg_setup bootstraps the shared local cluster only; each app's
           # database is owned by its Ecto config (mix ecto.setup creates,
-          # migrates and seeds it). SPEC.md phase 0: one instance,
+          # migrates and seeds it). legacy/SPEC.md phase 0: one instance,
           # separate database per service.
           alias pg_setup="initdb -D $PGDATA && \
             echo \"unix_socket_directories = '$PGDATA'\" >> $PGDATA/postgresql.conf && \
