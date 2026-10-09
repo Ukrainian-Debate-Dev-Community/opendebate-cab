@@ -297,7 +297,19 @@ const markTheme = () => {
   try { current = localStorage.getItem(themeKey) || "system" } catch (_e) { /* private mode */ }
   document.querySelectorAll("[data-theme-choice]").forEach(b =>
     b.setAttribute("aria-pressed", String(b.dataset.themeChoice === current)))
+  document.querySelectorAll('[data-seg="theme"]').forEach(seg =>
+    seg.style.setProperty("--i", {light: 0, system: 1, dark: 2}[current]))
 }
+// the language pill slides first, then the page reloads in that language
+document.addEventListener("click", e => {
+  const link = e.target.closest('[data-seg="lang"] a')
+  if (!link || link.getAttribute("aria-current") === "true") return
+  e.preventDefault()
+  const seg = link.closest("[data-seg]")
+  seg.style.setProperty("--i", [...seg.querySelectorAll("a")].indexOf(link))
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  setTimeout(() => { window.location.href = link.href }, reduce ? 0 : 220)
+})
 document.addEventListener("click", e => {
   const btn = e.target.closest("[data-theme-choice]")
   if (!btn) return

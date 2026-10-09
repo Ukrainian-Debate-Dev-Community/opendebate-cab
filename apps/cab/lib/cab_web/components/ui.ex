@@ -163,6 +163,53 @@ defmodule CabWeb.Ui do
         <% else %>
           <.link href={~p"/signin"}>Sign in</.link>
         <% end %>
+        <div class="toggles" id="sidenav-toggles" phx-update="ignore">
+          <div class="seg" data-seg="theme" role="group" aria-label="Theme" style="--i:1;--n:3">
+            <span class="knob" aria-hidden="true"></span>
+            <button type="button" data-theme-choice="light" aria-label="Light theme" title="Light">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <circle cx="8" cy="8" r="3" />
+                <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              data-theme-choice="system"
+              aria-label="Follow the system"
+              title="System"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <rect x="2" y="3" width="12" height="8" rx="1.5" /><path d="M6 14h4M8 11v3" />
+              </svg>
+            </button>
+            <button type="button" data-theme-choice="dark" aria-label="Dark theme" title="Dark">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z" />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="seg seg-lang"
+            data-seg="lang"
+            role="group"
+            aria-label="Language"
+            style={"--i:#{if Gettext.get_locale(CabWeb.Gettext) == "uk", do: 1, else: 0};--n:2"}
+          >
+            <span class="knob" aria-hidden="true"></span>
+            <a
+              href="/locale/en"
+              lang="en"
+              title="English"
+              aria-current={Gettext.get_locale(CabWeb.Gettext) == "en" && "true"}
+            >EN</a>
+            <a
+              href="/locale/uk"
+              lang="uk"
+              title="Українська"
+              aria-current={Gettext.get_locale(CabWeb.Gettext) == "uk" && "true"}
+            >UA</a>
+          </div>
+        </div>
       </div>
     </nav>
     """
