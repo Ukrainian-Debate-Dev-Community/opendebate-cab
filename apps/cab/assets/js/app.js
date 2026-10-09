@@ -127,7 +127,133 @@ const Allocator = {
   },
 }
 
-const Hooks = {BallotMath, PrepClock, Allocator}
+// the room card: a PNG people paste into a messenger — who, when, the
+// motion once published, the draw, the judge, and the room's short
+// link as a QR code. Drawn from the server's data-card JSON.
+const CARD = {
+  w: 1080, pad: 64,
+  brand: "#66347E", gold: "#D99A2B", ink: "#1C1722", muted: "#6E6478",
+  line: "#E6DFEC", paper: "#FFFFFF", tint: "#F6F1F9",
+  sans: '-apple-system, "Inter", "Segoe UI", system-ui, sans-serif',
+}
+
+const wrapLines = (ctx, text, width) => {
+  const lines = []
+  let line = ""
+  for (const word of String(text).split(/\s+/)) {
+    const next = line ? `${line} ${word}` : word
+    if (ctx.measureText(next).width > width && line) { lines.push(line); line = word }
+    else line = next
+  }
+  if (line) lines.push(line)
+  return lines
+}
+
+const drawCard = (canvas, d, draw = true) => {
+  const ctx = canvas.getContext("2d")
+  const {w, pad} = CARD
+  const inner = w - pad * 2
+  let y = 0
+  const font = (weight, size, family = CARD.sans) => { ctx.font = `${weight} ${size}px ${family}` }
+  const text = (s, x, yy, color) => { if (draw) { ctx.fillStyle = color; ctx.fillText(s, x, yy) } }
+
+  if (draw) { ctx.fillStyle = CARD.paper; ctx.fillRect(0, 0, canvas.width, canvas.height) }
+
+  // header band: the mark and the room
+  if (draw) { ctx.fillStyle = CARD.brand; ctx.fillRect(0, 0, w, 132) }
+  font(400, 64, '"Great Vibes", cursive'); text("cab", pad, 88, CARD.paper)
+  font(800, 56); ctx.textAlign = "right"; text(d.room, w - pad, 88, CARD.paper); ctx.textAlign = "left"
+  y = 132 + 64
+
+  font(800, 40)
+  for (const l of wrapLines(ctx, d.session || "", inner)) { text(l, pad, y, CARD.ink); y += 50 }
+  font(500, 30); text(`${d.club}, ${d.date}`, pad, y, CARD.muted); y += 44
+  if (d.starts) { font(700, 30); text(`Starts at ${d.starts}`, pad, y, CARD.ink); y += 44 }
+  y += 20
+
+  if (d.motion) {
+    font(800, 22); text("MOTION", pad, y, CARD.gold); y += 44
+    font(700, 36)
+    for (const l of wrapLines(ctx, d.motion, inner)) { text(l, pad, y, CARD.ink); y += 46 }
+    if (d.infoslide) {
+      y += 6; font(400, 26)
+      for (const l of wrapLines(ctx, d.infoslide, inner)) { text(l, pad, y, CARD.muted); y += 34 }
+    }
+    if (d.prep_until) { y += 8; font(600, 26); text(`Prep until ${d.prep_until}`, pad, y, CARD.brand); y += 34 }
+    y += 30
+  } else {
+    font(500, 28); text("Motion: not published yet", pad, y, CARD.muted); y += 62
+  }
+
+  // the draw
+  font(800, 22); text("DRAW", pad, y, CARD.gold); y += 22
+  for (const t of d.teams) {
+    const rowH = 76
+    if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(pad, y, inner, 2) }
+    font(800, 26); text(t.side, pad, y + 48, CARD.brand)
+    const named = t.speakers && t.speakers !== t.team
+    font(700, 30); text(t.team, pad + 90, named ? y + 34 : y + 48, CARD.ink)
+    if (named) { font(400, 24); text(t.speakers, pad + 90, y + 64, CARD.muted) }
+    y += rowH
+  }
+  if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(pad, y, inner, 2) }
+  font(600, 28); text(`Judge: ${d.judge}`, pad, y + 48, CARD.ink); y += 96
+
+  // footer: the QR and the short link
+  const qr = d.qr || []
+  const qrSize = 240
+  if (draw) { ctx.fillStyle = CARD.tint; ctx.fillRect(0, y, w, qrSize + pad * 2) }
+  if (qr.length && draw) {
+    const n = qr.length, quiet = 3, cell = Math.floor(qrSize / (n + quiet * 2))
+    const ox = pad, oy = y + pad
+    ctx.fillStyle = CARD.paper; ctx.fillRect(ox, oy, cell * (n + quiet * 2), cell * (n + quiet * 2))
+    ctx.fillStyle = CARD.ink
+    qr.forEach((row, r) => { for (let c = 0; c < n; c++) if (row[c] === "1") ctx.fillRect(ox + (c + quiet) * cell, oy + (r + quiet) * cell, cell, cell) })
+  }
+  const tx = pad + qrSize + 40
+  font(600, 26); text("Scan or open", tx, y + pad + 70, CARD.muted)
+  font(800, 34); text(d.link_text, tx, y + pad + 120, CARD.ink)
+  font(500, 24); text("this room's draw and motion, live", tx, y + pad + 162, CARD.muted)
+  y += qrSize + pad * 2
+  return y
+}
+
+const RoomCard = {
+  mounted() {
+    this.canvas = this.el.querySelector("canvas")
+    this.msg = this.el.querySelector(".sharemsg")
+    this.render = async () => {
+      const d = JSON.parse(this.el.dataset.card)
+      try { await document.fonts.load('64px "Great Vibes"') } catch (_e) { /* fallback face */ }
+      const probe = document.createElement("canvas")
+      probe.width = CARD.w; probe.height = 10
+      const h = drawCard(probe, d, false)
+      this.canvas.width = CARD.w; this.canvas.height = h
+      drawCard(this.canvas, d)
+      this.name = `cab-${(d.room || "room").toLowerCase()}.png`
+    }
+    this.say = (s) => { if (this.msg) { this.msg.textContent = s; setTimeout(() => { this.msg.textContent = "" }, 2500) } }
+    this.el.addEventListener("click", (e) => {
+      if (e.target.closest("[data-card-copy]")) {
+        const blob = new Promise((resolve) => this.canvas.toBlob(resolve, "image/png"))
+        if (navigator.clipboard && window.ClipboardItem) {
+          navigator.clipboard.write([new ClipboardItem({"image/png": blob})])
+            .then(() => this.say("Copied. Paste it into the chat."), () => this.say("This browser cannot copy images. Use Save image."))
+        } else this.say("This browser cannot copy images. Use Save image.")
+      }
+      if (e.target.closest("[data-card-save]")) {
+        const a = document.createElement("a")
+        a.download = this.name
+        a.href = this.canvas.toDataURL("image/png")
+        a.click()
+      }
+    })
+    this.render()
+  },
+  updated() { this.render && this.render() },
+}
+
+const Hooks = {BallotMath, PrepClock, Allocator, RoomCard}
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {

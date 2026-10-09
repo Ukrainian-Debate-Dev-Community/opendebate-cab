@@ -80,5 +80,21 @@
         </.form_for>
       </.section>
     <% end %>
+
+    <.section title="Share this room">
+      <div
+        class="pad sharecard"
+        id={"room-card-#{@room["id"]}"}
+        phx-hook="RoomCard"
+        data-card={room_card(@state, @room, @session, @club)}
+      >
+        <canvas id={"room-card-canvas-#{@room["id"]}"} role="img" aria-label="Room card preview"></canvas>
+        <div class="sharebtns">
+          <button type="button" class="copy" data-card-copy>Copy image</button>
+          <button type="button" class="copy" data-card-save>Save image</button>
+          <span class="sharemsg" aria-live="polite"></span>
+        </div>
+      </div>
+    </.section>
   </div>
 </Layouts.app>

@@ -73,4 +73,21 @@ defmodule CabWeb.ShortLinkTest do
     assert html =~ ~s(id="session-short-link")
     assert html =~ "/#{session.short_code}"
   end
+
+  test "the room page offers its card: the room's data and the short link's QR",
+       %{conn: conn, club: club, session: session} do
+    html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/72") |> html_response(200)
+    assert html =~ ~s(phx-hook="RoomCard")
+    assert html =~ "Copy image"
+    assert html =~ "Save image"
+
+    [json] = Regex.run(~r/data-card="([^"]*)"/, html, capture: :all_but_first)
+    card = json |> String.replace("&quot;", "\"") |> Jason.decode!()
+    assert card["room"] == "R1"
+    assert card["link"] =~ "/#{session.short_code}/1"
+
+    assert card["qr"] ==
+             CabWeb.QR.matrix(card["link"])
+             |> Enum.map(fn row -> Enum.map_join(row, &if(&1, do: "1", else: "0")) end)
+  end
 end

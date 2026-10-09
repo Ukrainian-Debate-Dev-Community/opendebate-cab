@@ -433,3 +433,9 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .suggest button span { color:var(--muted); font-weight:500; font-size:.8rem; }
 .suggest button:hover, .suggest button:focus-visible { border-color:var(--brand); outline:none; }
 .suggest p { margin:4px 0 0; color:var(--muted); font-size:.85rem; }
+
+/* the room card preview: the PNG people paste into a messenger */
+.sharecard canvas { display:block; width:100%; max-width:540px; height:auto;
+                    border:1px solid var(--line); border-radius:8px; background:#fff; }
+.sharebtns { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:10px; }
+.sharemsg { color:var(--muted); font-size:.82rem; }
