@@ -6,11 +6,11 @@ defmodule CabWeb.InvitationController do
   """
   use CabWeb, :controller
 
-  import CabWeb.UserAuth, only: [require_authenticated_user: 2]
+  import CabWeb.UserAuth, only: [require_account: 2]
 
   alias Cab.Invitations
 
-  plug :require_authenticated_user
+  plug :require_account
 
   # POST /invitations/:id/accept
   def accept(conn, %{"id" => id}) do

@@ -8,21 +8,18 @@ defmodule CabWeb.MeController do
 
   alias Cab.{Accounts, EngineApi, Sessions}
 
-  def show(conn, _params) do
-    case conn.assigns.current_user do
-      nil ->
-        conn
-        |> put_flash(:error, "Please sign in.")
-        |> redirect(to: ~p"/signin")
-        |> halt()
+  import CabWeb.UserAuth, only: [require_account: 2]
 
-      user ->
-        render(conn, :show,
-          stats: fetch_stats(user),
-          history: Sessions.user_history(user),
-          page_title: "my page"
-        )
-    end
+  plug :require_account
+
+  def show(conn, _params) do
+    user = conn.assigns.current_user
+
+    render(conn, :show,
+      stats: fetch_stats(user),
+      history: Sessions.user_history(user),
+      page_title: "my page"
+    )
   end
 
   # the engine's stats payload or nil (never participated / engine

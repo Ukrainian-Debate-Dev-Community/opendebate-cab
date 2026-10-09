@@ -133,7 +133,13 @@ defmodule CabWeb.Ui do
       <% else %>
         <.nav_item active={@active} key="clubs" href={~p"/"} label="Clubs" />
         <.nav_item active={@active} key="standings" href={~p"/standings/teams"} label="Standings" />
-        <.nav_item :if={@current_user} active={@active} key="me" href={~p"/me"} label="My page" />
+        <.nav_item
+          :if={@current_user && !guest?(@current_user)}
+          active={@active}
+          key="me"
+          href={~p"/me"}
+          label="My page"
+        />
         <.nav_item
           :if={@current_user && @current_user.is_admin}
           active={@active}
@@ -146,8 +152,13 @@ defmodule CabWeb.Ui do
         <%= if @current_user do %>
           <div class="who">
             <span class="av">{initials(@current_user)}</span>
-            <.link href={~p"/account"}>{@current_user.username}</.link>
+            <%= if guest?(@current_user) do %>
+              <span>{@current_user.name || @current_user.username}</span>
+            <% else %>
+              <.link href={~p"/account"}>{@current_user.username}</.link>
+            <% end %>
           </div>
+          <.link :if={guest?(@current_user)} href={~p"/signin"}>Sign in with an account</.link>
           <.link class="out" href={~p"/auth/logout"}>sign out</.link>
         <% else %>
           <.link href={~p"/signin"}>Sign in</.link>
@@ -188,6 +199,8 @@ defmodule CabWeb.Ui do
     do: ~p"/c/#{club.uuid}/owner/members"
 
   defp members_href(club, _role), do: ~p"/c/#{club.uuid}/members"
+
+  defp guest?(user), do: Map.get(user, :guest, false)
 
   defp initials(user) do
     (user.name || user.username || "?")

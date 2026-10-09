@@ -22,7 +22,7 @@ defmodule CabWeb.ClubScope do
   Requirements (what the tree demands), one strict ladder — every
   role covers all trees below it (`Cab.Clubs.covers?/2`):
     * `:public` — anyone, resolution only
-    * `:authenticated` — any signed-in user
+    * `:authenticated` — any signed-in account (a guest identity is not one)
     * `:roster` — anyone for a public club, `:member` for a private one
     * `:member` — approved membership (owner and admin included)
     * `:owner` — head membership (admin included)
@@ -121,8 +121,12 @@ defmodule CabWeb.ClubScope do
 
   defp enforce(conn, _role, :public), do: conn
 
+  # a personal-link guest is not an account: it cannot ask to join
   defp enforce(conn, _role, :authenticated) do
-    if conn.assigns[:current_user], do: conn, else: unauthenticated(conn)
+    case conn.assigns[:current_user] do
+      %{guest: false} -> conn
+      _ -> unauthenticated(conn)
+    end
   end
 
   defp enforce(conn, role, :roster) do

@@ -13,6 +13,14 @@ defmodule Cab.Accounts do
 
   def get_user(id), do: Repo.get(User, id)
 
+  @doc "The user behind a browser session, marked when it is a personal-link guest."
+  def get_viewer(id) do
+    case get_user(id) do
+      nil -> nil
+      user -> %{user | guest: Cab.Links.guest?(user.id)}
+    end
+  end
+
   def get_user_by_username(username) when is_binary(username),
     do: Repo.get_by(User, username: username)
 

@@ -14,7 +14,7 @@ defmodule CabWeb.LiveScope do
   alias Cab.{Accounts, Clubs, Sessions}
 
   def on_mount(:club, params, session, socket) do
-    user = session["user_id"] && Accounts.get_user(session["user_id"])
+    user = session["user_id"] && Accounts.get_viewer(session["user_id"])
 
     case Clubs.get_by_uuid(params["club_uuid"] || "") do
       nil ->

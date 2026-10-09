@@ -9,6 +9,8 @@ defmodule Cab.Accounts.User do
     field :avatar_url, :string
     field :is_admin, :boolean, default: false
     field :node_user_id, :integer
+    # set per request: a personal-link identity, not an account
+    field :guest, :boolean, virtual: true, default: false
 
     has_many :identities, Cab.Accounts.Identity
 

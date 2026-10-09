@@ -7,11 +7,11 @@ defmodule CabWeb.AccountController do
 
   use CabWeb, :controller
 
-  import CabWeb.UserAuth, only: [require_authenticated_user: 2]
+  import CabWeb.UserAuth, only: [require_account: 2]
 
   alias Cab.{Accounts, Links}
 
-  plug :require_authenticated_user
+  plug :require_account
 
   def show(conn, _params) do
     render_account(conn)
