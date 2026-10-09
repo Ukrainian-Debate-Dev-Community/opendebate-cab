@@ -54,6 +54,20 @@
             <button type="button" data-theme-choice="system">System</button>
           </div>
         </div>
+        <div class="prefs prefs-lang">
+          <div class="pref" role="group" aria-label="Language">
+            <span class="plabel">Language</span>
+            <a
+              href="/locale/en"
+              aria-current={Gettext.get_locale(CabWeb.Gettext) == "en" && "true"}
+            >English</a>
+            <a
+              href="/locale/uk"
+              lang="uk"
+              aria-current={Gettext.get_locale(CabWeb.Gettext) == "uk" && "true"}
+            >Українська</a>
+          </div>
+        </div>
       </div>
     </footer>
   </div>

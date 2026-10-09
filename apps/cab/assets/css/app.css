@@ -179,7 +179,11 @@ main.page-main { width:100%; flex:1 0 auto; }
 .footer .pref button { font:inherit; font-size:.76rem; font-weight:650; color:var(--muted);
                        background:transparent; border:1px solid var(--line); border-radius:6px;
                        padding:3px 10px; cursor:pointer; }
-.footer .pref button[aria-pressed="true"] { color:var(--brand); border-color:var(--brand); }
+.footer .pref a { font-size:.76rem; font-weight:650; color:var(--muted); text-decoration:none;
+                  border:1px solid var(--line); border-radius:6px; padding:3px 10px; }
+.footer .pref button[aria-pressed="true"],
+.footer .pref a[aria-current="true"] { color:var(--brand); border-color:var(--brand); }
+.footer .prefs-lang { margin-top:10px; padding-top:0; border-top:0; }
 .footer .pref button:focus-visible { outline:2px solid var(--brand); outline-offset:1px; }
 .footer .flinks a:hover { color:var(--brand-700); text-decoration:underline; }
 @media (max-width:700px) { .footer .cols { grid-template-columns:1fr; gap:14px; } }

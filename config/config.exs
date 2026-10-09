@@ -12,6 +12,9 @@ config :cab,
   generators: [timestamp_type: :utc_datetime]
 
 # Configure the endpoint
+# English by default; Ukrainian when the browser or the footer asks
+config :cab, CabWeb.Gettext, default_locale: "en", locales: ~w(en uk)
+
 config :cab, CabWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,

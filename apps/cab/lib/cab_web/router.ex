@@ -11,6 +11,7 @@ defmodule CabWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
+    plug CabWeb.Locale
   end
 
   pipeline :api do
@@ -38,6 +39,7 @@ defmodule CabWeb.Router do
     # the old /privacy address keeps working
     get "/policy", PageController, :policy
     get "/terms", PageController, :terms
+    get "/locale/:locale", LocaleController, :set
     get "/privacy", PageController, :privacy_moved
 
     # profile — entry only via the sidenav bottom
@@ -81,7 +83,7 @@ defmodule CabWeb.Router do
     # tree-gated: a member judge, the head and a guest judge (session
     # identity from /l/:code) all ballot here; anyone cancels only
     # their OWN registration.
-    live_session :club_public, on_mount: [{CabWeb.LiveScope, :club}] do
+    live_session :club_public, on_mount: [CabWeb.Locale, {CabWeb.LiveScope, :club}] do
       live "/s/:session_uuid", SessionLive, :show
       live "/s/:session_uuid/rooms/:id", RoomLive, :show
     end
@@ -114,7 +116,7 @@ defmodule CabWeb.Router do
     post "/owner/members/:user_id/remove", OwnerController, :remove_member
 
     live_session :club_owner,
-      on_mount: [{CabWeb.LiveScope, :club}, {CabWeb.LiveScope, :owner}] do
+      on_mount: [CabWeb.Locale, {CabWeb.LiveScope, :club}, {CabWeb.LiveScope, :owner}] do
       live "/owner/s/:session_uuid", OwnerSessionLive, :show
     end
 
