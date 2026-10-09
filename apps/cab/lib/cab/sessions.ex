@@ -115,6 +115,8 @@ defmodule Cab.Sessions do
   The engine id of room number `no` (rooms are numbered by creation
   order): one rooms read when the round is known, else the full state.
   """
+  def room_id_by_number(%Session{room_ids: [_ | _] = ids}, no), do: Enum.at(ids, no - 1)
+
   def room_id_by_number(%Session{engine_round_id: round_id} = session, no)
       when is_integer(round_id) do
     with {:ok, actor} <- Clubs.club_actor(session_club(session)),
@@ -778,7 +780,12 @@ defmodule Cab.Sessions do
            {:ok, actor} <- actor_for(head),
            :ok <- assign_roles(actor, session, state.signups, rooms),
            {:ok, count} <- create_composition(actor, state, rooms) do
-        record(session, started_at: DateTime.utc_now(:second), rooms_count: count)
+        record(session,
+          started_at: DateTime.utc_now(:second),
+          rooms_count: count,
+          room_ids: created_room_ids(actor, state.round)
+        )
+
         {:ok, count}
       end
 
@@ -805,6 +812,17 @@ defmodule Cab.Sessions do
       end
     end)
   end
+
+  # one rooms read right after creating them: short links resolve room
+  # numbers from the recorded ids, never asking the engine again
+  defp created_room_ids(actor, %{"id" => round_id}) do
+    case EngineApi.list_rooms(actor, round_id) do
+      {:ok, rooms} -> rooms |> Enum.map(& &1["id"]) |> Enum.sort()
+      _ -> []
+    end
+  end
+
+  defp created_room_ids(_actor, _round), do: []
 
   defp create_composition(actor, state, rooms) do
     by_id = Map.new(state.signups, &{&1["id"], &1})
@@ -973,7 +991,7 @@ defmodule Cab.Sessions do
                        {:error, message} -> {:halt, {:error, message}}
                      end
                    end) do
-              record(session, started_at: nil, rooms_count: 0)
+              record(session, started_at: nil, rooms_count: 0, room_ids: [])
               {:ok, count}
             end
         end

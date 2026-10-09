@@ -90,4 +90,16 @@ defmodule CabWeb.ShortLinkTest do
              CabWeb.QR.matrix(card["link"])
              |> Enum.map(fn row -> Enum.map_join(row, &if(&1, do: "1", else: "0")) end)
   end
+
+  test "rooms recorded at creation resolve without asking the engine", %{conn: conn, club: club} do
+    session = session_fixture(club, engine_event_id: 12)
+
+    session =
+      session |> Ecto.Changeset.change(room_ids: [55, 56]) |> Cab.Repo.update!()
+
+    Req.Test.stub(Core.Engine, fn _conn -> raise "the engine must not be asked" end)
+
+    assert redirected_to(get(conn, "/#{session.short_code}/2")) ==
+             "/c/#{club.uuid}/s/#{session.uuid}/rooms/56"
+  end
 end

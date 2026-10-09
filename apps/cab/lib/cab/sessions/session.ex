@@ -19,6 +19,7 @@ defmodule Cab.Sessions.Session do
     field :name, :string
     field :started_at, :utc_datetime
     field :rooms_count, :integer, default: 0
+    field :room_ids, {:array, :integer}, default: []
     field :finished_at, :utc_datetime
     field :winner_name, :string
     field :winner_user_ids, {:array, :integer}, default: []
