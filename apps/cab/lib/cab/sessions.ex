@@ -1284,10 +1284,19 @@ defmodule Cab.Sessions do
          }}
 
       true ->
+        # an iron's speech marked on the ballot stays out of the speaker
+        # tab (the engine's is_iron); one per iron team, none elsewhere
+        iron_team? = length(Enum.uniq(team_pids)) < length(team_pids)
+        marked = if iron_team?, do: Enum.find_index(entries, & &1.iron)
+
         {scores, _free} =
-          Enum.reduce(entries, {[], slots}, fn entry, {acc, free} ->
+          entries
+          |> Enum.with_index()
+          |> Enum.reduce({[], slots}, fn {entry, index}, {acc, free} ->
             {slot, free} = take_slot(free, entry.speaker_participant_id)
-            {[%{room_speaker_id: slot["id"], score: entry.score} | acc], free}
+            score = %{room_speaker_id: slot["id"], score: entry.score}
+            score = if index == marked, do: Map.put(score, :is_iron, true), else: score
+            {[score | acc], free}
           end)
 
         {:ok, Enum.reverse(scores)}

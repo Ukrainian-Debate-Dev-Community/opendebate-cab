@@ -835,6 +835,42 @@ defmodule Cab.SessionsTest do
 
     speaks = Map.new(params["speakerScores"], &{&1["room_speaker_id"], &1["score"]})
     assert speaks[201] == 76.0 and speaks[202] == 75.0
+    # not an iron in the draw, so no speech is marked for the engine
+    refute Enum.any?(params["speakerScores"], &Map.has_key?(&1, "is_iron"))
+  end
+
+  test "an iron team's marked speech goes to the engine as is_iron", %{club: club} do
+    judge = user_fixture(%{node_user_id: 77})
+    session = session_fixture(club, engine_event_id: 11)
+
+    # the draw's OG is an iron: participant 301 holds both slots
+    iron_room =
+      update_in(engine_room(), ["RoomTeams"], fn teams ->
+        Enum.map(teams, fn
+          %{"position" => 1} = team ->
+            update_in(team, ["RoomSpeakers"], fn slots ->
+              Enum.map(slots, &put_in(&1, ["EventParticipant", "id"], 301))
+            end)
+
+          team ->
+            team
+        end)
+      end)
+
+    stub_ballot_room(iron_room, self())
+
+    scores =
+      ballot_scores([{2, 157}, {3, 149}, {4, 147}]) ++
+        [
+          %{"position" => 1, "speaker_participant_id" => 301, "iron" => false, "score" => 76},
+          %{"position" => 1, "speaker_participant_id" => 301, "iron" => true, "score" => 75.0}
+        ]
+
+    assert :ok = Sessions.submit_ballot(judge, session, 71, scores)
+    assert_received {:scores, _claims, params}
+
+    irons = for %{"is_iron" => true} = s <- params["speakerScores"], do: s
+    assert [%{"room_speaker_id" => 202, "score" => 75.0}] = irons
   end
 
   test "submit_ballot rejects tied team totals naming the total", %{club: club} do
