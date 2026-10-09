@@ -906,6 +906,33 @@ defmodule Cab.SessionsTest do
     refute Repo.get_by(Cab.Sessions.RoomPrep, session_id: session.id, room_id: 71)
   end
 
+  test "every room's winner counts, in room order" do
+    room = fn no, status, winner ->
+      %{
+        "id" => 70 + no,
+        "no" => no,
+        "status" => status,
+        "RoomTeams" => [
+          %{"rank" => 2, "Team" => %{"name" => "Runner #{no}"}},
+          %{"rank" => 1, "Team" => %{"name" => winner}}
+        ]
+      }
+    end
+
+    rooms = [room.(2, "confirmed", "Taras & Yurii"), room.(1, "completed", "Olena & Sofiia")]
+
+    assert [{%{"no" => 1}, "Olena & Sofiia"}, {%{"no" => 2}, "Taras & Yurii"}] =
+             Sessions.winners_by_room(rooms)
+
+    assert Sessions.winner_from_rooms(rooms) == "Olena & Sofiia (R1), Taras & Yurii (R2)"
+
+    # one room: just the team; a room still debating has no winner yet
+    assert Sessions.winner_from_rooms([room.(1, "completed", "Olena & Sofiia")]) ==
+             "Olena & Sofiia"
+
+    assert Sessions.winner_from_rooms([room.(1, "judging", "Olena & Sofiia")]) == nil
+  end
+
   test "submit_ballot waits for the room's motion", %{club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
     scores = ballot_scores([{1, 151}, {2, 157}, {3, 149}, {4, 147}])

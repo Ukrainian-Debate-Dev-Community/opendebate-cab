@@ -48,7 +48,7 @@ defmodule CabWeb.SessionLive do
 
     socket
     |> assign(:state, state)
-    |> assign(:winner, Sessions.winner_from_rooms(state.rooms))
+    |> assign(:winners, Sessions.winners_by_room(state.rooms))
     |> assign(:my_signup, my_signup)
     |> assign(:my_ballot_room, my_ballot_room(state, user))
     |> assign(:my_room_id, my_room_id(state, user, my_signup))

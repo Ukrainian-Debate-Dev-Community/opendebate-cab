@@ -56,8 +56,13 @@
         Short link: <code>{bare_url(Cab.Sessions.short_url(@session))}</code>
         <.copy text={Cab.Sessions.short_url(@session)} />
       </p>
-      <%= if @winner do %>
-        <p>Winner: <b>{@winner}</b></p>
+      <%= case @winners do %>
+        <% [] -> %>
+        <% [{_room, name}] -> %>
+          <p>Winner: <b>{name}</b></p>
+        <% several -> %>
+          <p>Winners:</p>
+          <p :for={{room, name} <- several}>{room_label(room)}: <b>{name}</b></p>
       <% end %>
     </.section>
 

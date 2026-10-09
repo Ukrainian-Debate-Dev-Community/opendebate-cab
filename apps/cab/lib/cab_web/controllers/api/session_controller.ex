@@ -58,7 +58,12 @@ defmodule CabWeb.Api.SessionController do
         round: state.round,
         signups: state.signups,
         rooms: state.rooms,
-        winner: Sessions.winner_from_rooms(state.rooms)
+        winner: Sessions.winner_from_rooms(state.rooms),
+        winners:
+          Enum.map(
+            Sessions.winners_by_room(state.rooms),
+            fn {room, name} -> %{room: CabWeb.SessionFormat.room_label(room), team: name} end
+          )
       })
     end
   end
