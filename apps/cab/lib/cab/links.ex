@@ -40,6 +40,19 @@ defmodule Cab.Links do
 
   def get_active_by_code(_code), do: nil
 
+  @doc "The finished sessions of `club` this guest has a personal link for, newest first."
+  def finished_session_uuids(%User{id: user_id}, %Club{id: club_id}) do
+    Repo.all(
+      from l in Link,
+        join: s in assoc(l, :session),
+        where:
+          l.user_id == ^user_id and l.club_id == ^club_id and is_nil(l.revoked_at) and
+            not is_nil(s.finished_at),
+        order_by: [desc: s.finished_at],
+        select: s.uuid
+    )
+  end
+
   @doc "The session's active (not revoked) guest links, oldest first, with users."
   def list_for_session(%Session{} = session) do
     Repo.all(

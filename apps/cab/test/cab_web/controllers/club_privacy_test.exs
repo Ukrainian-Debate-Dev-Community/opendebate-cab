@@ -47,6 +47,9 @@ defmodule CabWeb.ClubPrivacyTest do
 
         "/api/events/11/participants" ->
           ok(conn, participants)
+
+        "/api/users/history" ->
+          ok(conn, %{"as_adjudicator" => [], "as_player" => []})
       end
     end)
   end
@@ -122,6 +125,28 @@ defmodule CabWeb.ClubPrivacyTest do
     other = user_fixture(%{node_user_id: 778})
     denied = conn |> log_in(other) |> get(~p"/c/#{club.uuid}/standings/speakers")
     assert response(denied, 403)
+  end
+
+  test "a guest opens on the night they played, even when a newer one exists",
+       %{conn: conn, club: club, session: played} do
+    newer =
+      session_fixture(club,
+        engine_event_id: 12,
+        name: "Newer night",
+        finished_at: ~U[2026-10-09 20:00:00Z]
+      )
+
+    guest = user_fixture(%{node_user_id: 777, username: "guest-played"})
+    link_fixture(guest, played)
+    stub_finished([%{"id" => 41, "user_id" => 777, "role" => "speaker"}])
+
+    html =
+      conn |> log_in(guest) |> get(~p"/c/#{club.uuid}/standings/speakers") |> html_response(200)
+
+    assert html =~ "Quiet night"
+    assert html =~ "Anna"
+    # the list of other nights holds only theirs
+    refute html =~ "session=#{newer.uuid}"
   end
 
   test "everything else about a private club stays public", %{conn: conn, club: club} do

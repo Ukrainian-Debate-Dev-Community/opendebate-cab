@@ -28,16 +28,30 @@ defmodule CabWeb.ClubPublicController do
 
     case params["tab"] || "teams" do
       tab when tab in ~w(teams speakers judges) ->
-        scope = standings_scope(club, params["session"])
+        own = own_sessions(club, conn)
+
+        scope =
+          case {params["session"], own} do
+            # someone who only played here opens on their own latest night
+            {nil, [mine | _]} -> standings_scope(club, mine)
+            {session, _} -> standings_scope(club, session)
+          end
 
         if standings_allowed?(club, conn, scope) do
+          archive = Sessions.archive(club)
+
+          archive =
+            if own == [],
+              do: archive,
+              else: Enum.filter(archive, &(&1.session_uuid in own))
+
           conn
           |> CabWeb.Caching.no_store()
           |> render(:standings,
             tab: tab,
             scope: scope,
             rows: standings_rows(tab, scope),
-            archive: Sessions.archive(club),
+            archive: archive,
             page_title: "#{club.name} — standings"
           )
         else
@@ -46,6 +60,28 @@ defmodule CabWeb.ClubPublicController do
 
       _tab ->
         conn |> CabWeb.ErrorHTML.respond(404)
+    end
+  end
+
+  # A private club's standings are members-only, but whoever played a
+  # night keeps it: for a viewer who is not a member, the finished
+  # sessions of this club they took part in, newest first ([] for
+  # public clubs and members, who see everything). A guest's nights come
+  # from their personal links; an account's from its engine history.
+  defp own_sessions(%{is_private: false}, _conn), do: []
+
+  defp own_sessions(club, conn) do
+    user = conn.assigns.current_user
+
+    cond do
+      is_nil(user) or Clubs.covers?(conn.assigns.club_role, :member) ->
+        []
+
+      Map.get(user, :guest, false) ->
+        Cab.Links.finished_session_uuids(user, club)
+
+      true ->
+        for row <- Sessions.user_history(user), row.club_uuid == club.uuid, do: row.session_uuid
     end
   end
 
