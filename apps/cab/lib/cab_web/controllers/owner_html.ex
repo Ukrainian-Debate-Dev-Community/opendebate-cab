@@ -28,11 +28,61 @@ defmodule CabWeb.OwnerHTML do
     end
   end
 
-  defp guest_user_ids(links) do
-    for link <- links, is_integer(link.user.node_user_id), into: MapSet.new() do
-      link.user.node_user_id
+  defp guest_link(participant, links) do
+    Enum.find(links, &(&1.user.node_user_id == participant["user_id"]))
+  end
+
+  defp person_kind(participant, links, members) do
+    cond do
+      guest_link(participant, links) -> "guest"
+      Enum.any?(members, &(&1.user.node_user_id == participant["user_id"])) -> "member"
+      true -> "signed-in user"
     end
   end
+
+  @seat_sides %{"og" => "OG", "oo" => "OO", "cg" => "CG", "co" => "CO"}
+
+  # where the person sits: the draft before rooms exist, the rooms after
+  defp seat_words(participant, %{rooms: rooms}, _draft) when rooms != [] do
+    Enum.find_value(rooms, "waitlist", fn room ->
+      cond do
+        Enum.any?(room["RoomAdjudicators"] || [], &seat_of?(&1, participant)) ->
+          "R#{room["id"]} judge"
+
+        team =
+            Enum.find(
+              room["RoomTeams"] || [],
+              &Enum.any?(&1["RoomSpeakers"] || [], fn s -> seat_of?(s, participant) end)
+            ) ->
+          "R#{room["id"]} #{side_code(team["position"])}"
+
+        true ->
+          nil
+      end
+    end)
+  end
+
+  defp seat_words(participant, _state, draft) do
+    case Enum.find(draft, fn {_key, pid} -> pid == participant["id"] end) do
+      {key, _pid} ->
+        case String.split(key, ":") do
+          [room, "judge"] -> "R#{room} judge"
+          [room, side, _n] -> "R#{room} #{@seat_sides[side]}"
+        end
+
+      nil ->
+        "not placed"
+    end
+  end
+
+  defp seat_of?(seat, participant) do
+    (get_in(seat, ["EventParticipant", "id"]) || seat["participant_id"]) == participant["id"]
+  end
+
+  defp removable?(_participant, %{stage: :done}), do: false
+
+  defp removable?(participant, %{rooms: rooms}),
+    do: not MapSet.member?(Cab.Sessions.seated_ids(rooms), participant["id"])
 
   defp signed_up_counts(signups) do
     people = length(signups)

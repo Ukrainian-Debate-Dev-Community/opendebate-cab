@@ -473,15 +473,17 @@ defmodule Cab.SessionsTest do
       %{"id" => 42, "user_id" => 55, "role" => "speaker", "display_name" => "o"}
     ]
 
-    stub(fn conn, _params ->
-      case {conn.method, conn.request_path} do
-        {"GET", "/api/events/11/participants"} ->
-          ok(conn, participants)
+    stub(fn conn, params ->
+      state_stub(conn, participants) ||
+        case {conn.method, conn.request_path} do
+          {"PUT", "/api/events/11/participants/" <> pid} ->
+            send(test_pid, {:renamed, pid, params["display_name"]})
+            ok(conn, %{"id" => pid})
 
-        {"DELETE", "/api/events/11/participants/" <> pid} ->
-          send(test_pid, {:deleted, pid, claims(conn)})
-          Req.Test.json(conn, %{"status" => "success", "message" => "Participant archived."})
-      end
+          {"DELETE", "/api/events/11/participants/" <> pid} ->
+            send(test_pid, {:deleted, pid, claims(conn)})
+            Req.Test.json(conn, %{"status" => "success", "message" => "Participant archived."})
+        end
     end)
 
     # a member cannot remove someone else's signup
@@ -489,8 +491,10 @@ defmodule Cab.SessionsTest do
     refute_received {:deleted, _pid, _claims}
 
     # self-removal — the engine call still runs as the club head
-    # (participant deletion is owner-only in the engine)
+    # (participant deletion is owner-only in the engine); the name is
+    # overwritten first, so the archived row keeps nothing personal
     assert :ok = Sessions.remove_signup(member, session, 41)
+    assert_received {:renamed, "41", "removed"}
     assert_received {:deleted, "41", %{"id" => 9}}
 
     # the head removes anyone
@@ -499,6 +503,46 @@ defmodule Cab.SessionsTest do
 
     assert {:error, "participant 77 is not signed up" <> _} =
              Sessions.remove_signup(head, session, 77)
+  end
+
+  test "remove_signup: once rooms exist only the waitlist can go", %{head: head, club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    participants = [
+      %{"id" => 41, "user_id" => 44, "role" => "speaker", "display_name" => "Seated"},
+      %{"id" => 42, "user_id" => 55, "role" => "speaker", "display_name" => "Waiting"},
+      %{"id" => 43, "user_id" => 66, "role" => "adjudicator", "display_name" => "Chair"}
+    ]
+
+    rooms = [
+      %{
+        "id" => 71,
+        "status" => "pending",
+        "RoomTeams" => [%{"RoomSpeakers" => [%{"EventParticipant" => %{"id" => 41}}]}],
+        "RoomAdjudicators" => [%{"role" => "chair", "EventParticipant" => %{"id" => 43}}]
+      }
+    ]
+
+    stub(fn conn, _params ->
+      state_stub(conn, participants, rooms) ||
+        case {conn.method, conn.request_path} do
+          {"PUT", "/api/events/11/participants/" <> _pid} ->
+            ok(conn, %{})
+
+          {"DELETE", "/api/events/11/participants/" <> pid} ->
+            send(test_pid, {:deleted, pid})
+            Req.Test.json(conn, %{"status" => "success"})
+        end
+    end)
+
+    assert {:error, :conflict, message} = Sessions.remove_signup(head, session, 41)
+    assert message =~ "Seated is seated in a room"
+    assert {:error, :conflict, _} = Sessions.remove_signup(head, session, 43)
+    refute_received {:deleted, _}
+
+    assert :ok = Sessions.remove_signup(head, session, 42)
+    assert_received {:deleted, "42"}
   end
 
   test "delete_rooms removes pending rooms only", %{head: head, club: club} do

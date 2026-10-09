@@ -23,6 +23,8 @@ defmodule Cab.Sessions do
   # the engine needs a role on every participant; signups enter as
   # speakers and Start re-roles whoever the head dragged into a chair
   @signup_role "speaker"
+  # what a removed person's engine row keeps instead of their name
+  @removed_name "removed"
 
   # ---------------------------------------------------------------
   # Rows
@@ -440,28 +442,59 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Removes a signup: the head removes anyone, a member removes their
-  own. The engine call runs as the club head (participant deletion is
-  owner/organiser-only in the engine) after the gateway authorises.
-  The engine refuses (409) once the participant has been paired into
-  a team — removal is a sign-up-stage operation.
+  REMOVE — the one verb for taking a person out of a session: the head
+  removes anyone, a person removes themselves. Only people on the
+  waitlist go: everyone before rooms exist, afterwards whoever is not
+  seated in a room (a seated person's scores are the session's
+  record). Removal keeps no personal data: the engine row's name is
+  overwritten before the engine archives it, and a guest's cab
+  account and personal link are deleted. The engine calls run as the
+  club head after the gateway authorises.
   """
   def remove_signup(%User{} = user, %Session{} = session, participant_id)
       when is_integer(participant_id) do
     club = session_club(session)
 
     result =
-      with {:ok, head_actor} <- Clubs.club_actor(club),
-           {:ok, participants} <-
-             EngineApi.list_participants(head_actor, session.engine_event_id),
-           {:ok, participant} <- find_participant(participants, participant_id),
+      with {:ok, state} <- state(%{session | club: club}),
+           {:ok, participant} <- find_participant(state.signups, participant_id),
            :ok <- authorize_remove(participant, user, club),
+           :ok <- require_waitlisted(state, participant),
+           {:ok, head_actor} <- Clubs.club_actor(club),
+           {:ok, _} <-
+             EngineApi.update_participant(head_actor, session.engine_event_id, participant_id, %{
+               display_name: @removed_name
+             }),
            {:ok, _} <-
              EngineApi.delete_participant(head_actor, session.engine_event_id, participant_id) do
+        Cab.Links.purge_guest(participant["user_id"])
         :ok
       end
 
     notify(result, session)
+  end
+
+  @doc "Participant ids seated in a room — as a speaker or the chair."
+  def seated_ids(rooms) do
+    for room <- rooms,
+        seat <-
+          Enum.flat_map(room["RoomTeams"] || [], &(&1["RoomSpeakers"] || [])) ++
+            (room["RoomAdjudicators"] || []),
+        id = get_in(seat, ["EventParticipant", "id"]) || seat["participant_id"],
+        is_integer(id),
+        into: MapSet.new(),
+        do: id
+  end
+
+  defp require_waitlisted(%{stage: :done}, _participant),
+    do: {:error, :conflict, "the session is finished — its people are its record"}
+
+  defp require_waitlisted(%{rooms: rooms}, participant) do
+    if MapSet.member?(seated_ids(rooms), participant["id"]),
+      do:
+        {:error, :conflict,
+         "#{participant["display_name"]} is seated in a room — only people on the waitlist can be removed"},
+      else: :ok
   end
 
   defp find_participant(participants, participant_id) do

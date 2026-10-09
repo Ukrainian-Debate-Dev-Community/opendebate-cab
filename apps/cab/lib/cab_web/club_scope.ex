@@ -16,9 +16,6 @@ defmodule CabWeb.ClubScope do
       (assigns `:session` too)
     * `:join_request` — `id` path param is a membership id
       (assigns `:join_request` too)
-    * `:link` — `id` path param is a guest-link id
-      (assigns `:link` too; link identity itself NEVER satisfies a
-      tree — guests hold no membership, so their role stays :public)
     * `:room_session` — `session_uuid` body param names the session
       the room belongs to (assigns `:session` too)
 
@@ -106,16 +103,6 @@ defmodule CabWeb.ClubScope do
          {id, ""} <- Integer.parse(id),
          membership when not is_nil(membership) <- Clubs.get_membership(id) do
       {:ok, [club: membership.club, join_request: membership]}
-    else
-      _ -> :error
-    end
-  end
-
-  defp resolve(conn, :link) do
-    with id when is_binary(id) <- conn.path_params["id"],
-         {id, ""} <- Integer.parse(id),
-         link when not is_nil(link) <- Cab.Links.get_link(id) do
-      {:ok, [club: link.club, link: link]}
     else
       _ -> :error
     end

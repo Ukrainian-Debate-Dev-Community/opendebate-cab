@@ -193,7 +193,7 @@ defmodule CabWeb.GuestLinksTest do
       %{guest: guest, session: session, link: link}
     end
 
-    test "redirects to P6 with the guest identity; revoked and unknown codes are 404",
+    test "redirects to P6 with the guest identity; removed and unknown codes are 404",
          %{conn: conn, club: club, session: session, link: link} do
       stub_stage([guest_signup(41, 777)])
 
@@ -209,7 +209,8 @@ defmodule CabWeb.GuestLinksTest do
 
       assert conn |> get("/l/#{Cab.Links.Link.generate_code()}") |> response(404)
 
-      {:ok, _link} = Links.revoke(link)
+      # a removed guest's account goes, and the link with it
+      :ok = Links.purge_guest(777)
       assert conn |> get(~p"/l/#{link.code}") |> response(404)
     end
 
@@ -260,8 +261,12 @@ defmodule CabWeb.GuestLinksTest do
          %{conn: conn, club: club, session: session, link: link} do
       test_pid = self()
 
-      stub_stage([guest_signup(41, 777)], [], fn conn, _params ->
+      stub_stage([guest_signup(41, 777)], [], fn conn, params ->
         case {conn.method, conn.request_path} do
+          {"PUT", "/api/events/11/participants/41"} ->
+            send(test_pid, {:renamed, params["display_name"]})
+            ok(conn, %{})
+
           {"DELETE", "/api/events/11/participants/41"} ->
             send(test_pid, :removed)
             Req.Test.json(conn, %{"status" => "success", "message" => "Participant archived."})
@@ -278,7 +283,12 @@ defmodule CabWeb.GuestLinksTest do
 
       assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "registration cancelled"
+      assert_received {:renamed, "removed"}
       assert_received :removed
+
+      # nothing personal stays: the guest account and its link are gone
+      assert Repo.get(User, link.user_id) == nil
+      assert conn |> get(~p"/l/#{link.code}") |> response(404)
     end
 
     test "guest cannot cancel someone else's signup",
@@ -442,18 +452,17 @@ defmodule CabWeb.GuestLinksTest do
   end
 
   # ---------------------------------------------------------------
-  # Owner surface: Registration section + HTML revoke
+  # Owner surface: add a person, one people table, remove
   # ---------------------------------------------------------------
 
   describe "owner registration surface" do
-    test "owner page shows the shared URL, the links list and the issue form",
+    test "owner page: the shared URL, the add form and one people table",
          %{conn: conn, club: club, head: head} do
       guest = user_fixture(%{node_user_id: 777, name: "Greta Guest", username: "guest-greta"})
       session = session_fixture(club, engine_event_id: 11)
       link = link_fixture(guest, session)
       stub_stage([guest_signup(41, 777)])
 
-      # the registration section lives on the owner session surface
       html =
         conn
         |> log_in(head)
@@ -463,41 +472,57 @@ defmodule CabWeb.GuestLinksTest do
       assert html =~ ~s(id="shared-registration-url")
       assert html =~ "/r/#{session.uuid}"
       assert html =~ ~s(data-copy=)
-      assert html =~ "Guest registrations (1)"
 
-      assert html =~ ~s(id="guest-links")
+      # guests and everyone else share one table: kind, seat, link, remove
+      assert html =~ ~s(id="session-people")
+      assert html =~ "People (1 person)"
       assert html =~ "Greta Guest"
+      assert html =~ "guest"
+      assert html =~ "not placed"
       assert html =~ link.code
-      assert html =~ "/c/#{club.uuid}/owner/links/#{link.id}/revoke"
+      assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/41/remove"
+      refute html =~ "revoke"
+      refute html =~ ~s(id="guest-links")
 
-      assert html =~ ~s(id="issue-link-form")
-      assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/links"
+      # one add form: a member from the list, or a guest by name
+      assert html =~ ~s(id="add-person-form")
+      assert html =~ ~s(name="username")
+      assert html =~ ~s(name="name")
     end
 
-    test "owner revokes a link via the HTML route; foreign links are 404",
+    test "owner removes a guest: the name is scrubbed, account and link are gone",
          %{conn: conn, club: club, head: head} do
       guest = user_fixture(%{node_user_id: 777, name: "Greta Guest"})
       session = session_fixture(club, engine_event_id: 11)
       link = link_fixture(guest, session)
-      stub_stage([])
+      test_pid = self()
 
-      revoked = conn |> log_in(head) |> post(~p"/c/#{club.uuid}/owner/links/#{link.id}/revoke")
-      assert redirected_to(revoked) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-      assert Phoenix.Flash.get(revoked.assigns.flash, :info) =~ "revoked"
+      stub_stage([guest_signup(41, 777)], [], fn conn, params ->
+        case {conn.method, conn.request_path} do
+          {"PUT", "/api/events/11/participants/41"} ->
+            send(test_pid, {:renamed, params["display_name"]})
+            ok(conn, %{})
+
+          {"DELETE", "/api/events/11/participants/41"} ->
+            Req.Test.json(conn, %{"status" => "success"})
+
+          _other ->
+            nil
+        end
+      end)
+
+      removed =
+        conn
+        |> log_in(head)
+        |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/41/remove")
+
+      assert redirected_to(removed) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
+      assert_received {:renamed, "removed"}
+      assert Repo.get(User, guest.id) == nil
       assert Links.get_active_by_code(link.code) == nil
-      assert conn |> get(~p"/l/#{link.code}") |> response(404)
-
-      # another club's link under this club's owner tree is a 404
-      other_head = user_fixture(%{node_user_id: 10})
-      other_club = club_fixture(other_head, %{engine_organisation_id: 4})
-      other_session = session_fixture(other_club, engine_event_id: 12)
-      foreign = link_fixture(user_fixture(%{name: "F"}), other_session)
-
-      denied = conn |> log_in(head) |> post(~p"/c/#{club.uuid}/owner/links/#{foreign.id}/revoke")
-      assert response(denied, 404)
     end
 
-    test "owner issues a link by hand; the flash carries the personal URL",
+    test "owner adds a guest by name; the flash carries the personal URL",
          %{conn: conn, club: club, head: head} do
       session = session_fixture(club, engine_event_id: 11)
       test_pid = self()
@@ -516,18 +541,30 @@ defmodule CabWeb.GuestLinksTest do
         end
       end)
 
-      conn =
+      added =
         conn
         |> log_in(head)
-        |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/links", %{
+        |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups", %{
+          username: "",
           name: "Handed Hanna"
         })
 
-      assert redirected_to(conn) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
+      assert redirected_to(added) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
       assert_received {:signup, %{"role" => "speaker", "user_id" => 778}}
 
       assert [link] = Links.list_for_session(session)
-      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "/l/#{link.code}"
+      assert Phoenix.Flash.get(added.assigns.flash, :info) =~ "/l/#{link.code}"
+
+      # neither or both is refused with words
+      neither =
+        conn
+        |> log_in(head)
+        |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups", %{
+          username: "",
+          name: ""
+        })
+
+      assert Phoenix.Flash.get(neither.assigns.flash, :error) =~ "pick a member or type"
     end
   end
 
@@ -590,13 +627,13 @@ defmodule CabWeb.GuestLinksTest do
 
       assert conn
              |> log_in(member)
-             |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: "X", as: "speak"})
+             |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: "X"})
              |> json_response(403)
 
       body =
         conn
         |> log_in(head)
-        |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: "Api Anna", as: "speak"})
+        |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: "Api Anna"})
         |> json_response(201)
 
       assert body["name"] == "Api Anna"
@@ -611,36 +648,46 @@ defmodule CabWeb.GuestLinksTest do
 
       assert conn
              |> log_in(head)
-             |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: "", as: "speak"})
+             |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: ""})
              |> json_response(422)
 
       conflict =
         conn
         |> log_in(head)
-        |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: "Late", as: "speak"})
+        |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: "Late"})
         |> json_response(409)
 
       assert conflict["error"] =~ "sign-ups are not open"
     end
 
-    test "delete revokes: member 403, head 200, link dead, unknown 404",
+    test "a guest leaves through DELETE signups: link dead, account gone",
          %{conn: conn, club: club, head: head} do
       guest = user_fixture(%{node_user_id: 777, name: "Greta Guest"})
       session = session_fixture(club, engine_event_id: 11)
       link = link_fixture(guest, session)
-      stub_stage([])
 
-      member = user_fixture()
-      membership_fixture(member, club)
+      stub_stage([guest_signup(41, 777)], [], fn conn, _params ->
+        case {conn.method, conn.request_path} do
+          {"PUT", "/api/events/11/participants/41"} ->
+            ok(conn, %{})
 
-      assert conn |> log_in(member) |> delete(~p"/api/v1/links/#{link.id}") |> json_response(403)
+          {"DELETE", "/api/events/11/participants/41"} ->
+            Req.Test.json(conn, %{"status" => "success"})
 
-      body = conn |> log_in(head) |> delete(~p"/api/v1/links/#{link.id}") |> json_response(200)
-      assert body["status"] == "revoked"
-      assert Links.get_active_by_code(link.code) == nil
+          _other ->
+            nil
+        end
+      end)
+
+      body =
+        conn
+        |> log_in(head)
+        |> delete(~p"/api/v1/sessions/#{session.uuid}/signups/41")
+        |> json_response(200)
+
+      assert body["status"] == "removed"
+      assert Repo.get(User, guest.id) == nil
       assert conn |> get(~p"/l/#{link.code}") |> response(404)
-
-      assert conn |> log_in(head) |> delete(~p"/api/v1/links/999999") |> json_response(404)
     end
   end
 end

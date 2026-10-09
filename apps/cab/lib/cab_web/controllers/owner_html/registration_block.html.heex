@@ -2,44 +2,21 @@
   <.copy_banner id="shared-registration-url" url={url(~p"/r/#{@current.uuid}")}>
     Share to register without an account
   </.copy_banner>
-<% end %>
 
-<%= if @state.stage == :signup or @links != [] do %>
-  <.section title={"Guest registrations (#{length(@links)})"}>
-    <div class="pad">
-      <p>
-        Personal links below are each guest's ONLY access — share one only with its guest.
-      </p>
-    </div>
-    <.table id="guest-links" rows={@links} empty="No guest links issued yet.">
-      <:col :let={link} label="Name">
-        {link.user.name}
-        <.sub>guest ({link.user.username})</.sub>
-      </:col>
-      <:col :let={link} label="Personal link" code>
-        {url(~p"/l/#{link.code}")}
-      </:col>
-      <:col :let={link}>
-        <.copy text={url(~p"/l/#{link.code}")} />
-      </:col>
-      <:col :let={link}>
-        <.link href={~p"/c/#{@club.uuid}/owner/links/#{link.id}/revoke"} method="post">
-          revoke
-        </.link>
-      </:col>
-    </.table>
-  </.section>
-<% end %>
-
-<%= if @state.stage == :signup do %>
-  <.section title="Issue a link by hand">
+  <.section title="Add a person">
     <.form_for
-      id="issue-link-form"
-      action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/links"}
-      description="Register a guest by hand — their personal link lands in the banner above."
+      id="add-person-form"
+      action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/signups"}
+      description="Pick a club member, or type a guest's name to give them a personal link."
     >
-      <:block name={:name} type={:text} label="Guest name" required />
-      <:submit note="The guest appears in tonight's list right away.">Create link</:submit>
+      <:block
+        name={:username}
+        type={:select}
+        label="Member"
+        options={[{"—", ""} | addable_members(@members, @state.signups)]}
+      />
+      <:block name={:name} type={:text} label="or a guest" hint="Guest's name." />
+      <:submit note="They appear in tonight's list right away.">Add</:submit>
     </.form_for>
   </.section>
 <% end %>

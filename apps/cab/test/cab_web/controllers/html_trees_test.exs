@@ -432,6 +432,9 @@ defmodule CabWeb.HtmlTreesTest do
         {"GET", "/api/rounds/21/rooms"} ->
           ok(conn, [])
 
+        {"PUT", "/api/events/11/participants/" <> _renamed} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => %{}})
+
         {"DELETE", "/api/events/11/participants/41"} ->
           send(test_pid, :removed)
           Req.Test.json(conn, %{"status" => "success", "message" => "Participant archived."})
@@ -524,13 +527,12 @@ defmodule CabWeb.HtmlTreesTest do
     refute html =~ "Reopen sign-ups"
     refute html =~ "Delete rooms"
 
-    # registration: the shared URL + guest links; tonight: signups +
-    # the on-behalf form; rooms: the waiting note — all ONE page now
+    # registration: the shared URL; one people table; one add form
+    # (member or guest); rooms: the allocator — all ONE page now
     assert html =~ ~s(id="shared-registration-url")
-    assert html =~ ~s(id="guest-links")
-    assert html =~ ~s(id="session-signups")
+    assert html =~ ~s(id="session-people")
     assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/1/remove"
-    assert html =~ ~s(id="add-signup-form")
+    assert html =~ ~s(id="add-person-form")
     assert html =~ "benched"
 
     # the EMBEDDED allocator: automatic room count, EMPTY slots —
@@ -600,6 +602,9 @@ defmodule CabWeb.HtmlTreesTest do
         {"POST", "/api/events/11/participants"} ->
           send(test_pid, {:added, params})
           ok(conn, %{"id" => 50, "role" => params["role"]})
+
+        {"PUT", "/api/events/11/participants/" <> _renamed} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => %{}})
 
         {"DELETE", "/api/events/11/participants/3"} ->
           send(test_pid, :removed)

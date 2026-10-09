@@ -40,12 +40,6 @@ defmodule Cab.Links do
 
   def get_active_by_code(_code), do: nil
 
-  def get_link(id) when is_integer(id) do
-    Repo.one(from l in Link, where: l.id == ^id, preload: [:user, :club, session: :club])
-  end
-
-  def get_link(_id), do: nil
-
   @doc "The session's active (not revoked) guest links, oldest first, with users."
   def list_for_session(%Session{} = session) do
     Repo.all(
@@ -106,12 +100,28 @@ defmodule Cab.Links do
     end
   end
 
-  @doc "Revokes the link: the code stops resolving immediately."
-  def revoke(%Link{} = link) do
-    link
-    |> Ecto.Changeset.change(revoked_at: DateTime.utc_now(:second))
-    |> Repo.update()
+  @doc """
+  Deletes a removed guest's cab account — their personal links go with
+  it (the foreign key cascades) — so nothing personal stays behind. A
+  real account is never touched: only a user holding links and no
+  sign-in identity is a guest.
+  """
+  def purge_guest(node_user_id) when is_integer(node_user_id) do
+    guest =
+      Repo.one(
+        from u in User,
+          as: :user,
+          where:
+            u.node_user_id == ^node_user_id and
+              exists(from l in Link, where: l.user_id == parent_as(:user).id) and
+              not exists(from i in Cab.Accounts.Identity, where: i.user_id == parent_as(:user).id)
+      )
+
+    if guest, do: Repo.delete(guest)
+    :ok
   end
+
+  def purge_guest(_node_user_id), do: :ok
 
   defp issue(%User{} = guest, %Session{} = session) do
     %Link{user_id: guest.id, club_id: session_club(session).id, session_id: session.id}

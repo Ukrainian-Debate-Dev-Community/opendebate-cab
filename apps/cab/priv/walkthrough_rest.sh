@@ -458,7 +458,7 @@ register_guest() {
   [ -n "$rg_tok" ] || fail "no csrf token on the registration form"
   STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/$rg_jar" -c "$JARS/$rg_jar" \
     --data-urlencode "_csrf_token=$rg_tok" --data-urlencode "name=$rg_name" \
-    --data-urlencode "as=$rg_as" "$BASE/r/$GSESSION")
+    "$BASE/r/$GSESSION")
   [ "$STATUS" = "200" ] || fail "POST /r/$GSESSION ($rg_jar): status $STATUS, want 200"
   PERSONAL=$(grep -o '/l/[A-Za-z0-9_-]\{30,\}' "$BODY" | head -1)
   [ -n "$PERSONAL" ] || fail "no personal link on the registered page ($rg_jar)"
@@ -486,7 +486,6 @@ html_ok "judge link -> P6 + role" GET "/l/<g2> -> /c/.../s/..." 200
 
 say "head lists the links; a guest link opens NOTHING beyond its scope"
 assert head GET "/api/v1/sessions/$GSESSION/links" 200 '.links | length' 2
-G1_ID=$(jq -r '.links[] | select(.name == "Guest Greta") | .id' "$BODY")
 
 # visiting the personal link signs the browser session in as the guest
 reqc g1 GET "$G1_LINK"
@@ -496,23 +495,31 @@ req g1 GET "/c/$CLUB/owner"
 [ "$STATUS" = "403" ] || fail "GET /c/$CLUB/owner as guest: status $STATUS, want 403"
 html_ok "guest on owner tree -> 403" GET "/c/.../owner" 403
 req g1 GET "/c/$CLUB/members"
-[ "$STATUS" = "403" ] || fail "GET /c/$CLUB/members as guest: status $STATUS, want 403"
-html_ok "guest on members page -> 403" GET "/c/.../members" 403
+[ "$STATUS" = "200" ] || fail "GET /c/$CLUB/members as guest: status $STATUS, want 200"
+html_ok "guest reads a public club's roster -> 200" GET "/c/.../members" 200
 # a room of ANOTHER session does not exist on this session's P6 page
 reqc g2 GET "$G2_LINK"
 req g2 GET "/c/$CLUB/s/$GSESSION/rooms/$IRON_ROOM/ballot"
 [ "$STATUS" = "404" ] || fail "foreign room on P6: status $STATUS, want 404"
 html_ok "foreign-session room -> 404" GET "/c/.../s/<guest>/rooms/<iron>" 404
 
-say "revoke Greta's link -> 404; re-issue by hand via the API"
-assert s1 DELETE "/api/v1/links/$G1_ID" 403 '.error' forbidden
-assert head DELETE "/api/v1/links/$G1_ID" 200 '.status' revoked
-req anon2 GET "$G1_LINK"
-[ "$STATUS" = "404" ] || fail "revoked $G1_LINK: status $STATUS, want 404"
-html_ok "revoked link -> 404" GET "/l/<g1>" 404
+say "a guest added by hand leaves: one remove, link 404, no name kept"
+assert head POST "/api/v1/sessions/$GSESSION/links" 201 '.url | contains("/l/")' true \
+  '{"name":"Leaving Lev"}'
+LEV_LINK=$(jq -r '.url' "$BODY" | sed 's#^https*://[^/]*##')
+assert head GET "/api/v1/sessions/$GSESSION" 200 \
+  '.signups | map(select(.display_name == "Leaving Lev")) | length' 1
+LEV_PID=$(jq -r '.signups[] | select(.display_name == "Leaving Lev") | .id' "$BODY")
+assert s1 DELETE "/api/v1/sessions/$GSESSION/signups/$LEV_PID" 403 '.error' forbidden
+assert head DELETE "/api/v1/sessions/$GSESSION/signups/$LEV_PID" 200 '.status' removed
+req anon2 GET "$LEV_LINK"
+[ "$STATUS" = "404" ] || fail "removed guest's $LEV_LINK: status $STATUS, want 404"
+html_ok "removed guest's link -> 404" GET "/l/<lev>" 404
+assert head GET "/api/v1/sessions/$GSESSION" 200 \
+  '.signups | map(select(.display_name == "Leaving Lev")) | length' 0
 assert head POST "/api/v1/sessions/$GSESSION/links" 201 '.url | contains("/l/")' true \
   '{"name":"Handed Hanna"}'
-assert head GET "/api/v1/sessions/$GSESSION/links" 200 '.links | length' 2
+assert head GET "/api/v1/sessions/$GSESSION/links" 200 '.links | length' 3
 
 say "close sign-ups: the shared URL turns into the closed notice"
 reqc late GET "/r/$GSESSION"

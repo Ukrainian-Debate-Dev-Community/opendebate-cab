@@ -1,13 +1,22 @@
-<.section title={"Signed up (#{signed_up_counts(@state.signups)})"}>
-  <.table id="session-signups" rows={@state.signups} empty="Nobody signed up yet.">
-    <:col :let={participant} label="Who">
+<.section title={"People (#{signed_up_counts(@state.signups)})"}>
+  <div :if={@links != []} class="pad">
+    <p>A guest's personal link is their only access — share it only with them.</p>
+  </div>
+  <.table id="session-people" rows={@state.signups} empty="Nobody signed up yet.">
+    <:col :let={participant} label="Name">
       {participant["display_name"]}
-      <.sub :if={participant["user_id"] in guest_user_ids(@links)}>
-        guest — personal link above
-      </.sub>
+      <.sub>{person_kind(participant, @links, @members)}</.sub>
     </:col>
-    <:col :let={participant} :if={@state.stage == :signup}>
+    <:col :let={participant} label="Seat">{seat_words(participant, @state, @draft)}</:col>
+    <:col :let={participant} label="Personal link" code>
+      {if link = guest_link(participant, @links), do: url(~p"/l/#{link.code}"), else: "—"}
+    </:col>
+    <:col :let={participant}>
+      <.copy :if={link = guest_link(participant, @links)} text={url(~p"/l/#{link.code}")} />
+    </:col>
+    <:col :let={participant}>
       <.link
+        :if={removable?(participant, @state)}
         href={
           ~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/signups/#{participant["id"]}/remove"
         }
@@ -17,23 +26,4 @@
       </.link>
     </:col>
   </.table>
-</.section>
-
-<.section
-  :if={@state.stage == :signup && addable_members(@members, @state.signups) != []}
-  title="Add a participant"
->
-  <.form_for
-    id="add-signup-form"
-    action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/signups"}
-    description="Sign an approved member up on their behalf."
-  >
-    <:block
-      name={:username}
-      type={:select}
-      label="Member"
-      options={addable_members(@members, @state.signups)}
-    />
-    <:submit note="They appear in tonight's list right away.">Add</:submit>
-  </.form_for>
 </.section>

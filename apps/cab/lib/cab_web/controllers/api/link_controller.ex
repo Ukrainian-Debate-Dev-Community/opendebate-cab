@@ -6,8 +6,7 @@ defmodule CabWeb.Api.LinkController do
 
   action_fallback CabWeb.Api.FallbackController
 
-  plug ClubScope, [source: :session, require: :owner] when action in [:index, :create]
-  plug ClubScope, [source: :link, require: :owner] when action == :delete
+  plug ClubScope, source: :session, require: :owner
 
   # GET /api/v1/sessions/:uuid/links — head only: the session's
   # active guest links with each guest's name and signed-up role
@@ -30,14 +29,6 @@ defmodule CabWeb.Api.LinkController do
     with {:ok, link} <-
            Links.register_guest(conn.assigns.session, params["name"]) do
       conn |> put_status(201) |> json(link_json(link))
-    end
-  end
-
-  # DELETE /api/v1/links/:id — revoke: the personal URL 404s from now
-  # on (the guest's signup, if any, stays — remove it via signups)
-  def delete(conn, _params) do
-    with {:ok, link} <- Links.revoke(conn.assigns.link) do
-      json(conn, %{id: link.id, status: "revoked"})
     end
   end
 

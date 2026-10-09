@@ -431,6 +431,9 @@ defmodule CabWeb.ApiFlowTest do
             %{"id" => 43, "user_id" => 66, "role" => "speaker"}
           ])
 
+        {"PUT", "/api/events/11/participants/" <> _renamed} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => %{}})
+
         {"DELETE", "/api/events/11/participants/" <> _pid} ->
           Req.Test.json(conn, %{"status" => "success", "message" => "Participant archived."})
       end

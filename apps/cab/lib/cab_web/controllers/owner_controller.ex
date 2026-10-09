@@ -3,7 +3,6 @@ defmodule CabWeb.OwnerController do
 
   alias Cab.{Clubs, Links, Sessions}
   alias Cab.Clubs.Membership
-  alias Cab.Links.Link
   alias Cab.Sessions.Session
 
   plug CabWeb.ClubScope, source: :club, require: :owner
@@ -172,54 +171,30 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST .../owner/sessions/:session_uuid/signups — the head signs an
-  # approved member up on their behalf
-  def add_signup(conn, %{"session_uuid" => session_uuid} = params) do
+  # POST .../owner/sessions/:session_uuid/signups — the head adds a
+  # person: an approved member picked from the list, or a guest by
+  # name (whose personal link lands in the flash and the people table)
+  def add_person(conn, %{"session_uuid" => session_uuid} = params) do
     with_session(conn, session_uuid, fn session ->
-      case Sessions.signup_for(
-             conn.assigns.current_user,
-             session,
-             params["username"]
-           ) do
-        {:ok, _participant} -> {:ok, "signed #{params["username"]} up"}
-        error -> error
+      case {presence(params["username"]), presence(params["name"])} do
+        {username, nil} when is_binary(username) ->
+          with {:ok, _participant} <-
+                 Sessions.signup_for(conn.assigns.current_user, session, username) do
+            {:ok, "signed #{username} up"}
+          end
+
+        {nil, name} when is_binary(name) ->
+          with {:ok, link} <- Links.register_guest(session, name) do
+            {:ok, "#{link.user.name} added as a guest: #{url(~p"/l/#{link.code}")}"}
+          end
+
+        {nil, nil} ->
+          {:error, "pick a member or type a guest's name"}
+
+        _both ->
+          {:error, "pick a member or type a guest's name, not both"}
       end
     end)
-  end
-
-  # POST .../owner/sessions/:session_uuid/links — the head issues a
-  # guest link by hand; the personal URL lands in the flash
-  def issue_link(conn, %{"session_uuid" => session_uuid} = params) do
-    with_session(conn, session_uuid, fn session ->
-      case Links.register_guest(session, params["name"]) do
-        {:ok, link} ->
-          {:ok, "guest link for #{link.user.name}: #{url(~p"/l/#{link.code}")}"}
-
-        error ->
-          error
-      end
-    end)
-  end
-
-  # POST .../owner/links/:id/revoke — the personal URL stops working
-  # immediately (any signup stays; remove it on the session surface)
-  def revoke_link(conn, %{"id" => id}) do
-    with {id, ""} <- Integer.parse(id),
-         %Link{} = link <- Links.get_link(id),
-         true <- link.club_id == conn.assigns.club.id,
-         {:ok, link} <- Links.revoke(link) do
-      conn
-      |> put_flash(:info, "guest link revoked — it stops working immediately")
-      |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{link.session.uuid}")
-    else
-      {:error, message} ->
-        conn
-        |> put_flash(:error, error_message(message))
-        |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
-
-      _ ->
-        conn |> CabWeb.ErrorHTML.respond(404)
-    end
   end
 
   # POST .../owner/sessions/:session_uuid/signups/:participant_id/remove

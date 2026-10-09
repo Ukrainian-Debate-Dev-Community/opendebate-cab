@@ -97,7 +97,7 @@ defmodule CabWeb.Router do
 
     # owner tree: /owner is the club page as an edit-in-place form
     # with the Club Sessions table and the open-session form; members
-    # carries requests + revoke; /owner/s/:sess runs a session.
+    # carries requests and removal; /owner/s/:sess runs a session.
     get "/owner", OwnerController, :club
     post "/owner/club", OwnerController, :update_club
     post "/owner/sessions", OwnerController, :open_session
@@ -119,7 +119,7 @@ defmodule CabWeb.Router do
          OwnerController,
          :reopen_registration
 
-    post "/owner/sessions/:session_uuid/signups", OwnerController, :add_signup
+    post "/owner/sessions/:session_uuid/signups", OwnerController, :add_person
 
     post "/owner/sessions/:session_uuid/signups/:participant_id/remove",
          OwnerController,
@@ -129,11 +129,6 @@ defmodule CabWeb.Router do
     post "/owner/sessions/:session_uuid/rooms/delete", OwnerController, :delete_rooms
     post "/owner/sessions/:session_uuid/finish", OwnerController, :finish
     post "/owner/sessions/:session_uuid/cancel", OwnerController, :cancel_session
-
-    # owner registration surface (M6): issue a guest link by hand,
-    # revoke one — the shared /r/:session_uuid URL lives below
-    post "/owner/sessions/:session_uuid/links", OwnerController, :issue_link
-    post "/owner/links/:id/revoke", OwnerController, :revoke_link
   end
 
   # /r/:session_uuid is THE one registration URL (v3.1): guests get a
@@ -179,11 +174,11 @@ defmodule CabWeb.Router do
     post "/rooms/:id/motion", RoomController, :motion
     post "/rooms/:id/ballot", RoomController, :ballot
 
-    # guest links (head only): list, issue by hand, revoke. The
-    # public shared URL has no API twin — it IS an HTML flow.
+    # guest links (head only): list, add a guest by hand. A guest
+    # leaves through DELETE signups like everyone else. The public
+    # shared URL has no API twin — it IS an HTML flow.
     get "/sessions/:uuid/links", LinkController, :index
     post "/sessions/:uuid/links", LinkController, :create
-    delete "/links/:id", LinkController, :delete
   end
 
   scope "/auth", CabWeb do
