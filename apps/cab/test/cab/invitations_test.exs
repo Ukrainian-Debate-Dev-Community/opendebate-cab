@@ -282,7 +282,7 @@ defmodule Cab.InvitationsTest do
     # a name nobody in cab answers to: a guest, with what to do next
     html = view |> form("#add-person-form", %{q: "Zara Nova"}) |> render_change()
     assert html =~ "Add “Zara Nova” as a guest"
-    assert html =~ "copy it from People below"
+    assert html =~ "Send them their personal link from People."
 
     # an address nobody uses: a name field, the address never stored
     html = view |> form("#add-person-form", %{q: "nova@example.com"}) |> render_change()
