@@ -837,6 +837,9 @@ defmodule CabWeb.HtmlTreesTest do
         {"PATCH", "/api/rooms/71/confirm"} ->
           if test_pid, do: send(test_pid, :confirmed)
           Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
+
+        {"POST", "/api/rooms/71/motion"} ->
+          ok(conn, %{})
       end
     end)
   end
@@ -981,9 +984,9 @@ defmodule CabWeb.HtmlTreesTest do
     assert redirected_to(set) == "/c/#{club.uuid}/s/#{session.uuid}/rooms/71"
     assert_received {:motion, "THW debate", "Context slide", "economy"}
 
-    # publishing started the prep clock
-    assert %{minutes: 15} =
-             Cab.Repo.get_by(Cab.Sessions.RoomPrep, session_id: session.id, room_id: 71)
+    # publishing set prep to end 15 minutes from now
+    prep = Cab.Repo.get_by(Cab.Sessions.RoomPrep, session_id: session.id, room_id: 71)
+    assert_in_delta DateTime.diff(prep.ends_at, DateTime.utc_now()), 900, 5
 
     # a plain member is neither chair nor head — no motion for them
     outsider = user_fixture(%{node_user_id: 55})
@@ -997,6 +1000,36 @@ defmodule CabWeb.HtmlTreesTest do
       })
 
     assert response(denied, 403)
+  end
+
+  test "the prep end: the same time keeps it, a new time moves it, empty stops it",
+       %{conn: conn, club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11)
+    stub_running_session(running_room(44))
+
+    ends = DateTime.add(DateTime.utc_now(:second), 1800, :second)
+    {:ok, _} = Cab.Sessions.set_prep_until(session, 71, ends)
+    path = ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/motion"
+
+    post_motion = fn prep ->
+      conn |> log_in(head) |> post(path, %{motion_text: "THW x", prep_until: prep})
+    end
+
+    prep = fn -> Cab.Repo.get_by(Cab.Sessions.RoomPrep, session_id: session.id, room_id: 71) end
+
+    # the time shown, sent back unchanged (seconds dropped by the field): kept
+    same = ends |> Map.put(:second, 0) |> DateTime.to_iso8601()
+    post_motion.(same)
+    assert prep.().ends_at == ends
+
+    # a new time moves it
+    later = DateTime.add(ends, 600, :second) |> Map.put(:second, 0)
+    post_motion.(DateTime.to_iso8601(later))
+    assert prep.().ends_at == later
+
+    # emptied: no timer
+    post_motion.("")
+    refute prep.()
   end
 
   test "a member who is not the room judge gets no ballot page", %{conn: conn, club: club} do

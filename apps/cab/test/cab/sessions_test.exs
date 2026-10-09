@@ -891,18 +891,19 @@ defmodule Cab.SessionsTest do
     assert_received {:confirmed, %{"id" => 9}}
   end
 
-  test "start_prep gives the room a fresh clock every time", %{club: club} do
+  test "set_prep_until moves the end of prep or removes it", %{club: club} do
     session = session_fixture(club, engine_event_id: 11)
+    ends = DateTime.add(DateTime.utc_now(:second), 900, :second)
 
-    {:ok, first} = Sessions.start_prep(session, 71)
-    assert first.minutes == 15
-    past = DateTime.add(first.started_at, -120, :second)
-    first |> Ecto.Changeset.change(started_at: past) |> Repo.update!()
+    {:ok, prep} = Sessions.set_prep_until(session, 71, ends)
+    assert prep.ends_at == ends
 
-    # publishing again (an updated motion) restarts it
-    {:ok, again} = Sessions.start_prep(session, 71)
-    assert again.id == first.id
-    assert DateTime.compare(again.started_at, past) == :gt
+    later = DateTime.add(ends, 300, :second)
+    {:ok, moved} = Sessions.set_prep_until(session, 71, later)
+    assert moved.id == prep.id and moved.ends_at == later
+
+    {:ok, nil} = Sessions.set_prep_until(session, 71, nil)
+    refute Repo.get_by(Cab.Sessions.RoomPrep, session_id: session.id, room_id: 71)
   end
 
   test "submit_ballot waits for the room's motion", %{club: club, head: head} do

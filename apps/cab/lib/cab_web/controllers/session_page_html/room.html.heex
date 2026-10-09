@@ -51,7 +51,7 @@
       </p>
       <p :if={@room["prep_until"]} class="mut">
         <span id="prep-clock" phx-hook="PrepClock" data-prep-deadline={@room["prep_until"]}>
-          {@room["prep_minutes"]} minutes of prep
+          prep
         </span>
       </p>
     </.section>
@@ -61,7 +61,7 @@
     <.section :if={@can_act && @room["status"] in ["pending", "judging"]} title="Motion">
       <div :if={@room["prep_until"]} class="pad mut prep-line">
         <span id="prep-clock" phx-hook="PrepClock" data-prep-deadline={@room["prep_until"]}>
-          {@room["prep_minutes"]} minutes of prep
+          prep
         </span>
       </div>
       <.form_for
@@ -69,7 +69,7 @@
         action={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/motion"}
         description={
           if @room["Motion"],
-            do: "Updating shows the new motion right away and restarts 15 minutes of prep.",
+            do: "Updating shows the new motion right away.",
             else: "Publishing shows it to the room and starts 15 minutes of prep."
         }
       >
@@ -93,6 +93,18 @@
           label="Keyword"
           hint="Optional tag for finding the motion later."
           value={get_in(@room, ["Motion", "keyword"])}
+        />
+        <:block
+          name={:prep_until}
+          type={:text}
+          label="Prep ends at"
+          placeholder="HH:MM"
+          hint={
+            if @room["Motion"],
+              do: "Change the time to move the end of prep; clear it to stop the timer.",
+              else: "Set to 15 minutes from publishing, or type a time."
+          }
+          value={@room["prep_until"]}
         />
         <:submit note="Visible to everyone in the room right away.">
           {if @room["Motion"], do: "Update motion", else: "Publish motion"}

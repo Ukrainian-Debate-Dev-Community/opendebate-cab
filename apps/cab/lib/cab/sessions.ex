@@ -704,34 +704,34 @@ defmodule Cab.Sessions do
     |> Enum.map(fn {room, no} -> Map.put(room, "no", no) end)
   end
 
-  # each room's prep timer, when one runs: "prep_minutes" and the
-  # instant prep ends, "prep_until"
+  # each room's prep timer, when one runs: "prep_until", the instant prep ends
   defp attach_preps(rooms, %Session{id: id}) when is_integer(id) do
-    preps = Repo.all(from p in RoomPrep, where: p.session_id == ^id) |> Map.new(&{&1.room_id, &1})
+    preps =
+      Repo.all(from p in RoomPrep, where: p.session_id == ^id)
+      |> Map.new(&{&1.room_id, &1.ends_at})
 
     Enum.map(rooms, fn room ->
       case preps[room["id"]] do
-        nil ->
-          room
-
-        prep ->
-          until = DateTime.add(prep.started_at, prep.minutes, :minute)
-
-          Map.merge(room, %{
-            "prep_minutes" => prep.minutes,
-            "prep_until" => DateTime.to_iso8601(until)
-          })
+        nil -> room
+        ends_at -> Map.put(room, "prep_until", DateTime.to_iso8601(ends_at))
       end
     end)
   end
 
   defp attach_preps(rooms, _session), do: rooms
 
-  @doc "Starts the room's prep clock now: `minutes` from this moment, replacing any earlier one."
-  def start_prep(%Session{} = session, room_id, minutes \\ 15) do
+  @doc "Sets when the room's prep ends; `nil` removes the timer."
+  def set_prep_until(%Session{} = session, room_id, nil) do
+    from(p in RoomPrep, where: p.session_id == ^session.id and p.room_id == ^room_id)
+    |> Repo.delete_all()
+
+    notify({:ok, nil}, session)
+  end
+
+  def set_prep_until(%Session{} = session, room_id, %DateTime{} = ends_at) do
     (Repo.get_by(RoomPrep, session_id: session.id, room_id: room_id) ||
        %RoomPrep{session_id: session.id, room_id: room_id})
-    |> Ecto.Changeset.change(minutes: minutes, started_at: DateTime.utc_now(:second))
+    |> Ecto.Changeset.change(ends_at: DateTime.truncate(ends_at, :second))
     |> Repo.insert_or_update()
     |> notify(session)
   end

@@ -67,8 +67,7 @@ defmodule CabWeb.SessionPageController do
              attrs
            ) do
         {:ok, _} ->
-          # every publish or update gives the room a fresh 15 minutes of prep
-          Sessions.start_prep(session, room["id"])
+          set_prep(session, room, params)
 
           conn
           |> put_flash(
@@ -126,6 +125,44 @@ defmodule CabWeb.SessionPageController do
           |> render_ballot(session, room, params["ballot"], error_message(message))
       end
     end)
+  end
+
+  # Publishing sets prep to end 15 minutes from now unless a time was
+  # typed; an update moves it only when the time changed, and an
+  # emptied field stops it. The browser sends the end as UTC.
+  defp set_prep(session, room, params) do
+    typed = params["prep_until"] |> to_string() |> String.trim()
+
+    cond do
+      is_nil(room["Motion"]) and typed == "" ->
+        Sessions.set_prep_until(
+          session,
+          room["id"],
+          DateTime.add(DateTime.utc_now(), 15, :minute)
+        )
+
+      typed == "" ->
+        Sessions.set_prep_until(session, room["id"], nil)
+
+      true ->
+        case DateTime.from_iso8601(typed) do
+          {:ok, ends_at, _offset} ->
+            unless same_minute?(ends_at, room["prep_until"]),
+              do: Sessions.set_prep_until(session, room["id"], ends_at)
+
+          _unreadable ->
+            :keep
+        end
+    end
+  end
+
+  defp same_minute?(_ends_at, nil), do: false
+
+  defp same_minute?(ends_at, current) do
+    {:ok, current, _offset} = DateTime.from_iso8601(current)
+
+    DateTime.truncate(ends_at, :second) |> Map.put(:second, 0) ==
+      DateTime.truncate(current, :second) |> Map.put(:second, 0)
   end
 
   defp render_ballot(conn, session, room, ballot_params, error) do

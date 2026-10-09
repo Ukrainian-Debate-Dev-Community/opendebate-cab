@@ -158,9 +158,14 @@ const localizeTimes = () => {
     const text = formatWhen(t.getAttribute("datetime"), t.dataset.when)
     if (t.textContent !== text) t.textContent = text
   })
+  // the prep end arrives as a UTC instant; the head reads and types HH:MM
+  document.querySelectorAll('input[name="prep_until"]').forEach(input => {
+    if (/T/.test(input.value)) input.value = clock(input.value)
+  })
 }
 // live updates re-render times in UTC; put them back in the viewer's zone
-new MutationObserver(localizeTimes).observe(document.documentElement, {subtree: true, childList: true, characterData: true})
+new MutationObserver(localizeTimes).observe(document.documentElement,
+  {subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["value"]})
 document.addEventListener("DOMContentLoaded", localizeTimes)
 localizeTimes()
 
@@ -183,6 +188,21 @@ document.addEventListener("submit", e => {
   const [d, t] = toUtcParts(date.value.trim(), hhmm && `${hhmm[1].padStart(2, "0")}:${hhmm[2]}`, viewerZone())
   date.value = d
   if (time && time.value) time.value = t
+}, true)
+
+// the prep end typed as HH:MM in the viewer's zone goes out as a UTC
+// instant: today, or tomorrow when that time is already long past
+document.addEventListener("submit", e => {
+  const input = e.target.querySelector && e.target.querySelector('input[name="prep_until"]')
+  if (!input) return
+  const hhmm = input.value.trim().match(/^(\d{1,2})[:.](\d{2})$/)
+  if (!hhmm) return
+  const zone = viewerZone()
+  const today = new Intl.DateTimeFormat("en-CA", {timeZone: zone}).format(new Date())
+  const [d, t] = toUtcParts(today, `${hhmm[1].padStart(2, "0")}:${hhmm[2]}`, zone)
+  let at = new Date(`${d}T${t}:00Z`)
+  if (at.getTime() < Date.now() - 12 * 3600 * 1000) at = new Date(at.getTime() + 24 * 3600 * 1000)
+  input.value = at.toISOString()
 }, true)
 
 const wrapLines = (ctx, text, width) => {
@@ -216,7 +236,9 @@ const drawCard = (canvas, d, draw = true) => {
   font(800, 40)
   for (const l of wrapLines(ctx, d.session || "", inner)) { text(l, pad, y, CARD.ink); y += 50 }
   font(500, 30); text(`${d.club}, ${formatWhen(d.date, "date")}`, pad, y, CARD.muted); y += 44
-  if (d.starts) { font(700, 30); text(`Starts at ${clock(d.starts)}`, pad, y, CARD.ink); y += 44 }
+  // the room's own start (end of prep) wins over the session's planned one
+  const starts = d.prep_until || d.starts
+  if (starts) { font(700, 30); text(`Starts at ${clock(starts)}`, pad, y, CARD.ink); y += 44 }
   y += 20
 
   if (d.motion) {
@@ -227,7 +249,6 @@ const drawCard = (canvas, d, draw = true) => {
       y += 6; font(400, 26)
       for (const l of wrapLines(ctx, d.infoslide, inner)) { text(l, pad, y, CARD.muted); y += 34 }
     }
-    if (d.prep_until) { y += 8; font(600, 26); text(`Prep until ${clock(d.prep_until)}`, pad, y, CARD.brand); y += 34 }
     y += 30
   } else {
     font(500, 28); text("Motion: not published yet", pad, y, CARD.muted); y += 62
