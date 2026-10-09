@@ -22,6 +22,11 @@ defmodule CabWeb.SessionLive do
       nil ->
         raise CabWeb.NotFoundError
 
+      # the head runs an unfinished session from its own page, which
+      # links here once the session is done and the results are in
+      %{finished_at: nil} = session when socket.assigns.club_role in [:owner, :admin] ->
+        {:ok, redirect(socket, to: ~p"/c/#{club.uuid}/owner/s/#{session.uuid}")}
+
       session ->
         session = %{session | club: club}
         if connected?(socket), do: Sessions.subscribe(session)

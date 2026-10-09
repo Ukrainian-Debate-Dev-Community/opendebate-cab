@@ -1013,6 +1013,14 @@ defmodule CabWeb.HtmlTreesTest do
     assert redirected_to(anon) == "/signin"
   end
 
+  test "a head opening an unfinished session's page lands on the Rooms page",
+       %{conn: conn, club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11)
+
+    page = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}")
+    assert redirected_to(page) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
+  end
+
   test "a head who chairs a room gets Fill ballot on the Rooms page too",
        %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)

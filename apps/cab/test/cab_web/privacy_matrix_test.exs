@@ -2,7 +2,8 @@ defmodule CabWeb.PrivacyMatrixTest do
   @moduledoc """
   The privacy matrix: every page and API read against every kind of
   viewer, for a public and a private club. Each cell is the expected
-  outcome — 200, :signin (sent to /signin), 401, 403 or 404. A private
+  outcome — 200, :signin (sent to /signin), :head_view (a head sent
+  to the session's Rooms page), 401, 403 or 404. A private
   club differs from a public one only where a row says so.
 
   Set PRIVACY_MATRIX_OUT=path to also write the observed outcomes as
@@ -27,7 +28,8 @@ defmodule CabWeb.PrivacyMatrixTest do
     {"Club roster", "/c/:club/members", List.duplicate(200, 7),
      [:signin, 403, 403, 403, 200, 200, 200]},
     {"Join request form", "/c/:club/join", [:signin, 200, :signin, :signin, 200, 200, 200], nil},
-    {"Session page (live)", "/c/:club/s/:live", List.duplicate(200, 7), nil},
+    {"Session page (live)", "/c/:club/s/:live",
+     List.duplicate(200, 5) ++ [:head_view, :head_view], nil},
     {"Room page (live)", "/c/:club/s/:live/rooms/72", List.duplicate(200, 7), nil},
     {"Ballot page (member chairs the room)", "/c/:club/s/:live/rooms/72/ballot",
      [:signin, 403, 403, 403, 200, 200, 200], nil},
@@ -193,6 +195,7 @@ defmodule CabWeb.PrivacyMatrixTest do
 
       case {result.status, Plug.Conn.get_resp_header(result, "location")} do
         {302, ["/signin"]} -> :signin
+        {302, [to]} -> if(to =~ "/owner/s/", do: :head_view, else: 302)
         {status, _} -> status
       end
     rescue
