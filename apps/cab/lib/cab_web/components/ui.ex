@@ -168,40 +168,39 @@ defmodule CabWeb.Ui do
         <div class="switches" id="sidenav-switches" phx-update="ignore">
           <button
             type="button"
-            class="switch"
-            data-switch="theme"
-            role="switch"
-            aria-checked="false"
-            aria-label="Dark theme"
-            title="Light or dark"
+            class="cycle"
+            data-cycle="theme"
+            data-state="auto"
+            aria-label="Theme: auto"
+            title="Theme: light, auto or dark"
           >
-            <span class="track">
-              <span class="thumb">
-                <svg class="when-off" viewBox="0 0 16 16" aria-hidden="true">
-                  <circle cx="8" cy="8" r="2.6" />
-                  <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3" />
-                </svg>
-                <svg class="when-on" viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M13 9.6A5.2 5.2 0 0 1 6.4 3a5.2 5.2 0 1 0 6.6 6.6Z" />
-                </svg>
-              </span>
-            </span>
+            <svg class="i-light" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="2.6" />
+              <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3" />
+            </svg>
+            <svg class="i-auto" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="5.5" /><path d="M8 2.5v11a5.5 5.5 0 0 0 0-11Z" class="fill" />
+            </svg>
+            <svg class="i-dark" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M13 9.6A5.2 5.2 0 0 1 6.4 3a5.2 5.2 0 1 0 6.6 6.6Z" />
+            </svg>
           </button>
-          <a
-            class="switch"
-            data-switch="lang"
-            role="switch"
-            aria-checked={to_string(Gettext.get_locale(CabWeb.Gettext) == "uk")}
-            aria-label="Українська"
-            title="English or Українська"
-            href={if Gettext.get_locale(CabWeb.Gettext) == "uk", do: "/locale/en", else: "/locale/uk"}
-          >
-            <span class="track">
-              <span class="thumb">
-                <span class="when-off">EN</span><span class="when-on">UA</span>
-              </span>
-            </span>
-          </a>
+          <details class="langs" data-langs>
+            <summary class="cycle" aria-label="Language" title="Language">
+              {CabWeb.Locale.short(Gettext.get_locale(CabWeb.Gettext))}
+            </summary>
+            <div class="menu" role="menu">
+              <a
+                :for={{code, label, name} <- CabWeb.Locale.names()}
+                href={"/locale/#{code}"}
+                lang={code}
+                role="menuitem"
+                aria-current={Gettext.get_locale(CabWeb.Gettext) == code && "true"}
+              >
+                <span class="code">{label}</span>{name}
+              </a>
+            </div>
+          </details>
         </div>
       </div>
     </nav>

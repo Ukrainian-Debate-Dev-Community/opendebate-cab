@@ -510,27 +510,37 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .sidenav .profile { display:flex; align-items:center; justify-content:space-between; gap:6px;
                     padding-right:12px; }
 .sidenav .profile .me { min-width:0; display:flex; flex-direction:column; }
-.switches { display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
-.switch { display:block; padding:0; border:0; background:none; cursor:pointer; text-decoration:none;
-          border-radius:999px; }
-.switch .track { position:relative; display:block; width:34px; height:20px; border-radius:999px;
-                 background:var(--surface-2); border:1px solid var(--line);
-                 transition:background .25s; }
-.switch .thumb { position:absolute; top:2px; left:2px; width:18px; height:14px; border-radius:999px;
-                 display:flex; align-items:center; justify-content:center;
-                 background:var(--surface); color:var(--brand);
-                 box-shadow:0 1px 3px rgba(28,23,34,.2), 0 0 0 1px var(--line);
-                 font-size:.54rem; font-weight:800; letter-spacing:.03em;
-                 transition:transform .28s cubic-bezier(.2,.8,.2,1); }
-.switch[aria-checked="true"] .thumb { transform:translateX(12px); }
-.switch[aria-checked="true"] .track { background:var(--brand-50); }
-.switch svg { width:11px; height:11px; fill:none; stroke:currentColor; stroke-width:1.6;
-              stroke-linecap:round; stroke-linejoin:round; }
-.switch .when-on { display:none; }
-.switch[aria-checked="true"] .when-on { display:inline; }
-.switch[aria-checked="true"] .when-off { display:none; }
-.switch:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
-@media (prefers-reduced-motion: reduce) { .switch .thumb, .switch .track { transition:none; } }
+.switches { display:flex; flex-direction:column; gap:6px; flex-shrink:0; align-items:flex-end; }
+/* one button per setting: theme cycles light / auto / dark on each
+   click; language opens a menu of every language cab speaks */
+.cycle { position:relative; display:flex; align-items:center; justify-content:center;
+         width:30px; height:24px; padding:0; border-radius:7px; cursor:pointer; list-style:none;
+         background:var(--surface-2); border:1px solid var(--line); color:var(--brand);
+         font:inherit; font-size:.62rem; font-weight:800; letter-spacing:.04em;
+         transition:background .2s, border-color .2s; }
+.cycle::-webkit-details-marker { display:none; }
+.cycle:hover { border-color:var(--brand); }
+.cycle:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+.cycle svg { position:absolute; width:13px; height:13px; fill:none; stroke:currentColor;
+             stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round;
+             opacity:0; transform:rotate(-90deg) scale(.6);
+             transition:opacity .22s, transform .32s cubic-bezier(.2,.8,.2,1); }
+.cycle svg .fill { fill:currentColor; stroke:none; }
+.cycle[data-state="light"] .i-light, .cycle[data-state="auto"] .i-auto,
+.cycle[data-state="dark"] .i-dark { opacity:1; transform:none; }
+.langs { position:relative; }
+.langs .menu { position:absolute; right:0; bottom:calc(100% + 6px); z-index:20; min-width:150px;
+               padding:4px; border-radius:9px; background:var(--surface); border:1px solid var(--line);
+               box-shadow:0 8px 24px rgba(28,23,34,.16); display:grid; gap:2px;
+               transform-origin:bottom right; animation:menu-in .16s ease-out; }
+.langs:not([open]) .menu { display:none; }
+.sidenav .profile .langs .menu a { display:flex; align-items:center; gap:8px; padding:6px 8px;
+               border-radius:6px; font-weight:600; color:var(--ink); }
+.langs .menu a:hover { background:var(--brand-50); }
+.langs .menu a[aria-current="true"] { color:var(--brand); }
+.langs .menu .code { width:22px; font-size:.62rem; font-weight:800; color:var(--muted); }
+@keyframes menu-in { from { opacity:0; transform:translateY(4px) scale(.97); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) { .cycle svg, .langs .menu { transition:none; animation:none; } }
 .sidenav .profile .who { min-width:0; }
 .sidenav .profile .who a, .sidenav .profile .who span:last-child
   { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }

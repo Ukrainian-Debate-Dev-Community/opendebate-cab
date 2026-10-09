@@ -10,7 +10,15 @@ defmodule CabWeb.Locale do
   @locales ~w(en uk)
   @cookie "cab_locale"
 
+  # the language menu: code, short label, the language's own name
+  @names [{"en", "EN", "English"}, {"uk", "UA", "Українська"}]
+
   def locales, do: @locales
+  def names, do: @names
+
+  def short(locale),
+    do: Enum.find_value(@names, "EN", fn {code, label, _} -> code == locale && label end)
+
   def cookie, do: @cookie
 
   def init(opts), do: opts

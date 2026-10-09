@@ -335,32 +335,34 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
-// the sidebar switches. Theme: light or dark, starting from the
-// system's preference until the first click, then remembered.
+// the sidebar theme button: each click moves light -> auto -> dark.
+// auto follows the system; the choice is kept in this browser.
 const themeKey = "cab-theme"
-const systemDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches
-const currentTheme = () => document.documentElement.dataset.theme || (systemDark() ? "dark" : "light")
+const THEMES = ["light", "auto", "dark"]
+const storedTheme = () => {
+  try { return localStorage.getItem(themeKey) || "auto" } catch (_e) { return "auto" }
+}
+const applyTheme = (choice) => {
+  if (choice === "auto") delete document.documentElement.dataset.theme
+  else document.documentElement.dataset.theme = choice
+  try { choice === "auto" ? localStorage.removeItem(themeKey) : localStorage.setItem(themeKey, choice) } catch (_e) { /* private mode */ }
+  markTheme()
+}
 const markTheme = () => {
-  document.querySelectorAll('[data-switch="theme"]').forEach(s =>
-    s.setAttribute("aria-checked", String(currentTheme() === "dark")))
+  const current = storedTheme()
+  document.querySelectorAll('[data-cycle="theme"]').forEach(b => {
+    b.dataset.state = current
+    b.setAttribute("aria-label", `Theme: ${current}`)
+  })
 }
 document.addEventListener("click", e => {
-  const theme = e.target.closest('[data-switch="theme"]')
-  if (theme) {
-    const next = currentTheme() === "dark" ? "light" : "dark"
-    document.documentElement.dataset.theme = next
-    try { localStorage.setItem(themeKey, next) } catch (_e) { /* private mode */ }
-    markTheme()
-    return
-  }
-  // language: the thumb slides first, then the page reloads in it
-  const lang = e.target.closest('[data-switch="lang"]')
-  if (lang) {
-    e.preventDefault()
-    lang.setAttribute("aria-checked", String(lang.getAttribute("aria-checked") !== "true"))
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    setTimeout(() => { window.location.href = lang.href }, reduce ? 0 : 240)
-  }
+  const theme = e.target.closest('[data-cycle="theme"]')
+  if (theme) applyTheme(THEMES[(THEMES.indexOf(storedTheme()) + 1) % THEMES.length])
+  // the language menu closes on any click outside it
+  document.querySelectorAll("details[data-langs][open]").forEach(d => { if (!d.contains(e.target)) d.open = false })
+})
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") document.querySelectorAll("details[data-langs][open]").forEach(d => { d.open = false })
 })
 markTheme()
 window.addEventListener("phx:page-loading-stop", markTheme)
