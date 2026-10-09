@@ -34,8 +34,11 @@ defmodule CabWeb.Router do
     # my page — engine stats verbatim + participation history
     get "/me", MeController, :show
 
-    # privacy & data policy (public, linked from the footer)
-    get "/privacy", PageController, :privacy
+    # the Policy (personal data) and the Terms, linked from the footer;
+    # the old /privacy address keeps working
+    get "/policy", PageController, :policy
+    get "/terms", PageController, :terms
+    get "/privacy", PageController, :privacy_moved
 
     # profile — entry only via the sidenav bottom
     get "/account", AccountController, :show

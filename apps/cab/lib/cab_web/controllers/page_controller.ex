@@ -36,10 +36,14 @@ defmodule CabWeb.PageController do
     end
   end
 
-  # GET /privacy — the data & privacy policy, public
-  def privacy(conn, _params) do
-    render(conn, :privacy, page_title: "Privacy&Policy")
-  end
+  # GET /policy — how cab handles personal data
+  def policy(conn, _params), do: render(conn, :policy, page_title: "Policy")
+
+  # GET /terms — the terms of use
+  def terms(conn, _params), do: render(conn, :terms, page_title: "Terms")
+
+  # GET /privacy — the policy's old address
+  def privacy_moved(conn, _params), do: redirect(conn, to: ~p"/policy")
 
   # The Next session column: each club's unfinished session and its
   # stage, as %{club_id => {session, stage, rooms}} — cab's own
