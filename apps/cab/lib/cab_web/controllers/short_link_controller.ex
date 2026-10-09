@@ -21,9 +21,8 @@ defmodule CabWeb.ShortLinkController do
     with_session(conn, short, fn session ->
       page = ~p"/c/#{session.club.uuid}/s/#{session.uuid}"
 
-      with {no, ""} <- Integer.parse(room),
-           {:ok, state} <- Sessions.state(session),
-           %{"id" => id} <- Enum.find(state.rooms, &(&1["no"] == no)) do
+      with {no, ""} when no > 0 <- Integer.parse(room),
+           id when is_integer(id) <- Sessions.room_id_by_number(session, no) do
         redirect(conn, to: ~p"/c/#{session.club.uuid}/s/#{session.uuid}/rooms/#{id}")
       else
         _ ->
