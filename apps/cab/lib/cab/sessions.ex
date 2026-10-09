@@ -189,7 +189,7 @@ defmodule Cab.Sessions do
   def open(%User{} = head, %Club{} = club, name, scheduled_at \\ nil) do
     name = presence(name) || "Club session #{Date.utc_today()}"
 
-    with {:ok, actor} <- actor_for(head),
+    with {:ok, actor} <- owner_actor(head, club),
          {:ok, event} <- EngineApi.create_event(actor, club.engine_organisation_id, name),
          {:ok, round} <- EngineApi.create_round(actor, event["id"], "Club round", 1) do
       %Session{
@@ -516,7 +516,7 @@ defmodule Cab.Sessions do
     result =
       with {:ok, state} <- state(session),
            :ok <- require_stage(state, :signup),
-           {:ok, head_actor} <- actor_for(head) do
+           {:ok, head_actor} <- owner_actor(head, session_club(session)) do
         EngineApi.add_participant(
           head_actor,
           session.engine_event_id,
@@ -571,7 +571,7 @@ defmodule Cab.Sessions do
            :ok <- require_stage(state, :signup),
            {:ok, member} <- approved_member(club, username),
            {:ok, member_actor} <- actor_for(member),
-           {:ok, head_actor} <- actor_for(head) do
+           {:ok, head_actor} <- owner_actor(head, session_club(session)) do
         display_name = presence(member.name) || member.username
 
         EngineApi.add_participant(
@@ -777,7 +777,7 @@ defmodule Cab.Sessions do
       with {:ok, state} <- state(session),
            :ok <- require_stage(state, :closed),
            {:ok, rooms} <- parse_composition(rooms_spec, state.signups),
-           {:ok, actor} <- actor_for(head),
+           {:ok, actor} <- owner_actor(head, session_club(session)),
            :ok <- assign_roles(actor, session, state.signups, rooms),
            {:ok, count} <- create_composition(actor, state, rooms) do
         record(session,
@@ -973,7 +973,7 @@ defmodule Cab.Sessions do
   """
   def delete_rooms(%User{} = head, %Session{} = session) do
     result =
-      with {:ok, actor} <- actor_for(head),
+      with {:ok, actor} <- owner_actor(head, session_club(session)),
            {:ok, round_id} <- session_round_id(actor, session),
            {:ok, rooms} <- EngineApi.list_rooms(actor, round_id) do
         cond do
@@ -1008,7 +1008,7 @@ defmodule Cab.Sessions do
   """
   def cancel(%User{} = head, %Session{} = session) do
     result =
-      with {:ok, actor} <- actor_for(head),
+      with {:ok, actor} <- owner_actor(head, session_club(session)),
            {:ok, _} <- EngineApi.delete_event(actor, session.engine_event_id) do
         Repo.delete(session)
       end
@@ -1278,7 +1278,7 @@ defmodule Cab.Sessions do
   """
   def finish(%User{} = head, %Session{} = session) do
     result =
-      with {:ok, actor} <- actor_for(head),
+      with {:ok, actor} <- owner_actor(head, session_club(session)),
            {:ok, state} <- state(session),
            {:ok, _} <- EngineApi.update_round(actor, state.round["id"], %{status: "completed"}),
            {:ok, _} <-
@@ -1513,6 +1513,16 @@ defmodule Cab.Sessions do
       %Club{} = club -> club
       _not_loaded -> Repo.get!(Club, session.club_id)
     end
+  end
+
+  # an owner action runs in the engine as the person taking it; a
+  # platform admin acting in someone else's club acts through that
+  # club's head, since the engine knows only the club's own owners
+  defp owner_actor(%User{} = user, %Club{} = club) do
+    if Clubs.role_for(club, user) == :admin and Clubs.head_of(club) != nil and
+         Clubs.head_of(club).id != user.id,
+       do: Clubs.club_actor(club),
+       else: actor_for(user)
   end
 
   defp actor_for(%User{} = user) do

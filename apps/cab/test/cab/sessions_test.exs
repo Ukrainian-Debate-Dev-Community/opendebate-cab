@@ -41,6 +41,30 @@ defmodule Cab.SessionsTest do
     %{head: head, club: club}
   end
 
+  test "an admin's owner action reaches the engine as the club's head", %{club: club} do
+    admin =
+      user_fixture(%{node_user_id: 70})
+      |> Ecto.Changeset.change(is_admin: true)
+      |> Cab.Repo.update!()
+
+    test_pid = self()
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"POST", "/api/events/3"} ->
+          send(test_pid, {:as, claims(conn)["id"]})
+          ok(conn, %{"id" => 11, "name" => "Admin night", "status" => "scheduled"})
+
+        {"POST", "/api/events/11/rounds"} ->
+          ok(conn, %{"id" => 21, "sequence" => 1})
+      end
+    end)
+
+    assert {:ok, _session} = Sessions.open(admin, club, "Admin night")
+    # the head (engine user 9), never the admin (70), whom the engine does not know as owner
+    assert_received {:as, 9}
+  end
+
   test "open/3 creates event + one round + the gateway row", %{head: head, club: club} do
     stub(fn conn, params ->
       case {conn.method, conn.request_path} do
