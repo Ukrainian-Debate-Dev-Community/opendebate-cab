@@ -31,7 +31,7 @@ defmodule CabWeb.SessionPageController do
          {pid, ""} <- Integer.parse(participant_id),
          :ok <- Sessions.remove_signup(user, %{session | club: club}, pid) do
       conn
-      |> put_flash(:info, "registration cancelled")
+      |> put_flash(:info, "Registration cancelled.")
       |> redirect(to: back.(session))
     else
       nil ->
@@ -68,7 +68,7 @@ defmodule CabWeb.SessionPageController do
            ) do
         {:ok, _} ->
           conn
-          |> put_flash(:info, "motion published")
+          |> put_flash(:info, "Motion published.")
           |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}/rooms/#{room["id"]}")
 
         {:error, message} ->
@@ -94,7 +94,7 @@ defmodule CabWeb.SessionPageController do
       case Sessions.submit_ballot(conn.assigns.current_user, session, room["id"], scores) do
         :ok ->
           conn
-          |> put_flash(:info, "ballot submitted")
+          |> put_flash(:info, "Ballot submitted.")
           |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}")
 
         {:error, :forbidden} ->
@@ -119,7 +119,7 @@ defmodule CabWeb.SessionPageController do
       room: room,
       teams: BallotForm.teams(room, ballot_params),
       error: error,
-      page_title: "ballot — #{CabWeb.SessionFormat.room_label(room)}"
+      page_title: "Ballot — #{CabWeb.SessionFormat.room_label(room)}"
     )
   end
 
@@ -182,5 +182,5 @@ defmodule CabWeb.SessionPageController do
   defp presence(_value), do: nil
 
   defp error_message(message) when is_binary(message), do: message
-  defp error_message(_other), do: "the session is unavailable right now"
+  defp error_message(_other), do: "This session is unavailable right now."
 end

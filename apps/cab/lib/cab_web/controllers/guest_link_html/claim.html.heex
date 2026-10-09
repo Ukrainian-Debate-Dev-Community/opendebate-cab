@@ -1,5 +1,5 @@
 <Layouts.app flash={@flash} current_user={@current_user}>
-  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="your guest history">
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="Your guest history">
     <:seg href={~p"/c/#{@club.uuid}/s/#{@session.uuid}"} quiet>Not now</:seg>
     <:seg form="claim-form" primary>Add to my account</:seg>
   </.chrome>
@@ -7,7 +7,7 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title="A guest link" pad>
+    <.section title="A personal link" pad>
       This personal link belongs to <b>{@link.user.name}</b>, a guest at {@session.name ||
         "a session"} in {@club.name}.
       <p>

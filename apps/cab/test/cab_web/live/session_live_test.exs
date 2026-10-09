@@ -167,11 +167,11 @@ defmodule CabWeb.SessionLiveTest do
 
     # a drop outside today's rooms is refused with words
     assert render_hook(view, "place", %{"id" => 99, "slot" => "3:og:1"}) =~
-             "no such slot: 3:og:1"
+             "That seat doesn&#39;t exist."
 
     # Start session: the draft becomes exactly this room
     html = view |> element("#allocator-form") |> render_submit()
-    assert html =~ "session started — 1 room(s)"
+    assert html =~ "Session started with 1 room(s)."
     assert_received {:room, %{"teams" => teams}}
     assert Enum.map(teams, & &1["participant_ids"]) == [[1, 2], [3, 4], [5, 6], [7, 8]]
     assert Cab.Sessions.get_by_uuid(session.uuid).draft_allocation == %{}

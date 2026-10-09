@@ -137,14 +137,14 @@ defmodule Cab.Accounts do
         if Repo.exists?(
              from i in Identity, where: i.user_id == ^user.id and i.provider == ^provider
            ) do
-          {:error, "this account already has a different #{provider} sign-in linked"}
+          {:error, "This account already has a different #{provider} sign-in linked."}
         else
           %Identity{user_id: user.id}
           |> Identity.changeset(%{provider: provider, provider_uid: uid})
           |> Repo.insert()
           |> case do
             {:ok, _} -> {:ok, :linked}
-            {:error, _} -> {:error, "could not link that sign-in"}
+            {:error, _} -> {:error, "Could not link that sign-in. Try again."}
           end
         end
     end
@@ -155,8 +155,8 @@ defmodule Cab.Accounts do
     identities = list_identities(user)
 
     case Enum.find(identities, &(&1.provider == provider)) do
-      nil -> {:error, "that sign-in is not linked"}
-      _ when length(identities) < 2 -> {:error, "keep at least one way to sign in"}
+      nil -> {:error, "That sign-in is not linked."}
+      _ when length(identities) < 2 -> {:error, "Keep at least one way to sign in."}
       identity -> Repo.delete(identity)
     end
   end
@@ -169,7 +169,7 @@ defmodule Cab.Accounts do
   The engine refuses when the other account heads a club, or when both
   took part in the same session.
   """
-  def merge_accounts(%User{id: id}, %User{id: id}), do: {:error, "that is this account"}
+  def merge_accounts(%User{id: id}, %User{id: id}), do: {:error, "That is this account."}
 
   def merge_accounts(%User{} = target, %User{} = source) do
     target = ensure_node_user(target)
@@ -209,7 +209,7 @@ defmodule Cab.Accounts do
         :ok
 
       {:error, "The source user holds roles" <> _} ->
-        {:error, "that account heads a club — make someone else head first"}
+        {:error, "That account heads a club. Make someone else head first."}
 
       error ->
         error
@@ -217,7 +217,7 @@ defmodule Cab.Accounts do
   end
 
   defp merge_engine(_target, _source),
-    do: {:error, "this account is not linked to the engine yet — try again"}
+    do: {:error, "Something went wrong, try again."}
 
   @rank %{{"head", "approved"} => 3, {"member", "approved"} => 2}
 

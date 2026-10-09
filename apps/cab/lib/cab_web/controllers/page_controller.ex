@@ -31,7 +31,7 @@ defmodule CabWeb.PageController do
           open_club: find_open_club(memberships, tonight),
           schedule: Sessions.user_schedule(user),
           invitations: Cab.Invitations.for_user(user),
-          page_title: "my cab"
+          page_title: "My cab"
         )
     end
   end

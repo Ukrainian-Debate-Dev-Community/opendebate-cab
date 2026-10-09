@@ -188,10 +188,10 @@ defmodule Cab.ClubsTest do
       assert {:ok, _} = Clubs.remove_member(club, member.id)
       assert Clubs.role_for(club, member) == :public
 
-      assert {:error, "the club head cannot be removed"} = Clubs.remove_member(club, head.id)
+      assert {:error, "The club head cannot be removed."} = Clubs.remove_member(club, head.id)
       assert Clubs.role_for(club, head) == :owner
 
-      assert {:error, "no such member" <> _} = Clubs.remove_member(club, member.id)
+      assert {:error, "That person is not a member of this club."} = Clubs.remove_member(club, member.id)
 
       # a pending request can be removed too (same as declining)
       pending = user_fixture()

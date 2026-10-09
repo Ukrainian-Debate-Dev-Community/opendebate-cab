@@ -171,13 +171,13 @@ assert s8 DELETE "/api/v1/sessions/$SESSION/signups/$S8_PID" 200 '.status' remov
 assert s8 POST "/api/v1/sessions/$SESSION/signups" 201 '.participant_id | type' number '{}'
 
 # ----------------------------------------------------------------
-say "the close-signups gate (rooms are composed after sign-ups close)"
+say "the close-signups gate (rooms are made after registration closes)"
 # ----------------------------------------------------------------
 # no rooms while sign-ups are open (and never without a spec)
 assert head POST "/api/v1/sessions/$SESSION/rooms" 422 \
   '.details.rooms | contains("nothing is allocated automatically")' true
 assert head POST "/api/v1/sessions/$SESSION/reopen-signups" 409 \
-  '.error | contains("while closed")' true
+  '.error | contains("while it is closed")' true
 
 say "head closes sign-ups (member cannot)"
 assert s1 POST "/api/v1/sessions/$SESSION/close-signups" 403 '.error' forbidden
@@ -186,9 +186,9 @@ assert head GET "/api/v1/sessions/$SESSION" 200 '.stage' closed
 
 say "signups after close -> 409; closing twice -> 409"
 assert x1 POST "/api/v1/sessions/$SESSION/signups" 409 \
-  '.error | contains("sign-ups are not open")' true '{}'
+  '.error | contains("Registration is not open")' true '{}'
 assert head POST "/api/v1/sessions/$SESSION/close-signups" 409 \
-  '.error | contains("session is closed")' true
+  '.error | contains("only be closed while it is open")' true
 
 say "reopen, sign-ups live again, re-close"
 assert head POST "/api/v1/sessions/$SESSION/reopen-signups" 200 '.stage' signup
@@ -497,13 +497,13 @@ reqc anon2 GET "$G1_LINK"
 [ "$STATUS" = "302" ] || fail "GET $G1_LINK anonymous: status $STATUS, want 302 to P6"
 req anon2 GET "/c/$CLUB/s/$GSESSION"
 [ "$STATUS" = "200" ] || fail "GET P6 as guest g1: status $STATUS, want 200"
-grep -q "registered for tonight" "$BODY" || fail "P6 misses the guest registration"
+grep -q "registered for this session" "$BODY" || fail "P6 misses the guest registration"
 html_ok "guest link -> P6 + registration" GET "/l/<g1> -> /c/.../s/..." 200
 reqc anon2 GET "$G2_LINK"
 [ "$STATUS" = "302" ] || fail "GET $G2_LINK anonymous: status $STATUS, want 302 to P6"
 req anon2 GET "/c/$CLUB/s/$GSESSION"
 [ "$STATUS" = "200" ] || fail "GET P6 as guest g2: status $STATUS, want 200"
-grep -q "registered for tonight" "$BODY" || fail "P6 misses the guest registration"
+grep -q "registered for this session" "$BODY" || fail "P6 misses the guest registration"
 html_ok "second guest link -> P6 + registration" GET "/l/<g2> -> /c/.../s/..." 200
 
 say "head lists the links; a guest link opens NOTHING beyond its scope"
@@ -664,7 +664,7 @@ html_ok "invitation accepted (engine claim token)" POST "$ACCEPT" 302
 assert head GET "/api/v1/sessions/$ISESSION" 200 \
   ".signups | map(select(.display_name == \"wt-$RUN-inv\")) | .[0].user_id | type" number
 req inv GET "/c/$CLUB/s/$ISESSION"
-grep -q "registered for tonight" "$BODY" || fail "the accepted place is not theirs on the session page"
+grep -q "registered for this session" "$BODY" || fail "the accepted place is not theirs on the session page"
 html_ok "accepted place is theirs" GET "/c/.../s/<invite-night>" 200
 assert head DELETE "/api/v1/sessions/$ISESSION" 200 '.status' cancelled
 

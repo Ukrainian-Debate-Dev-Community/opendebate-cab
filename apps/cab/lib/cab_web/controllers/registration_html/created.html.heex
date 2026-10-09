@@ -6,7 +6,7 @@
   nav_session={@session}
   active="register"
 >
-  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="registered">
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="Registered">
     <:seg href={~p"/l/#{@link.code}"} primary>Open my session page</:seg>
   </.chrome>
 
@@ -19,7 +19,7 @@
 
     <.section title="Your personal link">
       <div class="pad">
-        <.copy_banner id="personal-link" url={@personal_url}>Your link</.copy_banner>
+        <.copy_banner id="personal-link" url={@personal_url}>Personal link</.copy_banner>
         <p>
           Keep this link — it IS your access: anyone with it acts as you.
           It opens your view of this session: your registration, the rooms,

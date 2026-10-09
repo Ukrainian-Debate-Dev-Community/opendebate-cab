@@ -83,7 +83,7 @@ defmodule Cab.Links do
   def claim(%Link{user: %User{} = guest}, %User{} = account) do
     cond do
       guest.id == account.id or guest?(account.id) ->
-        {:error, "sign in with your own account to claim a guest history"}
+        {:error, "Sign in with your own account to claim a guest history."}
 
       true ->
         with %User{node_user_id: target} when is_integer(target) <-
@@ -92,7 +92,7 @@ defmodule Cab.Links do
           Repo.delete(guest)
           {:ok, moved}
         else
-          %User{} -> {:error, "your account is not linked to the engine yet — try again"}
+          %User{} -> {:error, "Something went wrong, try again."}
           error -> error
         end
     end
@@ -192,22 +192,22 @@ defmodule Cab.Links do
     |> Repo.insert()
     |> case do
       {:ok, link} -> {:ok, %{link | user: guest}}
-      {:error, _changeset} -> {:error, "could not issue the link"}
+      {:error, _changeset} -> {:error, "Could not create the personal link. Try again."}
     end
   end
 
   defp validate_name(name) when is_binary(name) do
     case String.trim(name) do
-      "" -> {:error, %{name: "name is required"}}
+      "" -> {:error, %{name: "Enter a name."}}
       trimmed -> {:ok, trimmed}
     end
   end
 
-  defp validate_name(_name), do: {:error, %{name: "name is required"}}
+  defp validate_name(_name), do: {:error, %{name: "Enter a name."}}
 
   defp create_guest_user(name, attempts \\ @username_attempts)
 
-  defp create_guest_user(_name, 0), do: {:error, "could not create the guest user"}
+  defp create_guest_user(_name, 0), do: {:error, "Something went wrong, try again."}
 
   defp create_guest_user(name, attempts) do
     suffix = :crypto.strong_rand_bytes(5) |> Base.encode32(case: :lower, padding: false)

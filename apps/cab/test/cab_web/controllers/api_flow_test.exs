@@ -367,7 +367,7 @@ defmodule CabWeb.ApiFlowTest do
              "rooms" => [%{"adjudicator_participant_id" => 99, "teams" => [[1], [2], [3], [4]]}]
            })
            |> json_response(409)
-           |> Map.fetch!("error") =~ "after sign-ups close"
+           |> Map.fetch!("error") =~ "after registration closes"
 
     # reopen before close -> 409
     assert conn
@@ -385,7 +385,7 @@ defmodule CabWeb.ApiFlowTest do
            |> log_in(member)
            |> post(~p"/api/v1/sessions/#{session.uuid}/signups", %{as: "speak"})
            |> json_response(409)
-           |> Map.fetch!("error") =~ "sign-ups are not open"
+           |> Map.fetch!("error") =~ "Registration is not open"
 
     assert conn
            |> log_in(head)
@@ -551,7 +551,7 @@ defmodule CabWeb.ApiFlowTest do
            |> log_in(head)
            |> post(~p"/api/v1/sessions/#{session.uuid}/rooms", bad)
            |> json_response(422)
-           |> get_in(["details", "rooms"]) =~ "4 teams of 1-2"
+           |> get_in(["details", "rooms"]) =~ "teams of one or two speakers"
 
     # rebuild: the room (and its temporary teams) go away
     stub(fn conn, _params ->

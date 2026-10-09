@@ -26,10 +26,10 @@ defmodule CabWeb.AdminController do
     with {:ok, head} <- picked_user(params["head_id"]),
          {:ok, club} <- Clubs.create_club(params["name"] || "", params["city"], head) do
       conn
-      |> put_flash(:info, "club #{club.name} created — head: #{head.username}")
+      |> put_flash(:info, "Club #{club.name} created, headed by #{head.username}.")
       |> redirect(to: ~p"/admin")
     else
-      {:error, %Ecto.Changeset{}} -> bounce(conn, "the club needs a name")
+      {:error, %Ecto.Changeset{}} -> bounce(conn, "The club needs a name.")
       {:error, message} -> bounce(conn, message)
     end
   end
@@ -41,7 +41,7 @@ defmodule CabWeb.AdminController do
          {:ok, head} <- picked_user(params["head_id"]),
          {:ok, _club} <- Clubs.change_head(club, head) do
       conn
-      |> put_flash(:info, "#{club.name} is now headed by #{head.username}")
+      |> put_flash(:info, "#{club.name} is now headed by #{head.username}.")
       |> redirect(to: ~p"/admin")
     else
       nil -> conn |> CabWeb.ErrorHTML.respond(404)
@@ -55,7 +55,7 @@ defmodule CabWeb.AdminController do
     with %Club{} = club <- Clubs.get_by_uuid(uuid),
          {:ok, _club} <- Clubs.archive_club(club) do
       conn
-      |> put_flash(:info, "#{club.name} archived — it is hidden everywhere public")
+      |> put_flash(:info, "#{club.name} is archived and hidden from public pages.")
       |> redirect(to: ~p"/admin")
     else
       nil -> conn |> CabWeb.ErrorHTML.respond(404)
@@ -71,7 +71,7 @@ defmodule CabWeb.AdminController do
       heads: Map.new(clubs, &{&1.id, Clubs.head_of(&1)}),
       member_counts: Clubs.member_counts(Enum.map(clubs, & &1.id)),
       users: Accounts.list_users(),
-      page_title: "admin"
+      page_title: "Admin"
     )
   end
 
@@ -81,7 +81,7 @@ defmodule CabWeb.AdminController do
          %Accounts.User{} = user <- Accounts.get_user(id) do
       {:ok, user}
     else
-      _ -> {:error, "pick the head user"}
+      _ -> {:error, "Pick the head."}
     end
   end
 

@@ -226,7 +226,7 @@ defmodule Cab.Sessions do
   defp parse_date(string) do
     case Date.from_iso8601(string) do
       {:ok, date} -> {:ok, date}
-      _ -> {:error, "date must be YYYY-MM-DD"}
+      _ -> {:error, "Enter the date as YYYY-MM-DD."}
     end
   end
 
@@ -235,7 +235,7 @@ defmodule Cab.Sessions do
   defp parse_time(string) do
     case Time.from_iso8601(string <> ":00") do
       {:ok, time} -> {:ok, time}
-      _ -> {:error, "time must be HH:MM"}
+      _ -> {:error, "Enter the time as HH:MM."}
     end
   end
 
@@ -254,8 +254,8 @@ defmodule Cab.Sessions do
             |> Ecto.Changeset.change(signups_closed_at: DateTime.utc_now(:second))
             |> Repo.update()
 
-          stage ->
-            {:error, :conflict, "sign-ups can only be closed while open (session is #{stage})"}
+          _stage ->
+            {:error, :conflict, "Registration can only be closed while it is open."}
         end
       end
 
@@ -406,8 +406,8 @@ defmodule Cab.Sessions do
 
   defp require_draftable(%{stage: stage}) when stage in [:signup, :closed], do: :ok
 
-  defp require_draftable(%{stage: stage}),
-    do: {:error, :conflict, "the allocation is fixed once the session runs (session is #{stage})"}
+  defp require_draftable(_session),
+    do: {:error, :conflict, "The rooms are fixed once the session runs."}
 
   defp parse_slot(slot, rooms) when is_binary(slot) do
     case String.split(slot, ":") do
@@ -422,11 +422,11 @@ defmodule Cab.Sessions do
     end
     |> case do
       {:ok, _room, _side} = ok -> ok
-      _ -> {:error, "no such slot: #{slot}"}
+      _ -> {:error, "That seat doesn't exist."}
     end
   end
 
-  defp parse_slot(slot, _rooms), do: {:error, "no such slot: #{inspect(slot)}"}
+  defp parse_slot(_slot, _rooms), do: {:error, "That seat doesn't exist."}
 
   defp clean_draft(draft, signups) do
     signed = MapSet.new(signups, & &1["id"])
@@ -471,8 +471,8 @@ defmodule Cab.Sessions do
             |> Ecto.Changeset.change(signups_closed_at: nil)
             |> Repo.update()
 
-          stage ->
-            {:error, :conflict, "sign-ups can only reopen while closed (session is #{stage})"}
+          _stage ->
+            {:error, :conflict, "Registration can only reopen while it is closed."}
         end
       end
 
@@ -591,7 +591,7 @@ defmodule Cab.Sessions do
          true <- Clubs.covers?(Clubs.role_for(club, user), :member) do
       {:ok, user}
     else
-      _ -> {:error, "#{username || "?"} is not an approved member of this club"}
+      _ -> {:error, "#{username || "That person"} is not a member of this club."}
     end
   end
 
@@ -642,19 +642,19 @@ defmodule Cab.Sessions do
   end
 
   defp require_waitlisted(%{stage: :done}, _participant),
-    do: {:error, :conflict, "the session is finished — its people are its record"}
+    do: {:error, :conflict, "This session is finished, so its people stay on record."}
 
   defp require_waitlisted(%{rooms: rooms}, participant) do
     if MapSet.member?(seated_ids(rooms), participant["id"]),
       do:
         {:error, :conflict,
-         "#{participant["display_name"]} is seated in a room — only people on the waitlist can be removed"},
+         "#{participant["display_name"]} is seated in a room. Only people still waiting can be removed."},
       else: :ok
   end
 
   defp find_participant(participants, participant_id) do
     case Enum.find(participants, &(&1["id"] == participant_id)) do
-      nil -> {:error, "participant #{participant_id} is not signed up for this session"}
+      nil -> {:error, "That person isn't in this session."}
       participant -> {:ok, participant}
     end
   end
@@ -753,11 +753,11 @@ defmodule Cab.Sessions do
   # :closed — anything else is a 409 for the API, a flash for HTML
   defp require_stage(%{stage: stage}, stage), do: :ok
 
-  defp require_stage(%{stage: actual}, :signup),
-    do: {:error, :conflict, "sign-ups are not open (session is #{actual})"}
+  defp require_stage(_session, :signup),
+    do: {:error, :conflict, "Registration is not open."}
 
-  defp require_stage(%{stage: actual}, :closed),
-    do: {:error, :conflict, "rooms are composed after sign-ups close (session is #{actual})"}
+  defp require_stage(_session, :closed),
+    do: {:error, :conflict, "Rooms are made after registration closes."}
 
   @doc """
   EXPLICIT room composition: the head says who goes where.
@@ -851,12 +851,11 @@ defmodule Cab.Sessions do
       pids = Enum.flat_map(rooms, fn room -> List.flatten(room.teams) end)
 
       cond do
-        bad = Enum.find(judges ++ pids, &(not MapSet.member?(signed_ids, &1))) ->
-          {:error, %{rooms: "participant #{bad} is not signed up"}}
+        Enum.any?(judges ++ pids, &(not MapSet.member?(signed_ids, &1))) ->
+          {:error, %{rooms: "Someone placed in a room isn't in this session."}}
 
         judges ++ pids != Enum.uniq(judges ++ pids) ->
-          [dup | _] = (judges ++ pids) -- Enum.uniq(judges ++ pids)
-          {:error, %{rooms: "participant #{dup} is placed more than once"}}
+          {:error, %{rooms: "Someone is placed in two seats."}}
 
         true ->
           {:ok, rooms}
@@ -865,7 +864,7 @@ defmodule Cab.Sessions do
   end
 
   defp parse_composition(_rooms_spec, _participants),
-    do: {:error, %{rooms: "rooms must be a non-empty list of room objects"}}
+    do: {:error, %{rooms: "Rooms must be a non-empty list of room objects."}}
 
   defp parse_room(%{} = room, {:ok, acc}) do
     judge = composition_int(composition_field(room, :adjudicator_participant_id))
@@ -881,7 +880,7 @@ defmodule Cab.Sessions do
 
     cond do
       not is_integer(judge) ->
-        {:halt, {:error, %{rooms: "every room needs a adjudicator_participant_id"}}}
+        {:halt, {:error, %{rooms: "Every room needs an adjudicator."}}}
 
       length(teams) != @teams_per_room or
           Enum.any?(teams, fn team ->
@@ -892,9 +891,8 @@ defmodule Cab.Sessions do
          {:error,
           %{
             rooms:
-              "every room needs #{@teams_per_room} teams of " <>
-                "1-#{@speakers_per_team} speaker participant ids " <>
-                "(a 1-speaker team is an iron)"
+              "Every room needs #{@teams_per_room} teams of one or two speakers " <>
+                "(a one-speaker team is an iron)."
           }}}
 
       true ->
@@ -903,7 +901,7 @@ defmodule Cab.Sessions do
   end
 
   defp parse_room(_room, _acc),
-    do: {:halt, {:error, %{rooms: "every room must be an object"}}}
+    do: {:halt, {:error, %{rooms: "Every room must be an object."}}}
 
   defp composition_field(room, key) do
     case Map.fetch(room, key) do
@@ -978,10 +976,10 @@ defmodule Cab.Sessions do
            {:ok, rooms} <- EngineApi.list_rooms(actor, round_id) do
         cond do
           rooms == [] ->
-            {:error, "this session has no rooms to delete"}
+            {:error, "This session has no rooms to delete."}
 
           Enum.any?(rooms, &(&1["status"] != "pending")) ->
-            {:error, "only pending rooms can be deleted — this session is already in play"}
+            {:error, "Rooms can only be deleted before any ballot is in."}
 
           true ->
             with {:ok, count} <-
@@ -1109,7 +1107,7 @@ defmodule Cab.Sessions do
 
   defp find_room(rooms, room_id) do
     case Enum.find(rooms, &(&1["id"] == room_id)) do
-      nil -> {:error, "room #{room_id} is not part of this session"}
+      nil -> {:error, "That room is not part of this session."}
       room -> {:ok, room}
     end
   end
@@ -1139,7 +1137,7 @@ defmodule Cab.Sessions do
   end
 
   defp parse_ballot_entries(_scores),
-    do: {:error, %{scores: "scores must be a list of 8 entries"}}
+    do: {:error, %{scores: "Scores must be a list of 8 entries."}}
 
   defp parse_ballot_entry(%{} = entry) do
     position = ballot_field(entry, :position)
@@ -1148,13 +1146,13 @@ defmodule Cab.Sessions do
 
     cond do
       position not in [1, 2, 3, 4] ->
-        {:error, "position must be 1..4 (og, oo, cg, co)"}
+        {:error, "Position must be 1 to 4 (OG, OO, CG, CO)."}
 
       not is_integer(speaker) ->
-        {:error, "speaker_participant_id (integer) is required on every score"}
+        {:error, "Every score needs a speaker_participant_id."}
 
       not valid_score?(score) ->
-        {:error, "score #{inspect(score)} is invalid — scores are whole points, 50-100"}
+        {:error, "Scores are whole points from 50 to 100."}
 
       true ->
         {:ok,
@@ -1167,7 +1165,7 @@ defmodule Cab.Sessions do
     end
   end
 
-  defp parse_ballot_entry(_entry), do: {:error, "every score must be an object"}
+  defp parse_ballot_entry(_entry), do: {:error, "Every score must be an object."}
 
   defp ballot_field(entry, key) do
     case Map.fetch(entry, key) do
@@ -1209,15 +1207,15 @@ defmodule Cab.Sessions do
         {:error,
          %{
            scores:
-             "two teams share the total #{Enum.map_join(tied, ", ", &format_total/1)} — " <>
-               "BP forbids tied team totals, adjust the scores"
+             "Two teams share the total #{Enum.map_join(tied, ", ", &format_total/1)}. " <>
+               "BP allows no ties, so adjust the scores."
          }}
       end
     end
   end
 
   defp full_room(room_teams) when length(room_teams) == @teams_per_room, do: :ok
-  defp full_room(_room_teams), do: {:error, "the room does not have #{@teams_per_room} teams"}
+  defp full_room(_room_teams), do: {:error, "This ballot doesn't match the room's draw."}
 
   defp assign_speaker_scores(room_teams, by_position) do
     Enum.reduce_while(room_teams, {:ok, []}, fn rt, {:ok, acc} ->
@@ -1237,15 +1235,12 @@ defmodule Cab.Sessions do
 
     cond do
       length(slots) != length(entries) ->
-        {:error,
-         %{scores: "team at position #{rt["position"]} has #{length(slots)} speaker slot(s)"}}
+        {:error, %{scores: "This ballot doesn't match the room's draw."}}
 
-      stranger = Enum.find(entries, &(&1.speaker_participant_id not in team_pids)) ->
+      Enum.any?(entries, &(&1.speaker_participant_id not in team_pids)) ->
         {:error,
          %{
-           scores:
-             "participant #{stranger.speaker_participant_id} does not speak " <>
-               "at position #{rt["position"]}"
+           scores: "This ballot doesn't match the room's draw."
          }}
 
       true ->
@@ -1367,7 +1362,7 @@ defmodule Cab.Sessions do
   def round_by_sequence(actor, event_id, sequence) do
     with {:ok, rounds} <- EngineApi.list_rounds(actor, event_id) do
       case Enum.find(rounds, &(&1["sequence"] == sequence)) do
-        nil -> {:error, "round #{sequence} does not exist yet"}
+        nil -> {:error, "Something went wrong, try again."}
         round -> {:ok, round}
       end
     end
@@ -1528,7 +1523,7 @@ defmodule Cab.Sessions do
   defp actor_for(%User{} = user) do
     case Accounts.ensure_node_user(user) do
       %User{node_user_id: id} when is_integer(id) -> {:ok, id}
-      _ -> {:error, "engine user could not be provisioned"}
+      _ -> {:error, "Something went wrong, try again."}
     end
   end
 

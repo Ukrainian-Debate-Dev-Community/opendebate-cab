@@ -153,7 +153,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> post(~p"/c/#{club.uuid}/join", %{message: "I debated at school", contact: "@wb"})
 
     assert redirected_to(sent) == "/c/#{club.uuid}"
-    assert Phoenix.Flash.get(sent.assigns.flash, :info) =~ "club head will approve"
+    assert Phoenix.Flash.get(sent.assigns.flash, :info) =~ "club head will review"
     assert [request] = Cab.Clubs.list_join_requests(club)
     assert request.message == "I debated at school"
     assert request.contact == "@wb"
@@ -455,7 +455,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove")
 
     assert redirected_to(cancelled) == "/c/#{club.uuid}/s/#{session.uuid}"
-    assert Phoenix.Flash.get(cancelled.assigns.flash, :info) =~ "registration cancelled"
+    assert Phoenix.Flash.get(cancelled.assigns.flash, :info) =~ "Registration cancelled."
     assert_received :removed
   end
 
@@ -520,7 +520,7 @@ defmodule CabWeb.HtmlTreesTest do
 
     # stage words in the crumb, chrome actions for :signup only:
     # the ONE gold action is Start session, submitting the allocator
-    assert html =~ "sign-ups open"
+    assert html =~ "registration open"
     assert html =~ "Start session"
     refute html =~ "Close sign-ups"
     refute html =~ "Cancel session"
@@ -548,7 +548,7 @@ defmodule CabWeb.HtmlTreesTest do
     end
   end
 
-  test "owner surface at :closed: allocator + Make these rooms + Reopen; lifecycle twins redirect back",
+  test "owner surface at :closed: allocator + Start session + Reopen registration; lifecycle twins redirect back",
        %{conn: conn, club: club, head: head} do
     session = closed_session_fixture(club, engine_event_id: 11)
     stub_signup_stage(signup_stage_signups())
@@ -559,12 +559,12 @@ defmodule CabWeb.HtmlTreesTest do
       |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
       |> html_response(200)
 
-    # the allocator is embedded here too; Make these rooms submits it
-    assert html =~ "Make these rooms"
+    # the allocator is embedded here too; Start session submits it
+    assert html =~ "Start session"
     assert html =~ ~s(id="allocator-form")
     assert html =~ ~s(phx-submit="make_rooms")
-    assert html =~ "Reopen sign-ups"
-    assert html =~ "sign-ups closed"
+    assert html =~ "Reopen registration"
+    assert html =~ "registration closed"
     refute html =~ "Close sign-ups"
     refute html =~ "Compose rooms"
 
@@ -574,7 +574,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/reopen-signups")
 
     assert redirected_to(reopened) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-    assert Phoenix.Flash.get(reopened.assigns.flash, :info) =~ "sign-ups reopened"
+    assert Phoenix.Flash.get(reopened.assigns.flash, :info) =~ "Registration reopened."
 
     closed =
       conn
@@ -588,7 +588,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> log_in(head)
       |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/close-signups")
 
-    assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~ "session is closed"
+    assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~ "only be closed while it is open"
   end
 
   test "owner signs a member up on their behalf and removes a signup",
@@ -633,7 +633,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/3/remove")
 
     assert redirected_to(removed) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-    assert Phoenix.Flash.get(removed.assigns.flash, :info) =~ "signup removed"
+    assert Phoenix.Flash.get(removed.assigns.flash, :info) =~ "Registration removed."
     assert_received :removed
   end
 
@@ -708,7 +708,7 @@ defmodule CabWeb.HtmlTreesTest do
       })
 
     assert redirected_to(bounced) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-    assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~ "placed more than once"
+    assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~ "placed in two seats"
     assert Cab.Sessions.get_for_club(club, session.uuid).signups_closed_at == nil
 
     # the dnd slots post rooms[i][side][slot] (+ judge); empty slots
@@ -730,7 +730,7 @@ defmodule CabWeb.HtmlTreesTest do
       })
 
     assert redirected_to(posted) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-    assert Phoenix.Flash.get(posted.assigns.flash, :info) =~ "session started — 1 room(s)"
+    assert Phoenix.Flash.get(posted.assigns.flash, :info) =~ "Session started with 1 room(s)."
     assert_received {:room, room_params}
 
     assert [
@@ -765,7 +765,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert redirected_to(bounced) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
 
     assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~
-             "nothing is allocated automatically"
+             "Nobody is placed automatically"
 
     assert Cab.Sessions.get_for_club(club, session.uuid).signups_closed_at == nil
   end
@@ -1094,7 +1094,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> html_response(200)
 
     assert html =~ "Delete rooms"
-    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/rooms/delete"
+    assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/reopen-registration"
     refute html =~ "edit ballot"
 
     deleted =
@@ -1150,7 +1150,7 @@ defmodule CabWeb.HtmlTreesTest do
     refute html =~ "Delete rooms"
     assert html =~ "edit ballot"
     assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
-    assert html =~ "ballot in"
+    assert html =~ "ballot confirmed"
     refute html =~ "unlock"
     refute html =~ "unconfirm"
 

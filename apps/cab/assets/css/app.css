@@ -438,11 +438,9 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
                   background:radial-gradient(circle at 40% 40%, rgba(224,168,60,.22), transparent 70%); }
 .auth .side-brand .b3 { width:150px; height:150px; right:120px; bottom:-40px;
                   background:radial-gradient(circle at 40% 40%, rgba(255,255,255,.08), transparent 72%); }
-.auth .side-brand .brand-top { display:flex; align-items:center; gap:12px; font-weight:800;
-                  font-size:1.05rem; }
-.auth .side-brand .brand-top .dot { width:30px; height:30px; border-radius:9px; background:var(--gold);
-      color:#3A1D4E; display:inline-flex; align-items:center; justify-content:center;
-      font-size:.7rem; font-weight:800; }
+/* the wordmark, large on the brand panel and above the form */
+.auth .side-brand .brand-top { font-family:"Cedarville Cursive",cursive; font-size:3.6rem;
+                  line-height:1; font-weight:400; }
 .auth .side-brand h1 { font-size:1.9rem; line-height:1.2; letter-spacing:-.02em; max-width:420px; }
 .auth .side-brand p { opacity:.78; font-size:.9rem; max-width:400px; margin-top:10px; }
 .auth .side-brand .feats { list-style:none; margin:22px 0 0; padding:0; font-size:.82rem; opacity:.9; }
@@ -452,9 +450,8 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 
 .auth .side-form { display:flex; align-items:center; justify-content:center; padding:40px 24px; }
 .auth .form-col { width:100%; max-width:360px; }
-.auth .form-col .crest { width:44px; height:44px; border-radius:12px; background:var(--brand-fill);
-      color:var(--on-brand); display:flex; align-items:center; justify-content:center; font-weight:800;
-      font-size:.8rem; margin-bottom:22px; }
+.auth .form-col .crest { font-family:"Cedarville Cursive",cursive; font-size:3rem; line-height:1;
+      color:var(--brand); margin-bottom:18px; }
 .auth .form-col h2 { font-size:1.35rem; letter-spacing:-.02em; font-weight:750; }
 .auth .form-col .lede { color:var(--muted); font-size:.86rem; margin:6px 0 28px; }
 

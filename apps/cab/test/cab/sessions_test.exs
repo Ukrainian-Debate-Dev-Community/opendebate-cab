@@ -142,7 +142,7 @@ defmodule Cab.SessionsTest do
     stub(fn conn, _params -> state_stub(conn, []) end)
 
     assert {:error, :conflict, message} = Sessions.signup(user, closed)
-    assert message =~ "sign-ups are not open (session is closed)"
+    assert message =~ "Registration is not open."
   end
 
   test "successful writes announce the session; refused ones stay silent", %{club: club} do
@@ -226,7 +226,7 @@ defmodule Cab.SessionsTest do
     test "anyone fits any slot; slots must exist", %{session: session} do
       assert {:ok, _} = Sessions.place(session, 90, "1:og:1")
       assert {:ok, _} = Sessions.place(session, 1, "1:judge")
-      assert {:error, "no such slot: 3:og:1"} = Sessions.place(session, 1, "3:og:1")
+      assert {:error, "That seat doesn't exist."} = Sessions.place(session, 1, "3:og:1")
     end
 
     test "people who left the signups drop out of the draft", %{session: session} do
@@ -256,14 +256,14 @@ defmodule Cab.SessionsTest do
 
     # already closed -> conflict
     assert {:error, :conflict, message} = Sessions.close_signups(%{closed | club: club})
-    assert message =~ "session is closed"
+    assert message =~ "only be closed while it is open"
 
     assert {:ok, reopened} = Sessions.reopen_signups(%{closed | club: club})
     assert reopened.signups_closed_at == nil
 
     # reopen only while closed
     assert {:error, :conflict, message} = Sessions.reopen_signups(%{reopened | club: club})
-    assert message =~ "session is signup"
+    assert message =~ "only reopen while it is closed"
 
     # rooms made -> neither close nor reopen
     stub(fn conn, _params -> state_stub(conn, [], [%{"id" => 71, "status" => "pending"}]) end)
@@ -415,7 +415,7 @@ defmodule Cab.SessionsTest do
     ]
 
     assert {:error, :conflict, message} = Sessions.make_rooms(head, session, composition)
-    assert message =~ "rooms are composed after sign-ups close"
+    assert message =~ "Rooms are made after registration closes"
   end
 
   test "make_rooms/3 validates the composition against the signups",
@@ -433,29 +433,29 @@ defmodule Cab.SessionsTest do
 
     # a stranger cannot sit anywhere; nobody twice, chair included
     assert {:error, %{rooms: message}} = Sessions.make_rooms(head, session, compose.(1, full))
-    assert message =~ "placed more than once"
+    assert message =~ "placed in two seats"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6], [7, 999]]))
 
-    assert message =~ "999 is not signed up"
+    assert message =~ "isn't in this session"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6], [7, 1]]))
 
-    assert message =~ "placed more than once"
+    assert message =~ "placed in two seats"
 
-    # shape: 4 teams of 1-2 (irons allowed, empties not), judge
+    # shape: 4 teams of 1-2 (irons allowed, empties not), adjudicator
     # required, non-empty list
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6]]))
 
-    assert message =~ "4 teams of 1-2"
+    assert message =~ "teams of one or two speakers"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6], []]))
 
-    assert message =~ "4 teams of 1-2"
+    assert message =~ "teams of one or two speakers"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(
@@ -464,12 +464,12 @@ defmodule Cab.SessionsTest do
                compose.(99, [[1, 2], [3, 4], [5, 6], [7, 8, 1]])
              )
 
-    assert message =~ "4 teams of 1-2"
+    assert message =~ "teams of one or two speakers"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, [%{"teams" => full}])
 
-    assert message =~ "adjudicator_participant_id"
+    assert message =~ "Every room needs an adjudicator."
 
     assert {:error, %{rooms: _}} = Sessions.make_rooms(head, session, [])
     assert {:error, %{rooms: _}} = Sessions.make_rooms(head, session, "nope")
@@ -519,9 +519,9 @@ defmodule Cab.SessionsTest do
 
     # only approved members
     assert {:error, message} = Sessions.signup_for(head, session, outsider.username)
-    assert message =~ "not an approved member"
+    assert message =~ "is not a member of this club"
     assert {:error, message} = Sessions.signup_for(head, session, "who-dis")
-    assert message =~ "not an approved member"
+    assert message =~ "is not a member of this club"
   end
 
   test "remove_signup: the head removes anyone, a member only themselves",
@@ -566,7 +566,7 @@ defmodule Cab.SessionsTest do
     assert :ok = Sessions.remove_signup(head, session, 42)
     assert_received {:deleted, "42", %{"id" => 9}}
 
-    assert {:error, "participant 77 is not signed up" <> _} =
+    assert {:error, "That person isn't in this session."} =
              Sessions.remove_signup(head, session, 77)
   end
 
@@ -644,11 +644,11 @@ defmodule Cab.SessionsTest do
     assert {recorded.started_at, recorded.rooms_count} == {nil, 0}
 
     rooms_stub.([%{"id" => 71, "status" => "pending"}, %{"id" => 72, "status" => "judging"}])
-    assert {:error, "only pending rooms" <> _} = Sessions.delete_rooms(head, session)
+    assert {:error, "Rooms can only be deleted" <> _} = Sessions.delete_rooms(head, session)
     refute_received {:deleted_room, _id}
 
     rooms_stub.([])
-    assert {:error, "this session has no rooms" <> _} = Sessions.delete_rooms(head, session)
+    assert {:error, "This session has no rooms to delete."} = Sessions.delete_rooms(head, session)
   end
 
   test "editing a confirmed ballot: head only, unconfirm + replace + reconfirm, never wiped",
@@ -845,7 +845,7 @@ defmodule Cab.SessionsTest do
 
     assert {:error, %{scores: message}} = Sessions.submit_ballot(judge, session, 71, scores)
     assert message =~ "151"
-    assert message =~ "tied team totals"
+    assert message =~ "BP allows no ties"
     refute_received {:scores, _claims, _params}
   end
 
@@ -862,7 +862,7 @@ defmodule Cab.SessionsTest do
           ]
 
       assert {:error, %{scores: message}} = Sessions.submit_ballot(judge, session, 71, scores)
-      assert message =~ "whole points, 50-100"
+      assert message =~ "whole points from 50 to 100"
     end
 
     # not two entries per team
@@ -903,9 +903,9 @@ defmodule Cab.SessionsTest do
         ]
 
     assert {:error, %{scores: message}} = Sessions.submit_ballot(judge, session, 71, scores)
-    assert message =~ "999 does not speak at position 1"
+    assert message =~ "doesn't match the room's draw"
 
-    assert {:error, "room 72 is not part of this session"} =
+    assert {:error, "That room is not part of this session."} =
              Sessions.submit_ballot(
                judge,
                session,

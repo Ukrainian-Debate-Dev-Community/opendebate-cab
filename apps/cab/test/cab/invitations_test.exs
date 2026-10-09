@@ -237,7 +237,7 @@ defmodule Cab.InvitationsTest do
     assert [{_, %{"user_id" => 501}}] = calls(agent, "POST", "/api/events/11/participants")
 
     html = view |> form("#add-person-form", %{q: "olena@example.com"}) |> render_change()
-    assert html =~ "registered user, add now"
+    assert html =~ "registered user, will accept"
     view |> element("#add-person-suggestions button", "olena") |> render_click()
     assert [%Invitation{}] = Repo.all(Invitation)
     assert render(view) =~ "invited, not accepted yet"

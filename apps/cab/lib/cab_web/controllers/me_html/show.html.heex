@@ -1,5 +1,5 @@
 <Layouts.app flash={@flash} current_user={@current_user} active="me">
-  <.chrome here="my page"></.chrome>
+  <.chrome here="My page"></.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
@@ -20,9 +20,6 @@
           <:col :let={s} label="1st places">{s["placements"]["first_places"]}</:col>
           <:col :let={s} label="Win rate">{s["placements"]["win_rate_percentage"]}%</:col>
         </.table>
-        <div class="pad">
-          <p class="mut">Engine statistics, shown as reported — nothing is recomputed.</p>
-        </div>
       </.section>
     <% else %>
       <.section title="Stats" pad>

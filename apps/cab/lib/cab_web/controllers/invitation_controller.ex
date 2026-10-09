@@ -38,7 +38,7 @@ defmodule CabWeb.InvitationController do
       case Invitations.decline(invitation) do
         :ok ->
           conn
-          |> put_flash(:info, "invitation declined, your name is removed")
+          |> put_flash(:info, "Invitation declined. Your name is removed.")
           |> redirect(to: ~p"/")
 
         {:error, message} ->

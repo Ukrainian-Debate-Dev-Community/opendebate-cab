@@ -8,7 +8,7 @@
 >
   <.chrome
     crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
-    here={"register — #{stage_words(@state.stage)}"}
+    here={"Register — #{stage_words(@state.stage)}"}
   >
   </.chrome>
 
@@ -18,8 +18,8 @@
     <.banner kind={:info}>Registration is closed for this session.</.banner>
 
     <.section title="Registration" pad>
-      Sign-ups for <b>{@state.event["name"]}</b>
-      are no longer open.
+      Registration for <b>{@state.event["name"]}</b>
+      is closed.
       <p>Ask the club head about the next session.</p>
     </.section>
   </div>

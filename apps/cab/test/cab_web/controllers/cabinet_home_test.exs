@@ -89,7 +89,7 @@ defmodule CabWeb.CabinetHomeTest do
     assert html =~ ~s(id="sidenav-profile")
     assert html =~ "anna"
     assert html =~ ~s(href="/account")
-    assert html =~ "sign out"
+    assert html =~ "Sign out"
 
     # my clubs: rows link to the club page; roles written as words
     assert html =~ ~s(id="my-clubs")
@@ -159,7 +159,7 @@ defmodule CabWeb.CabinetHomeTest do
 
     assert html =~ "a session is open"
     assert html =~ ~s(href="/c/#{club.uuid}")
-    assert html =~ "sign-ups open"
+    assert html =~ "registration open"
   end
 
   test "My page lists past participations, rows linking to the session page",

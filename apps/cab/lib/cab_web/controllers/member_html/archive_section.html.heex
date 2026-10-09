@@ -9,9 +9,9 @@
         <% :done -> %>
           {if row.winner, do: "done — won by #{row.winner}", else: "done"}
         <% :live -> %>
-          <b>live</b>
+          <b>running</b>
         <% :open -> %>
-          sign-ups open
+          registration open
       <% end %>
     </:col>
   </.table>

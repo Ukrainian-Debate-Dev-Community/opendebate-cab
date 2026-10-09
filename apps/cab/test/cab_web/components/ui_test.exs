@@ -68,7 +68,7 @@ defmodule CabWeb.UiTest do
     assert html =~ ~s(class="av")
     assert html =~ "AK"
     assert html =~ ~s(href="/account")
-    assert html =~ "sign out"
+    assert html =~ "Sign out"
     assert html =~ ~s(href="/auth/logout")
 
     admin_html =
@@ -87,7 +87,7 @@ defmodule CabWeb.UiTest do
     assert anonymous =~ "Sign in"
     assert anonymous =~ ~s(href="/signin")
     refute anonymous =~ "/auth/github"
-    refute anonymous =~ "sign out"
+    refute anonymous =~ "Sign out"
   end
 
   test "sidenav club context: place items, role-scoped targets" do
@@ -382,7 +382,7 @@ defmodule CabWeb.UiTest do
     refute tray =~ "Nadia"
     # the tray carries no role tags; placed chips take their seat's tag
     refute tray =~ ~s(class="k")
-    assert tray =~ "Unallocated (1)"
+    assert tray =~ "Waiting (1)"
 
     # slots carry their keys; the placed chip renders inside its slot
     assert table =~ ~s(data-slot="1:og:1")

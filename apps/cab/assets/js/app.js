@@ -52,8 +52,8 @@ const BallotMath = {
       })
       if (!this.msg || this.msg.querySelector(".err.server")) return
       this.msg.innerHTML = tied
-        ? '<span class="err">Two teams share a total — BP forbids ties. Adjust scores to submit.</span>'
-        : "All totals distinct — ballot valid. Submit lives in the chrome."
+        ? '<span class="err">Two teams share a total. BP allows no ties, so adjust the scores.</span>'
+        : "Ready to submit."
     }
     this.grid.addEventListener("input", this.recalc)
     this.recalc()
@@ -374,10 +374,10 @@ document.addEventListener("click", e => {
   if (!btn) return
   const done = ok => {
     btn.classList.toggle("copied", ok)
-    btn.textContent = ok ? "copied" : "copy"
+    btn.textContent = ok ? "Copied" : "Copy"
     setTimeout(() => {
       btn.classList.remove("copied")
-      btn.textContent = "copy"
+      btn.textContent = "Copy"
     }, 1500)
   }
   if (navigator.clipboard && window.isSecureContext) {

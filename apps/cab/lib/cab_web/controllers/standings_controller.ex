@@ -22,7 +22,7 @@ defmodule CabWeb.StandingsController do
       scope: scope,
       rows: rows(tab, scope),
       club: nil,
-      page_title: "standings"
+      page_title: "Standings"
     )
   end
 
@@ -32,7 +32,7 @@ defmodule CabWeb.StandingsController do
       scope: nil,
       rows: Standings.clubs(),
       club: nil,
-      page_title: "standings"
+      page_title: "Standings"
     )
   end
 

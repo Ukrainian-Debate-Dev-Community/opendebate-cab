@@ -46,7 +46,7 @@ defmodule CabWeb.GuestLinkController do
               link: link,
               club: link.session.club,
               session: link.session,
-              page_title: "your guest history"
+              page_title: "Your guest history"
             )
         end
     end
@@ -60,7 +60,7 @@ defmodule CabWeb.GuestLinkController do
       case Links.claim(link, account) do
         {:ok, _moved} ->
           conn
-          |> put_flash(:info, "#{link.user.name}'s guest history is now on your account")
+          |> put_flash(:info, "#{link.user.name}'s guest history is now on your account.")
           |> redirect(to: ~p"/me")
 
         {:error, message} ->

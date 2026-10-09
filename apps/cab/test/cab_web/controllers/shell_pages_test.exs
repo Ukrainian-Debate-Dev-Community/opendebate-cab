@@ -61,7 +61,7 @@ defmodule CabWeb.ShellPagesTest do
       user_html = conn |> log_in(user_fixture()) |> get(~p"/") |> html_response(200)
       refute user_html =~ ">Admin<"
       assert user_html =~ ~s(href="/account")
-      assert user_html =~ "sign out"
+      assert user_html =~ "Sign out"
 
       admin_html = conn |> log_in(admin_fixture()) |> get(~p"/") |> html_response(200)
       assert admin_html =~ ">Admin<"

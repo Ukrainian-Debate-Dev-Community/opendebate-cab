@@ -191,6 +191,6 @@ defmodule Cab.EngineApiTest do
   test "transport errors become readable messages" do
     stub(fn conn, _params -> Req.Test.transport_error(conn, :econnrefused) end)
 
-    assert {:error, "engine unreachable: " <> _} = EngineApi.get_event(9, 11)
+    assert {:error, "Something went wrong, try again."} = EngineApi.get_event(9, 11)
   end
 end

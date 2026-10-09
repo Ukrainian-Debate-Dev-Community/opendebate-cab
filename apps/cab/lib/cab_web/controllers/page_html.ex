@@ -7,10 +7,9 @@ defmodule CabWeb.PageHTML do
   # the Next session column, written out as words — no pills anywhere
   defp tonight_words(nil), do: "quiet"
 
-  defp tonight_words({_session, :signup, _rooms}), do: "sign-ups open"
+  defp tonight_words({_session, :signup, _rooms}), do: "registration open"
 
-  defp tonight_words({_session, :closed, _rooms}), do: "sign-ups closed"
+  defp tonight_words({_session, :closed, _rooms}), do: "registration closed"
 
-  defp tonight_words({_session, :running, rooms}),
-    do: "session running, #{rooms} room#{if rooms != 1, do: "s"}"
+  defp tonight_words({_session, :running, _rooms}), do: "running"
 end

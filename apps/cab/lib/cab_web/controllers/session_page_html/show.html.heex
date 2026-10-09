@@ -38,7 +38,7 @@
     <.flash_banners flash={@flash} />
 
     <.banner :if={@state.stage != :done && @my_signup} kind={:good}>
-      You are registered for tonight.
+      You are registered for this session.
     </.banner>
     <.banner :if={@state.stage in [:closed, :running]} kind={:info}>
       Registration is closed for this session.
@@ -64,7 +64,7 @@
     <%= case @state.stage do %>
       <% stage when stage in [:signup, :closed] -> %>
         <.section title="Who's registered">
-          <.table id="session-signups" rows={@state.signups} empty="Nobody signed up yet.">
+          <.table id="session-signups" rows={@state.signups} empty="Nobody registered yet.">
             <:col :let={participant} label="Name">{participant["display_name"]}</:col>
           </.table>
         </.section>

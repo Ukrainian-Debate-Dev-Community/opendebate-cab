@@ -1,6 +1,6 @@
 <Layouts.app flash={@flash} current_user={@current_user} active="clubs">
   <%= if @current_user do %>
-    <.chrome here="my cab"></.chrome>
+    <.chrome here="My cab"></.chrome>
     <div class="pbody">
       <.flash_banners flash={@flash} />
       <.banner
@@ -53,7 +53,7 @@
               <% m.status != "approved" -> %>
                 —
               <% match?({%{scheduled_at: %DateTime{}}, :signup, _}, @tonight[m.club_id]) -> %>
-                sign-ups open,
+                registration open,
                 <.local_time
                   at={elem(@tonight[m.club_id], 0).scheduled_at}
                   as={:weekday_time}
@@ -83,7 +83,7 @@
       </.section>
     </div>
   <% else %>
-    <.chrome here="debate clubs of Ukraine"></.chrome>
+    <.chrome here="Debate clubs of Ukraine"></.chrome>
     <div class="pbody">
       <.flash_banners flash={@flash} />
 
@@ -117,13 +117,13 @@
                 <%= if session.scheduled_at do %>
                   <.local_time at={session.scheduled_at} as={:weekday_time} />
                 <% else %>
-                  sign-ups open
+                  registration open
                 <% end %>
                 — <.link href={~p"/r/#{session.uuid}"}>register</.link>
               <% {_session, :closed, _rooms} -> %>
-                starting soon
+                registration closed
               <% {session, :running, _rooms} -> %>
-                live now —
+                running —
                 <.link href={~p"/c/#{club.uuid}/s/#{session.uuid}"}>
                   watch rooms
                 </.link>

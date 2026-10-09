@@ -21,7 +21,7 @@ defmodule CabWeb.OwnerController do
     render(conn, :club,
       archive: Sessions.club_sessions(club),
       live: Sessions.current_for_club(club),
-      page_title: "#{club.name} — edit"
+      page_title: "#{club.name} — Edit"
     )
   end
 
@@ -34,12 +34,12 @@ defmodule CabWeb.OwnerController do
     case Clubs.update_club(conn.assigns.club, attrs) do
       {:ok, _club} ->
         conn
-        |> put_flash(:info, "club profile saved")
+        |> put_flash(:info, "Club profile saved.")
         |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
 
       {:error, %Ecto.Changeset{}} ->
         conn
-        |> put_flash(:error, "the club needs a name")
+        |> put_flash(:error, "The club needs a name.")
         |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
     end
   end
@@ -60,7 +60,7 @@ defmodule CabWeb.OwnerController do
              scheduled_at
            ) do
       conn
-      |> put_flash(:info, "session opened — sign-ups are live")
+      |> put_flash(:info, "Session opened. Registration is open.")
       |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}")
     else
       {:error, message} ->
@@ -82,7 +82,7 @@ defmodule CabWeb.OwnerController do
     render(conn, :members,
       members: Clubs.list_members(club),
       join_requests: Clubs.list_join_requests(club),
-      page_title: "#{club.name} — members"
+      page_title: "#{club.name} — Members"
     )
   end
 
@@ -90,7 +90,7 @@ defmodule CabWeb.OwnerController do
   def approve(conn, %{"id" => id}) do
     with_join_request(conn, id, fn membership ->
       case Clubs.approve_join(membership) do
-        {:ok, _} -> {:ok, "join request approved"}
+        {:ok, _} -> {:ok, "Join request approved."}
         error -> error
       end
     end)
@@ -100,7 +100,7 @@ defmodule CabWeb.OwnerController do
   def decline(conn, %{"id" => id}) do
     with_join_request(conn, id, fn membership ->
       case Clubs.decline_join(membership) do
-        {:ok, _} -> {:ok, "join request declined"}
+        {:ok, _} -> {:ok, "Join request declined."}
         error -> error
       end
     end)
@@ -129,12 +129,12 @@ defmodule CabWeb.OwnerController do
       case params["rooms"] do
         %{} = rooms ->
           case Sessions.start(conn.assigns.current_user, session, compose_spec(rooms)) do
-            {:ok, count} -> {:ok, "session started — #{count} room(s)"}
+            {:ok, count} -> {:ok, "Session started with #{count} room(s)."}
             error -> error
           end
 
         _missing ->
-          {:error, "drag people into the rooms first — nothing is allocated automatically"}
+          {:error, "Drag people into the rooms first. Nobody is placed automatically."}
       end
     end)
   end
@@ -145,7 +145,7 @@ defmodule CabWeb.OwnerController do
   def reopen_registration(conn, %{"session_uuid" => session_uuid}) do
     with_session(conn, session_uuid, fn session ->
       case Sessions.reopen_registration(conn.assigns.current_user, session) do
-        {:ok, _session} -> {:ok, "registration reopened — pending rooms cleared"}
+        {:ok, _session} -> {:ok, "Rooms deleted. Registration is open again."}
         error -> error
       end
     end)
@@ -155,7 +155,7 @@ defmodule CabWeb.OwnerController do
   def close_signups(conn, %{"session_uuid" => session_uuid}) do
     with_session(conn, session_uuid, fn session ->
       case Sessions.close_signups(session) do
-        {:ok, _session} -> {:ok, "sign-ups closed — drag people into the rooms when ready"}
+        {:ok, _session} -> {:ok, "Registration closed. Drag people into the rooms when ready."}
         error -> error
       end
     end)
@@ -165,7 +165,7 @@ defmodule CabWeb.OwnerController do
   def reopen_signups(conn, %{"session_uuid" => session_uuid}) do
     with_session(conn, session_uuid, fn session ->
       case Sessions.reopen_signups(session) do
-        {:ok, _session} -> {:ok, "sign-ups reopened"}
+        {:ok, _session} -> {:ok, "Registration reopened."}
         error -> error
       end
     end)
@@ -191,7 +191,7 @@ defmodule CabWeb.OwnerController do
     case resolved do
       {:member, user} ->
         with {:ok, _} <- Sessions.signup_for(head, session, user.username),
-             do: {:ok, "signed #{user.name || user.username} up"}
+             do: {:ok, "Registered #{user.name || user.username}."}
 
       {:user, user} ->
         with {:ok, _} <- Cab.Invitations.invite(head, session, user),
@@ -201,10 +201,12 @@ defmodule CabWeb.OwnerController do
 
       {:guest, name} ->
         with {:ok, link} <- Links.register_guest(session, name),
-             do: {:ok, "#{link.user.name} added as a guest: #{url(~p"/l/#{link.code}")}"}
+             do:
+               {:ok,
+                "#{link.user.name} added as a guest. Personal link: #{url(~p"/l/#{link.code}")}"}
 
       nil ->
-        {:error, "type a member, a user's exact username or email, or a guest's name"}
+        {:error, "Type a member's name, a user's exact username or email, or a guest's name."}
     end
   end
 
@@ -214,7 +216,7 @@ defmodule CabWeb.OwnerController do
       case Integer.parse(participant_id) do
         {participant_id, ""} ->
           case Sessions.remove_signup(conn.assigns.current_user, session, participant_id) do
-            :ok -> {:ok, "signup removed"}
+            :ok -> {:ok, "Registration removed."}
             error -> error
           end
 
@@ -231,12 +233,12 @@ defmodule CabWeb.OwnerController do
       case params["rooms"] do
         %{} = rooms ->
           case Sessions.make_rooms(conn.assigns.current_user, session, compose_spec(rooms)) do
-            {:ok, count} -> {:ok, "#{count} room(s) created"}
+            {:ok, count} -> {:ok, "#{count} room(s) created."}
             error -> error
           end
 
         _missing ->
-          {:error, "drag people into the rooms first — nothing is allocated automatically"}
+          {:error, "Drag people into the rooms first. Nobody is placed automatically."}
       end
     end)
   end
@@ -290,7 +292,7 @@ defmodule CabWeb.OwnerController do
   def delete_rooms(conn, %{"session_uuid" => session_uuid}) do
     with_session(conn, session_uuid, fn session ->
       case Sessions.delete_rooms(conn.assigns.current_user, session) do
-        {:ok, count} -> {:ok, "#{count} room(s) deleted — allocate the rooms again"}
+        {:ok, count} -> {:ok, "#{count} room(s) deleted. Allocate the rooms again."}
         error -> error
       end
     end)
@@ -303,7 +305,7 @@ defmodule CabWeb.OwnerController do
         case Sessions.cancel(conn.assigns.current_user, session) do
           {:ok, _session} ->
             conn
-            |> put_flash(:info, "session cancelled")
+            |> put_flash(:info, "Session cancelled.")
             |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
 
           {:error, message} ->
@@ -325,7 +327,7 @@ defmodule CabWeb.OwnerController do
         case Sessions.finish(conn.assigns.current_user, session) do
           :ok ->
             conn
-            |> put_flash(:info, "session finished")
+            |> put_flash(:info, "Session finished.")
             |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}")
 
           {:error, message} ->

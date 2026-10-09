@@ -82,13 +82,13 @@ defmodule CabWeb.OwnerSessionLive do
   def handle_event("start", _params, socket) do
     socket.assigns.current_user
     |> Sessions.start_from_draft(socket.assigns.current)
-    |> reply(socket, &"session started — #{&1} room(s)")
+    |> reply(socket, &"Session started with #{&1} room(s).")
   end
 
   def handle_event("make_rooms", _params, socket) do
     socket.assigns.current_user
     |> Sessions.make_rooms_from_draft(socket.assigns.current)
-    |> reply(socket, &"#{&1} room(s) created")
+    |> reply(socket, &"#{&1} room(s) created.")
   end
 
   @impl true
@@ -132,7 +132,7 @@ defmodule CabWeb.OwnerSessionLive do
     else
       _ ->
         socket
-        |> put_flash(:error, "the session is unavailable right now")
+        |> put_flash(:error, "This session is unavailable right now.")
         |> redirect(to: ~p"/c/#{club.uuid}/owner")
     end
   end

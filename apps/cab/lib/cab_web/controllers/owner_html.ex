@@ -37,7 +37,7 @@ defmodule CabWeb.OwnerHTML do
 
   # where the person sits: the draft before rooms exist, the rooms after
   defp seat_words(participant, %{rooms: rooms}, _draft) when rooms != [] do
-    Enum.find_value(rooms, "waitlist", fn room ->
+    Enum.find_value(rooms, "waiting", fn room ->
       cond do
         Enum.any?(room["RoomAdjudicators"] || [], &seat_of?(&1, participant)) ->
           "#{room_label(room)} adjudicator"
@@ -64,7 +64,7 @@ defmodule CabWeb.OwnerHTML do
         end
 
       nil ->
-        "not placed"
+        "waiting"
     end
   end
 

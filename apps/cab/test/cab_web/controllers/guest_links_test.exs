@@ -159,7 +159,7 @@ defmodule CabWeb.GuestLinksTest do
         |> post(~p"/r/#{session.uuid}", %{name: "   ", as: "speak"})
         |> html_response(422)
 
-      assert html =~ "name is required"
+      assert html =~ "Enter a name."
       assert Repo.all(Link) == []
       refute Repo.exists?(from u in User, where: like(u.username, "guest-%"))
     end
@@ -203,7 +203,7 @@ defmodule CabWeb.GuestLinksTest do
 
       # P6 greets the guest with their registration + cancel action
       html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
-      assert html =~ "You are registered for tonight."
+      assert html =~ "You are registered for this session."
       assert html =~ "Cancel my registration"
       assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove"
 
@@ -386,7 +386,7 @@ defmodule CabWeb.GuestLinksTest do
         conn |> anon() |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove")
 
       assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
-      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "registration cancelled"
+      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Registration cancelled."
       assert_received {:renamed, "removed"}
       assert_received :removed
 
@@ -528,7 +528,7 @@ defmodule CabWeb.GuestLinksTest do
         |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot", ballot_params())
 
       assert redirected_to(done) == "/c/#{club.uuid}/s/#{session.uuid}"
-      assert Phoenix.Flash.get(done.assigns.flash, :info) =~ "ballot submitted"
+      assert Phoenix.Flash.get(done.assigns.flash, :info) =~ "Ballot submitted."
       assert_received {:scores, params}
       assert [%{"rank" => 1, "room_team_id" => 101} | _rest] = params["teamRankings"]
       assert_received :confirmed
@@ -582,7 +582,7 @@ defmodule CabWeb.GuestLinksTest do
       assert html =~ "People (1 person)"
       assert html =~ "Greta Guest"
       assert html =~ "guest"
-      assert html =~ "not placed"
+      assert html =~ "waiting"
       assert html =~ link.code
       assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/41/remove"
       refute html =~ "revoke"
@@ -663,7 +663,7 @@ defmodule CabWeb.GuestLinksTest do
         |> log_in(head)
         |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups", %{q: " "})
 
-      assert Phoenix.Flash.get(neither.assigns.flash, :error) =~ "type a member"
+      assert Phoenix.Flash.get(neither.assigns.flash, :error) =~ "Type a member"
     end
   end
 
@@ -756,7 +756,7 @@ defmodule CabWeb.GuestLinksTest do
         |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: "Late"})
         |> json_response(409)
 
-      assert conflict["error"] =~ "sign-ups are not open"
+      assert conflict["error"] =~ "Registration is not open"
     end
 
     test "a guest leaves through DELETE signups: link dead, account gone",

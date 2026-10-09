@@ -1,5 +1,5 @@
 <%= if @tab == "clubs" do %>
-  <.section title="Clubs — plain counts only">
+  <.section title="Clubs">
     <.table id="standings-clubs" rows={@rows} rank empty="No clubs yet.">
       <:col :let={row} label="Club">
         <.link href={~p"/c/#{row.club.uuid}"}>{row.club.name}</.link>
@@ -36,7 +36,7 @@
         id={"standings-#{@tab}"}
         rows={@rows}
         rank
-        empty="The engine returned no standings for this session."
+        empty="No results for this session yet."
       >
         <:col :let={row} :if={@tab == "teams"} label="Team">{row["name"]}</:col>
         <:col :let={row} :if={@tab == "speakers"} label="Speaker">{row["name"]}</:col>
@@ -55,7 +55,7 @@
   <% else %>
     <.section title={tab_label(@tab)} pad>
       No finished session yet.
-      <p>Standings show one session's engine results — the latest finished one.</p>
+      <p>Standings show the latest finished session.</p>
     </.section>
   <% end %>
 <% end %>

@@ -1,5 +1,5 @@
 <Layouts.app flash={@flash} current_user={@current_user} active="admin">
-  <.chrome here="admin">
+  <.chrome here="Admin">
     <:seg form="create-club-form" primary>Create club</:seg>
   </.chrome>
 
@@ -60,7 +60,7 @@
       <.form_for
         id="change-head-form"
         action={~p"/admin/head"}
-        description="The engine organisation gains the new head as owner; the old head stays a member."
+        description="The new head takes over; the old head retires."
       >
         <:block
           name={:uuid}

@@ -91,7 +91,7 @@ defmodule CabWeb.EightPagesTest do
 
       # the split page: brand side + the no-passwords card
       assert html =~ ~s(class="auth")
-      assert html =~ "cab.uadebate"
+      assert html =~ ~s(<div class="brand-top">cab</div>)
       assert html =~ "We don't use passwords"
 
       # GitHub and Google both live, guest note present
@@ -135,7 +135,7 @@ defmodule CabWeb.EightPagesTest do
       html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
 
       # the stage is written out as words in the crumb — no pill
-      assert html =~ "sign-ups open"
+      assert html =~ "registration open"
       refute html =~ "class=\"stage"
       assert html =~ ~s(id="session-signups")
       assert html =~ "Anna K"
@@ -374,7 +374,7 @@ defmodule CabWeb.EightPagesTest do
       stub(fn conn, _params -> Plug.Conn.send_resp(conn, 500, "boom") end)
 
       html = conn |> get(~p"/c/#{club.uuid}/standings/teams") |> html_response(200)
-      assert html =~ "The engine returned no standings for this session."
+      assert html =~ "No results for this session yet."
     end
 
     test "an unknown tab is 404", %{conn: conn, club: club} do

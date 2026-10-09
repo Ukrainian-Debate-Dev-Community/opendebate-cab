@@ -52,7 +52,7 @@ defmodule CabWeb.ClubPublicController do
             scope: scope,
             rows: standings_rows(tab, scope),
             archive: archive,
-            page_title: "#{club.name} — standings"
+            page_title: "#{club.name} — Standings"
           )
         else
           deny_private_standings(conn, club)
@@ -123,7 +123,7 @@ defmodule CabWeb.ClubPublicController do
     case conn.assigns.current_user do
       nil ->
         conn
-        |> put_flash(:error, "This club's standings are members-only — please sign in.")
+        |> put_flash(:error, "This club's standings are for members. Please sign in.")
         |> redirect(to: ~p"/signin")
         |> halt()
 
@@ -151,7 +151,7 @@ defmodule CabWeb.ClubPublicController do
     case Clubs.request_join(conn.assigns.current_user, club, params) do
       {:ok, _membership} ->
         conn
-        |> put_flash(:info, "request sent — the club head will approve it")
+        |> put_flash(:info, "Request sent. The club head will review it.")
         |> redirect(to: ~p"/c/#{club.uuid}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -166,7 +166,7 @@ defmodule CabWeb.ClubPublicController do
       message: params["message"],
       contact: params["contact"],
       errors: errors,
-      page_title: "#{conn.assigns.club.name} — join"
+      page_title: "#{conn.assigns.club.name} — Join"
     )
   end
 

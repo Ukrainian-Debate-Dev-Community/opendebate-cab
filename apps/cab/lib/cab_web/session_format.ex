@@ -11,8 +11,8 @@ defmodule CabWeb.SessionFormat do
   def sides, do: @sides
 
   @doc "A session's stage in words."
-  def stage_words(:signup), do: "sign-ups open"
-  def stage_words(:closed), do: "sign-ups closed"
+  def stage_words(:signup), do: "registration open"
+  def stage_words(:closed), do: "registration closed"
   def stage_words(:running), do: "running"
   def stage_words(:done), do: "finished"
 
@@ -26,8 +26,8 @@ defmodule CabWeb.SessionFormat do
   @doc "A room's ballot state in words."
   def room_status_words("pending"), do: "waiting to start"
   def room_status_words("judging"), do: "debating — waiting for the ballot"
-  def room_status_words("completed"), do: "ballot in"
-  def room_status_words("confirmed"), do: "ballot in"
+  def room_status_words("completed"), do: "ballot submitted"
+  def room_status_words("confirmed"), do: "ballot confirmed"
   def room_status_words("void"), do: "void"
   def room_status_words(other), do: other
 

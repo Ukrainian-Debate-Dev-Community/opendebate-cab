@@ -166,6 +166,8 @@ defmodule Cab.EngineApi do
   then adds the acting user as owner for full control.
   """
 
+  require Logger
+
   alias Core.Engine
 
   @bp_format_id 1
@@ -415,14 +417,19 @@ defmodule Cab.EngineApi do
   defp unwrap({:ok, %Req.Response{status: status, body: body}}) do
     message =
       case body do
-        %{"message" => message} when is_binary(message) -> message
-        other -> "engine returned #{status}: #{inspect(other)}"
+        %{"message" => message} when is_binary(message) ->
+          message
+
+        other ->
+          Logger.warning("engine returned #{status}: #{inspect(other)}")
+          "Something went wrong, try again."
       end
 
     {:error, message}
   end
 
   defp unwrap({:error, exception}) do
-    {:error, "engine unreachable: #{Exception.message(exception)}"}
+    Logger.warning("engine unreachable: #{Exception.message(exception)}")
+    {:error, "Something went wrong, try again."}
   end
 end

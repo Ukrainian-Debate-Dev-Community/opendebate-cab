@@ -79,7 +79,7 @@ defmodule Cab.AccountsTest do
 
       assert {:ok, _} = Accounts.unlink_identity(user, "google")
 
-      assert {:error, "keep at least one way to sign in"} =
+      assert {:error, "Keep at least one way to sign in."} =
                Accounts.unlink_identity(user, "github")
     end
 
@@ -144,7 +144,7 @@ defmodule Cab.AccountsTest do
         )
       end)
 
-      assert {:error, "that account heads a club" <> _} = Accounts.merge_accounts(target, source)
+      assert {:error, "That account heads a club" <> _} = Accounts.merge_accounts(target, source)
       assert Repo.get(Accounts.User, source.id)
     end
   end

@@ -39,9 +39,7 @@
     <CabWeb.MemberHTML.archive_section club={@club} archive={@recent} />
 
     <.section title="Standings" pad>
-      Per-session engine standings live under
-      <.link href={~p"/c/#{@club.uuid}/standings/teams"}>Standings</.link>
-      in the sidenav.
+      Standings for each session are under <.link href={~p"/c/#{@club.uuid}/standings/teams"}>Standings</.link>.
     </.section>
   </div>
 </Layouts.app>

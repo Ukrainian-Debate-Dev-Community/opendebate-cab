@@ -36,7 +36,7 @@ defmodule CabWeb.RegistrationController do
     case result do
       {:ok, _participant} ->
         conn
-        |> put_flash(:info, "registered")
+        |> put_flash(:info, "You are registered.")
         |> redirect(to: ~p"/c/#{session.club.uuid}/s/#{session.uuid}")
 
       {:error, :conflict, message} ->
@@ -71,7 +71,7 @@ defmodule CabWeb.RegistrationController do
           session: session,
           link: link,
           personal_url: url(~p"/l/#{link.code}"),
-          page_title: "#{session.club.name} — registered"
+          page_title: "#{session.club.name} — Registered"
         )
 
       {:error, :conflict, _message} ->
@@ -94,7 +94,7 @@ defmodule CabWeb.RegistrationController do
       state: state,
       name: params["name"],
       errors: errors,
-      page_title: "#{session.club.name} — register"
+      page_title: "#{session.club.name} — Register"
     )
   end
 
@@ -103,7 +103,7 @@ defmodule CabWeb.RegistrationController do
       club: session.club,
       session: session,
       state: state,
-      page_title: "#{session.club.name} — registration closed"
+      page_title: "#{session.club.name} — Registration closed"
     )
   end
 

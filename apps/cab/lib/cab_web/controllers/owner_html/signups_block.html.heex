@@ -2,7 +2,7 @@
   <div :if={@links != []} class="pad">
     <p>A guest's personal link is their only access — share it only with them.</p>
   </div>
-  <.table id="session-people" rows={@state.signups} empty="Nobody signed up yet.">
+  <.table id="session-people" rows={@state.signups} empty="Nobody registered yet.">
     <:col :let={participant} label="Name">
       {participant["display_name"]}
       <.sub>{person_kind(participant, @links, @members, @invitations)}</.sub>

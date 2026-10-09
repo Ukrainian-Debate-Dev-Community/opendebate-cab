@@ -18,7 +18,7 @@ defmodule CabWeb.MeController do
     render(conn, :show,
       stats: fetch_stats(user),
       history: Sessions.user_history(user),
-      page_title: "my page"
+      page_title: "My page"
     )
   end
 

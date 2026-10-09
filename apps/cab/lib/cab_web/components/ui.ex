@@ -160,7 +160,7 @@ defmodule CabWeb.Ui do
               <% end %>
             </div>
             <.link :if={guest?(@current_user)} href={~p"/signin"}>Sign in with an account</.link>
-            <.link class="out" href={~p"/auth/logout"}>sign out</.link>
+            <.link class="out" href={~p"/auth/logout"}>Sign out</.link>
           <% else %>
             <.link href={~p"/signin"}>Sign in</.link>
           <% end %>
@@ -689,7 +689,7 @@ defmodule CabWeb.Ui do
     ~H"""
     <div class="dnd" id={@id} phx-hook="Allocator">
       <div class="tray" data-drop="tray">
-        <span class="tlabel">Unallocated ({length(@tray)})</span>
+        <span class="tlabel">Waiting ({length(@tray)})</span>
         <.chip :for={person <- @tray} person={person} />
       </div>
       <table>
@@ -819,7 +819,7 @@ defmodule CabWeb.Ui do
 
   def copy(assigns) do
     ~H"""
-    <button type="button" class="copy" data-copy={@text}>copy</button>
+    <button type="button" class="copy" data-copy={@text}>Copy</button>
     """
   end
 

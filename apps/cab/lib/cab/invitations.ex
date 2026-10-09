@@ -120,7 +120,7 @@ defmodule Cab.Invitations do
   """
   def invite(%User{} = head, %Session{} = session, %User{} = user) do
     if Cab.Links.guest?(user.id) do
-      {:error, "guests join through their personal link"}
+      {:error, "Guests join through their personal link."}
     else
       do_invite(head, session, user)
     end
@@ -130,7 +130,7 @@ defmodule Cab.Invitations do
     if Repo.exists?(
          from i in Invitation, where: i.session_id == ^session.id and i.user_id == ^user.id
        ) do
-      {:error, "#{display_name(user)} is already invited"}
+      {:error, "#{display_name(user)} is already invited."}
     else
       with {:ok, %{"id" => pid, "raw_claim_token" => token}} <-
              Sessions.add_unclaimed(head, session, display_name(user)) do
@@ -192,7 +192,7 @@ defmodule Cab.Invitations do
       Sessions.broadcast(invitation.session)
       {:ok, :accepted}
     else
-      %User{} -> {:error, "your account is not linked to the engine yet — try again"}
+      %User{} -> {:error, "Something went wrong, try again."}
       error -> error
     end
   end

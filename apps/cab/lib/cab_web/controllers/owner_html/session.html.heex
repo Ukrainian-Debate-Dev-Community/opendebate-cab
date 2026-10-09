@@ -9,7 +9,7 @@
   <.chrome
     crumbs={[
       {@club.name, ~p"/c/#{@club.uuid}"},
-      {"club", ~p"/c/#{@club.uuid}/owner"}
+      {"Club", ~p"/c/#{@club.uuid}/owner"}
     ]}
     here={"#{@state.event["name"]} — #{stage_words(@state.stage)}"}
   >
@@ -17,29 +17,22 @@
       Start session
     </:seg>
     <:seg :if={@state.stage == :closed} form="allocator-form" primary>
-      Make these rooms
+      Start session
     </:seg>
     <:seg
       :if={@state.stage == :closed}
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-signups"}
       method="post"
     >
-      Reopen sign-ups
-    </:seg>
-    <:seg
-      :if={deletable_rooms?(@state)}
-      href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/rooms/delete"}
-      method="post"
-      quiet
-    >
-      Delete rooms
+      Reopen registration
     </:seg>
     <:seg
       :if={@state.stage == :running && deletable_rooms?(@state)}
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-registration"}
       method="post"
+      quiet
     >
-      Reopen registration
+      Delete rooms
     </:seg>
     <:seg
       :if={@state.stage == :running}

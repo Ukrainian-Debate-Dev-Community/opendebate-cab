@@ -9,9 +9,9 @@
   <.chrome
     crumbs={[
       {@club.name, ~p"/c/#{@club.uuid}"},
-      {"session", ~p"/c/#{@club.uuid}/s/#{@session.uuid}"}
+      {"Session", ~p"/c/#{@club.uuid}/s/#{@session.uuid}"}
     ]}
-    here={"ballot #{room_label(@room)}"}
+    here={"Ballot #{room_label(@room)}"}
   >
     <:seg form={"ballot-#{@room["id"]}"} primary>Submit ballot</:seg>
   </.chrome>
