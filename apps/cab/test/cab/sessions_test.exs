@@ -148,6 +148,19 @@ defmodule Cab.SessionsTest do
       %{session: session, signups: signups}
     end
 
+    test "simultaneous drags from several tabs all land", %{session: session, signups: signups} do
+      slots = ["1:judge" | for(side <- ~w(og oo cg co), n <- [1, 2], do: "1:#{side}:#{n}")]
+      pids = [90 | Enum.to_list(1..8)]
+
+      Enum.zip(pids, slots)
+      |> Enum.map(fn {pid, slot} -> Task.async(fn -> Sessions.place(session, pid, slot) end) end)
+      |> Enum.each(&({:ok, _} = Task.await(&1)))
+
+      draft = Sessions.draft(Cab.Sessions.get_by_uuid(session.uuid), signups)
+      assert map_size(draft) == 9
+      assert draft["1:judge"] == 90
+    end
+
     test "place, swap on an occupied slot, unplace", %{session: session, signups: signups} do
       {:ok, session} = Sessions.place(session, 1, "1:og:1")
       {:ok, session} = Sessions.place(session, 2, "1:oo:1")

@@ -236,11 +236,11 @@ defmodule Cab.Sessions do
            :ok <- require_draftable(state),
            {:ok, _person} <- find_participant(state.signups, participant_id),
            {:ok, _room, _side} <- parse_slot(slot, room_count(state.signups)) do
-        draft = clean_draft(session.draft_allocation, state.signups)
-        from = Enum.find_value(draft, fn {key, pid} -> pid == participant_id && key end)
-        occupant = draft[slot]
+        edit_draft(session, fn current ->
+          draft = clean_draft(current, state.signups)
+          from = Enum.find_value(draft, fn {key, pid} -> pid == participant_id && key end)
+          occupant = draft[slot]
 
-        draft =
           draft
           |> Map.delete(from)
           |> Map.put(slot, participant_id)
@@ -249,8 +249,7 @@ defmodule Cab.Sessions do
               do: Map.put(d, from, occupant),
               else: d
           end)
-
-        save_draft(session, draft)
+        end)
       end
 
     notify(result, session)
@@ -260,12 +259,27 @@ defmodule Cab.Sessions do
   def unplace(%Session{} = session, participant_id) when is_integer(participant_id) do
     session = get_by_uuid(session.uuid)
 
-    draft =
-      session.draft_allocation
-      |> Enum.reject(fn {_key, pid} -> pid == participant_id end)
-      |> Map.new()
+    result =
+      edit_draft(session, fn current ->
+        current
+        |> Enum.reject(fn {_key, pid} -> pid == participant_id end)
+        |> Map.new()
+      end)
 
-    notify(save_draft(session, draft), session)
+    notify(result, session)
+  end
+
+  # read-modify-write of the draft under a row lock: two owner tabs
+  # dragging at the same moment must not overwrite each other
+  defp edit_draft(%Session{id: id}, change) do
+    Repo.transaction(fn ->
+      locked = Repo.one!(from s in Session, where: s.id == ^id, lock: "FOR UPDATE")
+
+      case save_draft(locked, change.(locked.draft_allocation || %{})) do
+        {:ok, saved} -> saved
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
   end
 
   @doc """
