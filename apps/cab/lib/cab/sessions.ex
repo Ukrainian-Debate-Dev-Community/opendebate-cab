@@ -43,9 +43,30 @@ defmodule Cab.Sessions do
   themselves only when that read failed.
   """
   def broadcast(%Session{uuid: uuid} = session) do
+    if watched?(uuid) do
+      # the first writer becomes the reader; writers arriving while it
+      # reads only count themselves, and the reader reads once more for
+      # all of them — twenty simultaneous ballots cost a read or two
+      if :ets.update_counter(:cab_session_changes, uuid, 1, {uuid, 0}) == 1 do
+        try do
+          publish_until_settled(session, 1)
+        rescue
+          error ->
+            # never leave the session stuck as "being read"
+            :ets.insert(:cab_session_changes, {uuid, 0})
+            reraise error, __STACKTRACE__
+        end
+      end
+    else
+      Phoenix.PubSub.broadcast(Cab.PubSub, topic(uuid), {:session_changed, uuid})
+    end
+
+    :ok
+  end
+
+  defp publish_until_settled(%Session{uuid: uuid} = session, seen) do
     message =
-      with true <- watched?(uuid),
-           %Session{} = fresh <- get_by_uuid(uuid),
+      with %Session{} = fresh <- get_by_uuid(uuid),
            {:ok, state} <- state(%{fresh | club: session_club(session)}) do
         {:session_state, uuid, state}
       else
@@ -53,6 +74,11 @@ defmodule Cab.Sessions do
       end
 
     Phoenix.PubSub.broadcast(Cab.PubSub, topic(uuid), message)
+
+    case :ets.update_counter(:cab_session_changes, uuid, -seen) do
+      0 -> :ok
+      pending -> publish_until_settled(session, pending)
+    end
   end
 
   # nobody watching (API-only writes, tests) = no state read at all

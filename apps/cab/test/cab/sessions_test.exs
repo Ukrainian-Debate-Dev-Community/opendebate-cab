@@ -137,6 +137,30 @@ defmodule Cab.SessionsTest do
     refute_receive {:session_state, _, _}, 50
   end
 
+  test "simultaneous changes share their state reads", %{club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+    uuid = session.uuid
+    Sessions.subscribe(session)
+    {:ok, reads} = Agent.start_link(fn -> 0 end)
+
+    stub(fn conn, _params ->
+      if conn.request_path == "/api/events/11" do
+        Agent.update(reads, &(&1 + 1))
+        Process.sleep(30)
+      end
+
+      state_stub(conn, [])
+    end)
+
+    1..20
+    |> Enum.map(fn _ -> Task.async(fn -> Sessions.broadcast(session) end) end)
+    |> Enum.each(&Task.await/1)
+
+    assert_receive {:session_state, ^uuid, _}
+    # twenty changes, a handful of reads at most
+    assert Agent.get(reads, & &1) <= 3
+  end
+
   describe "allocator draft" do
     setup %{club: club} do
       session = session_fixture(club, engine_event_id: 11)

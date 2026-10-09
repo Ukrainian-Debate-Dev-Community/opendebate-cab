@@ -7,6 +7,10 @@ defmodule Cab.Application do
 
   @impl true
   def start(_type, _args) do
+    # pending change counts per session: concurrent writes share one
+    # state read for their change notice (Cab.Sessions.broadcast/1)
+    :ets.new(:cab_session_changes, [:named_table, :public, :set, write_concurrency: true])
+
     children = [
       CabWeb.Telemetry,
       Cab.Repo,
