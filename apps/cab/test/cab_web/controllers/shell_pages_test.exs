@@ -306,7 +306,7 @@ defmodule CabWeb.ShellPagesTest do
 
       judges = conn |> get(~p"/standings/judges") |> html_response(200)
       assert judges =~ "Petro"
-      assert judges =~ "Rooms judged"
+      assert judges =~ "Rooms adjudicated"
 
       clubs = conn |> get(~p"/standings/clubs") |> html_response(200)
       assert clubs =~ ~s(id="standings-clubs")

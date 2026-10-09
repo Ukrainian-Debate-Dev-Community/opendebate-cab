@@ -40,7 +40,7 @@ defmodule CabWeb.OwnerHTML do
     Enum.find_value(rooms, "waitlist", fn room ->
       cond do
         Enum.any?(room["RoomAdjudicators"] || [], &seat_of?(&1, participant)) ->
-          "#{room_label(room)} judge"
+          "#{room_label(room)} adjudicator"
 
         team =
             Enum.find(
@@ -59,7 +59,7 @@ defmodule CabWeb.OwnerHTML do
     case Enum.find(draft, fn {_key, pid} -> pid == participant["id"] end) do
       {key, _pid} ->
         case String.split(key, ":") do
-          [room, "judge"] -> "R#{room} judge"
+          [room, "judge"] -> "R#{room} adjudicator"
           [room, side, _n] -> "R#{room} #{@seat_sides[side]}"
         end
 

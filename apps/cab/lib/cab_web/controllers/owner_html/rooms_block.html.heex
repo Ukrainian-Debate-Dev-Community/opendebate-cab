@@ -3,7 +3,7 @@
     <.section title={"Allocation — #{Cab.Sessions.room_count(@state.signups)} room(s), count automatic"}>
       <div class="pad">
         <p>
-          A room seats nine (eight speakers and a judge), so the room count follows the sign-ups;
+          A room seats nine (eight speakers and an adjudicator), so the room count follows the sign-ups;
           <b>nobody is placed
           automatically</b>
           — drag people from the tray into the slots, then <b>Start session</b>
@@ -50,7 +50,7 @@
         >
           {team_label(room, position)}
         </:col>
-        <:col :let={room} label="Judge">{judge_name(room, @state.signups)}</:col>
+        <:col :let={room} label="Adjudicator">{judge_name(room, @state.signups)}</:col>
         <:col :let={room} label="Ballot" class="st">
           {room_status_words(room["status"])}
         </:col>

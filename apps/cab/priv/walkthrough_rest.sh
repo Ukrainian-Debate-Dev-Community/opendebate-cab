@@ -320,7 +320,7 @@ html_ok "club standings teams (rule 0)" GET "/c/$CLUB/standings/teams" 200
 
 req anon GET "/c/$CLUB/standings/judges"
 [ "$STATUS" = "200" ] || fail "GET /c/$CLUB/standings/judges: status $STATUS, want 200"
-grep -q "Rooms judged" "$BODY" || fail "judges tab misses the plain chair count"
+grep -q "Rooms adjudicated" "$BODY" || fail "judges tab misses the plain chair count"
 html_ok "club standings judges (plain count)" GET "/c/$CLUB/standings/judges" 200
 
 # global standings: the same four tabs, platform-wide latest finished
@@ -440,7 +440,7 @@ printf 'ok %2d  %-5s %-55s %s  %s\n' "$STEP" GET "/c/$CLUB/s/$IRON_SESSION" 200 
 req j1 GET "/me"
 [ "$STATUS" = "200" ] || fail "GET /me as j1: status $STATUS, want 200"
 grep -q 'id="me-history"' "$BODY" || fail "My page misses the history table"
-grep -q "judged" "$BODY" || fail "j1's My page misses the judged night"
+grep -q "adjudicated" "$BODY" || fail "j1's My page misses the adjudicated night"
 html_ok "judge's My page history" GET "/me" 200
 
 # ----------------------------------------------------------------

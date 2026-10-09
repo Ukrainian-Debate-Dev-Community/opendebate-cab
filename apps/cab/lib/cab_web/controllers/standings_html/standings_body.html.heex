@@ -42,8 +42,8 @@
         <:col :let={row} :if={@tab in ["teams", "speakers"]} label="Points" num>
           {row["total_points"]}
         </:col>
-        <:col :let={row} :if={@tab == "judges"} label="Judge">{row["name"]}</:col>
-        <:col :let={row} :if={@tab == "judges"} label="Rooms judged" num>
+        <:col :let={row} :if={@tab == "judges"} label="Adjudicator">{row["name"]}</:col>
+        <:col :let={row} :if={@tab == "judges"} label="Rooms adjudicated" num>
           {row["rooms_judged"]}
         </:col>
         <:col :let={row} :if={@tab == "judges"} label="Avg feedback" num>

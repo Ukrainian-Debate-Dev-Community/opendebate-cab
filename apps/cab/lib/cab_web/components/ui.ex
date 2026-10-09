@@ -708,7 +708,7 @@ defmodule CabWeb.Ui do
             <th>OO</th>
             <th>CG</th>
             <th>CO</th>
-            <th>Judge</th>
+            <th>Adjudicator</th>
             <th></th>
           </tr>
         </thead>

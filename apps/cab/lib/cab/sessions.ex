@@ -1399,7 +1399,8 @@ defmodule Cab.Sessions do
     with {:ok, actor} <- actor_for(user),
          {:ok, data} <- EngineApi.user_history(actor) do
       by_event =
-        Enum.flat_map([{"judge", "as_adjudicator"}, {"speaker", "as_player"}], fn {role, key} ->
+        Enum.flat_map([{"adjudicator", "as_adjudicator"}, {"speaker", "as_player"}], fn {role,
+                                                                                         key} ->
           for event <- data[key] || [], do: {event["id"], role}
         end)
 
@@ -1439,7 +1440,8 @@ defmodule Cab.Sessions do
     with {:ok, actor} <- actor_for(user),
          {:ok, data} <- EngineApi.user_schedule(actor) do
       by_role =
-        Enum.flat_map([{"judge", "as_adjudicator"}, {"speaker", "as_player"}], fn {role, key} ->
+        Enum.flat_map([{"adjudicator", "as_adjudicator"}, {"speaker", "as_player"}], fn {role,
+                                                                                         key} ->
           for event <- data[key] || [], do: {event["id"], role}
         end)
 

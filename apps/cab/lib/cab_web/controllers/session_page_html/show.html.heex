@@ -88,7 +88,7 @@
             >
               {team_label(room, position)}
             </:col>
-            <:col :let={room} label="Judge">
+            <:col :let={room} label="Adjudicator">
               <%= if @current_user && Cab.Sessions.room_chair?(room, @current_user) do %>
                 <b>you</b>
               <% else %>

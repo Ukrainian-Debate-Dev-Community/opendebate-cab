@@ -299,7 +299,7 @@ defmodule CabWeb.EightPagesTest do
       judges = conn |> get(~p"/c/#{club.uuid}/standings/judges") |> html_response(200)
       assert judges =~ ~s(id="standings-judges")
       assert judges =~ "Petro"
-      assert judges =~ "Rooms judged"
+      assert judges =~ "Rooms adjudicated"
       assert judges =~ "Avg feedback"
       assert judges =~ "8.5"
 

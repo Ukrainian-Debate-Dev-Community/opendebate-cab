@@ -927,7 +927,7 @@ defmodule Cab.SessionsTest do
     assert row.date == session.finished_at
 
     # the judge participated but never competes for the win
-    assert [%{role: "judge", won: false}] = Sessions.user_history(judge)
+    assert [%{role: "adjudicator", won: false}] = Sessions.user_history(judge)
 
     # a user without an engine counterpart never participated
     assert Sessions.user_history(user_fixture(%{node_user_id: nil})) == []

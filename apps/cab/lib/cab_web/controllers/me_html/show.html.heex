@@ -43,8 +43,8 @@
           <%= cond do %>
             <% row.won -> %>
               <b>won</b>
-            <% row.role == "judge" -> %>
-              judged
+            <% row.role == "adjudicator" -> %>
+              adjudicated
             <% true -> %>
               played
           <% end %>

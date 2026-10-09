@@ -200,7 +200,7 @@ const drawCard = (canvas, d, draw = true) => {
     y += rowH
   }
   if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(pad, y, inner, 2) }
-  font(600, 28); text(`Judge: ${d.judge}`, pad, y + 48, CARD.ink); y += 96
+  font(600, 28); text(`Adjudicator: ${d.judge}`, pad, y + 48, CARD.ink); y += 96
 
   // footer: the QR and the short link
   const qr = d.qr || []

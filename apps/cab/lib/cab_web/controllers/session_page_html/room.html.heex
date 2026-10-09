@@ -36,7 +36,7 @@
         <:col :let={room_team} label="Team">{get_in(room_team, ["Team", "name"])}</:col>
         <:col :let={room_team} label="Speakers">{speaker_names(room_team)}</:col>
       </.table>
-      <div class="pad">Judge: <b>{judge_name(@room, @state.signups)}</b></div>
+      <div class="pad">Adjudicator: <b>{judge_name(@room, @state.signups)}</b></div>
     </.section>
 
     <%= if @room["Motion"] do %>
@@ -54,7 +54,7 @@
       </.section>
     <% else %>
       <.section :if={!@can_act} title="Motion" pad>
-        Not set yet — the judge sets it when the room begins.
+        Not set yet — the adjudicator sets it when the room begins.
       </.section>
       <.section :if={@can_act} title="Motion">
         <.form_for
