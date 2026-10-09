@@ -164,7 +164,7 @@ const drawCard = (canvas, d, draw = true) => {
 
   // header band: the mark and the room
   if (draw) { ctx.fillStyle = CARD.brand; ctx.fillRect(0, 0, w, 132) }
-  font(400, 64, '"Great Vibes", cursive'); text("cab", pad, 88, CARD.paper)
+  font(400, 60, '"Cedarville Cursive", cursive'); text("cab", pad, 88, CARD.paper)
   font(800, 56); ctx.textAlign = "right"; text(d.room, w - pad, 88, CARD.paper); ctx.textAlign = "left"
   y = 132 + 64
 
@@ -227,7 +227,7 @@ const RoomCard = {
     this.msg = this.el.querySelector(".sharemsg")
     this.render = async () => {
       const d = JSON.parse(this.el.dataset.card)
-      try { await document.fonts.load('64px "Great Vibes"') } catch (_e) { /* fallback face */ }
+      try { await document.fonts.load('60px "Cedarville Cursive"') } catch (_e) { /* fallback face */ }
       const probe = document.createElement("canvas")
       probe.width = CARD.w; probe.height = 10
       const h = drawCard(probe, d, false)
