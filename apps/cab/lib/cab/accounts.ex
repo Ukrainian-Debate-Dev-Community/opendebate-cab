@@ -70,7 +70,8 @@ defmodule Cab.Accounts do
     uid = to_string(auth.uid)
 
     attrs = %{
-      username: auth.info.nickname || auth.info.email || "#{provider}-#{uid}",
+      # a username is shown on rosters, so never the e-mail address
+      username: auth.info.nickname || slug(auth.info.name) || "member",
       name: auth.info.name,
       email: auth.info.email,
       avatar_url: auth.info.image
@@ -101,6 +102,159 @@ defmodule Cab.Accounts do
 
       user
     end)
+  end
+
+  defp slug(nil), do: nil
+
+  defp slug(name) do
+    case name
+         |> String.downcase()
+         |> String.replace(~r/[^\p{L}\p{N}]+/u, "-")
+         |> String.trim("-") do
+      "" -> nil
+      slug -> String.slice(slug, 0, 30)
+    end
+  end
+
+  @doc """
+  LINK: a signed-in account adds another sign-in method. Returns
+  `{:ok, :linked}`, `{:ok, :already}` when it is already this account's,
+  `{:other_account, user}` when that sign-in has its own cab account
+  (the caller may offer to merge), or `{:error, message}`.
+  """
+  def link_identity(%User{} = user, %Ueberauth.Auth{} = auth) do
+    provider = to_string(auth.provider)
+    uid = to_string(auth.uid)
+
+    case Repo.one(from i in Identity, where: [provider: ^provider, provider_uid: ^uid]) do
+      %Identity{user_id: id} when id == user.id ->
+        {:ok, :already}
+
+      %Identity{user_id: other_id} ->
+        {:other_account, get_user(other_id)}
+
+      nil ->
+        if Repo.exists?(
+             from i in Identity, where: i.user_id == ^user.id and i.provider == ^provider
+           ) do
+          {:error, "this account already has a different #{provider} sign-in linked"}
+        else
+          %Identity{user_id: user.id}
+          |> Identity.changeset(%{provider: provider, provider_uid: uid})
+          |> Repo.insert()
+          |> case do
+            {:ok, _} -> {:ok, :linked}
+            {:error, _} -> {:error, "could not link that sign-in"}
+          end
+        end
+    end
+  end
+
+  @doc "Removes a sign-in method, as long as another one is left."
+  def unlink_identity(%User{} = user, provider) do
+    identities = list_identities(user)
+
+    case Enum.find(identities, &(&1.provider == provider)) do
+      nil -> {:error, "that sign-in is not linked"}
+      _ when length(identities) < 2 -> {:error, "keep at least one way to sign in"}
+      identity -> Repo.delete(identity)
+    end
+  end
+
+  @doc """
+  MERGE: two accounts of one person become one. The engine moves the
+  other account's debate history onto this one (under this account's
+  name); cab moves its sign-in methods, club memberships (the stronger
+  of two in the same club stays) and invitations, then deletes it.
+  The engine refuses when the other account heads a club, or when both
+  took part in the same session.
+  """
+  def merge_accounts(%User{id: id}, %User{id: id}), do: {:error, "that is this account"}
+
+  def merge_accounts(%User{} = target, %User{} = source) do
+    target = ensure_node_user(target)
+
+    with :ok <- merge_engine(target, source) do
+      Repo.transaction(fn ->
+        from(i in Identity, where: i.user_id == ^source.id)
+        |> Repo.update_all(set: [user_id: target.id])
+
+        merge_memberships(target, source)
+        merge_invitations(target, source)
+
+        from(s in Cab.Sessions.Session, where: s.opened_by_user_id == ^source.id)
+        |> Repo.update_all(set: [opened_by_user_id: target.id])
+
+        if source.is_admin and not target.is_admin do
+          from(u in User, where: u.id == ^target.id) |> Repo.update_all(set: [is_admin: true])
+        end
+
+        Repo.delete!(source)
+        get_user(target.id)
+      end)
+    end
+  end
+
+  defp merge_engine(_target, %User{node_user_id: nil}), do: :ok
+
+  defp merge_engine(%User{node_user_id: target_node} = target, %User{node_user_id: source_node})
+       when is_integer(target_node) do
+    case Cab.EngineApi.merge_users(
+           target_node,
+           source_node,
+           target_node,
+           target.name || target.username
+         ) do
+      {:ok, _} ->
+        :ok
+
+      {:error, "The source user holds roles" <> _} ->
+        {:error, "that account heads a club — make someone else head first"}
+
+      error ->
+        error
+    end
+  end
+
+  defp merge_engine(_target, _source),
+    do: {:error, "this account is not linked to the engine yet — try again"}
+
+  @rank %{{"head", "approved"} => 3, {"member", "approved"} => 2}
+
+  defp merge_memberships(target, source) do
+    mine =
+      Repo.all(from m in Cab.Clubs.Membership, where: m.user_id == ^target.id)
+      |> Map.new(&{&1.club_id, &1})
+
+    for theirs <- Repo.all(from m in Cab.Clubs.Membership, where: m.user_id == ^source.id) do
+      case mine[theirs.club_id] do
+        nil ->
+          theirs |> Ecto.Changeset.change(user_id: target.id) |> Repo.update!()
+
+        ours ->
+          if Map.get(@rank, {theirs.role, theirs.status}, 1) >
+               Map.get(@rank, {ours.role, ours.status}, 1) do
+            Repo.delete!(ours)
+            theirs |> Ecto.Changeset.change(user_id: target.id) |> Repo.update!()
+          else
+            Repo.delete!(theirs)
+          end
+      end
+    end
+  end
+
+  defp merge_invitations(target, source) do
+    alias Cab.Invitations.Invitation
+    taken = Repo.all(from i in Invitation, where: i.user_id == ^target.id, select: i.session_id)
+
+    from(i in Invitation, where: i.user_id == ^source.id and i.session_id in ^taken)
+    |> Repo.delete_all()
+
+    from(i in Invitation, where: i.user_id == ^source.id)
+    |> Repo.update_all(set: [user_id: target.id])
+
+    from(i in Invitation, where: i.invited_by_user_id == ^source.id)
+    |> Repo.update_all(set: [invited_by_user_id: target.id])
   end
 
   @doc """

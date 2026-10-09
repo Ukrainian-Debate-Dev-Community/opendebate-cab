@@ -48,13 +48,33 @@
       </.form_for>
     </.section>
 
-    <.section title="Sign-in methods" pad>
-      <%= if @identities == [] do %>
-        Dev session — no provider linked.
-      <% else %>
-        Signed in with {Enum.map_join(@identities, ", ", & &1.provider)}.
-      <% end %>
-      <p>Google can be linked when it ships.</p>
+    <.section title="Sign-in methods">
+      <.table id="sign-in-methods" rows={[{"github", "GitHub"}, {"google", "Google"}]}>
+        <:col :let={{_code, name}} label="Method">{name}</:col>
+        <:col :let={{code, _name}} label="Status">
+          {if Enum.any?(@identities, &(&1.provider == code)), do: "linked", else: "not linked"}
+        </:col>
+        <:col :let={{code, name}}>
+          <%= cond do %>
+            <% not Enum.any?(@identities, &(&1.provider == code)) -> %>
+              <.link href={~p"/account/link/#{code}"}>link {name}</.link>
+            <% length(@identities) > 1 -> %>
+              <.link href={~p"/account/unlink/#{code}"} method="post">remove</.link>
+            <% true -> %>
+              <span class="mut">your only sign-in</span>
+          <% end %>
+        </:col>
+      </.table>
+      <div class="pad">
+        <p class="mut">
+          Linking lets you sign in to this same account with either. Separate accounts are
+          fine too: link only if you want them to be one. If the method you link already has
+          its own cab account, you can merge the two.
+        </p>
+      </div>
+    </.section>
+
+    <.section title="Your data" pad>
       <p>
         Data requests or deletion: <a href="mailto:support@uadebate.com">support@uadebate.com</a>.
       </p>

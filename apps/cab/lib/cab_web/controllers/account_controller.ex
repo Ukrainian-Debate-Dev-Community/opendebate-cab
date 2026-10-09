@@ -33,6 +33,81 @@ defmodule CabWeb.AccountController do
     end
   end
 
+  @providers ~w(github google)
+
+  # GET /account/link/:provider — remember the intent, then the
+  # provider's own sign-in; the callback links instead of signing in
+  def link(conn, %{"provider" => provider}) when provider in @providers do
+    conn
+    |> put_session(:link_to, conn.assigns.current_user.id)
+    |> redirect(to: "/auth/#{provider}")
+  end
+
+  def link(conn, _params), do: CabWeb.ErrorHTML.respond(conn, 404)
+
+  # POST /account/unlink/:provider
+  def unlink(conn, %{"provider" => provider}) do
+    case Accounts.unlink_identity(conn.assigns.current_user, provider) do
+      {:ok, _} -> conn |> put_flash(:info, "sign-in removed") |> redirect(to: ~p"/account")
+      {:error, message} -> conn |> put_flash(:error, message) |> redirect(to: ~p"/account")
+    end
+  end
+
+  # GET /account/merge — the sign-in just linked has its own account
+  def merge_form(conn, _params) do
+    case merge_candidate(conn) do
+      nil ->
+        redirect(conn, to: ~p"/account")
+
+      other ->
+        render(conn, :merge,
+          other: other,
+          clubs: Cab.Clubs.list_user_memberships(other),
+          page_title: "merge accounts"
+        )
+    end
+  end
+
+  # POST /account/merge {"decision": "merge" | "keep"}
+  def merge(conn, params) do
+    other = merge_candidate(conn)
+    conn = delete_session(conn, :merge_candidate)
+
+    case {other, params["decision"]} do
+      {nil, _} ->
+        redirect(conn, to: ~p"/account")
+
+      {_other, "keep"} ->
+        conn |> put_flash(:info, "the accounts stay separate") |> redirect(to: ~p"/account")
+
+      {other, "merge"} ->
+        case Accounts.merge_accounts(conn.assigns.current_user, other) do
+          {:ok, _user} ->
+            conn
+            |> put_flash(:info, "#{other.username} is merged into this account")
+            |> redirect(to: ~p"/account")
+
+          {:error, message} when is_binary(message) ->
+            conn |> put_flash(:error, message) |> redirect(to: ~p"/account")
+
+          {:error, _} ->
+            conn
+            |> put_flash(:error, "the merge did not go through — nothing changed")
+            |> redirect(to: ~p"/account")
+        end
+    end
+  end
+
+  defp merge_candidate(conn) do
+    with id when is_integer(id) <- get_session(conn, :merge_candidate),
+         %Cab.Accounts.User{} = other <- Accounts.get_user(id),
+         true <- other.id != conn.assigns.current_user.id do
+      other
+    else
+      _ -> nil
+    end
+  end
+
   # POST /account/claim {"link"} — the pasted personal link's guest
   # history moves onto this account
   def claim(conn, params) do

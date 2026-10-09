@@ -46,6 +46,10 @@ defmodule CabWeb.Router do
     get "/account", AccountController, :show
     post "/account", AccountController, :update
     post "/account/claim", AccountController, :claim
+    get "/account/link/:provider", AccountController, :link
+    post "/account/unlink/:provider", AccountController, :unlink
+    get "/account/merge", AccountController, :merge_form
+    post "/account/merge", AccountController, :merge
 
     post "/invitations/:id/accept", InvitationController, :accept
     post "/invitations/:id/decline", InvitationController, :decline
