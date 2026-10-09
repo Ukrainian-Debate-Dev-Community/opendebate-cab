@@ -8,6 +8,8 @@ defmodule Core.Engine do
   short-lived tokens per request instead of storing engine sessions.
   """
 
+  require Logger
+
   @token_ttl_seconds 300
   @provision_attempts 3
 
@@ -144,6 +146,24 @@ defmodule Core.Engine do
     )
     # test env injects [plug: {Req.Test, Core.Engine}] here to stub the engine
     |> Req.merge(Keyword.get(config, :req_options, []))
+    |> Req.Request.prepend_request_steps(engine_clock: &start_clock/1)
+    |> Req.Request.append_response_steps(engine_log: &log_call/1)
+  end
+
+  # one debug line per engine call ("engine GET /api/... 200 12ms") —
+  # visible in dev, silent at the production log level
+  defp start_clock(request),
+    do: Req.Request.put_private(request, :engine_started, System.monotonic_time())
+
+  defp log_call({request, response}) do
+    started = Req.Request.get_private(request, :engine_started, System.monotonic_time())
+    ms = System.convert_time_unit(System.monotonic_time() - started, :native, :millisecond)
+
+    Logger.debug(fn ->
+      "engine #{String.upcase(to_string(request.method))} #{request.url.path} #{response.status} #{ms}ms"
+    end)
+
+    {request, response}
   end
 
   defp signer do
