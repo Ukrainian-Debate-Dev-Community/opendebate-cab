@@ -91,16 +91,6 @@
         </:col>
         <:col :let={room} label="Infoslide">{get_in(room, ["Motion", "infoslide"]) || "—"}</:col>
         <:col :let={room} label="Keyword">{get_in(room, ["Motion", "keyword"]) || "—"}</:col>
-        <:col :let={room} label="Prep until">
-          <%= if at = prep_until(room) do %>
-            <.local_time at={at} as={:time} />
-          <% else %>
-            —
-          <% end %>
-        </:col>
       </.table>
-      <div :if={open_rooms(@state) != []} class="pad mut">
-        Click a room to publish its motion; prep runs 15 minutes from publishing.
-      </div>
     </.section>
 <% end %>

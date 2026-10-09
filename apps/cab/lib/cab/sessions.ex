@@ -15,7 +15,7 @@ defmodule Cab.Sessions do
   alias Cab.Clubs
   alias Cab.Clubs.Club
   alias Cab.{EngineApi, Repo}
-  alias Cab.Sessions.Session
+  alias Cab.Sessions.{RoomPrep, Session}
 
   @teams_per_room 4
   @speakers_per_team 2
@@ -689,7 +689,7 @@ defmodule Cab.Sessions do
          event: event,
          round: round,
          signups: signups,
-         rooms: number_rooms(rooms),
+         rooms: rooms |> number_rooms() |> attach_preps(session),
          stage: stage(event, rooms, session)
        }}
     end
@@ -702,6 +702,56 @@ defmodule Cab.Sessions do
     |> Enum.sort_by(& &1["id"])
     |> Enum.with_index(1)
     |> Enum.map(fn {room, no} -> Map.put(room, "no", no) end)
+  end
+
+  # each room's prep timer, when one runs: "prep_minutes" and the
+  # instant prep ends, "prep_until"
+  defp attach_preps(rooms, %Session{id: id}) when is_integer(id) do
+    preps = Repo.all(from p in RoomPrep, where: p.session_id == ^id) |> Map.new(&{&1.room_id, &1})
+
+    Enum.map(rooms, fn room ->
+      case preps[room["id"]] do
+        nil ->
+          room
+
+        prep ->
+          until = DateTime.add(prep.started_at, prep.minutes, :minute)
+
+          Map.merge(room, %{
+            "prep_minutes" => prep.minutes,
+            "prep_until" => DateTime.to_iso8601(until)
+          })
+      end
+    end)
+  end
+
+  defp attach_preps(rooms, _session), do: rooms
+
+  @doc """
+  Sets a room's prep timer: `nil` removes it; the same length keeps
+  the running clock (a motion typo fixed), a new length starts it now.
+  """
+  def set_prep(%Session{} = session, room_id, minutes) do
+    current = Repo.get_by(RoomPrep, session_id: session.id, room_id: room_id)
+
+    result =
+      case {current, minutes} do
+        {nil, nil} ->
+          {:ok, nil}
+
+        {prep, nil} ->
+          Repo.delete(prep)
+
+        {%RoomPrep{minutes: ^minutes} = prep, _} ->
+          {:ok, prep}
+
+        {prep, minutes} ->
+          (prep || %RoomPrep{session_id: session.id, room_id: room_id})
+          |> Ecto.Changeset.change(minutes: minutes, started_at: DateTime.utc_now(:second))
+          |> Repo.insert_or_update()
+      end
+
+    notify(result, session)
   end
 
   # the four engine reads are independent once the round id is known

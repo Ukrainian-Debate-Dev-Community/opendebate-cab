@@ -15,12 +15,7 @@ defmodule CabWeb.SessionPageHTML do
 
   # the prep clock: 15 minutes from the motion's publication — the
   # engine ships created_at (ISO) with the motion; absent = no clock
-  defp prep_deadline(room) do
-    case prep_until(room) do
-      nil -> nil
-      at -> DateTime.to_iso8601(at)
-    end
-  end
+  defp prep_deadline(room), do: room["prep_until"]
 
   # what the room card draws (assets/js RoomCard): who, when, the
   # motion once published, the draw, the judge, and the room's short

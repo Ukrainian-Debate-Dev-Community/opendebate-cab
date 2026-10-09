@@ -67,8 +67,13 @@ defmodule CabWeb.SessionPageController do
              attrs
            ) do
         {:ok, _} ->
+          Sessions.set_prep(session, room["id"], prep_minutes(params["prep_minutes"]))
+
           conn
-          |> put_flash(:info, "Motion published.")
+          |> put_flash(
+            :info,
+            if(room["Motion"], do: "Motion updated.", else: "Motion published.")
+          )
           |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}/rooms/#{room["id"]}")
 
         {:error, message} ->
@@ -120,6 +125,14 @@ defmodule CabWeb.SessionPageController do
           |> render_ballot(session, room, params["ballot"], error_message(message))
       end
     end)
+  end
+
+  # the optional prep timer, whole minutes from 1 to 60; anything else is no timer
+  defp prep_minutes(value) do
+    case Integer.parse(to_string(value || "")) do
+      {minutes, ""} when minutes in 1..60 -> minutes
+      _ -> nil
+    end
   end
 
   defp render_ballot(conn, session, room, ballot_params, error) do
