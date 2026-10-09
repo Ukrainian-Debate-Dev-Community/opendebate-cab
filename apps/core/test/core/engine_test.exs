@@ -123,4 +123,16 @@ defmodule Core.EngineTest do
                Engine.public_get("/api/events")
     end
   end
+
+  test "a drained connection pool is an engine error, not a crash" do
+    Req.Test.stub(Core.Engine, fn _conn ->
+      raise "Finch was unable to provide a connection within the timeout due to excess queuing"
+    end)
+
+    assert {:error, %RuntimeError{message: "the engine is busy" <> _}} =
+             Core.Engine.get(1, "/api/events/1")
+
+    Req.Test.stub(Core.Engine, fn _conn -> raise "something else" end)
+    assert_raise RuntimeError, "something else", fn -> Core.Engine.get(1, "/api/events/1") end
+  end
 end

@@ -46,7 +46,7 @@ defmodule Core.Engine do
   defp provision_user(username, candidate, attempts) do
     password = :crypto.strong_rand_bytes(24) |> Base.url_encode64(padding: false)
 
-    case Req.post(base_req(),
+    case guarded(&Req.post/2, base_req(),
            url: "/api/users/register",
            json: %{username: candidate, password: password}
          ) do
@@ -73,7 +73,7 @@ defmodule Core.Engine do
   """
   def get(node_user_id, path, opts \\ []) do
     {admin, opts} = Keyword.pop(opts, :admin, false)
-    Req.get(authed_req(node_user_id, admin), Keyword.put(opts, :url, path))
+    guarded(&Req.get/2, authed_req(node_user_id, admin), Keyword.put(opts, :url, path))
   end
 
   @doc """
@@ -102,13 +102,25 @@ defmodule Core.Engine do
   """
   def delete(node_user_id, path, opts \\ []) do
     {admin, opts} = Keyword.pop(opts, :admin, false)
-    Req.delete(authed_req(node_user_id, admin), Keyword.put(opts, :url, path))
+    guarded(&Req.delete/2, authed_req(node_user_id, admin), Keyword.put(opts, :url, path))
+  end
+
+  # a burst can drain the HTTP pool to the engine; that is an engine
+  # error the caller reports in words, never a crash
+  defp guarded(call, request, opts) do
+    call.(request, opts)
+  rescue
+    error in RuntimeError ->
+      if String.contains?(error.message, "unable to provide a connection"),
+        do: {:error, %RuntimeError{message: "the engine is busy, try again in a moment"}},
+        else: reraise(error, __STACKTRACE__)
   end
 
   defp request(method, node_user_id, path, body, opts) do
     {admin, opts} = Keyword.pop(opts, :admin, false)
 
-    Req.request(
+    guarded(
+      &Req.request/2,
       authed_req(node_user_id, admin),
       opts
       |> Keyword.put(:method, method)
@@ -122,7 +134,7 @@ defmodule Core.Engine do
   (e.g. the public `GET /api/events`).
   """
   def public_get(path, opts \\ []) do
-    Req.get(base_req(), Keyword.put(opts, :url, path))
+    guarded(&Req.get/2, base_req(), Keyword.put(opts, :url, path))
   end
 
   defp id_from_token(token) do
