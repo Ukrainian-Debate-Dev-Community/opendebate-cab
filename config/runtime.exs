@@ -1,10 +1,13 @@
 import Config
 
-# In dev, load .env into the environment ourselves: `source .env` only
-# creates shell variables, it does not export them to the mix process.
-# Exported variables still win over .env values.
-if config_env() == :dev and File.exists?(".env") do
-  for line <- File.stream!(".env"),
+# In dev, load platform/.env into the environment ourselves: `source
+# .env` only creates shell variables, it does not export them to the
+# mix process. The path is fixed to the umbrella root so mix tasks run
+# from an app directory find it too. Exported variables still win.
+dotenv = Path.expand("../.env", __DIR__)
+
+if config_env() == :dev and File.exists?(dotenv) do
+  for line <- File.stream!(dotenv),
       line = String.trim(line),
       line != "" and not String.starts_with?(line, "#"),
       [key, value] = String.split(line, "=", parts: 2),
