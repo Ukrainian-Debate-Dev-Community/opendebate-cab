@@ -679,8 +679,8 @@ defmodule CabWeb.Ui do
       </table>
       <form id={@form_id} phx-submit={@submit}></form>
       <div class="bfoot">
-        Drag chips into slots; drop on a taken slot to swap; drag back to the
-        tray to unassign. A team with one speaker becomes an iron.
+        Drag chips into slots; drop on a taken slot to swap; drag a placed
+        chip out of the table to unassign. A team with one speaker becomes an iron.
       </div>
     </div>
     """

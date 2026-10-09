@@ -79,10 +79,12 @@ const PrepClock = {
 }
 
 // the allocator: drag reports a drop to the server — place {id, slot}
-// or unplace {id}; the server owns the draft and re-renders the table
+// or unplace {id}; the server owns the draft and re-renders the table.
+// A placed chip released anywhere but a slot goes back to the tray.
 const Allocator = {
   mounted() {
     let dragged = null
+    let landed = false
     const accepts = slot => slot && dragged
     const clearOver = () => this.el.querySelectorAll(".slot.over").forEach(s => s.classList.remove("over"))
 
@@ -90,10 +92,14 @@ const Allocator = {
       const chip = e.target.closest(".chip")
       if (!chip) return
       dragged = chip
+      landed = false
       chip.classList.add("dragging")
       e.dataTransfer.setData("text/plain", chip.dataset.id)
     })
     this.el.addEventListener("dragend", () => {
+      if (dragged && !landed && dragged.closest(".slot")) {
+        this.pushEvent("unplace", {id: parseInt(dragged.dataset.id, 10)})
+      }
       if (dragged) dragged.classList.remove("dragging")
       dragged = null
       clearOver()
@@ -112,6 +118,7 @@ const Allocator = {
       if (!dragged) return
       const slot = e.target.closest(".slot")
       const id = parseInt(dragged.dataset.id, 10)
+      landed = true
       e.preventDefault()
       clearOver()
       if (accepts(slot)) this.pushEvent("place", {id, slot: slot.dataset.slot})
