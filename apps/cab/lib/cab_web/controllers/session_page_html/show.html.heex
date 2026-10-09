@@ -47,6 +47,10 @@
     <.section title="Session" pad>
       <b id="session-name">{@state.event["name"]}</b>
       <p>{session_date(@session)}</p>
+      <p id="session-short-link">
+        Short link: <code>{bare_url(Cab.Sessions.short_url(@session))}</code>
+        <.copy text={Cab.Sessions.short_url(@session)} />
+      </p>
       <%= if @winner do %>
         <p>Winner: <b>{@winner}</b></p>
       <% end %>

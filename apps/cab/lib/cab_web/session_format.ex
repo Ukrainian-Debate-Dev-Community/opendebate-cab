@@ -20,6 +20,9 @@ defmodule CabWeb.SessionFormat do
   def room_label(%{"no" => no}) when is_integer(no), do: "R#{no}"
   def room_label(%{"id" => id}), do: "R#{id}"
 
+  @doc "A URL as people read it: no scheme."
+  def bare_url(url), do: String.replace(url, ~r{^https?://}, "")
+
   @doc "A room's ballot state in words."
   def room_status_words("pending"), do: "waiting to start"
   def room_status_words("judging"), do: "debating — waiting for the ballot"

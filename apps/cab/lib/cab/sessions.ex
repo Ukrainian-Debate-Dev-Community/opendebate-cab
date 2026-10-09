@@ -46,6 +46,17 @@ defmodule Cab.Sessions do
     result
   end
 
+  @doc "The session behind a short link code, with its club, or nil."
+  def get_by_short_code(code) when is_binary(code) do
+    Repo.one(from s in Session, where: s.short_code == ^code, preload: :club)
+  end
+
+  @doc "The session's short link, e.g. https://cab.uadebate.com/k7m2q9 (room n appended)."
+  def short_url(%Session{short_code: code}, room_no \\ nil) do
+    base = CabWeb.Endpoint.url() <> "/" <> code
+    if room_no, do: "#{base}/#{room_no}", else: base
+  end
+
   def get_by_uuid(uuid) do
     case Ecto.UUID.cast(uuid) do
       {:ok, uuid} -> Repo.one(from s in Session, where: s.uuid == ^uuid, preload: :club)

@@ -215,4 +215,13 @@ defmodule CabWeb.Router do
       get "/switch-user", CabWeb.DevSessionController, :switch
     end
   end
+
+  # short links (cab.uadebate.com/<code>[/<room>]) come LAST: every
+  # named route above wins, and a code always holds a digit
+  scope "/", CabWeb do
+    pipe_through :browser
+
+    get "/:short", ShortLinkController, :session
+    get "/:short/:room", ShortLinkController, :room
+  end
 end
