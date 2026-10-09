@@ -348,17 +348,21 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
            color:var(--brand); margin-left:auto; }
 .chip.adj .k { color:var(--oo); }
 .chip.dragging { opacity:.35; }
+.chip .n { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.chip .k { flex:none; }
 /* a chip inside a slot loses its own border and fills the whole slot */
 .slot .chip { width:100%; height:100%; border:none; background:transparent;
               border-radius:0; padding:0 6px; }
-.dnd table { width:100%; border-collapse:collapse; font-size:.78rem; }
+.dnd table { width:100%; border-collapse:collapse; font-size:.78rem; table-layout:fixed; }
+/* the four teams and the adjudicator share the width equally */
+.dnd col.c-room { width:44px; } .dnd col.c-status { width:96px; }
 .dnd th { text-align:left; font-size:.62rem; letter-spacing:.08em;
           text-transform:uppercase; font-weight:700; color:var(--muted);
           padding:6px 8px; border-bottom:1px solid var(--line); }
 .dnd td { padding:6px 8px; border-bottom:1px solid var(--line);
           vertical-align:top; }
-.dnd td.room { font-weight:750; color:var(--brand); width:56px; }
-.dnd td.team { border-left:3px solid; width:19%; }
+.dnd td.room { font-weight:750; color:var(--brand); }
+.dnd td.team { border-left:3px solid; }
 .dnd td.t-og { border-left-color:var(--og); } .dnd td.t-oo { border-left-color:var(--oo); }
 .dnd td.t-cg { border-left-color:var(--cg); } .dnd td.t-co { border-left-color:var(--co); }
 .slot { height:26px; border:1.5px dashed var(--line); border-radius:4px;
@@ -368,7 +372,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .slot.over { border-color:var(--brand); background:var(--brand-50); }
 .slot:has(.chip) { border:1px solid var(--line); border-radius:4px;
                    background:var(--surface); }
-.dnd td.status { width:110px; font-size:.72rem; color:var(--muted); font-weight:650; }
+.dnd td.status { font-size:.72rem; color:var(--muted); font-weight:650; }
 
 /* ================================================================
    Rest of the kit: banner + section/card (tag is above, with table)

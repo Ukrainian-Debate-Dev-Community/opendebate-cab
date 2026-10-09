@@ -693,6 +693,12 @@ defmodule CabWeb.Ui do
         <.chip :for={person <- @tray} person={person} />
       </div>
       <table>
+        <colgroup>
+          <col class="c-room" />
+          <col :for={_side <- @sides} />
+          <col />
+          <col class="c-status" />
+        </colgroup>
         <thead>
           <tr>
             <th></th>
@@ -718,7 +724,7 @@ defmodule CabWeb.Ui do
                 <% end %>
               </div>
             </td>
-            <td>
+            <td class="judge">
               <div class="slot" data-slot={"#{room}:judge"}>
                 <%= if person = placed(@people, @draft, "#{room}:judge") do %>
                   <.chip person={person} tag="ADJ" />
@@ -744,7 +750,7 @@ defmodule CabWeb.Ui do
   defp chip(assigns) do
     ~H"""
     <span class={["chip", @tag == "ADJ" && "adj"]} draggable="true" data-id={@person.id}>
-      {@person.name}<span :if={@tag} class="k">{@tag}</span>
+      <span class="n" title={@person.name}>{@person.name}</span><span :if={@tag} class="k">{@tag}</span>
     </span>
     """
   end

@@ -387,8 +387,8 @@ defmodule CabWeb.UiTest do
     # slots carry their keys; the placed chip renders inside its slot
     assert table =~ ~s(data-slot="1:og:1")
     assert table =~ ~s(data-slot="2:judge")
-    assert table =~ ~s(Anna<span class="k">SPK</span>)
-    assert table =~ ~s(Nadia<span class="k">ADJ</span>)
+    assert table =~ ~s(title="Anna">Anna</span><span class="k">SPK</span>)
+    assert table =~ ~s(title="Nadia">Nadia</span><span class="k">ADJ</span>)
 
     # row state in words, never pills
     assert table =~ "incomplete"
