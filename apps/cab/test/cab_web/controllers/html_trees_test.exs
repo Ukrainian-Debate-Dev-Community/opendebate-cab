@@ -533,7 +533,8 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(id="session-people")
     assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/1/remove"
     assert html =~ ~s(id="add-person-form")
-    assert html =~ "benched"
+    # members are found by typing, never listed up front
+    refute html =~ "benched"
 
     # the EMBEDDED allocator: automatic room count, EMPTY slots —
     # nobody is ever placed automatically
@@ -619,7 +620,7 @@ defmodule CabWeb.HtmlTreesTest do
       conn
       |> log_in(head)
       |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups", %{
-        username: "benched"
+        q: "benched"
       })
 
     assert redirected_to(added) == "/c/#{club.uuid}/owner/s/#{session.uuid}"

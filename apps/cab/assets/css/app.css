@@ -418,3 +418,18 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .auth .legal { font-size:.72rem; color:var(--muted); margin-top:26px; line-height:1.6; }
 .auth .legal a { color:var(--brand); }
 .auth .banner { margin-bottom:14px; }
+
+/* the owner's add-a-person field: one input, suggestions below */
+.addp form { display:grid; gap:6px; }
+.addp label { font-size:.7rem; font-weight:700; text-transform:uppercase;
+              letter-spacing:.05em; color:var(--muted); }
+.addp input[type=search] { width:100%; padding:9px 12px; border:1px solid var(--line);
+                           border-radius:8px; font:inherit; background:#fff; color:var(--ink); }
+.addp input[type=search]:focus { outline:2px solid var(--brand); outline-offset:1px; }
+.suggest { display:grid; gap:4px; margin-top:8px; }
+.suggest button { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px;
+                  text-align:left; padding:8px 12px; border:1px solid var(--line); border-radius:8px;
+                  background:#fff; color:var(--ink); font:inherit; font-weight:600; cursor:pointer; }
+.suggest button span { color:var(--muted); font-weight:500; font-size:.8rem; }
+.suggest button:hover, .suggest button:focus-visible { border-color:var(--brand); outline:none; }
+.suggest p { margin:4px 0 0; color:var(--muted); font-size:.85rem; }

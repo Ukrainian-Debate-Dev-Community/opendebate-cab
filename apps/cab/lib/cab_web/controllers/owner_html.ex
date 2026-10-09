@@ -18,22 +18,15 @@ defmodule CabWeb.OwnerHTML do
     end)
   end
 
-  # approved members not signed up tonight, as form options
-  defp addable_members(members, signups) do
-    signed = MapSet.new(signups, & &1["user_id"])
-
-    for membership <- members,
-        not MapSet.member?(signed, membership.user.node_user_id) do
-      {membership.user.username, membership.user.username}
-    end
+  defp guest_link(%{"user_id" => node_id}, links) when is_integer(node_id) do
+    Enum.find(links, &(&1.user.node_user_id == node_id))
   end
 
-  defp guest_link(participant, links) do
-    Enum.find(links, &(&1.user.node_user_id == participant["user_id"]))
-  end
+  defp guest_link(_participant, _links), do: nil
 
-  defp person_kind(participant, links, members) do
+  defp person_kind(participant, links, members, invitations) do
     cond do
+      Map.has_key?(invitations, participant["id"]) -> "invited, not accepted yet"
       guest_link(participant, links) -> "guest"
       Enum.any?(members, &(&1.user.node_user_id == participant["user_id"])) -> "member"
       true -> "signed-in user"

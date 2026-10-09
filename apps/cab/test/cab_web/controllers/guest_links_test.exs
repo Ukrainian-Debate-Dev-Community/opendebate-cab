@@ -588,10 +588,9 @@ defmodule CabWeb.GuestLinksTest do
       refute html =~ "revoke"
       refute html =~ ~s(id="guest-links")
 
-      # one add form: a member from the list, or a guest by name
+      # one add field: member, registered user or guest
       assert html =~ ~s(id="add-person-form")
-      assert html =~ ~s(name="username")
-      assert html =~ ~s(name="name")
+      assert html =~ ~s(name="q")
     end
 
     test "owner removes a guest: the name is scrubbed, account and link are gone",
@@ -649,8 +648,7 @@ defmodule CabWeb.GuestLinksTest do
         conn
         |> log_in(head)
         |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups", %{
-          username: "",
-          name: "Handed Hanna"
+          q: "Handed Hanna"
         })
 
       assert redirected_to(added) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
@@ -659,16 +657,13 @@ defmodule CabWeb.GuestLinksTest do
       assert [link] = Links.list_for_session(session)
       assert Phoenix.Flash.get(added.assigns.flash, :info) =~ "/l/#{link.code}"
 
-      # neither or both is refused with words
+      # an empty field is refused with words
       neither =
         conn
         |> log_in(head)
-        |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups", %{
-          username: "",
-          name: ""
-        })
+        |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups", %{q: " "})
 
-      assert Phoenix.Flash.get(neither.assigns.flash, :error) =~ "pick a member or type"
+      assert Phoenix.Flash.get(neither.assigns.flash, :error) =~ "type a member"
     end
   end
 

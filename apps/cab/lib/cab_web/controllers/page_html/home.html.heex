@@ -12,6 +12,33 @@
         {@open_club.name}: a session is open.
       </.banner>
 
+      <.section :if={@invitations != []} title="Invitations">
+        <.table id="my-invitations" rows={@invitations}>
+          <:col :let={invitation} label="Session">
+            <.link href={~p"/c/#{invitation.session.club.uuid}/s/#{invitation.session.uuid}"}>
+              {invitation.session.name || "Session"}
+            </.link>
+            <.sub>{invitation.session.club.name}</.sub>
+          </:col>
+          <:col :let={invitation} label="Added by">
+            {invitation.invited_by &&
+              (invitation.invited_by.name || invitation.invited_by.username)}
+          </:col>
+          <:col :let={invitation}>
+            <.link href={~p"/invitations/#{invitation.id}/accept"} method="post">accept</.link>
+          </:col>
+          <:col :let={invitation}>
+            <.link href={~p"/invitations/#{invitation.id}/decline"} method="post">decline</.link>
+          </:col>
+        </.table>
+        <div class="pad">
+          <p class="mut">
+            A club head added you to these sessions. Accept to see them on My page under your
+            name; decline to have your name removed.
+          </p>
+        </div>
+      </.section>
+
       <.section title="My clubs">
         <.table id="my-clubs" rows={@memberships} empty="You are not in any club yet.">
           <:col :let={m} label="Club">

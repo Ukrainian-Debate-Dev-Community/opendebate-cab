@@ -404,6 +404,58 @@ defmodule Cab.Sessions do
   end
 
   @doc """
+  The head seats a registered person who has not accepted yet: the
+  engine participant carries their name but no user, and the engine
+  returns a one-time claim token the person redeems when they accept
+  (`Cab.Invitations`). Only while `:signup`. Returns the engine
+  participant, `raw_claim_token` included.
+  """
+  def add_unclaimed(%User{} = head, %Session{} = session, display_name) do
+    result =
+      with {:ok, state} <- state(session),
+           :ok <- require_stage(state, :signup),
+           {:ok, head_actor} <- actor_for(head) do
+        EngineApi.add_participant(
+          head_actor,
+          session.engine_event_id,
+          display_name,
+          @signup_role,
+          nil
+        )
+      end
+
+    notify(result, session)
+  end
+
+  @doc """
+  An invited person declines: off the waitlist their place goes like
+  any removal; seated, the place stays (its scores are the session's
+  record) but their name is overwritten. Runs as the club head.
+  """
+  def release_unclaimed(%Session{} = session, participant_id) do
+    club = session_club(session)
+
+    result =
+      with {:ok, state} <- state(%{session | club: club}),
+           {:ok, _participant} <- find_participant(state.signups, participant_id),
+           {:ok, head_actor} <- Clubs.club_actor(club),
+           {:ok, _} <-
+             EngineApi.update_participant(head_actor, session.engine_event_id, participant_id, %{
+               display_name: @removed_name
+             }) do
+        if MapSet.member?(seated_ids(state.rooms), participant_id) do
+          :ok
+        else
+          with {:ok, _} <-
+                 EngineApi.delete_participant(head_actor, session.engine_event_id, participant_id),
+               do: :ok
+        end
+      end
+
+    notify(result, session)
+  end
+
+  @doc """
   The head signs an approved member up on their behalf (full-control
   doctrine). The registration is made as the head (privileged engine
   callers may register other users) but carries the member's engine
@@ -468,6 +520,7 @@ defmodule Cab.Sessions do
            {:ok, _} <-
              EngineApi.delete_participant(head_actor, session.engine_event_id, participant_id) do
         Cab.Links.purge_guest(participant["user_id"])
+        Cab.Invitations.forget_participant(session, participant_id)
         :ok
       end
 

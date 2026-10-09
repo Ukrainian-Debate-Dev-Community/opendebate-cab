@@ -265,6 +265,14 @@ defmodule Cab.EngineApi do
     |> unwrap()
   end
 
+  @doc "The invited user redeems the one-time claim token: the participant becomes theirs."
+  def claim_participant(actor, participant_id, claim_token) do
+    Engine.post(actor, "/api/users/claim-participant/#{participant_id}", %{
+      claim_token: claim_token
+    })
+    |> unwrap()
+  end
+
   def list_participants(actor, event_id) do
     Engine.get(actor, "/api/events/#{event_id}/participants") |> unwrap()
   end

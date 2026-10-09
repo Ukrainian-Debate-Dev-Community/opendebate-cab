@@ -42,6 +42,9 @@ defmodule CabWeb.Router do
     post "/account", AccountController, :update
     post "/account/claim", AccountController, :claim
 
+    post "/invitations/:id/accept", InvitationController, :accept
+    post "/invitations/:id/decline", InvitationController, :decline
+
     # platform admin (is_admin; 404 for everyone else). Club creation
     # is ADMIN-ONLY — users can only request membership.
     get "/admin", AdminController, :show
@@ -179,6 +182,9 @@ defmodule CabWeb.Router do
     # guest links (head only): list, add a guest by hand. A guest
     # leaves through DELETE signups like everyone else. The public
     # shared URL has no API twin — it IS an HTML flow.
+    get "/sessions/:uuid/people", PeopleController, :search
+    post "/sessions/:uuid/invitations", PeopleController, :invite
+
     get "/sessions/:uuid/links", LinkController, :index
     post "/sessions/:uuid/links", LinkController, :create
   end

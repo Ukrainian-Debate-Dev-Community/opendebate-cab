@@ -4,19 +4,58 @@
   </.copy_banner>
 
   <.section title="Add a person">
-    <.form_for
-      id="add-person-form"
-      action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/signups"}
-      description="Pick a club member, or type a guest's name to give them a personal link."
-    >
-      <:block
-        name={:username}
-        type={:select}
-        label="Member"
-        options={[{"—", ""} | addable_members(@members, @state.signups)]}
-      />
-      <:block name={:name} type={:text} label="or a guest" hint="Guest's name." />
-      <:submit note="They appear in tonight's list right away.">Add</:submit>
-    </.form_for>
+    <div class="pad addp">
+      <form
+        id="add-person-form"
+        action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/signups"}
+        method="post"
+        phx-change="search"
+        phx-submit="add_typed"
+        autocomplete="off"
+      >
+        <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
+        <label for="add-person-q">Member, registered user or guest</label>
+        <input
+          id="add-person-q"
+          type="search"
+          name="q"
+          value={@query}
+          phx-debounce="250"
+          placeholder="Start typing a member's name, a user's exact username or email, or a guest's name"
+        />
+      </form>
+      <div :if={String.trim(@query) != ""} class="suggest" id="add-person-suggestions">
+        <button
+          :for={user <- @suggestions.members}
+          type="button"
+          phx-click="add_member"
+          phx-value-id={user.id}
+        >
+          {user.name || user.username} <span>member, add now</span>
+        </button>
+        <button
+          :for={user <- @suggestions.users}
+          type="button"
+          phx-click="invite"
+          phx-value-id={user.id}
+        >
+          {user.name || user.username}
+          <span>registered user, add now; they accept from their cab page</span>
+        </button>
+        <button
+          :if={@suggestions.guest}
+          type="button"
+          phx-click="add_guest"
+          phx-value-name={@suggestions.guest}
+        >
+          Add “{@suggestions.guest}” as a guest <span>gets a personal link</span>
+        </button>
+        <p :if={
+          @suggestions.members == [] and @suggestions.users == [] and is_nil(@suggestions.guest)
+        }>
+          No member or user matches that address.
+        </p>
+      </div>
+    </div>
   </.section>
 <% end %>

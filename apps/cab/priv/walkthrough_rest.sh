@@ -48,7 +48,10 @@ reqc() {
 
 # the csrf token of the last-fetched HTML page (any form's token of
 # the same browser session validates)
-csrf() { sed -n 's/.*name="_csrf_token" value="\([^"]*\)".*/\1/p' "$BODY" | head -1; }
+csrf() {
+  { sed -n 's/.*name="_csrf_token" value="\([^"]*\)".*/\1/p' "$BODY"
+    sed -n 's/.*name="csrf-token" content="\([^"]*\)".*/\1/p' "$BODY"; } | head -1
+}
 
 # html_ok <label> — count a non-JSON step after manual checks passed
 html_ok() {
@@ -632,6 +635,38 @@ html_ok "claimed guest link is gone" GET "/l/<g1>" 404
 req anon2 GET "/c/$CLUB/s/$GSESSION"
 grep -q "wt-$RUN-greta" "$BODY" || fail "the guest night does not show the claimer's name"
 html_ok "the night shows the real account's name" GET "/c/.../s/<guest-night>" 200
+
+# ----------------------------------------------------------------
+say "the head adds a registered non-member at once; they accept later"
+# ----------------------------------------------------------------
+code=$(curl -s -o /dev/null -w '%{http_code}' -c "$JARS/inv" \
+  "$BASE/dev/switch-user?username=wt-$RUN-inv")
+[ "$code" = "302" ] || fail "switch-user inv: status $code, want 302"
+assert head POST "/api/v1/clubs/$CLUB/sessions" 201 '.uuid | length' 36 \
+  "{\"name\":\"Invite night $RUN\"}"
+ISESSION=$(jq -r '.uuid' "$BODY")
+assert head GET "/api/v1/sessions/$ISESSION/people?q=wt-$RUN-inv" 200 '.users[0].username' "wt-$RUN-inv"
+assert s1 POST "/api/v1/sessions/$ISESSION/invitations" 403 '.error' forbidden "{\"user\":\"wt-$RUN-inv\"}"
+assert head POST "/api/v1/sessions/$ISESSION/invitations" 201 '.username' "wt-$RUN-inv" \
+  "{\"user\":\"wt-$RUN-inv\"}"
+# seated by name before accepting: no engine user on the place yet
+assert head GET "/api/v1/sessions/$ISESSION" 200 \
+  ".signups | map(select(.display_name == \"wt-$RUN-inv\")) | .[0].user_id" null
+reqc inv GET "/"
+ACCEPT=$(grep -o '/invitations/[0-9]*/accept' "$BODY" | head -1)
+[ -n "$ACCEPT" ] || fail "the cabinet misses the invitation"
+INV_TOK=$(csrf)
+html_ok "invitation on the cabinet" GET "/" 200
+STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/inv" -c "$JARS/inv" \
+  --data-urlencode "_csrf_token=$INV_TOK" "$BASE$ACCEPT")
+[ "$STATUS" = "302" ] || fail "POST $ACCEPT: status $STATUS, want 302"
+html_ok "invitation accepted (engine claim token)" POST "$ACCEPT" 302
+assert head GET "/api/v1/sessions/$ISESSION" 200 \
+  ".signups | map(select(.display_name == \"wt-$RUN-inv\")) | .[0].user_id | type" number
+req inv GET "/c/$CLUB/s/$ISESSION"
+grep -q "registered for tonight" "$BODY" || fail "the accepted place is not theirs on the session page"
+html_ok "accepted place is theirs" GET "/c/.../s/<invite-night>" 200
+assert head DELETE "/api/v1/sessions/$ISESSION" 200 '.status' cancelled
 
 # ----------------------------------------------------------------
 say "club management: profile PATCH (incl. the M8a profile columns) + member removal"

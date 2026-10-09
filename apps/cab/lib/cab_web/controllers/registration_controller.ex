@@ -27,7 +27,13 @@ defmodule CabWeb.RegistrationController do
 
   # a signed-in user registers as themselves — no guest link involved
   defp create_signed_in(conn, user, session) do
-    case Sessions.signup(user, session) do
+    result =
+      case Cab.Invitations.pending(session, user) do
+        nil -> Sessions.signup(user, session)
+        invitation -> Cab.Invitations.accept(invitation, user)
+      end
+
+    case result do
       {:ok, _participant} ->
         conn
         |> put_flash(:info, "registered")

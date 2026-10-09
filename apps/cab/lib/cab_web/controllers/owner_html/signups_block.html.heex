@@ -5,7 +5,7 @@
   <.table id="session-people" rows={@state.signups} empty="Nobody signed up yet.">
     <:col :let={participant} label="Name">
       {participant["display_name"]}
-      <.sub>{person_kind(participant, @links, @members)}</.sub>
+      <.sub>{person_kind(participant, @links, @members, @invitations)}</.sub>
     </:col>
     <:col :let={participant} label="Seat">{seat_words(participant, @state, @draft)}</:col>
     <:col :let={participant} label="Personal link" code>

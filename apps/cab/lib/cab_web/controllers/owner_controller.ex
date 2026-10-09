@@ -171,30 +171,41 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST .../owner/sessions/:session_uuid/signups — the head adds a
-  # person: an approved member picked from the list, or a guest by
-  # name (whose personal link lands in the flash and the people table)
+  # POST .../owner/sessions/:session_uuid/signups {"q"} — the add field
+  # without JavaScript: an exact member username signs them up, an
+  # exact registered user is invited, anything else becomes a guest
   def add_person(conn, %{"session_uuid" => session_uuid} = params) do
     with_session(conn, session_uuid, fn session ->
-      case {presence(params["username"]), presence(params["name"])} do
-        {username, nil} when is_binary(username) ->
-          with {:ok, _participant} <-
-                 Sessions.signup_for(conn.assigns.current_user, session, username) do
-            {:ok, "signed #{username} up"}
-          end
-
-        {nil, name} when is_binary(name) ->
-          with {:ok, link} <- Links.register_guest(session, name) do
-            {:ok, "#{link.user.name} added as a guest: #{url(~p"/l/#{link.code}")}"}
-          end
-
-        {nil, nil} ->
-          {:error, "pick a member or type a guest's name"}
-
-        _both ->
-          {:error, "pick a member or type a guest's name, not both"}
+      with {:ok, state} <- Sessions.state(session) do
+        add_resolved(
+          conn.assigns.current_user,
+          session,
+          Cab.Invitations.resolve(conn.assigns.club, session, state.signups, params["q"])
+        )
       end
     end)
+  end
+
+  @doc false
+  def add_resolved(head, session, resolved) do
+    case resolved do
+      {:member, user} ->
+        with {:ok, _} <- Sessions.signup_for(head, session, user.username),
+             do: {:ok, "signed #{user.name || user.username} up"}
+
+      {:user, user} ->
+        with {:ok, _} <- Cab.Invitations.invite(head, session, user),
+             do:
+               {:ok,
+                "#{user.name || user.username} is in the session; they accept from their cab page"}
+
+      {:guest, name} ->
+        with {:ok, link} <- Links.register_guest(session, name),
+             do: {:ok, "#{link.user.name} added as a guest: #{url(~p"/l/#{link.code}")}"}
+
+      nil ->
+        {:error, "type a member, a user's exact username or email, or a guest's name"}
+    end
   end
 
   # POST .../owner/sessions/:session_uuid/signups/:participant_id/remove

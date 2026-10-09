@@ -10,7 +10,7 @@ defmodule CabWeb.OwnerSessionLive do
   """
   use CabWeb, :live_view
 
-  alias Cab.{Clubs, Links, Sessions}
+  alias Cab.{Accounts, Clubs, Invitations, Links, Sessions}
 
   @impl true
   def mount(%{"session_uuid" => session_uuid}, _session, socket) do
@@ -20,7 +20,13 @@ defmodule CabWeb.OwnerSessionLive do
 
       session ->
         if connected?(socket), do: Sessions.subscribe(session)
-        {:ok, socket |> assign(:session_uuid, session.uuid) |> load()}
+
+        {:ok,
+         socket
+         |> assign(:session_uuid, session.uuid)
+         |> assign(:query, "")
+         |> assign(:suggestions, %{members: [], users: [], guest: nil})
+         |> load()}
     end
   end
 
@@ -38,6 +44,29 @@ defmodule CabWeb.OwnerSessionLive do
     socket.assigns.current
     |> Sessions.unplace(to_int(id))
     |> reply(socket)
+  end
+
+  # the add field: suggestions as the head types, one click adds
+  def handle_event("search", %{"q" => q}, socket) do
+    %{club: club, current: current, state: state} = socket.assigns
+
+    {:noreply,
+     socket
+     |> assign(:query, q)
+     |> assign(:suggestions, Invitations.search(club, current, state.signups, q))}
+  end
+
+  def handle_event("add_member", %{"id" => id}, socket),
+    do: add(socket, with_user(id, &{:member, &1}))
+
+  def handle_event("invite", %{"id" => id}, socket),
+    do: add(socket, with_user(id, &{:user, &1}))
+
+  def handle_event("add_guest", %{"name" => name}, socket), do: add(socket, {:guest, name})
+
+  def handle_event("add_typed", %{"q" => q}, socket) do
+    %{club: club, current: current, state: state} = socket.assigns
+    add(socket, Invitations.resolve(club, current, state.signups, q))
   end
 
   def handle_event("start", _params, socket) do
@@ -87,6 +116,7 @@ defmodule CabWeb.OwnerSessionLive do
       |> assign(:state, state)
       |> assign(:draft, Sessions.draft(session, state.signups))
       |> assign(:links, Links.list_for_session(session))
+      |> assign(:invitations, Invitations.for_session(session))
       |> assign(:members, Clubs.list_members(club))
       |> assign(:page_title, "#{club.name} — #{state.event["name"]}")
     else
@@ -94,6 +124,30 @@ defmodule CabWeb.OwnerSessionLive do
         socket
         |> put_flash(:error, "the session is unavailable right now")
         |> redirect(to: ~p"/c/#{club.uuid}/owner")
+    end
+  end
+
+  defp with_user(id, wrap) do
+    case Accounts.get_user(to_int(id)) do
+      nil -> nil
+      user -> wrap.(user)
+    end
+  end
+
+  defp add(socket, resolved) do
+    %{current_user: head, current: session} = socket.assigns
+
+    case CabWeb.OwnerController.add_resolved(head, session, resolved) do
+      {:ok, info} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, info)
+         |> assign(:query, "")
+         |> assign(:suggestions, %{members: [], users: [], guest: nil})
+         |> load()}
+
+      error ->
+        reply(error, socket)
     end
   end
 
