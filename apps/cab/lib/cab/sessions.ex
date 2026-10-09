@@ -36,8 +36,36 @@ defmodule Cab.Sessions do
   """
   def subscribe(%Session{uuid: uuid}), do: Phoenix.PubSub.subscribe(Cab.PubSub, topic(uuid))
 
-  def broadcast(%Session{uuid: uuid}),
-    do: Phoenix.PubSub.broadcast(Cab.PubSub, topic(uuid), {:session_changed, uuid})
+  @doc """
+  Announces a change to everyone watching the session. The writer reads
+  the engine state ONCE and pushes it, so a hundred open pages cost the
+  engine one read instead of a hundred; pages fall back to reading it
+  themselves only when that read failed.
+  """
+  def broadcast(%Session{uuid: uuid} = session) do
+    message =
+      with true <- watched?(uuid),
+           %Session{} = fresh <- get_by_uuid(uuid),
+           {:ok, state} <- state(%{fresh | club: session_club(session)}) do
+        {:session_state, uuid, state}
+      else
+        _ -> {:session_changed, uuid}
+      end
+
+    Phoenix.PubSub.broadcast(Cab.PubSub, topic(uuid), message)
+  end
+
+  # nobody watching (API-only writes, tests) = no state read at all
+  defp watched?(uuid), do: Registry.lookup(Cab.PubSub, topic(uuid)) != []
+
+  # a drag changes only cab's draft: owner pages take the new draft,
+  # nothing reads the engine
+  defp broadcast_draft({:ok, %Session{uuid: uuid, draft_allocation: draft}} = result) do
+    Phoenix.PubSub.broadcast(Cab.PubSub, topic(uuid), {:draft_changed, uuid, draft})
+    result
+  end
+
+  defp broadcast_draft(result), do: result
 
   defp topic(uuid), do: "session:" <> uuid
 
@@ -55,6 +83,27 @@ defmodule Cab.Sessions do
   def short_url(%Session{short_code: code}, room_no \\ nil) do
     base = CabWeb.Endpoint.url() <> "/" <> code
     if room_no, do: "#{base}/#{room_no}", else: base
+  end
+
+  @doc """
+  The engine id of room number `no` (rooms are numbered by creation
+  order): one rooms read when the round is known, else the full state.
+  """
+  def room_id_by_number(%Session{engine_round_id: round_id} = session, no)
+      when is_integer(round_id) do
+    with {:ok, actor} <- Clubs.club_actor(session_club(session)),
+         {:ok, rooms} <- EngineApi.list_rooms(actor, round_id) do
+      rooms |> Enum.map(& &1["id"]) |> Enum.sort() |> Enum.at(no - 1)
+    else
+      _ -> nil
+    end
+  end
+
+  def room_id_by_number(%Session{} = session, no) do
+    with {:ok, state} <- state(session),
+         %{"id" => id} <- Enum.find(state.rooms, &(&1["no"] == no)),
+         do: id,
+         else: (_ -> nil)
   end
 
   def get_by_uuid(uuid) do
@@ -252,7 +301,7 @@ defmodule Cab.Sessions do
         end)
       end
 
-    notify(result, session)
+    broadcast_draft(result)
   end
 
   @doc "Sends a person from the draft back to the tray."
@@ -266,7 +315,7 @@ defmodule Cab.Sessions do
         |> Map.new()
       end)
 
-    notify(result, session)
+    broadcast_draft(result)
   end
 
   # read-modify-write of the draft under a row lock: two owner tabs

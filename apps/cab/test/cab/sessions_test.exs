@@ -129,11 +129,12 @@ defmodule Cab.SessionsTest do
     stub(fn conn, _params -> state_stub(conn, []) end)
 
     assert {:ok, closed} = Sessions.close_signups(session)
-    assert_receive {:session_changed, ^uuid}
+    # the change notice carries the state the writer read once
+    assert_receive {:session_state, ^uuid, %{stage: _}}
 
     # a refused write (409 gate) broadcasts nothing
     assert {:error, :conflict, _} = Sessions.close_signups(%{closed | club: club})
-    refute_receive {:session_changed, _}, 50
+    refute_receive {:session_state, _, _}, 50
   end
 
   describe "allocator draft" do

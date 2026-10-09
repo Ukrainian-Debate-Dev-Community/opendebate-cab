@@ -31,7 +31,17 @@ defmodule CabWeb.OwnerSessionLive do
   end
 
   @impl true
+  def handle_info({:session_state, _uuid, state}, socket),
+    do: {:noreply, load(socket, {:ok, state})}
+
   def handle_info({:session_changed, _uuid}, socket), do: {:noreply, load(socket)}
+
+  def handle_info({:draft_changed, _uuid, draft}, socket) do
+    %{current: session, state: state} = socket.assigns
+
+    {:noreply,
+     assign(socket, :draft, Sessions.draft(%{session | draft_allocation: draft}, state.signups))}
+  end
 
   @impl true
   def handle_event("place", %{"id" => id, "slot" => slot}, socket) do
@@ -89,7 +99,7 @@ defmodule CabWeb.OwnerSessionLive do
 
   defp reply({:ok, value}, socket, info) do
     socket = if info, do: put_flash(socket, :info, info.(value)), else: socket
-    {:noreply, load(socket)}
+    {:noreply, socket}
   end
 
   defp reply({:error, :conflict, message}, socket, _info),
@@ -104,13 +114,13 @@ defmodule CabWeb.OwnerSessionLive do
   defp reply(_other, socket, _info),
     do: {:noreply, put_flash(socket, :error, "that did not work — try again")}
 
-  defp load(socket) do
+  defp load(socket, read \\ nil) do
     club = socket.assigns.club
     session = Sessions.get_for_club(club, socket.assigns.session_uuid)
 
     with %{} <- session,
          session = %{session | club: club},
-         {:ok, state} <- Sessions.state(session) do
+         {:ok, state} <- read || Sessions.state(session) do
       socket
       |> assign(:current, session)
       |> assign(:state, state)
@@ -143,8 +153,7 @@ defmodule CabWeb.OwnerSessionLive do
          socket
          |> put_flash(:info, info)
          |> assign(:query, "")
-         |> assign(:suggestions, %{members: [], users: [], guest: nil})
-         |> load()}
+         |> assign(:suggestions, %{members: [], users: [], guest: nil})}
 
       error ->
         reply(error, socket)

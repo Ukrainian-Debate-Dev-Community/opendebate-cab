@@ -30,25 +30,32 @@ defmodule CabWeb.SessionLive do
   end
 
   @impl true
+  def handle_info({:session_state, _uuid, state}, socket), do: {:noreply, show(socket, state)}
   def handle_info({:session_changed, _uuid}, socket), do: {:noreply, load(socket)}
+  def handle_info({:draft_changed, _uuid, _draft}, socket), do: {:noreply, socket}
 
   @impl true
   def render(assigns), do: CabWeb.SessionPageHTML.show(assigns)
 
+  defp show(socket, state) do
+    %{current_user: user, club: club} = socket.assigns
+    my_signup = my_signup(state, user)
+
+    socket
+    |> assign(:state, state)
+    |> assign(:winner, Sessions.winner_from_rooms(state.rooms))
+    |> assign(:my_signup, my_signup)
+    |> assign(:my_ballot_room, my_ballot_room(state, user))
+    |> assign(:my_room_id, my_room_id(state, user, my_signup))
+    |> assign(:page_title, "#{club.name} — #{state.event["name"]}")
+  end
+
   defp load(socket) do
-    %{session: session, current_user: user, club: club} = socket.assigns
+    %{session: session, club: club} = socket.assigns
 
     case Sessions.state(session) do
       {:ok, state} ->
-        my_signup = my_signup(state, user)
-
-        socket
-        |> assign(:state, state)
-        |> assign(:winner, Sessions.winner_from_rooms(state.rooms))
-        |> assign(:my_signup, my_signup)
-        |> assign(:my_ballot_room, my_ballot_room(state, user))
-        |> assign(:my_room_id, my_room_id(state, user, my_signup))
-        |> assign(:page_title, "#{club.name} — #{state.event["name"]}")
+        show(socket, state)
 
       {:error, _message} ->
         # the session vanished (cancelled) or the engine is down —

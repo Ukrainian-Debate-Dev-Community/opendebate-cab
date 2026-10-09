@@ -30,15 +30,21 @@ defmodule CabWeb.RoomLive do
   end
 
   @impl true
+  def handle_info({:session_state, _uuid, state}, socket),
+    do: {:noreply, show(socket, {:ok, state})}
+
   def handle_info({:session_changed, _uuid}, socket), do: {:noreply, load(socket)}
+  def handle_info({:draft_changed, _uuid, _draft}, socket), do: {:noreply, socket}
 
   @impl true
   def render(assigns), do: CabWeb.SessionPageHTML.room(assigns)
 
-  defp load(socket) do
-    %{session: session, room_id: room_id, club: club} = socket.assigns
+  defp load(socket), do: show(socket, Sessions.state(socket.assigns.session))
 
-    with {:ok, state} <- Sessions.state(session),
+  defp show(socket, read) do
+    %{room_id: room_id, club: club} = socket.assigns
+
+    with {:ok, state} <- read,
          %{} = room <- Enum.find(state.rooms, &(&1["id"] == room_id)) do
       socket
       |> assign(:state, state)
