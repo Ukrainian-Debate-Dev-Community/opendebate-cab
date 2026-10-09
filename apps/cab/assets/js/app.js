@@ -290,34 +290,32 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
-// the footer's theme switch: light, dark, or follow the system
+// the sidebar switches. Theme: light or dark, starting from the
+// system's preference until the first click, then remembered.
 const themeKey = "cab-theme"
+const systemDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches
+const currentTheme = () => document.documentElement.dataset.theme || (systemDark() ? "dark" : "light")
 const markTheme = () => {
-  let current = "system"
-  try { current = localStorage.getItem(themeKey) || "system" } catch (_e) { /* private mode */ }
-  document.querySelectorAll("[data-theme-choice]").forEach(b =>
-    b.setAttribute("aria-pressed", String(b.dataset.themeChoice === current)))
-  document.querySelectorAll('[data-seg="theme"]').forEach(seg =>
-    seg.style.setProperty("--i", {light: 0, system: 1, dark: 2}[current]))
+  document.querySelectorAll('[data-switch="theme"]').forEach(s =>
+    s.setAttribute("aria-checked", String(currentTheme() === "dark")))
 }
-// the language pill slides first, then the page reloads in that language
 document.addEventListener("click", e => {
-  const link = e.target.closest('[data-seg="lang"] a')
-  if (!link || link.getAttribute("aria-current") === "true") return
-  e.preventDefault()
-  const seg = link.closest("[data-seg]")
-  seg.style.setProperty("--i", [...seg.querySelectorAll("a")].indexOf(link))
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  setTimeout(() => { window.location.href = link.href }, reduce ? 0 : 220)
-})
-document.addEventListener("click", e => {
-  const btn = e.target.closest("[data-theme-choice]")
-  if (!btn) return
-  const choice = btn.dataset.themeChoice
-  if (choice === "system") delete document.documentElement.dataset.theme
-  else document.documentElement.dataset.theme = choice
-  try { choice === "system" ? localStorage.removeItem(themeKey) : localStorage.setItem(themeKey, choice) } catch (_e) { /* private mode */ }
-  markTheme()
+  const theme = e.target.closest('[data-switch="theme"]')
+  if (theme) {
+    const next = currentTheme() === "dark" ? "light" : "dark"
+    document.documentElement.dataset.theme = next
+    try { localStorage.setItem(themeKey, next) } catch (_e) { /* private mode */ }
+    markTheme()
+    return
+  }
+  // language: the thumb slides first, then the page reloads in it
+  const lang = e.target.closest('[data-switch="lang"]')
+  if (lang) {
+    e.preventDefault()
+    lang.setAttribute("aria-checked", String(lang.getAttribute("aria-checked") !== "true"))
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    setTimeout(() => { window.location.href = lang.href }, reduce ? 0 : 240)
+  }
 })
 markTheme()
 window.addEventListener("phx:page-loading-stop", markTheme)

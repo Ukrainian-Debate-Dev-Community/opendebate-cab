@@ -149,66 +149,59 @@ defmodule CabWeb.Ui do
         />
       <% end %>
       <div class="profile" id="sidenav-profile">
-        <%= if @current_user do %>
-          <div class="who">
-            <span class="av">{initials(@current_user)}</span>
-            <%= if guest?(@current_user) do %>
-              <span>{@current_user.name || @current_user.username}</span>
-            <% else %>
-              <.link href={~p"/account"}>{@current_user.username}</.link>
-            <% end %>
-          </div>
-          <.link :if={guest?(@current_user)} href={~p"/signin"}>Sign in with an account</.link>
-          <.link class="out" href={~p"/auth/logout"}>sign out</.link>
-        <% else %>
-          <.link href={~p"/signin"}>Sign in</.link>
-        <% end %>
-        <div class="toggles" id="sidenav-toggles" phx-update="ignore">
-          <div class="seg" data-seg="theme" role="group" aria-label="Theme" style="--i:1;--n:3">
-            <span class="knob" aria-hidden="true"></span>
-            <button type="button" data-theme-choice="light" aria-label="Light theme" title="Light">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <circle cx="8" cy="8" r="3" />
-                <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              data-theme-choice="system"
-              aria-label="Follow the system"
-              title="System"
-            >
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <rect x="2" y="3" width="12" height="8" rx="1.5" /><path d="M6 14h4M8 11v3" />
-              </svg>
-            </button>
-            <button type="button" data-theme-choice="dark" aria-label="Dark theme" title="Dark">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z" />
-              </svg>
-            </button>
-          </div>
-          <div
-            class="seg seg-lang"
-            data-seg="lang"
-            role="group"
-            aria-label="Language"
-            style={"--i:#{if Gettext.get_locale(CabWeb.Gettext) == "uk", do: 1, else: 0};--n:2"}
+        <div class="me">
+          <%= if @current_user do %>
+            <div class="who">
+              <span class="av">{initials(@current_user)}</span>
+              <%= if guest?(@current_user) do %>
+                <span>{@current_user.name || @current_user.username}</span>
+              <% else %>
+                <.link href={~p"/account"}>{@current_user.username}</.link>
+              <% end %>
+            </div>
+            <.link :if={guest?(@current_user)} href={~p"/signin"}>Sign in with an account</.link>
+            <.link class="out" href={~p"/auth/logout"}>sign out</.link>
+          <% else %>
+            <.link href={~p"/signin"}>Sign in</.link>
+          <% end %>
+        </div>
+        <div class="switches" id="sidenav-switches" phx-update="ignore">
+          <button
+            type="button"
+            class="switch"
+            data-switch="theme"
+            role="switch"
+            aria-checked="false"
+            aria-label="Dark theme"
+            title="Light or dark"
           >
-            <span class="knob" aria-hidden="true"></span>
-            <a
-              href="/locale/en"
-              lang="en"
-              title="English"
-              aria-current={Gettext.get_locale(CabWeb.Gettext) == "en" && "true"}
-            >EN</a>
-            <a
-              href="/locale/uk"
-              lang="uk"
-              title="Українська"
-              aria-current={Gettext.get_locale(CabWeb.Gettext) == "uk" && "true"}
-            >UA</a>
-          </div>
+            <span class="track">
+              <span class="thumb">
+                <svg class="when-off" viewBox="0 0 16 16" aria-hidden="true">
+                  <circle cx="8" cy="8" r="2.6" />
+                  <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3" />
+                </svg>
+                <svg class="when-on" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M13 9.6A5.2 5.2 0 0 1 6.4 3a5.2 5.2 0 1 0 6.6 6.6Z" />
+                </svg>
+              </span>
+            </span>
+          </button>
+          <a
+            class="switch"
+            data-switch="lang"
+            role="switch"
+            aria-checked={to_string(Gettext.get_locale(CabWeb.Gettext) == "uk")}
+            aria-label="Українська"
+            title="English or Українська"
+            href={if Gettext.get_locale(CabWeb.Gettext) == "uk", do: "/locale/en", else: "/locale/uk"}
+          >
+            <span class="track">
+              <span class="thumb">
+                <span class="when-off">EN</span><span class="when-on">UA</span>
+              </span>
+            </span>
+          </a>
         </div>
       </div>
     </nav>
