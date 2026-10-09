@@ -15,11 +15,12 @@
     <.section title={tab_label(@tab)}>
       <div class="pad scope-card">
         <p>
-          session: <b>{@scope.session.name}</b>, {Calendar.strftime(scope_date(@scope), "%-d %b")}, {@scope.club.name}{if assigns[
-                                                                                                                            :archive
-                                                                                                                          ],
-                                                                                                                          do:
-                                                                                                                            " (latest finished)"}
+          session: <b>{@scope.session.name}</b>,
+          <.local_time at={scope_date(@scope)} as={:day} />, {@scope.club.name}{if assigns[
+                                                                                     :archive
+                                                                                   ],
+                                                                                   do:
+                                                                                     " (latest finished)"}
         </p>
         <div :if={earlier_rows(assigns) != []} class="flinks">
           <span class="mut">earlier:</span>
@@ -27,7 +28,7 @@
             :for={row <- earlier_rows(assigns)}
             href={"#{@base}/#{@tab}?session=#{row.session_uuid}"}
           >
-            {row.name}, {Calendar.strftime(row.date, "%-d %b")}
+            {row.name}, <.local_time at={row.date} as={:day} />
           </.link>
         </div>
       </div>

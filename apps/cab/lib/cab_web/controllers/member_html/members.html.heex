@@ -19,7 +19,7 @@
         </:col>
         <:col :let={membership} label="Role">{membership.role}</:col>
         <:col :let={membership} label="Since">
-          {Calendar.strftime(membership.inserted_at, "%-d %b %Y")}
+          <.local_time at={membership.inserted_at} as={:date} />
         </:col>
       </.table>
     </.section>

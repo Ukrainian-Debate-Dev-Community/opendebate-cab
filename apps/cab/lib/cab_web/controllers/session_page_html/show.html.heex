@@ -46,7 +46,12 @@
 
     <.section title="Session" pad>
       <b id="session-name">{@state.event["name"]}</b>
-      <p>{session_date(@session)}</p>
+      <p>
+        <.local_time
+          at={@session.scheduled_at || @session.inserted_at}
+          as={if @session.scheduled_at, do: :datetime, else: :date}
+        />
+      </p>
       <p id="session-short-link">
         Short link: <code>{bare_url(Cab.Sessions.short_url(@session))}</code>
         <.copy text={Cab.Sessions.short_url(@session)} />

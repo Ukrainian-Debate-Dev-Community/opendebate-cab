@@ -88,10 +88,4 @@ defmodule CabWeb.SessionFormat do
   def ordinal(2), do: "2nd"
   def ordinal(3), do: "3rd"
   def ordinal(rank), do: "#{rank}th"
-
-  @doc "The session's date — the planned start when there is one."
-  def session_date(%{scheduled_at: %DateTime{} = at}),
-    do: Calendar.strftime(at, "%-d %b %Y, %H:%M")
-
-  def session_date(session), do: Calendar.strftime(session.inserted_at, "%-d %b %Y")
 end

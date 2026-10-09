@@ -49,7 +49,18 @@
             </.sub>
           </:col>
           <:col :let={m} label="Next session" class="st">
-            {if m.status == "approved", do: tonight_words(@tonight[m.club_id]), else: "—"}
+            <%= cond do %>
+              <% m.status != "approved" -> %>
+                —
+              <% match?({%{scheduled_at: %DateTime{}}, :signup, _}, @tonight[m.club_id]) -> %>
+                sign-ups open,
+                <.local_time
+                  at={elem(@tonight[m.club_id], 0).scheduled_at}
+                  as={:weekday_time}
+                />
+              <% true -> %>
+                {tonight_words(@tonight[m.club_id])}
+            <% end %>
           </:col>
         </.table>
       </.section>
@@ -61,7 +72,7 @@
               {row.club.name}
             </.link>
             <.sub :if={row.session.scheduled_at}>
-              {Calendar.strftime(row.session.scheduled_at, "%-d %b %H:%M")}
+              <.local_time at={row.session.scheduled_at} as={:short} />
             </.sub>
           </:col>
         </.table>
@@ -103,7 +114,12 @@
               <% nil -> %>
                 not planned yet
               <% {session, :signup, _rooms} -> %>
-                {session_when(session)} — <.link href={~p"/r/#{session.uuid}"}>register</.link>
+                <%= if session.scheduled_at do %>
+                  <.local_time at={session.scheduled_at} as={:weekday_time} />
+                <% else %>
+                  sign-ups open
+                <% end %>
+                — <.link href={~p"/r/#{session.uuid}"}>register</.link>
               <% {_session, :closed, _rooms} -> %>
                 starting soon
               <% {session, :running, _rooms} -> %>

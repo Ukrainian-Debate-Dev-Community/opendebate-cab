@@ -2,7 +2,7 @@
   <.table id="club-sessions" rows={@archive} empty="No sessions yet.">
     <:col :let={row} label="Session">
       <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"}>{row.name}</.link>
-      <.sub>{Calendar.strftime(row.date, "%-d %b %Y")}</.sub>
+      <.sub><.local_time at={row.date} as={:date} /></.sub>
     </:col>
     <:col :let={row} label="Status" class="st">
       <%= case row.status do %>

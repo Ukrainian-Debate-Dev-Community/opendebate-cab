@@ -790,6 +790,29 @@ defmodule CabWeb.Ui do
   end
 
   @doc """
+  A moment in time, shown in the viewer's zone and language: the server
+  writes the UTC instant (and a UTC fallback text), the browser formats
+  it with the account's time zone, or the device's (assets/js "when").
+  Formats: :date (9 Oct 2026), :day (9 Oct), :datetime (9 Oct 2026, 18:30),
+  :short (9 Oct, 18:30), :weekday_time (Thu 18:30), :time (18:30).
+  """
+  attr :at, :any, required: true
+  attr :as, :atom, default: :date, values: [:date, :day, :datetime, :short, :weekday_time, :time]
+
+  def local_time(assigns) do
+    ~H"""
+    <time :if={@at} datetime={DateTime.to_iso8601(@at)} data-when={@as}>{utc_text(@at, @as)}</time>
+    """
+  end
+
+  defp utc_text(at, :date), do: Calendar.strftime(at, "%-d %b %Y")
+  defp utc_text(at, :day), do: Calendar.strftime(at, "%-d %b")
+  defp utc_text(at, :datetime), do: Calendar.strftime(at, "%-d %b %Y, %H:%M UTC")
+  defp utc_text(at, :short), do: Calendar.strftime(at, "%-d %b, %H:%M UTC")
+  defp utc_text(at, :weekday_time), do: Calendar.strftime(at, "%a %H:%M UTC")
+  defp utc_text(at, :time), do: Calendar.strftime(at, "%H:%M UTC")
+
+  @doc """
   The copy-to-clipboard affordance: a small button that writes `text`
   to the clipboard (vanilla JS `[data-copy]` handler in app.js).
   """

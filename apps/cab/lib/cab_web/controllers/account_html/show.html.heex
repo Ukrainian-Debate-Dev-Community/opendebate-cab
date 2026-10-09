@@ -16,6 +16,16 @@
           value={@current_user.name}
           hint="Shown instead of your username on rosters and draws."
         />
+        <:block
+          name={:time_zone}
+          type={:select}
+          label="Time zone"
+          value={@current_user.time_zone || ""}
+          options={[
+            {"This device's time zone", ""} | Enum.map(Cab.Accounts.time_zones(), &{&1, &1})
+          ]}
+          hint="Session times show in this zone. cab keeps every time in UTC."
+        />
       </.form_for>
       <div class="pad">
         <p>

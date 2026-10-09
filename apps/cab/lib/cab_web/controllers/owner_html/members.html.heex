@@ -27,7 +27,7 @@
           <.sub :if={request.contact}>contact: {request.contact}</.sub>
         </:col>
         <:col :let={request} label="Requested">
-          {Calendar.strftime(request.inserted_at, "%-d %b %Y")}
+          <.local_time at={request.inserted_at} as={:date} />
         </:col>
         <:col :let={request}>
           <.link
@@ -56,7 +56,7 @@
         </:col>
         <:col :let={membership} label="Role">{membership.role}</:col>
         <:col :let={membership} label="Since">
-          {Calendar.strftime(membership.inserted_at, "%-d %b %Y")}
+          <.local_time at={membership.inserted_at} as={:date} />
         </:col>
         <:col :let={membership}>
           <.link

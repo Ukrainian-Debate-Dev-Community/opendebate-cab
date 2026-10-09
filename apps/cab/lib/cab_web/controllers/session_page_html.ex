@@ -43,7 +43,7 @@ defmodule CabWeb.SessionPageHTML do
     Jason.encode!(%{
       club: club.name,
       session: state.event["name"],
-      date: Calendar.strftime(session.scheduled_at || session.inserted_at, "%-d %b %Y"),
+      date: DateTime.to_iso8601(session.scheduled_at || session.inserted_at),
       # exact instants; the browser shows them in the viewer's timezone
       starts: session.scheduled_at && DateTime.to_iso8601(session.scheduled_at),
       room: room_label(room),

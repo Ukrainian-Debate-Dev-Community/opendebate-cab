@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang={assigns[:locale] || "en"}>
+<html
+  lang={assigns[:locale] || "en"}
+  data-tz={assigns[:current_user] && assigns[:current_user].time_zone}
+>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

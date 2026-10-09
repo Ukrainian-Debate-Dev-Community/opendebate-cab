@@ -34,7 +34,7 @@
       <.table id="me-history" rows={@history} empty="No sessions played yet.">
         <:col :let={row} label="Session">
           <.link href={~p"/c/#{row.club_uuid}/s/#{row.session_uuid}"}>
-            {Calendar.strftime(row.date, "%-d %b %Y")}
+            <.local_time at={row.date} as={:date} />
           </.link>
           <.sub>{row.club}</.sub>
         </:col>

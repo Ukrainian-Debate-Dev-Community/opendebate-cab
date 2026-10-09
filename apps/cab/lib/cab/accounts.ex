@@ -29,9 +29,30 @@ defmodule Cab.Accounts do
   def list_users, do: Repo.all(from u in User, order_by: u.username)
 
   @doc "The /account profile edit — display name only; identity fields stay provider-fed."
+  # the zones offered on /account; "" = the device's own zone
+  @time_zones ~w(Europe/Kyiv Europe/Warsaw Europe/Vilnius Europe/Riga Europe/Tallinn
+                 Europe/Bucharest Europe/Chisinau Europe/Prague Europe/Berlin Europe/Paris
+                 Europe/Madrid Europe/Rome Europe/Amsterdam Europe/London Europe/Lisbon
+                 Europe/Istanbul Asia/Tbilisi Asia/Dubai America/New_York America/Chicago
+                 America/Denver America/Los_Angeles America/Toronto Asia/Tokyo
+                 Australia/Sydney UTC)
+
+  def time_zones, do: @time_zones
+
   def update_profile(%User{} = user, attrs) do
+    changes = %{name: attrs["name"] || attrs[:name]}
+
+    changes =
+      case attrs["time_zone"] || attrs[:time_zone] do
+        nil -> changes
+        "" -> Map.put(changes, :time_zone, nil)
+        zone when zone in @time_zones -> Map.put(changes, :time_zone, zone)
+        _unknown -> changes
+      end
+
     user
-    |> User.changeset(%{name: attrs["name"] || attrs[:name]})
+    |> User.changeset(changes)
+    |> Ecto.Changeset.cast(changes, [:time_zone])
     |> Repo.update()
   end
 

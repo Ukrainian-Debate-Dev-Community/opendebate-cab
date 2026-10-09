@@ -137,8 +137,53 @@ const CARD = {
   sans: '-apple-system, "Inter", "Segoe UI", system-ui, sans-serif',
 }
 
-// an ISO instant as the viewer's local clock time, 24-hour
-const clock = (iso) => new Date(iso).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", hour12: false})
+// Times: the server sends UTC instants; they show in the account's
+// time zone (<html data-tz>) or the device's, in the page's language.
+const viewerZone = () => document.documentElement.dataset.tz || undefined
+const viewerLocale = () => (document.documentElement.lang === "uk" ? "uk" : "en-GB")
+const WHEN = {
+  date: {day: "numeric", month: "short", year: "numeric"},
+  day: {day: "numeric", month: "short"},
+  datetime: {day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"},
+  short: {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"},
+  weekday_time: {weekday: "short", hour: "2-digit", minute: "2-digit"},
+  time: {hour: "2-digit", minute: "2-digit"},
+}
+const formatWhen = (iso, as) =>
+  new Intl.DateTimeFormat(viewerLocale(), {...WHEN[as], hour12: false, timeZone: viewerZone()}).format(new Date(iso))
+const clock = (iso) => formatWhen(iso, "time")
+
+const localizeTimes = () => {
+  document.querySelectorAll("time[data-when]").forEach(t => {
+    const text = formatWhen(t.getAttribute("datetime"), t.dataset.when)
+    if (t.textContent !== text) t.textContent = text
+  })
+}
+// live updates re-render times in UTC; put them back in the viewer's zone
+new MutationObserver(localizeTimes).observe(document.documentElement, {subtree: true, childList: true, characterData: true})
+document.addEventListener("DOMContentLoaded", localizeTimes)
+localizeTimes()
+
+// a date and time typed in the viewer's zone, as the UTC "YYYY-MM-DD"
+// and "HH:MM" the server stores
+const toUtcParts = (date, time, zone) => {
+  const guess = new Date(`${date}T${time || "00:00"}:00Z`)
+  const shown = new Date(guess.toLocaleString("en-US", {timeZone: zone || Intl.DateTimeFormat().resolvedOptions().timeZone}))
+  const offset = shown.getTime() - new Date(guess.toLocaleString("en-US", {timeZone: "UTC"})).getTime()
+  const utc = new Date(guess.getTime() - offset)
+  return [utc.toISOString().slice(0, 10), utc.toISOString().slice(11, 16)]
+}
+document.addEventListener("submit", e => {
+  const form = e.target.closest("#open-session-form")
+  if (!form) return
+  const date = form.querySelector('[name="date"]'), time = form.querySelector('[name="time"]')
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date.value.trim())) return
+  const hhmm = time && time.value.trim().match(/^(\d{1,2}):(\d{2})$/)
+  if (time && time.value.trim() && !hhmm) return
+  const [d, t] = toUtcParts(date.value.trim(), hhmm && `${hhmm[1].padStart(2, "0")}:${hhmm[2]}`, viewerZone())
+  date.value = d
+  if (time && time.value) time.value = t
+}, true)
 
 const wrapLines = (ctx, text, width) => {
   const lines = []
@@ -170,7 +215,7 @@ const drawCard = (canvas, d, draw = true) => {
 
   font(800, 40)
   for (const l of wrapLines(ctx, d.session || "", inner)) { text(l, pad, y, CARD.ink); y += 50 }
-  font(500, 30); text(`${d.club}, ${d.date}`, pad, y, CARD.muted); y += 44
+  font(500, 30); text(`${d.club}, ${formatWhen(d.date, "date")}`, pad, y, CARD.muted); y += 44
   if (d.starts) { font(700, 30); text(`Starts at ${clock(d.starts)}`, pad, y, CARD.ink); y += 44 }
   y += 20
 
