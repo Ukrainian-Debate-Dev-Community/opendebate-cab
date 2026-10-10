@@ -20,11 +20,7 @@
       >
         <:col :let={request} label={gettext("Who")}>
           {request.user.username}
-          <.sub>
-            {if request.user.name,
-              do: gettext("signed-in user (%{name})", name: request.user.name),
-              else: gettext("signed-in user")}
-          </.sub>
+          <.sub :if={request.user.name}>{request.user.name}</.sub>
         </:col>
         <:col :let={request} label={gettext("About them")}>
           {request.message || "—"}

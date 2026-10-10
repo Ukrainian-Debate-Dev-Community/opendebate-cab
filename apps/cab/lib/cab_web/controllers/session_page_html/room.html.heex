@@ -22,6 +22,12 @@
       {gettext("Publish motion")}
     </:seg>
     <:seg
+      :if={@can_act && @room["Motion"] && @room["status"] in ["pending", "judging"]}
+      form={"room-motion-#{@room["id"]}"}
+    >
+      {gettext("Update motion")}
+    </:seg>
+    <:seg
       :if={@can_edit_ballot}
       href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/ballot"}
       primary={@room["Motion"] != nil}
@@ -135,9 +141,6 @@
           }
           value={@room["prep_until"]}
         />
-        <:submit note={gettext("Visible to everyone in the room right away.")} quiet>
-          {if @room["Motion"], do: gettext("Update motion"), else: gettext("Publish motion")}
-        </:submit>
       </.form_for>
     </.section>
 

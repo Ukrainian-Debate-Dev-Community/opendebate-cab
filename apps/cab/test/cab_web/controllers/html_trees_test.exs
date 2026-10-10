@@ -971,9 +971,10 @@ defmodule CabWeb.HtmlTreesTest do
     assert chair_html =~ "Keyword"
     assert chair_html =~ "Publish motion"
     assert chair_html =~ "starts 15 minutes of prep"
-    # one gold action: Publish motion sits in the chrome, the form's button is plain
-    assert chair_html =~ ~s(class="btn-quiet")
+    # the chrome's Publish motion is the form's only button
+    refute chair_html =~ ~s(class="btn-quiet")
     refute chair_html =~ ~s(class="btn-go")
+    assert chair_html =~ ~s(form="room-motion-71")
 
     set =
       conn
