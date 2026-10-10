@@ -2,7 +2,7 @@ defmodule CabWeb.Api.SessionController do
   use CabWeb, :controller
 
   alias Cab.Sessions
-  alias CabWeb.ClubScope
+  alias CabWeb.{ClubScope, SessionFormat}
 
   action_fallback CabWeb.Api.FallbackController
 
@@ -33,40 +33,95 @@ defmodule CabWeb.Api.SessionController do
            ) do
       conn
       |> put_status(201)
-      |> json(%{
-        uuid: session.uuid,
-        engine_event_id: session.engine_event_id,
-        scheduled_at: session.scheduled_at
-      })
+      |> json(%{uuid: session.uuid, scheduled_at: session.scheduled_at})
     end
   end
 
-  # GET /api/v1/sessions/:uuid — the public session detail twin:
-  # stage derived from engine state + the gateway registration window
-  # and, once ballots are in, the winner
+  # GET /api/v1/sessions/:uuid — the session as anyone may read it: names,
+  # stage, rooms, motions and results, no engine ids or accounts. The
+  # club head also gets every room's and person's `id` (their API calls
+  # address rooms and people by it); a room's chair gets them for the
+  # room they chair, which the ballot call needs; everyone gets the id
+  # of their own registration, to leave it.
   def show(conn, _params) do
-    session = conn.assigns.session
+    %{session: session, club: club, current_user: user} = conn.assigns
 
     with {:ok, state} <- Sessions.state(session) do
+      head? = Cab.Clubs.covers?(conn.assigns.club_role, :owner)
+      ids? = fn room -> head? or (user != nil and Sessions.room_chair?(room, user)) end
+
       json(conn, %{
         uuid: session.uuid,
-        club_uuid: conn.assigns.club.uuid,
+        club_uuid: club.uuid,
+        name: state.event["name"],
         stage: state.stage,
         scheduled_at: session.scheduled_at,
         signups_closed_at: session.signups_closed_at,
-        event: state.event,
-        round: state.round,
-        signups: state.signups,
-        rooms: state.rooms,
+        short_link: Sessions.short_url(session),
+        signups: Enum.map(state.signups, &public_signup(&1, head?, user)),
+        rooms: Enum.map(state.rooms, &public_room(&1, state.signups, ids?.(&1))),
         winner: Sessions.winner_from_rooms(state.rooms),
         winners:
           Enum.map(
             Sessions.winners_by_room(state.rooms),
-            fn {room, name} -> %{room: CabWeb.SessionFormat.room_label(room), team: name} end
+            fn {room, name} -> %{room: "R#{room["no"]}", team: name} end
           )
       })
     end
   end
+
+  # the head sees every id; anyone else only their own (to leave)
+  defp public_signup(participant, head?, user) do
+    own? = user != nil and Sessions.own_participant?(participant, user)
+
+    %{name: participant["display_name"], role: participant["role"]}
+    |> with_id(participant["id"], head? or own?)
+  end
+
+  defp public_room(room, signups, ids?) do
+    motion = room["Motion"]
+
+    %{
+      no: room["no"],
+      status: room["status"],
+      motion:
+        motion &&
+          %{
+            text: motion["motion_text"],
+            infoslide: motion["infoslide"],
+            keyword: motion["keyword"],
+            prep_until: room["prep_until"]
+          },
+      adjudicator: SessionFormat.judge_name(room, signups),
+      teams:
+        for room_team <- SessionFormat.sorted_teams(room) do
+          %{
+            side: Enum.at(~w(OG OO CG CO), (room_team["position"] || 1) - 1),
+            name: get_in(room_team, ["Team", "name"]),
+            rank: room_team["rank"],
+            points: SessionFormat.team_points(room_team),
+            speakers: public_speakers(room_team, ids?)
+          }
+        end
+    }
+    |> with_id(room["id"], ids?)
+  end
+
+  # a speaker per speech, in speaking order; ids for those who act on it
+  defp public_speakers(room_team, ids?) do
+    slots = Enum.sort_by(room_team["RoomSpeakers"] || [], &{&1["rank"] || 0, &1["id"] || 0})
+
+    room_team
+    |> SessionFormat.speeches()
+    |> Enum.zip(slots)
+    |> Enum.map(fn {speech, slot} ->
+      %{name: speech.name, score: speech.points, iron: speech.iron}
+      |> with_id(get_in(slot, ["EventParticipant", "id"]), ids?)
+    end)
+  end
+
+  defp with_id(map, id, true), do: Map.put(map, :id, id)
+  defp with_id(map, _id, _ids?), do: map
 
   # POST /api/v1/sessions/:uuid/start {"rooms": [...]} — M9's one
   # action: closes registration and creates the rooms from the

@@ -10,7 +10,9 @@ defmodule CabWeb.ErrorHTML do
 
   embed_templates "error_html/*"
 
-  defp page_copy(403), do: {gettext("Not allowed"), gettext("This page is not open to your account.")}
+  defp page_copy(403),
+    do: {gettext("Not allowed"), gettext("This page is not open to your account.")}
+
   defp page_copy(404), do: {gettext("Not found"), gettext("There is nothing at this address.")}
 
   defp page_copy(500),

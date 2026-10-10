@@ -278,7 +278,7 @@ async def main(args):
         _took, reply = await tabs[0].push("start", "", kind="form")
         start_took = time.perf_counter() - t0
         flash = json.dumps(reply)[:300]
-        if "session started" not in flash:
+        if "Session started" not in flash:
             errors += 1
             print("  start did not report success:", flash)
     results.append(report("C", f"{len(plan)} drags from {args.tabs} tabs", latencies, errors, log,
@@ -303,11 +303,11 @@ async def main(args):
 
         def scores(room):
             out = []
-            for team in sorted(room["RoomTeams"], key=lambda t: t["position"]):
-                ids = [s["EventParticipant"]["id"] for s in team["RoomSpeakers"]]
-                base = {1: 80, 2: 77, 3: 74, 4: 71}[team["position"]]
-                out.append({"position": team["position"], "speaker_participant_id": ids[0], "iron": False, "score": base})
-                out.append({"position": team["position"], "speaker_participant_id": ids[-1], "iron": ids[0] == ids[-1], "score": base - 1})
+            for position, team in enumerate(room["teams"], start=1):
+                ids = [s["id"] for s in team["speakers"]]
+                base = {1: 80, 2: 77, 3: 74, 4: 71}[position]
+                out.append({"position": position, "speaker_participant_id": ids[0], "iron": False, "score": base})
+                out.append({"position": position, "speaker_participant_id": ids[-1], "iron": ids[0] == ids[-1], "score": base - 1})
             return out
 
         async def ballot(room):
@@ -327,8 +327,8 @@ async def main(args):
                           f"  (viewers that missed the update: {missed})"))
 
     # E: short links
-    code = (await head.get(page)).text
-    short = re.search(r'data-copy="https?://[^/"]+/([a-z2-9]{6})"', code).group(1)
+    link = (await head.get(f"/api/v1/sessions/{sess}")).json()["short_link"]
+    short = link.rstrip("/").rsplit("/", 1)[-1]
     paths = [f"/{short}", f"/{short}/1", f"/{short}/{rooms}"] * (args.links // 3)
     print(f"E: {len(paths)} short-link opens, 50 at a time", flush=True)
     with LogWindow() as log:

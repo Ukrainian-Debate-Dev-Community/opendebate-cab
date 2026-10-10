@@ -166,7 +166,7 @@ assert head DELETE "/api/v1/sessions/$SESSION/signups/$X1_PID" 200 '.status' rem
 # self-removal: s8 steps out and back in
 assert s8 GET "/api/v1/sessions/$SESSION" 200 '.stage' signup
 S8_PID=$(jq -r --arg name "wt-$RUN-s8" \
-  '.signups[] | select(.display_name == $name) | .id' "$BODY")
+  '.signups[] | select(.name == $name) | .id' "$BODY")
 assert s8 DELETE "/api/v1/sessions/$SESSION/signups/$S8_PID" 200 '.status' removed
 assert s8 POST "/api/v1/sessions/$SESSION/signups" 201 '.participant_id | type' number '{}'
 
@@ -201,8 +201,8 @@ say "explicit composition (the head places everyone), rebuild"
 assert head GET "/api/v1/sessions/$SESSION" 200 '.stage' closed
 # registration carries no role: the head decides j1 chairs, s1-s8 speak
 COMPOSE=$(jq -c '{rooms: [{
-  adjudicator_participant_id: ([.signups[] | select(.display_name | endswith("-j1")) | .id][0]),
-  teams: ([.signups[] | select(.display_name | test("-s[1-8]$")) | .id][0:8]
+  adjudicator_participant_id: ([.signups[] | select(.name | endswith("-j1")) | .id][0]),
+  teams: ([.signups[] | select(.name | test("-s[1-8]$")) | .id][0:8]
           | [.[0:2], .[2:4], .[4:6], .[6:8]])}]}' "$BODY")
 
 assert s1 POST "/api/v1/sessions/$SESSION/rooms" 403 '.error' forbidden "$COMPOSE"
@@ -221,18 +221,18 @@ assert head POST "/api/v1/sessions/$SESSION/rooms" 201 '.rooms_created' 1 "$COMP
 assert j1 GET "/api/v1/sessions/$SESSION" 200 '.stage' running
 ROOM=$(jq -r '.rooms[0].id' "$BODY")
 # the ballot speaks in room order: og/oo/cg/co, speakers from dropdowns
-WINNER_NAME=$(jq -r '.rooms[0].RoomTeams | sort_by(.position) | .[1].Team.name' "$BODY")
+WINNER_NAME=$(jq -r '.rooms[0].teams[1].name' "$BODY")
 echo "room: $ROOM, top scores go to position 2 ($WINNER_NAME)"
 
 # 8 x {position, speaker_participant_id, iron, score}. Tie first:
 # every team totals 151 -> rejected. Then distinct totals, position
 # 2 highest -> rank 1 -> winner.
-TIE_SCORES=$(jq -c '[.rooms[0].RoomTeams | sort_by(.position)[]
-  | .position as $p | [.RoomSpeakers[].EventParticipant.id] as $ids
+TIE_SCORES=$(jq -c '[.rooms[0].teams | to_entries[]
+  | (.key + 1) as $p | [.value.speakers[].id] as $ids
   | {position:$p, speaker_participant_id:$ids[0], iron:false, score:76},
     {position:$p, speaker_participant_id:$ids[1], iron:false, score:75}]' "$BODY")
-SCORES=$(jq -c '[.rooms[0].RoomTeams | sort_by(.position)[]
-  | .position as $p | [.RoomSpeakers[].EventParticipant.id] as $ids
+SCORES=$(jq -c '[.rooms[0].teams | to_entries[]
+  | (.key + 1) as $p | [.value.speakers[].id] as $ids
   | ({"1":76,"2":79,"3":75,"4":74}[$p|tostring]) as $base
   | {position:$p, speaker_participant_id:$ids[0], iron:false, score:$base},
     {position:$p, speaker_participant_id:$ids[1], iron:false, score:($base-1)}]' "$BODY")
@@ -240,7 +240,7 @@ SCORES=$(jq -c '[.rooms[0].RoomTeams | sort_by(.position)[]
 # ----------------------------------------------------------------
 say "the judge posts the motion, then the scored ballot"
 # ----------------------------------------------------------------
-assert j1 POST "/api/v1/rooms/$ROOM/motion" 200 '.motion.motion_text' \
+assert j1 POST "/api/v1/rooms/$ROOM/motion" 200 '.motion.text' \
   "THW walk through REST $RUN" \
   "{\"session_uuid\":\"$SESSION\",\"motion_text\":\"THW walk through REST $RUN\"}"
 
@@ -275,9 +275,9 @@ assert head GET "/api/v1/clubs/$CLUB" 200 \
 say "session detail: API twin + the public HTML page"
 # ----------------------------------------------------------------
 assert j1 GET "/api/v1/sessions/$SESSION" 200 '.winner' "$WINNER_NAME"
-assert j1 GET "/api/v1/sessions/$SESSION" 200 '.event.name' "Walkthrough night $RUN"
+assert j1 GET "/api/v1/sessions/$SESSION" 200 '.name' "Walkthrough night $RUN"
 assert j1 GET "/api/v1/sessions/$SESSION" 200 \
-  '.rooms[0].RoomTeams | map(select(.rank == 1)) | length' 1
+  '.rooms[0].teams | map(select(.rank == 1)) | length' 1
 
 # the public P6 page needs no identity at all ("&" arrives HTML-escaped)
 : > "$JARS/anon"
@@ -374,8 +374,8 @@ assert head POST "/api/v1/sessions/$IRON_SESSION/close-signups" 200 '.stage' clo
 # compose explicitly: 3 pairs + ONE 1-speaker team (iron), 2 sit out
 assert head GET "/api/v1/sessions/$IRON_SESSION" 200 '.signups | length' 10
 IRON_COMPOSE=$(jq -c '
-  ([.signups[] | select(.display_name | test("-s[1-8]$")) | .id] | sort) as $s
-  | (.signups[] | select(.display_name | endswith("-j1")) | .id) as $j
+  ([.signups[] | select(.name | test("-s[1-8]$")) | .id] | sort) as $s
+  | (.signups[] | select(.name | endswith("-j1")) | .id) as $j
   | {rooms: [{adjudicator_participant_id: $j,
               teams: [[$s[0], $s[1]], [$s[2], $s[3]], [$s[4], $s[5]], [$s[6]]]}]}' "$BODY")
 assert head POST "/api/v1/sessions/$IRON_SESSION/rooms" 201 '.rooms_created' 1 "$IRON_COMPOSE"
@@ -383,39 +383,38 @@ assert head GET "/api/v1/sessions/$IRON_SESSION" 200 '.stage' running
 
 # the iron team occupies BOTH engine speaker slots with one person
 assert head GET "/api/v1/sessions/$IRON_SESSION" 200 \
-  '.rooms[0].RoomTeams | sort_by(.position) | .[3].RoomSpeakers
-   | map(.EventParticipant.id) | unique | length' 1
+  '.rooms[0].teams[3].speakers | map(.id) | unique | length' 1
 IRON_ROOM=$(jq -r '.rooms[0].id' "$BODY")
 
 say "the seat decides the role; only the waitlist can be removed"
 # j1 registered without a role; sitting in the chair made them the adjudicator
 assert head GET "/api/v1/sessions/$IRON_SESSION" 200 \
-  '.signups | map(select(.display_name | endswith("-j1"))) | .[0].role' adjudicator
-SEATED_PID=$(jq -r '[.signups[] | select(.display_name | endswith("-s1")) | .id][0]' "$BODY")
-WAITING_PID=$(jq -r '[.signups[] | select(.display_name | endswith("-x1")) | .id][0]' "$BODY")
+  '.signups | map(select(.name | endswith("-j1"))) | .[0].role' adjudicator
+SEATED_PID=$(jq -r '[.signups[] | select(.name | endswith("-s1")) | .id][0]' "$BODY")
+WAITING_PID=$(jq -r '[.signups[] | select(.name | endswith("-x1")) | .id][0]' "$BODY")
 assert head DELETE "/api/v1/sessions/$IRON_SESSION/signups/$SEATED_PID" 409 \
   '.error | contains("seated in a room")' true
 assert head DELETE "/api/v1/sessions/$IRON_SESSION/signups/$WAITING_PID" 200 '.status' removed
 assert head GET "/api/v1/sessions/$IRON_SESSION" 200 '.signups | length' 9
 req head GET "/api/v1/sessions/$IRON_SESSION"
-IRON_WINNER=$(jq -r '.rooms[0].RoomTeams | sort_by(.position) | .[3].Team.name' "$BODY")
+IRON_WINNER=$(jq -r '.rooms[0].teams[3].name' "$BODY")
 echo "iron room: $IRON_ROOM, the iron team ($IRON_WINNER) takes rank 1"
 
 # 8 scores; position 4 rows BOTH name the single speaker, iron on the
 # second speech; the iron team totals highest -> rank 1
 # (computed from the session body BEFORE the motion POST overwrites it)
-IRON_SCORES=$(jq -c '[.rooms[0].RoomTeams | sort_by(.position)[]
-  | .position as $p | [.RoomSpeakers[].EventParticipant.id] as $ids
+IRON_SCORES=$(jq -c '[.rooms[0].teams | to_entries[]
+  | (.key + 1) as $p | [.value.speakers[].id] as $ids
   | ({"1":76,"2":75,"3":74,"4":80}[$p|tostring]) as $base
   | {position:$p, speaker_participant_id:$ids[0], iron:false, score:$base},
     {position:$p, speaker_participant_id:$ids[1], iron:($ids[0] == $ids[1]),
      score:($base-1)}]' "$BODY")
 
-assert j1 POST "/api/v1/rooms/$IRON_ROOM/motion" 200 '.motion.motion_text' \
+assert j1 POST "/api/v1/rooms/$IRON_ROOM/motion" 200 '.motion.text' \
   "THW iron solo $RUN" \
   "{\"session_uuid\":\"$IRON_SESSION\",\"motion_text\":\"THW iron solo $RUN\"}"
-# the prep clock counts from the engine's publish time (engine #85)
-assert j1 GET "/api/v1/sessions/$IRON_SESSION" 200 '.rooms[0].Motion.created_at | type' string
+# publishing starts 15 minutes of prep
+assert j1 GET "/api/v1/sessions/$IRON_SESSION" 200 '.rooms[0].motion.prep_until | type' string
 req anon GET "/c/$CLUB/s/$IRON_SESSION/rooms/$IRON_ROOM"
 grep -q 'data-prep-deadline=' "$BODY" || fail "room page misses the prep clock"
 html_ok "prep clock on the room page" GET "/c/.../s/.../rooms/$IRON_ROOM" 200
@@ -530,15 +529,15 @@ assert head POST "/api/v1/sessions/$GSESSION/links" 201 '.url | contains("/l/")'
   '{"name":"Leaving Lev"}'
 LEV_LINK=$(jq -r '.url' "$BODY" | sed 's#^https*://[^/]*##')
 assert head GET "/api/v1/sessions/$GSESSION" 200 \
-  '.signups | map(select(.display_name == "Leaving Lev")) | length' 1
-LEV_PID=$(jq -r '.signups[] | select(.display_name == "Leaving Lev") | .id' "$BODY")
+  '.signups | map(select(.name == "Leaving Lev")) | length' 1
+LEV_PID=$(jq -r '.signups[] | select(.name == "Leaving Lev") | .id' "$BODY")
 assert s1 DELETE "/api/v1/sessions/$GSESSION/signups/$LEV_PID" 403 '.error' forbidden
 assert head DELETE "/api/v1/sessions/$GSESSION/signups/$LEV_PID" 200 '.status' removed
 req anon2 GET "$LEV_LINK"
 [ "$STATUS" = "404" ] || fail "removed guest's $LEV_LINK: status $STATUS, want 404"
 html_ok "removed guest's link -> 404" GET "/l/<lev>" 404
 assert head GET "/api/v1/sessions/$GSESSION" 200 \
-  '.signups | map(select(.display_name == "Leaving Lev")) | length' 0
+  '.signups | map(select(.name == "Leaving Lev")) | length' 0
 assert head POST "/api/v1/sessions/$GSESSION/links" 201 '.url | contains("/l/")' true \
   '{"name":"Handed Hanna"}'
 assert head GET "/api/v1/sessions/$GSESSION/links" 200 '.links | length' 3
@@ -562,24 +561,35 @@ assert head GET "/api/v1/sessions/$GSESSION/links" 200 '.links | length' 3
 say "compose including guests; the guest judge chairs the room"
 assert head GET "/api/v1/sessions/$GSESSION" 200 '.signups | length' 9
 GCOMPOSE=$(jq -c '
-  ([.signups[] | select(.display_name != "Guest Judy") | .id] | sort) as $s
-  | (.signups[] | select(.display_name == "Guest Judy") | .id) as $j
+  ([.signups[] | select(.name != "Guest Judy") | .id] | sort) as $s
+  | (.signups[] | select(.name == "Guest Judy") | .id) as $j
   | {rooms: [{adjudicator_participant_id: $j,
               teams: [$s[0:2], $s[2:4], $s[4:6], $s[6:8]]}]}' "$BODY")
 assert head POST "/api/v1/sessions/$GSESSION/rooms" 201 '.rooms_created' 1 "$GCOMPOSE"
 assert head GET "/api/v1/sessions/$GSESSION" 200 '.stage' running
 GROOM=$(jq -r '.rooms[0].id' "$BODY")
 # speakers in table order og1 og2 oo1 oo2 cg1 cg2 co1 co2
-GPIDS=$(jq -r '.rooms[0].RoomTeams | sort_by(.position)[] | .RoomSpeakers
-  | sort_by(.id)[] | .EventParticipant.id' "$BODY")
+GPIDS=$(jq -r '.rooms[0].teams[].speakers[].id' "$BODY")
 set -- $GPIDS
-GWINNER=$(jq -r '.rooms[0].RoomTeams | sort_by(.position) | .[0].Team.name' "$BODY")
+GWINNER=$(jq -r '.rooms[0].teams[0].name' "$BODY")
 
 say "the guest judge fills the ballot through P6 (identity from the link)"
 reqc g2 GET "$G2_LINK"
 [ "$STATUS" = "302" ] || fail "GET $G2_LINK (g2): status $STATUS, want 302 to P6"
 reqc g2 GET "/c/$CLUB/s/$GSESSION"
 [ "$STATUS" = "200" ] || fail "GET P6 as the guest judge: status $STATUS, want 200"
+grep -q "Fill ballot" "$BODY" && fail "a ballot is offered before the room's motion"
+html_ok "no ballot before the motion" GET "/c/.../s/<guest-night>" 200
+# the guest chair publishes the motion on the room page (cab checks the
+# seat, the engine sees the club head)
+reqc g2 GET "/c/$CLUB/s/$GSESSION/rooms/$GROOM"
+G2_TOK=$(csrf)
+STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/g2" -c "$JARS/g2" \
+  --data-urlencode "_csrf_token=$G2_TOK" --data-urlencode "motion_text=THW let guests chair $RUN" \
+  "$BASE/c/$CLUB/s/$GSESSION/rooms/$GROOM/motion")
+[ "$STATUS" = "302" ] || fail "guest motion POST: status $STATUS, want 302"
+html_ok "guest chair publishes the motion" POST "/c/.../s/.../rooms/$GROOM/motion" 302
+reqc g2 GET "/c/$CLUB/s/$GSESSION"
 grep -q "Fill ballot" "$BODY" || fail "P6 misses the guest judge's Fill ballot segment"
 reqc g2 GET "/c/$CLUB/s/$GSESSION/rooms/$GROOM/ballot"
 [ "$STATUS" = "200" ] || fail "GET P6 ballot page: status $STATUS, want 200"
@@ -649,20 +659,20 @@ assert head GET "/api/v1/sessions/$ISESSION/people?q=wt-$RUN-inv" 200 '.users[0]
 assert s1 POST "/api/v1/sessions/$ISESSION/invitations" 403 '.error' forbidden "{\"user\":\"wt-$RUN-inv\"}"
 assert head POST "/api/v1/sessions/$ISESSION/invitations" 201 '.username' "wt-$RUN-inv" \
   "{\"user\":\"wt-$RUN-inv\"}"
-# seated by name before accepting: no engine user on the place yet
+# seated by name before accepting: the place is not theirs yet
 assert head GET "/api/v1/sessions/$ISESSION" 200 \
-  ".signups | map(select(.display_name == \"wt-$RUN-inv\")) | .[0].user_id" null
-reqc inv GET "/"
+  ".signups | map(select(.name == \"wt-$RUN-inv\")) | length" 1
+assert inv GET "/api/v1/sessions/$ISESSION" 200 '.signups | map(select(.id)) | length' 0
+reqc inv GET "/me"
 ACCEPT=$(grep -o '/invitations/[0-9]*/accept' "$BODY" | head -1)
-[ -n "$ACCEPT" ] || fail "the cabinet misses the invitation"
+[ -n "$ACCEPT" ] || fail "My page misses the invitation"
 INV_TOK=$(csrf)
-html_ok "invitation on the cabinet" GET "/" 200
+html_ok "invitation on My page" GET "/me" 200
 STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/inv" -c "$JARS/inv" \
   --data-urlencode "_csrf_token=$INV_TOK" "$BASE$ACCEPT")
 [ "$STATUS" = "302" ] || fail "POST $ACCEPT: status $STATUS, want 302"
 html_ok "invitation accepted (engine claim token)" POST "$ACCEPT" 302
-assert head GET "/api/v1/sessions/$ISESSION" 200 \
-  ".signups | map(select(.display_name == \"wt-$RUN-inv\")) | .[0].user_id | type" number
+assert inv GET "/api/v1/sessions/$ISESSION" 200 '.signups | map(select(.id)) | length' 1
 req inv GET "/c/$CLUB/s/$ISESSION"
 grep -q "registered for this session" "$BODY" || fail "the accepted place is not theirs on the session page"
 html_ok "accepted place is theirs" GET "/c/.../s/<invite-night>" 200

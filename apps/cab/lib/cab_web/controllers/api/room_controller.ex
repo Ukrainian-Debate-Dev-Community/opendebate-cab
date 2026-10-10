@@ -38,7 +38,7 @@ defmodule CabWeb.Api.RoomController do
     attrs = Map.take(params, ["infoslide", "keyword"])
 
     with {:ok, room_id} <- room_id(id),
-         {:ok, data} <-
+         {:ok, _data} <-
            Sessions.set_room_motion(
              conn.assigns.current_user,
              conn.assigns.session,
@@ -46,7 +46,17 @@ defmodule CabWeb.Api.RoomController do
              motion_text,
              attrs
            ) do
-      json(conn, %{room_id: room_id, motion: data["motion"]})
+      # publishing through the API starts prep like the room page does
+      Sessions.set_prep_until(
+        conn.assigns.session,
+        room_id,
+        DateTime.add(DateTime.utc_now(), 15, :minute)
+      )
+
+      json(conn, %{
+        room_id: room_id,
+        motion: %{text: motion_text, infoslide: attrs["infoslide"], keyword: attrs["keyword"]}
+      })
     end
   end
 

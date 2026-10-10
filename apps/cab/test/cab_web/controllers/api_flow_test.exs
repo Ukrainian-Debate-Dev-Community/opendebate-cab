@@ -154,7 +154,8 @@ defmodule CabWeb.ApiFlowTest do
       |> post(~p"/api/v1/clubs/#{club.uuid}/sessions", %{name: "Tuesday"})
       |> json_response(201)
 
-    assert created["engine_event_id"] == 11
+    # the engine's own ids stay out of the API
+    refute Map.has_key?(created, "engine_event_id")
     session_uuid = created["uuid"]
 
     state =
@@ -229,6 +230,12 @@ defmodule CabWeb.ApiFlowTest do
           assert params["motion_text"] == "THW test APIs"
           ok(conn, %{"motion" => %{"id" => 31, "motion_text" => "THW test APIs"}})
 
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "name" => "API night", "status" => "scheduled"})
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [])
+
         {"GET", "/api/events/11/rounds"} ->
           ok(conn, [%{"id" => 21, "sequence" => 1}])
 
@@ -252,7 +259,33 @@ defmodule CabWeb.ApiFlowTest do
       })
       |> json_response(200)
 
-    assert motion["motion"]["motion_text"] == "THW test APIs"
+    assert motion["motion"]["text"] == "THW test APIs"
+
+    # the session read: names and results for everyone, ids only for
+    # those who act on them (here the room's chair)
+    public =
+      conn
+      |> log_in(speaker)
+      |> get(~p"/api/v1/sessions/#{session.uuid}")
+      |> json_response(200)
+
+    [room] = public["rooms"]
+    refute Map.has_key?(room, "id")
+    refute public |> Map.has_key?("event")
+    refute Enum.any?(public["signups"], &Map.has_key?(&1, "id"))
+    assert [%{"side" => "OG", "speakers" => [first | _]} | _] = room["teams"]
+    refute Map.has_key?(first, "id")
+    refute inspect(public) =~ "user_id"
+
+    chaired =
+      conn
+      |> log_in(judge)
+      |> get(~p"/api/v1/sessions/#{session.uuid}")
+      |> json_response(200)
+
+    [room] = chaired["rooms"]
+    assert room["id"] == 71
+    assert [%{"speakers" => [%{"id" => 301} | _]} | _] = room["teams"]
 
     scores = fn totals ->
       Enum.flat_map(totals, fn {position, total} ->
