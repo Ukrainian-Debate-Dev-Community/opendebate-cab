@@ -167,6 +167,9 @@ defmodule CabWeb.ShellPagesTest do
       assert html =~ ~s(form="create-club-form")
       assert html =~ "Create club"
       assert html =~ ~s(id="change-head-form")
+      # one gold action: Create club in the chrome; the other forms' buttons are plain
+      refute html =~ ~s(class="btn-go")
+      assert html =~ ~s(id="merge-accounts-form")
     end
 
     test "creates a club through the engine", %{conn: conn} do

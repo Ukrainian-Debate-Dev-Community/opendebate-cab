@@ -77,7 +77,9 @@
           required
           options={user_options(@users)}
         />
-        <:submit note={gettext("Takes effect immediately.")}>{gettext("Change head")}</:submit>
+        <:submit note={gettext("Takes effect immediately.")} quiet>
+          {gettext("Change head")}
+        </:submit>
       </.form_for>
     </.section>
 
@@ -105,7 +107,7 @@
           required
           options={user_options(@users)}
         />
-        <:submit note={gettext("Refused when both took part in the same session.")}>
+        <:submit note={gettext("Refused when both took part in the same session.")} quiet>
           {gettext("Merge accounts")}
         </:submit>
       </.form_for>

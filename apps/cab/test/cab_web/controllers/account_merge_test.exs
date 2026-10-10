@@ -21,6 +21,8 @@ defmodule CabWeb.AccountMergeTest do
     html = conn |> signed_in(user) |> get(~p"/account") |> html_response(200)
     assert html =~ ~s(href="/account/link/google")
     assert html =~ "your only sign-in"
+    # one gold action: Save in the chrome; the claim form's button is plain
+    refute html =~ ~s(class="btn-go")
 
     linking = conn |> signed_in(user) |> get(~p"/account/link/google")
     assert redirected_to(linking) == "/auth/google"
