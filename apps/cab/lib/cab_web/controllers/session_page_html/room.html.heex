@@ -121,7 +121,7 @@
           }
           value={@room["prep_until"]}
         />
-        <:submit note="Visible to everyone in the room right away.">
+        <:submit note="Visible to everyone in the room right away." quiet>
           {if @room["Motion"], do: "Update motion", else: "Publish motion"}
         </:submit>
       </.form_for>

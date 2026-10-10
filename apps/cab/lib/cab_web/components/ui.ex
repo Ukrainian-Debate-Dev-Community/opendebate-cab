@@ -416,6 +416,7 @@ defmodule CabWeb.Ui do
 
   slot :submit do
     attr :note, :string
+    attr :quiet, :boolean, doc: "a plain button when the page's gold action is elsewhere"
   end
 
   def form_for(assigns) do
@@ -436,7 +437,9 @@ defmodule CabWeb.Ui do
         <div :if={block[:hint] && !@errors[block[:name]]} class="hint">{block[:hint]}</div>
       </div>
       <div :for={submit <- @submit} class="f-submit">
-        <button type="submit" class="btn-go">{render_slot(submit)}</button>
+        <button type="submit" class={if submit[:quiet], do: "btn-quiet", else: "btn-go"}>
+          {render_slot(submit)}
+        </button>
         <span :if={submit[:note]} class="note">{submit[:note]}</span>
       </div>
     </form>
