@@ -46,13 +46,37 @@ defmodule CabWeb.SessionLive do
     %{current_user: user, club: club} = socket.assigns
     my_signup = my_signup(state, user)
 
+    # the finish arrives as a broadcast: read the row again so the
+    # feedback rules see it
+    session =
+      if state.stage == :done and is_nil(socket.assigns.session.finished_at),
+        do: %{Sessions.get_for_club(club, socket.assigns.session.uuid) | club: club},
+        else: socket.assigns.session
+
     socket
+    |> assign(:session, session)
     |> assign(:state, state)
     |> assign(:winners, Sessions.winners_by_room(state.rooms))
+    |> assign_feedback(session, state, user)
     |> assign(:my_signup, my_signup)
     |> assign(:my_ballot_room, my_ballot_room(state, user))
     |> assign(:my_room_id, my_room_id(state, user, my_signup))
     |> assign(:page_title, "#{club.name} — #{state.event["name"]}")
+  end
+
+  # a team member who still owes feedback gets the action; an
+  # adjudicator sees the feedback on them once the session is finished
+  defp assign_feedback(socket, _session, _state, nil),
+    do: assign(socket, feedback_room: nil, on_me: [], my_average: nil)
+
+  defp assign_feedback(socket, session, state, user) do
+    on_me = Cab.Feedback.on_adjudicator(session, state, user)
+
+    assign(socket,
+      feedback_room: List.first(Cab.Feedback.awaiting(session, state, user)),
+      on_me: on_me,
+      my_average: on_me != [] && Cab.Feedback.my_average(session, state, user)
+    )
   end
 
   defp load(socket) do

@@ -27,6 +27,8 @@ defmodule CabWeb.MeController do
       schedule: Sessions.user_schedule(user),
       stats: fetch_stats(user),
       history: Sessions.user_history(user),
+      feedback_to_give: Cab.Feedback.to_give(user),
+      feedback_on_me: Cab.Feedback.on_me_recent(user),
       page_title: gettext("My page")
     )
   end

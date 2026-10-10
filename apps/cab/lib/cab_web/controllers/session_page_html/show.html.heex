@@ -32,6 +32,13 @@
     >
       {gettext("Fill ballot — %{room}", room: room_label(@my_ballot_room))}
     </:seg>
+    <:seg
+      :if={@feedback_room}
+      href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@feedback_room["id"]}/feedback"}
+      primary={is_nil(@my_ballot_room)}
+    >
+      {gettext("Give feedback — %{room}", room: room_label(@feedback_room))}
+    </:seg>
   </.chrome>
 
   <div class="pbody">
@@ -115,6 +122,20 @@
           </.table>
         </.section>
       <% :done -> %>
+        <.section :if={@on_me != []} title={gettext("Feedback on your adjudication")}>
+          <div :if={@my_average} class="pad">
+            {gettext("Your average with the base vote:")} <b>{points_words(@my_average)}</b>
+            <span class="mut">{gettext("(5 counts as one vote)")}</span>
+          </div>
+          <.table id="feedback-on-me" rows={@on_me}>
+            <:col :let={entry} label={gettext("Room")}>{feedback_room_label(@state, entry)}</:col>
+            <:col :let={entry} label={gettext("Accuracy")} num>{entry.accuracy}</:col>
+            <:col :let={entry} label={gettext("Reasoning")} num>{entry.reasoning}</:col>
+            <:col :let={entry} label={gettext("Average")} num>{points_words(entry.score)}</:col>
+            <:col :let={entry} label={gettext("Discussion")}>{entry.discussion}</:col>
+          </.table>
+        </.section>
+
         <.section :if={@state.rooms == []} title={gettext("Rooms")} pad>
           {gettext("This session finished without rooms.")}
         </.section>

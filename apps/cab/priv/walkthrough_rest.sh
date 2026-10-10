@@ -264,9 +264,29 @@ assert head POST "/api/v1/rooms/$ROOM/ballot" 200 '.status' confirmed \
   "{\"session_uuid\":\"$SESSION\",\"scores\":$SCORES}"
 
 # ----------------------------------------------------------------
+say "feedback: one per team on its adjudicator, hidden from them until finish"
+# ----------------------------------------------------------------
+assert s1 POST "/api/v1/rooms/$ROOM/feedback" 422 'has("error")' true \
+  "{\"session_uuid\":\"$SESSION\",\"accuracy\":7,\"reasoning\":8,\"discussion\":\"\"}"
+assert s1 POST "/api/v1/rooms/$ROOM/feedback" 201 '.status' sent \
+  "{\"session_uuid\":\"$SESSION\",\"accuracy\":7,\"reasoning\":8,\"discussion\":\"Clear call, thin weighing $RUN\"}"
+assert s2 POST "/api/v1/rooms/$ROOM/feedback" 409 'has("error")' true \
+  "{\"session_uuid\":\"$SESSION\",\"accuracy\":3,\"reasoning\":3,\"discussion\":\"second try\"}"
+assert s1 GET "/api/v1/sessions/$SESSION/feedback" 200 '.feedback[0].score' 7.5
+assert j1 GET "/api/v1/sessions/$SESSION/feedback" 200 '.on_your_adjudication | length' 0
+assert head GET "/api/v1/sessions/$SESSION/feedback" 200 '.feedback[0].team | type' string
+assert head GET "/api/v1/sessions/$SESSION/feedback" 200 '.progress[0].sent' 1
+
+# ----------------------------------------------------------------
 say "head finishes; history shows the winner"
 # ----------------------------------------------------------------
 assert head POST "/api/v1/sessions/$SESSION/finish" 200 '.status' completed
+# the adjudicator now reads it: anonymous, base 5 counting as one vote
+assert j1 GET "/api/v1/sessions/$SESSION/feedback" 200 '.on_your_adjudication | length' 1
+assert j1 GET "/api/v1/sessions/$SESSION/feedback" 200 '.on_your_adjudication[0] | has("team")' false
+assert j1 GET "/api/v1/sessions/$SESSION/feedback" 200 '.your_average' 6.25
+assert s3 POST "/api/v1/rooms/$ROOM/feedback" 409 'has("error")' true \
+  "{\"session_uuid\":\"$SESSION\",\"accuracy\":6,\"reasoning\":6,\"discussion\":\"too late\"}"
 assert j1 GET "/api/v1/sessions/$SESSION" 200 '.stage' done
 assert head GET "/api/v1/clubs/$CLUB" 200 \
   ".history | map(select(.session_uuid == \"$SESSION\")) | .[0].winner" "$WINNER_NAME"

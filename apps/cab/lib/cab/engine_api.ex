@@ -410,6 +410,39 @@ defmodule Cab.EngineApi do
     Engine.get(actor, "/api/events/#{event_id}/stats/adjudicators") |> unwrap()
   end
 
+  @doc "Adjudicator statistics with `base` counted as one extra feedback vote."
+  def adjudicator_stats(actor, event_id, base) do
+    Engine.get(actor, "/api/events/#{event_id}/stats/adjudicators", params: [base: base])
+    |> unwrap()
+  end
+
+  # ---------------------------------------------------------------
+  # Feedback on adjudicators
+  # ---------------------------------------------------------------
+
+  @doc "The event's feedback form: its questions, in order."
+  def feedback_questions(actor, event_id) do
+    Engine.get(actor, "/api/events/#{event_id}/feedback-questions") |> unwrap()
+  end
+
+  @doc "Adds a question to the event's feedback form (owner/organiser)."
+  def create_feedback_question(actor, event_id, attrs) do
+    Engine.post(actor, "/api/events/#{event_id}/feedback-questions", attrs) |> unwrap()
+  end
+
+  @doc """
+  Sends feedback on a room's adjudicator: `%{adjudicator_id,
+  issuer_team_id, comment, answers: [%{key, value}]}`.
+  """
+  def submit_feedback(actor, room_id, body) do
+    Engine.post(actor, "/api/rooms/#{room_id}/feedback", body) |> unwrap()
+  end
+
+  @doc "Every feedback of the event with its answers and score (owner/organiser)."
+  def event_feedback(actor, event_id) do
+    Engine.get(actor, "/api/events/#{event_id}/feedback") |> unwrap()
+  end
+
   # ---------------------------------------------------------------
   # Response normalisation
   # ---------------------------------------------------------------

@@ -265,6 +265,12 @@ defmodule CabWeb.HtmlTreesTest do
         {"POST", "/api/events/3"} ->
           ok(conn, %{"id" => 12, "name" => params["name"], "status" => "scheduled"})
 
+        {"GET", "/api/events/12/feedback-questions"} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => []})
+
+        {"POST", "/api/events/12/feedback-questions"} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => %{"id" => 1}})
+
         {"POST", "/api/events/12/rounds"} ->
           ok(conn, %{"id" => 22, "sequence" => 1})
       end
@@ -815,6 +821,9 @@ defmodule CabWeb.HtmlTreesTest do
   defp stub_running_session(room, test_pid \\ nil) do
     stub(fn conn, params ->
       case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11/feedback"} ->
+          ok(conn, [])
+
         {"GET", "/api/events/organisation/3"} ->
           ok(conn, [])
 
@@ -1211,6 +1220,9 @@ defmodule CabWeb.HtmlTreesTest do
         {"GET", "/api/events/11/participants"} ->
           ok(conn, [])
 
+        {"GET", "/api/events/11/feedback"} ->
+          ok(conn, [])
+
         {"GET", "/api/rounds/21/rooms"} ->
           ok(conn, [pending_room])
 
@@ -1263,6 +1275,9 @@ defmodule CabWeb.HtmlTreesTest do
           ok(conn, [%{"id" => 21, "sequence" => 1}])
 
         {"GET", "/api/events/11/participants"} ->
+          ok(conn, [])
+
+        {"GET", "/api/events/11/feedback"} ->
           ok(conn, [])
 
         {"GET", "/api/rounds/21/rooms"} ->

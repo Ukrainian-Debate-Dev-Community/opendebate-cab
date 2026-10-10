@@ -101,6 +101,14 @@ defmodule CabWeb.SessionFormat do
     |> Enum.join(" & ")
   end
 
+  @doc "The label of the room a feedback entry is about, R1 or —."
+  def feedback_room_label(%{rooms: rooms}, %{room_id: room_id}) do
+    case Enum.find(rooms, &(&1["id"] == room_id)) do
+      nil -> "—"
+      room -> room_label(room)
+    end
+  end
+
   @doc "Is the room's ballot in (submitted or confirmed)?"
   def ballot_in?(room), do: room["status"] in ["completed", "confirmed"]
 

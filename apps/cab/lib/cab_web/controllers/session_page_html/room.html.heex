@@ -36,6 +36,13 @@
         do: gettext("Edit ballot"),
         else: gettext("Fill ballot")}
     </:seg>
+    <:seg
+      :if={@give_feedback}
+      href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/feedback"}
+      primary={not @can_act and not @can_edit_ballot}
+    >
+      {gettext("Give feedback — %{room}", room: room_label(@room))}
+    </:seg>
   </.chrome>
 
   <div class="pbody">

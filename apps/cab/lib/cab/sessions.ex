@@ -9,6 +9,8 @@ defmodule Cab.Sessions do
   """
 
   import Ecto.Query
+
+  require Logger
   use Gettext, backend: CabWeb.Gettext
 
   alias Cab.Accounts
@@ -203,8 +205,22 @@ defmodule Cab.Sessions do
       }
       |> Session.changeset()
       |> Repo.insert()
+      |> with_feedback_form(club)
     end
   end
+
+  # the club-night feedback form goes onto the new event; should the
+  # engine refuse now, it is added when feedback is first needed
+  defp with_feedback_form({:ok, session}, club) do
+    case Cab.Feedback.ensure_form(%{session | club: club}) do
+      :ok -> :ok
+      error -> Logger.warning("feedback form not set for #{session.uuid}: #{inspect(error)}")
+    end
+
+    {:ok, session}
+  end
+
+  defp with_feedback_form(error, _club), do: error
 
   @doc """
   Parses the open-session form's optional date ("YYYY-MM-DD") and time

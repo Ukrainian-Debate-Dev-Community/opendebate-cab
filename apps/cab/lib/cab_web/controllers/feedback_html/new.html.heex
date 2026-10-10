@@ -1,0 +1,104 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="rooms"
+>
+  <.chrome
+    crumbs={[
+      {@club.name, ~p"/c/#{@club.uuid}"},
+      {@session.name || gettext("Session"), ~p"/c/#{@club.uuid}/s/#{@session.uuid}"},
+      {gettext("Room %{room}", room: room_label(@room)),
+       ~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}"}
+    ]}
+    here={gettext("Feedback")}
+  >
+    <:seg :if={@open && is_nil(@sent)} form={"feedback-#{@room["id"]}"} primary>
+      {gettext("Send feedback")}
+    </:seg>
+  </.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <.banner kind={:info}>
+      {gettext("Your team: %{team} (%{side}). One feedback per team; the first one sent stays.",
+        team: get_in(@room_team, ["Team", "name"]),
+        side: side_code(@room_team["position"])
+      )}
+    </.banner>
+
+    <%= cond do %>
+      <% @sent -> %>
+        <.banner kind={:good}>{gettext("Your team already sent feedback.")}</.banner>
+        <.section title={gettext("Feedback on the adjudicator")}>
+          <.table id={"feedback-sent-#{@room["id"]}"} rows={[@sent]}>
+            <:col :let={entry} label={gettext("Accuracy")} num>{entry.accuracy}</:col>
+            <:col :let={entry} label={gettext("Reasoning")} num>{entry.reasoning}</:col>
+            <:col :let={entry} label={gettext("Average")} num>{score_words(entry.score)}</:col>
+            <:col :let={entry} label={gettext("Discussion")}>{entry.discussion}</:col>
+          </.table>
+          <div class="pad mut">
+            {gettext(
+              "%{adjudicator} sees it, without your team's name, once the session is finished.",
+              adjudicator: @adjudicator
+            )}
+          </div>
+        </.section>
+      <% @open -> %>
+        <.section title={gettext("Feedback on the adjudicator")}>
+          <.form_for
+            id={"feedback-#{@room["id"]}"}
+            action={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/feedback"}
+            title={gettext("Adjudicator: %{name}", name: @adjudicator)}
+            description={
+              gettext(
+                "Your team sees it now; %{adjudicator} sees it, without your team's name, once the session is finished.",
+                adjudicator: @adjudicator
+              )
+            }
+            errors={@errors}
+          >
+            <:block
+              name={:accuracy}
+              type={:int}
+              label={Cab.Feedback.question_label("accuracy")}
+              hint={gettext("A whole number from 1 to 10.")}
+              min={1}
+              max={10}
+              required
+              value={@values["accuracy"]}
+            />
+            <:block
+              name={:reasoning}
+              type={:int}
+              label={Cab.Feedback.question_label("reasoning")}
+              hint={gettext("A whole number from 1 to 10.")}
+              min={1}
+              max={10}
+              required
+              value={@values["reasoning"]}
+            />
+            <:block
+              name={:discussion}
+              type={:longtext}
+              label={gettext("Discussion")}
+              hint={gettext("Explain your feedback.")}
+              required
+              value={@values["discussion"]}
+            />
+          </.form_for>
+        </.section>
+      <% @session.finished_at -> %>
+        <.section title={gettext("Feedback on the adjudicator")} pad>
+          {gettext("The session is finished, so feedback is closed.")}
+        </.section>
+      <% true -> %>
+        <.section title={gettext("Feedback on the adjudicator")} pad>
+          {gettext("Feedback opens once the room's ballot is in.")}
+        </.section>
+    <% end %>
+  </div>
+</Layouts.app>

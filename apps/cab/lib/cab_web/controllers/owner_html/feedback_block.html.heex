@@ -1,0 +1,11 @@
+<.section :if={@feedback != []} title={gettext("Feedback")}>
+  <.table id="session-feedback" rows={@feedback}>
+    <:col :let={entry} class="rank">{feedback_room_label(@state, entry)}</:col>
+    <:col :let={entry} label={gettext("Team")}>{entry.team || "—"}</:col>
+    <:col :let={entry} label={gettext("Adjudicator")}>{entry.adjudicator || "—"}</:col>
+    <:col :let={entry} label={gettext("Accuracy")} num>{entry.accuracy}</:col>
+    <:col :let={entry} label={gettext("Reasoning")} num>{entry.reasoning}</:col>
+    <:col :let={entry} label={gettext("Average")} num>{points_words(entry.score)}</:col>
+    <:col :let={entry} label={gettext("Discussion")}>{entry.discussion}</:col>
+  </.table>
+</.section>

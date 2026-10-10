@@ -145,6 +145,7 @@ defmodule CabWeb.OwnerSessionLive do
       |> assign(:invitations, Invitations.for_session(session))
       |> assign(:members, Clubs.list_members(club))
       |> assign(:my_ballot_room, my_ballot_room(state, socket.assigns.current_user))
+      |> assign_feedback(session, state)
       |> assign(
         :suggestions,
         Invitations.search(club, session, state.signups, socket.assigns.query)
@@ -156,6 +157,16 @@ defmodule CabWeb.OwnerSessionLive do
         |> put_flash(:error, gettext("This session is unavailable right now."))
         |> redirect(to: ~p"/c/#{club.uuid}/owner")
     end
+  end
+
+  # every team's feedback with its team, read once a ballot is in
+  defp assign_feedback(socket, session, state) do
+    feedback =
+      if Enum.any?(state.rooms, &(&1["status"] in ["completed", "confirmed"])),
+        do: Cab.Feedback.all(session),
+        else: []
+
+    assign(socket, feedback: feedback, feedback_progress: Cab.Feedback.progress(state, feedback))
   end
 
   # the room the head chairs while its ballot is still open

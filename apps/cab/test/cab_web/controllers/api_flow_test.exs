@@ -128,6 +128,12 @@ defmodule CabWeb.ApiFlowTest do
         {"POST", "/api/events/3"} ->
           ok(conn, %{"id" => 11, "name" => params["name"], "status" => "scheduled"})
 
+        {"GET", "/api/events/11/feedback-questions"} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => []})
+
+        {"POST", "/api/events/11/feedback-questions"} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => %{"id" => 1}})
+
         {"POST", "/api/events/11/rounds"} ->
           ok(conn, %{"id" => 21, "sequence" => 1})
 

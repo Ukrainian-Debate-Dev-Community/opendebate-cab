@@ -92,7 +92,7 @@ defmodule Cab.Standings do
   rooms_adjudicated, avg_feedback}]`, rule 0.
   """
   def adjudicators(%{actor: actor, session: session}) do
-    case EngineApi.adjudicator_stats(actor, session.engine_event_id) do
+    case EngineApi.adjudicator_stats(actor, session.engine_event_id, Cab.Feedback.base()) do
       {:ok, rows} -> rows
       {:error, _message} -> []
     end

@@ -55,6 +55,12 @@ defmodule Cab.SessionsTest do
           send(test_pid, {:as, claims(conn)["id"]})
           ok(conn, %{"id" => 11, "name" => "Admin night", "status" => "scheduled"})
 
+        {"GET", "/api/events/11/feedback-questions"} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => []})
+
+        {"POST", "/api/events/11/feedback-questions"} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => %{"id" => 1}})
+
         {"POST", "/api/events/11/rounds"} ->
           ok(conn, %{"id" => 21, "sequence" => 1})
       end
@@ -71,6 +77,12 @@ defmodule Cab.SessionsTest do
         {"POST", "/api/events/3"} ->
           assert params["name"] == "Tuesday night"
           ok(conn, %{"id" => 11, "name" => "Tuesday night", "status" => "scheduled"})
+
+        {"GET", "/api/events/11/feedback-questions"} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => []})
+
+        {"POST", "/api/events/11/feedback-questions"} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => %{"id" => 1}})
 
         {"POST", "/api/events/11/rounds"} ->
           assert params == %{"name" => "Club round", "sequence" => 1}

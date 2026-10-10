@@ -51,6 +51,7 @@ defmodule CabWeb.RoomLive do
       |> assign(:room, room)
       |> assign(:can_act, can_act?(room, socket.assigns))
       |> assign(:can_edit_ballot, can_edit_ballot?(room, socket.assigns))
+      |> assign(:give_feedback, give_feedback?(state, room, socket.assigns))
       |> assign(:page_title, "#{club.name} — #{room_label(room)}")
     else
       nil ->
@@ -61,6 +62,12 @@ defmodule CabWeb.RoomLive do
         |> put_flash(:error, gettext("This session is unavailable right now."))
         |> redirect(to: ~p"/c/#{club.uuid}")
     end
+  end
+
+  # a member of one of the room's teams whose team still owes feedback
+  defp give_feedback?(state, room, %{current_user: user, session: session}) do
+    user != nil and Cab.Feedback.my_room_team(state, room, user) != nil and
+      Enum.any?(Cab.Feedback.awaiting(session, state, user), &(&1["id"] == room["id"]))
   end
 
   # the room was rebuilt away (registration reopened) while open

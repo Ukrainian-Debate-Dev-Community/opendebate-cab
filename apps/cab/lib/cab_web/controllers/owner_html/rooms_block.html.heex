@@ -68,6 +68,14 @@
         <:col :let={room} label={gettext("Ballot")} class="st">
           {room_status_words(room["status"])}
         </:col>
+        <:col :let={room} label={gettext("Feedback")} class="st">
+          <%= case ballot_in?(room) && @feedback_progress[room["id"]] do %>
+            <% {sent, teams} when teams > 0 -> %>
+              {gettext("%{sent} of %{teams} teams", sent: sent, teams: teams)}
+            <% _ -> %>
+              —
+          <% end %>
+        </:col>
         <:col :let={room}>
           <.link
             :if={room["status"] in ["pending", "judging"] and room["Motion"] != nil}
@@ -107,4 +115,6 @@
         </:col>
       </.table>
     </.section>
+
+    {feedback_block(assigns)}
 <% end %>

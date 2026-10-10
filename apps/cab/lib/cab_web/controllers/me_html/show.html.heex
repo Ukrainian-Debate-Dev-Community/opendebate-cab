@@ -78,6 +78,46 @@
       </.table>
     </.section>
 
+    <.section :if={@feedback_to_give != []} title={gettext("Feedback to give")}>
+      <.table id="feedback-to-give" rows={@feedback_to_give}>
+        <:col :let={row} label={gettext("Session")}>
+          {row.session.name || row.session.club.name}
+          <.sub>{row.session.club.name}</.sub>
+        </:col>
+        <:col :let={row} label={gettext("Room")}>{room_label(row.room)}</:col>
+        <:col :let={row}>
+          <.link href={
+            ~p"/c/#{row.session.club.uuid}/s/#{row.session.uuid}/rooms/#{row.room["id"]}/feedback"
+          }>
+            {gettext("give feedback")}
+          </.link>
+        </:col>
+      </.table>
+    </.section>
+
+    <.section
+      :for={block <- @feedback_on_me}
+      title={
+        gettext("Feedback on your adjudication: %{session}",
+          session: block.session.name || block.session.club.name
+        )
+      }
+    >
+      <div :if={block.average} class="pad">
+        {gettext("Your average with the base vote:")} <b>{points_words(block.average)}</b>
+        <span class="mut">{gettext("(5 counts as one vote)")}</span>
+      </div>
+      <.table id={"feedback-on-me-#{block.session.uuid}"} rows={block.entries}>
+        <:col :let={entry} label={gettext("Room")}>
+          {feedback_room_label(block.state, entry)}
+        </:col>
+        <:col :let={entry} label={gettext("Accuracy")} num>{entry.accuracy}</:col>
+        <:col :let={entry} label={gettext("Reasoning")} num>{entry.reasoning}</:col>
+        <:col :let={entry} label={gettext("Average")} num>{points_words(entry.score)}</:col>
+        <:col :let={entry} label={gettext("Discussion")}>{entry.discussion}</:col>
+      </.table>
+    </.section>
+
     <%= if @stats do %>
       <.section title={gettext("Stats")}>
         <.table id="me-stats" rows={[@stats]}>

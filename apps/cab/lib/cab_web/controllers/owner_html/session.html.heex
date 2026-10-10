@@ -62,6 +62,7 @@
           <.link href={~p"/c/#{@club.uuid}/owner"}>{gettext("club page")}</.link>.
         </p>
       </.section>
+      {feedback_block(assigns)}
     <% else %>
       {registration_block(assigns)}
       {signups_block(assigns)}

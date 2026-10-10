@@ -105,6 +105,10 @@ defmodule CabWeb.Router do
     get "/s/:session_uuid/rooms/:id/ballot", SessionPageController, :ballot
     post "/s/:session_uuid/rooms/:id/ballot", SessionPageController, :submit_ballot
 
+    # a team's feedback on its room's adjudicator (team members only)
+    get "/s/:session_uuid/rooms/:id/feedback", FeedbackController, :new
+    post "/s/:session_uuid/rooms/:id/feedback", FeedbackController, :create
+
     # the roster — the only member-gated page (v3.1: the member tree
     # is gone; registration lives at /r/:sess, the club page is the
     # sessions archive)
@@ -189,6 +193,8 @@ defmodule CabWeb.Router do
 
     post "/rooms/:id/motion", RoomController, :motion
     post "/rooms/:id/ballot", RoomController, :ballot
+    post "/rooms/:id/feedback", FeedbackController, :create
+    get "/sessions/:uuid/feedback", FeedbackController, :index
 
     # guest links (head only): list, add a guest by hand. A guest
     # leaves through DELETE signups like everyone else. The public
