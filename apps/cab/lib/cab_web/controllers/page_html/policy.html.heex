@@ -1,122 +1,135 @@
 <Layouts.app flash={@flash} current_user={@current_user}>
   <.chrome here={gettext("Policy")}></.chrome>
 
-  <div class="pbody legal-doc">
-    <.section title={gettext("Who we are")} pad>
-      <p>
-        {gettext(
-          "cab is run by the NGO Debate Federation of Ukraine (ВМГО «Федерація Дебатів України»), the controller of the personal data described here. Address:"
-        )} <mark class="todo">{gettext("[legal address]")}</mark>{gettext(". ЄДРПОУ:")} <mark class="todo">{gettext("[code]")}</mark>.
-      </p>
-      <p>
-        {gettext("Questions and requests about your data:")} <a href="mailto:support@uadebate.com">support@uadebate.com</a>.
-      </p>
-      <p class="mut">
-        {gettext(
-          "This policy follows the Law of Ukraine «Про захист персональних даних» (No. 2297-VI) and, for people in the European Union, the GDPR. cab is in beta testing; when we change this policy we update the date below and say so on this page. Last updated: 9 October 2026."
-        )}
-      </p>
-    </.section>
+  <article class="pbody legal-doc" id="policy">
+    <header>
+      <h1>{gettext("Privacy policy")}</h1>
+      <p class="doc-meta">{gettext("Last updated: 9 October 2026")}</p>
+    </header>
 
-    <.section title={gettext("What we store and why")} pad>
-      <p>
-        <b>{gettext("Your account.")}</b> {gettext(
-          "When you sign in with GitHub or Google we receive and keep your name, e-mail address, picture link and your account number there (and your GitHub username). We never see your password. Each sign-in method is its own cab account unless you link them on your Account page. We use these to sign you in and to show your name on rosters and draws. You can change your display name on your Account page."
-        )}
-      </p>
-      <p>
-        <b>{gettext("Club membership.")}</b> {gettext(
-          "When you ask to join a club we keep your request, the message and the contact you wrote for the club head, your role and the dates. The club head reads them to decide on your request."
-        )}
-      </p>
-      <p>
-        <b>{gettext("Debates.")}</b> {gettext(
-          "For each session you take part in we keep your registration, your seat in the draw, the motions, the ballots and scores, and the results. Standings and your personal statistics are computed from exactly these records."
-        )}
-      </p>
-      <p>
-        <b>{gettext("Guests.")}</b> {gettext(
-          "If you register without an account we keep the name you enter and a personal link to that one session. If a club head adds you by name, the same applies."
-        )}
-      </p>
-      <p>
-        <b>{gettext("Invitations.")}</b> {gettext(
-          "A club head can add a registered person by their exact username or e-mail. We keep the invitation until you accept or decline it."
-        )}
-      </p>
-      <p>
-        <b>{gettext("Technical data.")}</b> {gettext(
-          "Our web server logs each request (IP address, page, time and browser) to keep the service secure and working. These logs are kept for"
-        )} <mark class="todo">{gettext("[retention, e.g. 14 days]")}</mark>.
-      </p>
-      <p class="mut">
-        {gettext(
-          "Legal basis: providing the service you asked for (GDPR Art. 6(1)(b); Law 2297-VI Art. 11), and our legitimate interest in running safe, fair debate sessions and keeping their results (GDPR Art. 6(1)(f))."
-        )}
-      </p>
-    </.section>
+    <p>
+      {gettext(
+        "This policy follows the Law of Ukraine «Про захист персональних даних» (No. 2297-VI) and, for people in the European Union, the GDPR. cab is in beta testing; when we change this policy we update the date above and say so on this page."
+      )}
+    </p>
 
-    <.section title={gettext("Cookies and browser storage")} pad>
-      <p>
-        {gettext(
-          "One cookie keeps you signed in. It is strictly necessary and needs no consent. Your theme choice (light, dark or system) is kept in your browser only and never sent to us. cab uses no analytics, no advertising and no third-party trackers, and its pages load nothing from other companies."
-        )}
-      </p>
-    </.section>
+    <h2>{gettext("Who we are")}</h2>
+    <p>
+      {sentence(
+        gettext(
+          "cab is run by the NGO Debate Federation of Ukraine (ВМГО «Федерація Дебатів України»), the controller of the personal data described here. Address: %{address}. ЄДРПОУ: %{code}.",
+          address: todo(gettext("[legal address]")),
+          code: todo(gettext("[code]"))
+        )
+      )}
+    </p>
+    <p>
+      {sentence(
+        gettext("Questions and requests about your data: %{email}.",
+          email: mailto("support@uadebate.com")
+        )
+      )}
+    </p>
 
-    <.section title={gettext("Who else handles the data")} pad>
-      <p>
-        <b>{gettext("GitHub")}</b> {gettext("and")}
-        <b>{gettext("Google")}</b> {gettext("handle your sign-in when you choose them.")}
-        <b>{gettext("Hetzner")}</b> {gettext("hosts our servers in")} <mark class="todo">{gettext("[data centre location]")}</mark>{gettext(
-          ". We sell or give your data to no one."
-        )}
-      </p>
-    </.section>
+    <h2>{gettext("What we store and why")}</h2>
+    <p>
+      <b>{gettext("Your account.")}</b> {gettext(
+        "When you sign in with GitHub or Google we receive and keep your name, e-mail address, picture link and your account number there (and your GitHub username). We never see your password. Each sign-in method is its own cab account unless you link them on your Account page. We use these to sign you in and to show your name on rosters and draws. You can change your display name on your Account page."
+      )}
+    </p>
+    <p>
+      <b>{gettext("Club membership.")}</b> {gettext(
+        "When you ask to join a club we keep your request, the message and the contact you wrote for the club head, your role and the dates. The club head reads them to decide on your request."
+      )}
+    </p>
+    <p>
+      <b>{gettext("Debates.")}</b> {gettext(
+        "For each session you take part in we keep your registration, your seat in the draw, the motions, the ballots and scores, and the results. Standings and your personal statistics are computed from exactly these records."
+      )}
+    </p>
+    <p>
+      <b>{gettext("Guests.")}</b> {gettext(
+        "If you register without an account we keep the name you enter and a personal link to that one session. If a club head adds you by name, the same applies."
+      )}
+    </p>
+    <p>
+      <b>{gettext("Invitations.")}</b> {gettext(
+        "A club head can add a registered person by their exact username or e-mail. We keep the invitation until you accept or decline it."
+      )}
+    </p>
+    <p>
+      <b>{gettext("Technical data.")}</b> {sentence(
+        gettext(
+          "Our web server logs each request (IP address, page, time and browser) to keep the service secure and working. These logs are kept for %{retention}.",
+          retention: todo(gettext("[retention, e.g. 14 days]"))
+        )
+      )}
+    </p>
+    <p>
+      {gettext(
+        "Legal basis: providing the service you asked for (GDPR Art. 6(1)(b); Law 2297-VI Art. 11), and our legitimate interest in running safe, fair debate sessions and keeping their results (GDPR Art. 6(1)(f))."
+      )}
+    </p>
 
-    <.section title={gettext("Who can see what")} pad>
-      <p>
-        {gettext(
-          "Club pages, session pages, draws and results are public, so anyone can see the names in them. A club can make its standings and roster visible to members only. Your account details, e-mail and join-request messages are never public."
-        )}
-      </p>
-    </.section>
+    <h2>{gettext("Cookies and browser storage")}</h2>
+    <p>
+      {gettext(
+        "One cookie keeps you signed in. It is strictly necessary and needs no consent. Your theme choice (light, dark or system) is kept in your browser only and never sent to us. cab uses no analytics, no advertising and no third-party trackers, and its pages load nothing from other companies."
+      )}
+    </p>
 
-    <.section title={gettext("How long we keep it")} pad>
-      <p>
-        {gettext(
-          "Your account stays until you ask us to delete it. Results are the record of a debate and stay; when an account is deleted, its name in past results is replaced, so history stays complete without identifying you."
-        )}
-      </p>
-      <p>
-        {gettext(
-          "Leaving a session before you are seated in a room, or being removed by the club head, deletes your name from it. A guest who leaves or is removed loses the guest account and the personal link. A guest who later signs in can move their results into their account, and the guest record is deleted."
-        )}
-      </p>
-    </.section>
+    <h2>{gettext("Who else handles the data")}</h2>
+    <p>
+      {sentence(
+        gettext(
+          "GitHub and Google handle your sign-in when you choose them. Hetzner hosts our servers in %{location}. We sell or give your data to no one.",
+          location: todo(gettext("[data centre location]"))
+        )
+      )}
+    </p>
 
-    <.section title={gettext("Your rights")} pad>
-      <p>
-        {gettext(
-          "You can ask to see your data, correct it, delete it, restrict or object to how we use it, and get a copy to take elsewhere. Write to"
-        )}
-        <a href="mailto:support@uadebate.com">support@uadebate.com</a> {gettext(
-          "and we answer within 30 days."
-        )}
-      </p>
-      <p>
-        {gettext(
-          "You can also complain to the Ukrainian Parliament Commissioner for Human Rights (Уповноважений Верховної Ради України з прав людини) or, in the EU, to your data protection authority."
-        )}
-      </p>
-    </.section>
+    <h2>{gettext("Who can see what")}</h2>
+    <p>
+      {gettext(
+        "Club pages, session pages, draws and results are public, so anyone can see the names in them. A club can make its standings and roster visible to members only. Your account details, e-mail and join-request messages are never public."
+      )}
+    </p>
 
-    <.section title={gettext("Children")} pad>
-      <p>
-        {gettext(
-          "Many debaters are at school. If you are under 14, a parent or guardian should agree to your registration and can make any request on this page for you."
-        )} <mark class="todo">{gettext("[confirm the age with a lawyer]")}</mark>
-      </p>
-    </.section>
-  </div>
+    <h2>{gettext("How long we keep it")}</h2>
+    <p>
+      {gettext(
+        "Your account stays until you ask us to delete it. Results are the record of a debate and stay; when an account is deleted, its name in past results is replaced, so history stays complete without identifying you."
+      )}
+    </p>
+    <p>
+      {gettext(
+        "Leaving a session before you are seated in a room, or being removed by the club head, deletes your name from it. A guest who leaves or is removed loses the guest account and the personal link. A guest who later signs in can move their results into their account, and the guest record is deleted."
+      )}
+    </p>
+
+    <h2>{gettext("Your rights")}</h2>
+    <p>
+      {sentence(
+        gettext(
+          "You can ask to see your data, correct it, delete it, restrict or object to how we use it, and get a copy to take elsewhere. Write to %{email} and we answer within 30 days.",
+          email: mailto("support@uadebate.com")
+        )
+      )}
+    </p>
+    <p>
+      {gettext(
+        "You can also complain to the Ukrainian Parliament Commissioner for Human Rights (Уповноважений Верховної Ради України з прав людини) or, in the EU, to your data protection authority."
+      )}
+    </p>
+
+    <h2>{gettext("Children")}</h2>
+    <p>
+      {sentence(
+        gettext(
+          "Many debaters are at school. If you are under 14, a parent or guardian should agree to your registration and can make any request on this page for you. %{note}",
+          note: todo(gettext("[confirm the age with a lawyer]"))
+        )
+      )}
+    </p>
+  </article>
 </Layouts.app>

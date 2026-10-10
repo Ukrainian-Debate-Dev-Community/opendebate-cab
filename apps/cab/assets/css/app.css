@@ -519,7 +519,17 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .sharemsg { color:var(--muted); font-size:.82rem; }
 
 /* the Policy and Terms pages: readable measure, visible placeholders */
-.legal-doc p { max-width:72ch; }
+/* Policy and Terms read as documents: one column of running text,
+   headings numbered by the page so translations carry no numbers */
+.legal-doc { display:block; max-width:72ch; margin:0 auto; counter-reset:legal; line-height:1.65;
+             font-size:.92rem; color:var(--ink); }
+.legal-doc header { padding:18px 0 14px; border-bottom:1px solid var(--line); margin-bottom:18px; }
+.legal-doc h1 { font-size:1.7rem; font-weight:750; letter-spacing:-.02em; line-height:1.2; margin:0; }
+.legal-doc .doc-meta { color:var(--muted); font-size:.82rem; margin:6px 0 0; }
+.legal-doc h2 { counter-increment:legal; font-size:1.05rem; font-weight:700; margin:26px 0 8px; letter-spacing:-.01em; }
+.legal-doc h2::before { content:counter(legal) ". "; color:var(--brand); }
+.legal-doc p { margin:0 0 12px; }
+.legal-doc a { color:var(--brand); }
 .legal-doc mark.todo { background:var(--me-tint); color:var(--ink); border:1px dashed var(--co);
                        border-radius:4px; padding:0 4px; }
 
