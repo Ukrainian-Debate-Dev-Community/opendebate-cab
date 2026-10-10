@@ -77,11 +77,15 @@ defmodule CabWeb.OwnerSessionLive do
   def handle_event("add_guest_by_email", %{"name" => name, "email" => email}, socket) do
     case String.trim(name) do
       "" ->
-        {:noreply, put_flash(socket, :error, "Enter a name.")}
+        {:noreply, put_flash(socket, :error, gettext("Enter a name."))}
 
       name ->
         add(socket, {:guest, name}, fn _info ->
-          "#{name} added as a guest. Copy their personal link from People and send it to #{String.trim(email)}."
+          gettext(
+            "%{name} added as a guest. Copy their personal link from People and send it to %{email}.",
+            name: name,
+            email: String.trim(email)
+          )
         end)
     end
   end
@@ -94,13 +98,13 @@ defmodule CabWeb.OwnerSessionLive do
   def handle_event("start", _params, socket) do
     socket.assigns.current_user
     |> Sessions.start_from_draft(socket.assigns.current)
-    |> reply(socket, &"Session started with #{&1} room(s).")
+    |> reply(socket, &gettext("Session started with %{count} room(s).", count: &1))
   end
 
   def handle_event("make_rooms", _params, socket) do
     socket.assigns.current_user
     |> Sessions.make_rooms_from_draft(socket.assigns.current)
-    |> reply(socket, &"#{&1} room(s) created.")
+    |> reply(socket, &gettext("%{count} room(s) created.", count: &1))
   end
 
   @impl true
@@ -124,7 +128,7 @@ defmodule CabWeb.OwnerSessionLive do
     do: {:noreply, put_flash(socket, :error, message)}
 
   defp reply(_other, socket, _info),
-    do: {:noreply, put_flash(socket, :error, "that did not work — try again")}
+    do: {:noreply, put_flash(socket, :error, gettext("that did not work — try again"))}
 
   defp load(socket, read \\ nil) do
     club = socket.assigns.club
@@ -149,7 +153,7 @@ defmodule CabWeb.OwnerSessionLive do
     else
       _ ->
         socket
-        |> put_flash(:error, "This session is unavailable right now.")
+        |> put_flash(:error, gettext("This session is unavailable right now."))
         |> redirect(to: ~p"/c/#{club.uuid}/owner")
     end
   end

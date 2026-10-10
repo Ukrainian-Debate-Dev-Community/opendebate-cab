@@ -44,8 +44,8 @@ defmodule CabWeb.StandingsHTML do
 
   defp scope_date(%{session: session}), do: session.scheduled_at || session.inserted_at
 
-  defp tab_label("teams"), do: "Teams"
-  defp tab_label("speakers"), do: "Speakers"
-  defp tab_label("adjudicators"), do: "Adjudicators"
-  defp tab_label("clubs"), do: "Clubs"
+  defp tab_label("teams"), do: gettext("Teams")
+  defp tab_label("speakers"), do: gettext("Speakers")
+  defp tab_label("adjudicators"), do: gettext("Adjudicators")
+  defp tab_label("clubs"), do: gettext("Clubs")
 end

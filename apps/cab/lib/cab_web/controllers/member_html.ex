@@ -9,4 +9,9 @@ defmodule CabWeb.MemberHTML do
   attr :archive, :list, required: true
 
   def archive_section(assigns)
+
+  # a membership role in words
+  defp role_word("head"), do: gettext("head")
+  defp role_word("member"), do: gettext("member")
+  defp role_word(role), do: role
 end

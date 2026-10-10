@@ -15,7 +15,7 @@
       href={~p"/r/#{@session.uuid}"}
       primary
     >
-      Register
+      {gettext("Register")}
     </:seg>
     <:seg
       :if={@state.stage == :signup && @my_signup}
@@ -23,14 +23,14 @@
       method="post"
       quiet
     >
-      Cancel my registration
+      {gettext("Cancel my registration")}
     </:seg>
     <:seg
       :if={@my_ballot_room}
       href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@my_ballot_room["id"]}/ballot"}
       primary
     >
-      Fill ballot — {room_label(@my_ballot_room)}
+      {gettext("Fill ballot — %{room}", room: room_label(@my_ballot_room))}
     </:seg>
   </.chrome>
 
@@ -38,13 +38,13 @@
     <.flash_banners flash={@flash} />
 
     <.banner :if={@state.stage != :done && @my_signup} kind={:good}>
-      You are registered for this session.
+      {gettext("You are registered for this session.")}
     </.banner>
     <.banner :if={@state.stage in [:closed, :running]} kind={:info}>
-      Registration is closed for this session.
+      {gettext("Registration is closed for this session.")}
     </.banner>
 
-    <.section title="Session" pad>
+    <.section title={gettext("Session")} pad>
       <b id="session-name">{@state.event["name"]}</b>
       <p>
         <.local_time
@@ -53,33 +53,37 @@
         />
       </p>
       <p id="session-short-link">
-        Short link: <code>{bare_url(Cab.Sessions.short_url(@session))}</code>
+        {gettext("Short link:")} <code>{bare_url(Cab.Sessions.short_url(@session))}</code>
         <.copy text={Cab.Sessions.short_url(@session)} />
       </p>
       <%= case @winners do %>
         <% [] -> %>
         <% [{_room, name}] -> %>
-          <p>Winner: <b>{name}</b></p>
+          <p>{gettext("Winner:")} <b>{name}</b></p>
         <% several -> %>
-          <p>Winners:</p>
+          <p>{gettext("Winners:")}</p>
           <p :for={{room, name} <- several}>{room_label(room)}: <b>{name}</b></p>
       <% end %>
     </.section>
 
     <%= case @state.stage do %>
       <% stage when stage in [:signup, :closed] -> %>
-        <.section title="Who's registered">
-          <.table id="session-signups" rows={@state.signups} empty="Nobody registered yet.">
-            <:col :let={participant} label="Name">{participant["display_name"]}</:col>
+        <.section title={gettext("Who's registered")}>
+          <.table
+            id="session-signups"
+            rows={@state.signups}
+            empty={gettext("Nobody registered yet.")}
+          >
+            <:col :let={participant} label={gettext("Name")}>{participant["display_name"]}</:col>
           </.table>
         </.section>
       <% :running -> %>
         <.banner :if={my_room_motion(@state, @my_room_id)} kind={:info}>
-          Room {my_room_label(@state, @my_room_id)} motion:
+          {gettext("Room %{room} motion:", room: my_room_label(@state, @my_room_id))}
           <b>{my_room_motion(@state, @my_room_id)}</b>
         </.banner>
 
-        <.section title="Rooms">
+        <.section title={gettext("Rooms")}>
           <.table
             id="session-rooms"
             rows={@state.rooms}
@@ -98,38 +102,41 @@
             >
               {team_label(room, position)}
             </:col>
-            <:col :let={room} label="Adjudicator">
+            <:col :let={room} label={gettext("Adjudicator")}>
               <%= if @current_user && Cab.Sessions.room_chair?(room, @current_user) do %>
-                <b>you</b>
+                <b>{gettext("you")}</b>
               <% else %>
                 {judge_name(room, @state.signups)}
               <% end %>
             </:col>
-            <:col :let={room} label="Status" class="st">
+            <:col :let={room} label={gettext("Status")} class="st">
               {room_words(room)}
             </:col>
           </.table>
         </.section>
       <% :done -> %>
-        <.section :if={@state.rooms == []} title="Rooms" pad>
-          This session finished without rooms.
+        <.section :if={@state.rooms == []} title={gettext("Rooms")} pad>
+          {gettext("This session finished without rooms.")}
         </.section>
 
         <%= for room <- @state.rooms do %>
-          <.section title={"Room #{room_label(room)}"}>
+          <.section title={gettext("Room %{room}", room: room_label(room))}>
             <div class="pad">
-              Motion: <b>{(room["Motion"] && room["Motion"]["motion_text"]) || "—"}</b>
+              {gettext("Motion:")}
+              <b>{(room["Motion"] && room["Motion"]["motion_text"]) || "—"}</b>
             </div>
             <.table id={"room-#{room["id"]}-teams"} rows={sorted_teams(room)}>
-              <:col :let={room_team} label="Side" code>
+              <:col :let={room_team} label={gettext("Side")} code>
                 {side_code(room_team["position"])}
               </:col>
-              <:col :let={room_team} label="Team">{get_in(room_team, ["Team", "name"])}</:col>
-              <:col :let={room_team} label="Speakers">{speaker_names(room_team)}</:col>
-              <:col :let={room_team} label="Result" class="st">
+              <:col :let={room_team} label={gettext("Team")}>
+                {get_in(room_team, ["Team", "name"])}
+              </:col>
+              <:col :let={room_team} label={gettext("Speakers")}>{speaker_names(room_team)}</:col>
+              <:col :let={room_team} label={gettext("Result")} class="st">
                 <%= if room["status"] in ["completed", "confirmed"] && room_team["rank"] do %>
                   <%= if room_team["rank"] == 1 do %>
-                    <b>won</b>
+                    <b>{gettext("won")}</b>
                   <% else %>
                     {ordinal(room_team["rank"])}
                   <% end %>

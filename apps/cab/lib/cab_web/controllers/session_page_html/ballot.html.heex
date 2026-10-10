@@ -9,17 +9,17 @@
   <.chrome
     crumbs={[
       {@club.name, ~p"/c/#{@club.uuid}"},
-      {"Session", ~p"/c/#{@club.uuid}/s/#{@session.uuid}"}
+      {gettext("Session"), ~p"/c/#{@club.uuid}/s/#{@session.uuid}"}
     ]}
-    here={"Ballot #{room_label(@room)}"}
+    here={gettext("Ballot %{room}", room: room_label(@room))}
   >
-    <:seg form={"ballot-#{@room["id"]}"} primary>Submit ballot</:seg>
+    <:seg form={"ballot-#{@room["id"]}"} primary>{gettext("Submit ballot")}</:seg>
   </.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title={"Room #{room_label(@room)} ballot"}>
+    <.section title={gettext("Room %{room} ballot", room: room_label(@room))}>
       <Ui.ballot
         id={"ballot-#{@room["id"]}"}
         room={room_label(@room)}

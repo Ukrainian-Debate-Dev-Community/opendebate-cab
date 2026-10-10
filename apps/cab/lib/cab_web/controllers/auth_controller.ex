@@ -9,7 +9,7 @@ defmodule CabWeb.AuthController do
   # action means the provider is unknown.
   def request(conn, _params) do
     conn
-    |> put_flash(:error, "Unknown login provider.")
+    |> put_flash(:error, gettext("Unknown login provider."))
     |> redirect(to: ~p"/signin")
   end
 
@@ -28,7 +28,7 @@ defmodule CabWeb.AuthController do
   def callback(%{assigns: %{ueberauth_failure: _failure}} = conn, _params) do
     conn
     |> delete_session(:link_to)
-    |> put_flash(:error, "Authentication failed.")
+    |> put_flash(:error, gettext("Authentication failed."))
     |> redirect(to: ~p"/signin")
   end
 
@@ -38,11 +38,13 @@ defmodule CabWeb.AuthController do
     case Accounts.link_identity(user, auth) do
       {:ok, :linked} ->
         conn
-        |> put_flash(:info, "#{provider} is now linked to this account.")
+        |> put_flash(:info, gettext("%{method} is now linked to this account.", method: provider))
         |> redirect(to: ~p"/account")
 
       {:ok, :already} ->
-        conn |> put_flash(:info, "#{provider} was already linked.") |> redirect(to: ~p"/account")
+        conn
+        |> put_flash(:info, gettext("%{method} was already linked.", method: provider))
+        |> redirect(to: ~p"/account")
 
       {:other_account, other} ->
         # proven: they just signed in to that account's provider
@@ -75,7 +77,7 @@ defmodule CabWeb.AuthController do
 
       {:error, _reason} ->
         conn
-        |> put_flash(:error, "Sign-in failed.")
+        |> put_flash(:error, gettext("Sign-in failed."))
         |> redirect(to: ~p"/signin")
     end
   end
@@ -88,7 +90,13 @@ defmodule CabWeb.AuthController do
 
     with %{pending: pending, user_id: user_id} when user_id == user.id <- pending,
          {:ok, :linked} <- Accounts.link_identity(user, pending) do
-      put_flash(conn, :info, "#{provider_name(pending.provider)} is now linked to this account.")
+      put_flash(
+        conn,
+        :info,
+        gettext("%{method} is now linked to this account.",
+          method: provider_name(pending.provider)
+        )
+      )
     else
       _ -> conn
     end
@@ -103,7 +111,7 @@ defmodule CabWeb.AuthController do
     conn
     |> configure_session(renew: true)
     |> put_session(:user_id, user.id)
-    |> put_flash(:info, linked || "Signed in as #{user.username}.")
+    |> put_flash(:info, linked || gettext("Signed in as %{username}.", username: user.username))
     |> redirect(to: ~p"/")
   end
 

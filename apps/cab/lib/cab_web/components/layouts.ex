@@ -28,4 +28,40 @@ defmodule CabWeb.Layouts do
   slot :inner_block, required: true
 
   def app(assigns)
+
+  @doc """
+  The words assets/js writes itself (ballot hints, the prep clock, the
+  room card, copy buttons, the theme button), in the page's language,
+  for `<meta name="cab-i18n">`. `{name}` marks a value the browser
+  fills in.
+  """
+  def js_strings do
+    %{
+      "place_1" => gettext("1st"),
+      "place_2" => gettext("2nd"),
+      "place_3" => gettext("3rd"),
+      "place_4" => gettext("4th"),
+      "place_n" => gettext("{n}th"),
+      "ballot_tied" =>
+        gettext("Two teams share a total. BP allows no ties, so adjust the scores."),
+      "ballot_ready" => gettext("Ready to submit."),
+      "prep_over" => gettext("prep time is over — debate"),
+      "prep_left" => gettext("prep: {time} left"),
+      "card_starts" => gettext("Starts at {time}"),
+      "card_motion" => gettext("MOTION"),
+      "card_prep" => gettext("Prep until {time}"),
+      "card_no_motion" => gettext("Motion: not published yet"),
+      "card_draw" => gettext("DRAW"),
+      "card_adjudicator" => gettext("Adjudicator: {name}"),
+      "card_scan" => gettext("Scan or open"),
+      "card_live" => gettext("this room's draw and motion, live"),
+      "card_copied" => gettext("Copied. Paste it into the chat."),
+      "card_no_copy" => gettext("This browser cannot copy images. Use Save image."),
+      "copy" => gettext("Copy"),
+      "copied" => gettext("Copied"),
+      "theme_light" => gettext("Theme: light"),
+      "theme_auto" => gettext("Theme: auto"),
+      "theme_dark" => gettext("Theme: dark")
+    }
+  end
 end

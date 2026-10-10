@@ -6,24 +6,26 @@
   nav_session={@session}
   active="register"
 >
-  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="Registered">
-    <:seg href={~p"/l/#{@link.code}"} primary>Open my session page</:seg>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here={gettext("Registered")}>
+    <:seg href={~p"/l/#{@link.code}"} primary>{gettext("Open my session page")}</:seg>
   </.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
     <.banner kind={:good}>
-      You are registered as {@link.user.name}.
+      {gettext("You are registered as %{name}.", name: @link.user.name)}
     </.banner>
 
-    <.section title="Your personal link">
+    <.section title={gettext("Your personal link")}>
       <div class="pad">
-        <.copy_banner id="personal-link" url={@personal_url}>Personal link</.copy_banner>
+        <.copy_banner id="personal-link" url={@personal_url}>
+          {gettext("Personal link")}
+        </.copy_banner>
         <p>
-          Keep this link — it IS your access: anyone with it acts as you.
-          It opens your view of this session: your registration, the rooms,
-          and (if you adjudicate) the ballot.
+          {gettext(
+            "Keep this link — it IS your access: anyone with it acts as you. It opens your view of this session: your registration, the rooms, and (if you adjudicate) the ballot."
+          )}
         </p>
       </div>
     </.section>

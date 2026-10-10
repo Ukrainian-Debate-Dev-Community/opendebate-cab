@@ -13,6 +13,7 @@ defmodule Cab.Invitations do
   """
 
   import Ecto.Query
+  use Gettext, backend: CabWeb.Gettext
 
   alias Cab.{Accounts, Clubs, EngineApi, Repo, Sessions}
   alias Cab.Accounts.User
@@ -136,7 +137,7 @@ defmodule Cab.Invitations do
   """
   def invite(%User{} = head, %Session{} = session, %User{} = user) do
     if Cab.Links.guest?(user.id) do
-      {:error, "Guests join through their personal link."}
+      {:error, dgettext("errors", "Guests join through their personal link.")}
     else
       do_invite(head, session, user)
     end
@@ -146,7 +147,7 @@ defmodule Cab.Invitations do
     if Repo.exists?(
          from i in Invitation, where: i.session_id == ^session.id and i.user_id == ^user.id
        ) do
-      {:error, "#{display_name(user)} is already invited."}
+      {:error, dgettext("errors", "%{name} is already invited.", name: display_name(user))}
     else
       with {:ok, %{"id" => pid, "raw_claim_token" => token}} <-
              Sessions.add_unclaimed(head, session, display_name(user)) do
@@ -208,7 +209,7 @@ defmodule Cab.Invitations do
       Sessions.broadcast(invitation.session)
       {:ok, :accepted}
     else
-      %User{} -> {:error, "Something went wrong, try again."}
+      %User{} -> {:error, dgettext("errors", "Something went wrong, try again.")}
       error -> error
     end
   end

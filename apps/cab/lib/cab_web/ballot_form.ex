@@ -7,6 +7,8 @@ defmodule CabWeb.BallotForm do
   those params into the `Cab.Sessions.submit_ballot/4` scores list.
   """
 
+  use Gettext, backend: CabWeb.Gettext
+
   @sides [:og, :oo, :cg, :co]
   @roles %{og: ["PM", "DPM"], oo: ["LO", "DLO"], cg: ["MG", "GW"], co: ["MO", "OW"]}
 
@@ -49,6 +51,7 @@ defmodule CabWeb.BallotForm do
 
           %{
             role: role,
+            role_label: role_label(role),
             speakers: options,
             selected: submitted["speaker"] || default,
             iron:
@@ -66,6 +69,17 @@ defmodule CabWeb.BallotForm do
       }
     end)
   end
+
+  @doc "A speaking position as people read it (the role key stays the data)."
+  def role_label("PM"), do: gettext("PM")
+  def role_label("DPM"), do: gettext("DPM")
+  def role_label("LO"), do: gettext("LO")
+  def role_label("DLO"), do: gettext("DLO")
+  def role_label("MG"), do: gettext("MG")
+  def role_label("GW"), do: gettext("GW")
+  def role_label("MO"), do: gettext("MO")
+  def role_label("OW"), do: gettext("OW")
+  def role_label(role), do: role
 
   @doc """
   The submitted `ballot` params —

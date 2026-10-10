@@ -3,9 +3,9 @@
   active={@active}
   tabs={
     [
-      {"teams", "Teams", "#{@base}/teams"},
-      {"speakers", "Speakers", "#{@base}/speakers"},
-      {"adjudicators", "Adjudicators", "#{@base}/adjudicators"}
-    ] ++ if(@clubs_tab, do: [{"clubs", "Clubs", "#{@base}/clubs"}], else: [])
+      {"teams", gettext("Teams"), "#{@base}/teams"},
+      {"speakers", gettext("Speakers"), "#{@base}/speakers"},
+      {"adjudicators", gettext("Adjudicators"), "#{@base}/adjudicators"}
+    ] ++ if(@clubs_tab, do: [{"clubs", gettext("Clubs"), "#{@base}/clubs"}], else: [])
   }
 />

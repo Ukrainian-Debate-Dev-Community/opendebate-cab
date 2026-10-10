@@ -13,7 +13,7 @@ defmodule CabWeb.MemberController do
 
     render(conn, :members,
       members: Clubs.list_members(club),
-      page_title: "#{club.name} — Members"
+      page_title: gettext("%{club} — Members", club: club.name)
     )
   end
 end

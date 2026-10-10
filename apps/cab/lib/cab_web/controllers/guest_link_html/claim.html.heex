@@ -1,18 +1,22 @@
 <Layouts.app flash={@flash} current_user={@current_user}>
-  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="Your guest history">
-    <:seg href={~p"/c/#{@club.uuid}/s/#{@session.uuid}"} quiet>Not now</:seg>
-    <:seg form="claim-form" primary>Add to my account</:seg>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here={gettext("Your guest history")}>
+    <:seg href={~p"/c/#{@club.uuid}/s/#{@session.uuid}"} quiet>{gettext("Not now")}</:seg>
+    <:seg form="claim-form" primary>{gettext("Add to my account")}</:seg>
   </.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title="A personal link" pad>
-      This personal link belongs to <b>{@link.user.name}</b>, a guest at {@session.name ||
-        "a session"} in {@club.name}.
+    <.section title={gettext("A personal link")} pad>
+      {gettext("This personal link belongs to")} <b>{@link.user.name}</b>{gettext(
+        ", a guest at %{session} in %{club}.",
+        session: @session.name || gettext("a session"),
+        club: @club.name
+      )}
       <p>
-        If that guest was you, add their results to your account. They show on My page
-        under your name, and this link stops working.
+        {gettext(
+          "If that guest was you, add their results to your account. They show on My page under your name, and this link stops working."
+        )}
       </p>
       <form id="claim-form" action={~p"/l/#{@link.code}/claim"} method="post">
         <input type="hidden" name="_csrf_token" value={get_csrf_token()} />

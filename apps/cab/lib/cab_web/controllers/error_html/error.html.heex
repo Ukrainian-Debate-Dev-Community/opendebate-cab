@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang={Gettext.get_locale(CabWeb.Gettext)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -17,7 +17,7 @@
       <a href={~p"/"} class="cap">cab</a>
       <h1>{@heading}</h1>
       <p>{@message}</p>
-      <a href={~p"/"} class="back">Back to the clubs</a>
+      <a href={~p"/"} class="back">{gettext("Back to the clubs")}</a>
     </main>
   </body>
 </html>

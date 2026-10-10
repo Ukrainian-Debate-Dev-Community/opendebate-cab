@@ -1,82 +1,89 @@
 <Layouts.app flash={@flash} current_user={@current_user} active="account">
-  <.chrome here="Account">
-    <:seg form="account-form" primary>Save</:seg>
-    <:seg href={~p"/auth/logout"} quiet>Sign out</:seg>
+  <.chrome here={gettext("Account")}>
+    <:seg form="account-form" primary>{gettext("Save")}</:seg>
+    <:seg href={~p"/auth/logout"} quiet>{gettext("Sign out")}</:seg>
   </.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title="Profile">
+    <.section title={gettext("Profile")}>
       <.form_for id="account-form" action={~p"/account"}>
         <:block
           name={:name}
           type={:text}
-          label="Display name"
+          label={gettext("Display name")}
           value={@current_user.name}
-          hint="Shown instead of your username on rosters and draws."
+          hint={gettext("Shown instead of your username on rosters and draws.")}
         />
         <:block
           name={:time_zone}
           type={:select}
-          label="Time zone"
+          label={gettext("Time zone")}
           value={@current_user.time_zone || ""}
           options={[
-            {"This device's time zone", ""} | Enum.map(Cab.Accounts.time_zones(), &{&1, &1})
+            {gettext("This device's time zone"), ""}
+            | Enum.map(Cab.Accounts.time_zones(), &{&1, &1})
           ]}
-          hint="Session times show in this zone. cab keeps every time in UTC."
+          hint={gettext("Session times show in this zone. cab keeps every time in UTC.")}
         />
       </.form_for>
       <div class="pad">
         <p>
-          Username: <b>{@current_user.username}</b>
+          {gettext("Username:")} <b>{@current_user.username}</b>
           {if @current_user.email, do: ", #{@current_user.email}"}
         </p>
       </div>
     </.section>
 
-    <.section title="Guest history">
+    <.section title={gettext("Guest history")}>
       <.form_for
         id="claim-form"
         action={~p"/account/claim"}
-        description="Played as a guest? Paste that session's personal link to move its results onto this account."
+        description={
+          gettext(
+            "Played as a guest? Paste that session's personal link to move its results onto this account."
+          )
+        }
       >
-        <:block name={:link} type={:text} label="Personal link" required />
-        <:submit note="The link stops working once its history is yours.">
-          Add to my account
+        <:block name={:link} type={:text} label={gettext("Personal link")} required />
+        <:submit note={gettext("The link stops working once its history is yours.")}>
+          {gettext("Add to my account")}
         </:submit>
       </.form_for>
     </.section>
 
-    <.section title="Sign-in methods">
+    <.section title={gettext("Sign-in methods")}>
       <.table id="sign-in-methods" rows={[{"github", "GitHub"}, {"google", "Google"}]}>
-        <:col :let={{_code, name}} label="Method">{name}</:col>
-        <:col :let={{code, _name}} label="Status">
-          {if Enum.any?(@identities, &(&1.provider == code)), do: "linked", else: "not linked"}
+        <:col :let={{_code, name}} label={gettext("Method")}>{name}</:col>
+        <:col :let={{code, _name}} label={gettext("Status")}>
+          {if Enum.any?(@identities, &(&1.provider == code)),
+            do: gettext("linked"),
+            else: gettext("not linked")}
         </:col>
         <:col :let={{code, name}}>
           <%= cond do %>
             <% not Enum.any?(@identities, &(&1.provider == code)) -> %>
-              <.link href={~p"/account/link/#{code}"}>link {name}</.link>
+              <.link href={~p"/account/link/#{code}"}>{gettext("link %{method}", method: name)}</.link>
             <% length(@identities) > 1 -> %>
-              <.link href={~p"/account/unlink/#{code}"} method="post">remove</.link>
+              <.link href={~p"/account/unlink/#{code}"} method="post">{gettext("remove")}</.link>
             <% true -> %>
-              <span class="mut">your only sign-in</span>
+              <span class="mut">{gettext("your only sign-in")}</span>
           <% end %>
         </:col>
       </.table>
       <div class="pad">
         <p class="mut">
-          Linking lets you sign in to this same account with either. Separate accounts are
-          fine too: link only if you want them to be one. If the method you link already has
-          its own cab account, you can merge the two.
+          {gettext(
+            "Linking lets you sign in to this same account with either. Separate accounts are fine too: link only if you want them to be one. If the method you link already has its own cab account, you can merge the two."
+          )}
         </p>
       </div>
     </.section>
 
-    <.section title="Your data" pad>
+    <.section title={gettext("Your data")} pad>
       <p>
-        Data requests or deletion: <a href="mailto:support@uadebate.com">support@uadebate.com</a>.
+        {gettext("Data requests or deletion:")} <a href="mailto:support@uadebate.com">support@uadebate.com</a>.
       </p>
     </.section>
   </div>

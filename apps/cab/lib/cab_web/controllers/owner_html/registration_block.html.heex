@@ -1,9 +1,9 @@
 <%= if @state.stage == :signup do %>
   <.copy_banner id="shared-registration-url" url={url(~p"/r/#{@current.uuid}")}>
-    Share to register without an account
+    {gettext("Share to register without an account")}
   </.copy_banner>
 
-  <.section title="Add a person">
+  <.section title={gettext("Add a person")}>
     <div class="pad addp">
       <form
         id="add-person-form"
@@ -14,14 +14,14 @@
         autocomplete="off"
       >
         <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
-        <label for="add-person-q">Member, registered user or guest</label>
+        <label for="add-person-q">{gettext("Member, registered user or guest")}</label>
         <input
           id="add-person-q"
           type="search"
           name="q"
           value={@query}
           phx-debounce="250"
-          placeholder="Pick a member, or type a name, a user's username or email"
+          placeholder={gettext("Pick a member, or type a name, a user's username or email")}
         />
       </form>
       <div
@@ -35,7 +35,7 @@
           phx-click="add_member"
           phx-value-id={user.id}
         >
-          {user.name || user.username} <span>member</span>
+          {user.name || user.username} <span>{gettext("member")}</span>
         </button>
         <button
           :for={user <- @suggestions.users}
@@ -44,13 +44,14 @@
           phx-value-id={user.id}
         >
           {user.name || user.username}
-          <span>registered user, will accept on My page</span>
+          <span>{gettext("registered user, will accept on My page")}</span>
         </button>
         <div :if={@suggestions.guest} class="guest-offer">
           <button type="button" phx-click="add_guest" phx-value-name={@suggestions.guest}>
-            Add “{@suggestions.guest}” as a guest <span>not in cab</span>
+            {gettext("Add “%{name}” as a guest", name: @suggestions.guest)}
+            <span>{gettext("not in cab")}</span>
           </button>
-          <p>Send them their personal link from People.</p>
+          <p>{gettext("Send them their personal link from People.")}</p>
         </div>
         <.form
           :if={email_only?(@query, @suggestions)}
@@ -60,15 +61,17 @@
           phx-submit="add_guest_by_email"
         >
           <input type="hidden" name="email" value={String.trim(@query)} />
-          <label for="add-guest-name">Nobody in cab uses {String.trim(@query)}. Their name</label>
+          <label for="add-guest-name">
+            {gettext("Nobody in cab uses %{email}. Their name", email: String.trim(@query))}
+          </label>
           <div class="row">
             <input id="add-guest-name" type="text" name="name" required autocomplete="off" />
-            <button type="submit">Add as a guest</button>
+            <button type="submit">{gettext("Add as a guest")}</button>
           </div>
-          <p>Email comes later; send them their personal link from People.</p>
+          <p>{gettext("Email comes later; send them their personal link from People.")}</p>
         </.form>
         <p :if={String.trim(@query) == "" and @suggestions.members == []}>
-          Every member is in this session. Type a name to add a guest.
+          {gettext("Every member is in this session. Type a name to add a guest.")}
         </p>
       </div>
     </div>

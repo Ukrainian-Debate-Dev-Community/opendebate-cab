@@ -3,18 +3,19 @@
     <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
     <div class="brand-top">cab</div>
     <div>
-      <h1>The home of Ukrainian debate clubs</h1>
+      <h1>{gettext("The home of Ukrainian debate clubs")}</h1>
       <p>
-        Club sessions, rooms, ballots and standings — one place for debaters,
-        adjudicators and club heads.
+        {gettext(
+          "Club sessions, rooms, ballots and standings — one place for debaters, adjudicators and club heads."
+        )}
       </p>
       <ul class="feats">
-        <li>register for a club session with one link</li>
-        <li>adjudicators fill the ballot right in their room</li>
-        <li>per-session standings and your own history</li>
+        <li>{gettext("register for a club session with one link")}</li>
+        <li>{gettext("adjudicators fill the ballot right in their room")}</li>
+        <li>{gettext("per-session standings and your own history")}</li>
       </ul>
     </div>
-    <div class="foot">Debate Federation of Ukraine — uadebate.com</div>
+    <div class="foot">{gettext("Debate Federation of Ukraine")} — uadebate.com</div>
   </aside>
 
   <main class="side-form">
@@ -22,16 +23,20 @@
       <.flash_banners flash={@flash} />
       <div class="crest">cab</div>
       <%= if @existing do %>
-        <h2>You may already have an account</h2>
+        <h2>{gettext("You may already have an account")}</h2>
         <p class="lede">
-          An account with the address {@existing.email} signs in with {Enum.join(
-            @existing.providers,
-            " or "
-          )}. Continue with it to add {@existing.adding} to that account.
+          {gettext(
+            "An account with the address %{email} signs in with %{providers}. Continue with it to add %{adding} to that account.",
+            email: @existing.email,
+            providers: Enum.join(@existing.providers, " #{gettext("or")} "),
+            adding: @existing.adding
+          )}
         </p>
       <% else %>
-        <h2>Sign in</h2>
-        <p class="lede">Use one of the following sign-in methods. We don't use passwords.</p>
+        <h2>{gettext("Sign in")}</h2>
+        <p class="lede">
+          {gettext("Use one of the following sign-in methods. We don't use passwords.")}
+        </p>
       <% end %>
 
       <a
@@ -43,7 +48,7 @@
         <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
           <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
         </svg>
-        Continue with GitHub
+        {gettext("Continue with %{provider}", provider: "GitHub")}
       </a>
 
       <a
@@ -70,30 +75,31 @@
             d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
           />
         </svg>
-        Continue with Google
+        {gettext("Continue with %{provider}", provider: "Google")}
       </a>
 
       <%= if @existing do %>
         <form id="separate-account-form" action={~p"/signin/separate"} method="post">
           <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
           <button type="submit" class="oauth oauth--plain">
-            Create a separate account with {@existing.adding}
+            {gettext("Create a separate account with %{provider}", provider: @existing.adding)}
           </button>
         </form>
-        <a class="start-over" href={~p"/signin?start_over=1"}>Sign in another way</a>
+        <a class="start-over" href={~p"/signin?start_over=1"}>{gettext("Sign in another way")}</a>
       <% else %>
         <div class="first-note">
-          First sign-in creates your account automatically.
+          {gettext("First sign-in creates your account automatically.")}
         </div>
       <% end %>
 
       <div class="guest-note">
-        Got a personal link from your club? Just open it — no account needed.
+        {gettext("Got a personal link from your club? Just open it — no account needed.")}
       </div>
 
       <p class="legal">
-        By continuing you agree to the <a href={~p"/terms"}>Terms</a>
-        and <a href={~p"/policy"}>Policy</a>.
+        {gettext("By continuing you agree to the")}
+        <a href={~p"/terms"}>{gettext("Terms")}</a>
+        {gettext("and")} <a href={~p"/policy"}>{gettext("Policy")}</a>.
       </p>
     </div>
   </main>

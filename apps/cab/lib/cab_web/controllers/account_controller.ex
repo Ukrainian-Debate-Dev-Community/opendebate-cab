@@ -23,12 +23,12 @@ defmodule CabWeb.AccountController do
       {:ok, user} ->
         conn
         |> assign(:current_user, user)
-        |> put_flash(:info, "Profile saved.")
+        |> put_flash(:info, gettext("Profile saved."))
         |> redirect(to: ~p"/account")
 
       {:error, %Ecto.Changeset{}} ->
         conn
-        |> put_flash(:error, "Could not save the profile.")
+        |> put_flash(:error, gettext("Could not save the profile."))
         |> render_account()
     end
   end
@@ -49,7 +49,7 @@ defmodule CabWeb.AccountController do
   def unlink(conn, %{"provider" => provider}) do
     case Accounts.unlink_identity(conn.assigns.current_user, provider) do
       {:ok, _} ->
-        conn |> put_flash(:info, "Sign-in method removed.") |> redirect(to: ~p"/account")
+        conn |> put_flash(:info, gettext("Sign-in method removed.")) |> redirect(to: ~p"/account")
 
       {:error, message} ->
         conn |> put_flash(:error, message) |> redirect(to: ~p"/account")
@@ -67,7 +67,7 @@ defmodule CabWeb.AccountController do
           other: other,
           kept: Accounts.kept_in_merge(conn.assigns.current_user, other),
           clubs: Cab.Clubs.list_user_memberships(other),
-          page_title: "Merge accounts"
+          page_title: gettext("Merge accounts")
         )
     end
   end
@@ -82,7 +82,9 @@ defmodule CabWeb.AccountController do
         redirect(conn, to: ~p"/account")
 
       {_other, "keep"} ->
-        conn |> put_flash(:info, "The accounts stay separate.") |> redirect(to: ~p"/account")
+        conn
+        |> put_flash(:info, gettext("The accounts stay separate."))
+        |> redirect(to: ~p"/account")
 
       {other, "merge"} ->
         case Accounts.merge_accounts(conn.assigns.current_user, other) do
@@ -90,7 +92,10 @@ defmodule CabWeb.AccountController do
             conn
             |> configure_session(renew: true)
             |> put_session(:user_id, kept.id)
-            |> put_flash(:info, "The accounts are merged into #{kept.username}.")
+            |> put_flash(
+              :info,
+              gettext("The accounts are merged into %{username}.", username: kept.username)
+            )
             |> redirect(to: ~p"/account")
 
           {:error, message} when is_binary(message) ->
@@ -98,7 +103,7 @@ defmodule CabWeb.AccountController do
 
           {:error, _} ->
             conn
-            |> put_flash(:error, "The merge did not go through. Nothing changed.")
+            |> put_flash(:error, gettext("The merge did not go through. Nothing changed."))
             |> redirect(to: ~p"/account")
         end
     end
@@ -120,14 +125,17 @@ defmodule CabWeb.AccountController do
     case Links.find_by_pasted(params["link"]) do
       nil ->
         conn
-        |> put_flash(:error, "That personal link does not exist or no longer works.")
+        |> put_flash(:error, gettext("That personal link does not exist or no longer works."))
         |> redirect(to: ~p"/account")
 
       link ->
         case Links.claim(link, conn.assigns.current_user) do
           {:ok, _moved} ->
             conn
-            |> put_flash(:info, "#{link.user.name}'s guest history is now on your account.")
+            |> put_flash(
+              :info,
+              gettext("%{name}'s guest history is now on your account.", name: link.user.name)
+            )
             |> redirect(to: ~p"/me")
 
           {:error, message} ->
@@ -141,7 +149,7 @@ defmodule CabWeb.AccountController do
 
     render(conn, :show,
       identities: Accounts.list_identities(user),
-      page_title: "Account"
+      page_title: gettext("Account")
     )
   end
 end

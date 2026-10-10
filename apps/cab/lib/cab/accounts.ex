@@ -5,6 +5,7 @@ defmodule Cab.Accounts do
   """
 
   import Ecto.Query
+  use Gettext, backend: CabWeb.Gettext
 
   require Logger
 
@@ -191,14 +192,17 @@ defmodule Cab.Accounts do
         if Repo.exists?(
              from i in Identity, where: i.user_id == ^user.id and i.provider == ^provider
            ) do
-          {:error, "This account already has a different #{provider} sign-in linked."}
+          {:error,
+           dgettext("errors", "This account already has a different %{provider} sign-in linked.",
+             provider: provider
+           )}
         else
           %Identity{user_id: user.id}
           |> Identity.changeset(%{provider: provider, provider_uid: uid})
           |> Repo.insert()
           |> case do
             {:ok, _} -> {:ok, :linked}
-            {:error, _} -> {:error, "Could not link that sign-in. Try again."}
+            {:error, _} -> {:error, dgettext("errors", "Could not link that sign-in. Try again.")}
           end
         end
     end
@@ -209,9 +213,14 @@ defmodule Cab.Accounts do
     identities = list_identities(user)
 
     case Enum.find(identities, &(&1.provider == provider)) do
-      nil -> {:error, "That sign-in is not linked."}
-      _ when length(identities) < 2 -> {:error, "Keep at least one way to sign in."}
-      identity -> Repo.delete(identity)
+      nil ->
+        {:error, dgettext("errors", "That sign-in is not linked.")}
+
+      _ when length(identities) < 2 ->
+        {:error, dgettext("errors", "Keep at least one way to sign in.")}
+
+      identity ->
+        Repo.delete(identity)
     end
   end
 
@@ -226,7 +235,8 @@ defmodule Cab.Accounts do
   both took part in the same session. A merge that stopped halfway
   finishes when run again.
   """
-  def merge_accounts(%User{id: id}, %User{id: id}), do: {:error, "That is this account."}
+  def merge_accounts(%User{id: id}, %User{id: id}),
+    do: {:error, dgettext("errors", "That is this account.")}
 
   def merge_accounts(%User{} = one, %User{} = other) do
     {target, source} = keep_and_fold(one, other)
@@ -306,15 +316,21 @@ defmodule Cab.Accounts do
   end
 
   defp merge_engine(_target, _source),
-    do: {:error, "Something went wrong, try again."}
+    do: {:error, dgettext("errors", "Something went wrong, try again.")}
 
   defp merge_message("Both users are registered in event" <> _),
     do:
-      "Both accounts took part in the same session. " <>
-        "Ask the club head to remove one of them from it first."
+      dgettext(
+        "errors",
+        "Both accounts took part in the same session. Ask the club head to remove one of them from it first."
+      )
 
   defp merge_message("The source user holds roles" <> _),
-    do: "That account still holds a role in a club. Ask a platform admin to merge them."
+    do:
+      dgettext(
+        "errors",
+        "That account still holds a role in a club. Ask a platform admin to merge them."
+      )
 
   defp merge_message(message), do: message
 
@@ -357,7 +373,7 @@ defmodule Cab.Accounts do
 
     if Enum.any?(added, &match?({:failed, _}, &1)) do
       take_back_clubs(target, source, handed)
-      {:error, "Something went wrong, try again."}
+      {:error, dgettext("errors", "Something went wrong, try again.")}
     else
       {:ok, handed}
     end

@@ -8,38 +8,49 @@
 >
   <.chrome here={@club.name}>
     <:seg :if={@club_role in [:owner, :admin]} href={~p"/c/#{@club.uuid}/owner"}>
-      Edit club
+      {gettext("Edit club")}
     </:seg>
     <:seg :if={@club_role == :public and is_nil(@current_user)} href={~p"/signin"} primary>
-      Request to join
+      {gettext("Request to join")}
     </:seg>
     <:seg
       :if={@club_role == :public and @current_user}
       href={~p"/c/#{@club.uuid}/join"}
       primary
     >
-      Request to join
+      {gettext("Request to join")}
     </:seg>
   </.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title="About" pad>
+    <.section title={gettext("About")} pad>
       <b id="club-name">{@club.name}</b>{if @club.city, do: ", #{@club.city}"}
       <p>
-        {length(@members)} member{if length(@members) != 1, do: "s"}{if head_name(@members),
-          do: ", head: #{head_name(@members)}"}
+        {ngettext("%{count} member", "%{count} members", length(@members))}{if head_name(
+                                                                                 @members
+                                                                               ),
+                                                                               do:
+                                                                                 ", " <>
+                                                                                   gettext(
+                                                                                     "head: %{name}",
+                                                                                     name:
+                                                                                       head_name(
+                                                                                         @members
+                                                                                       )
+                                                                                   )}
       </p>
       <p :if={@club.description}>{@club.description}</p>
-      <p :if={@club.meeting_info}>Meetings: {@club.meeting_info}</p>
-      <p :if={@club.contacts}>Contacts: {@club.contacts}</p>
+      <p :if={@club.meeting_info}>{gettext("Meetings:")} {@club.meeting_info}</p>
+      <p :if={@club.contacts}>{gettext("Contacts:")} {@club.contacts}</p>
     </.section>
 
     <CabWeb.MemberHTML.archive_section club={@club} archive={@recent} />
 
-    <.section title="Standings" pad>
-      Standings for each session are under <.link href={~p"/c/#{@club.uuid}/standings/teams"}>Standings</.link>.
+    <.section title={gettext("Standings")} pad>
+      {gettext("Standings for each session are under")}
+      <.link href={~p"/c/#{@club.uuid}/standings/teams"}>{gettext("Standings")}</.link>.
     </.section>
   </div>
 </Layouts.app>

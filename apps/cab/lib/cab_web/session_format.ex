@@ -5,36 +5,46 @@ defmodule CabWeb.SessionFormat do
   No pills: every status is written out.
   """
 
-  @sides [{"OG", 1, "s-og"}, {"OO", 2, "s-oo"}, {"CG", 3, "s-cg"}, {"CO", 4, "s-co"}]
+  use Gettext, backend: CabWeb.Gettext
 
   @doc "The four BP sides as `{label, position, css_class}`."
-  def sides, do: @sides
+  def sides do
+    [
+      {gettext("OG"), 1, "s-og"},
+      {gettext("OO"), 2, "s-oo"},
+      {gettext("CG"), 3, "s-cg"},
+      {gettext("CO"), 4, "s-co"}
+    ]
+  end
 
   @doc "A session's stage in words."
-  def stage_words(:signup), do: "registration open"
-  def stage_words(:closed), do: "registration closed"
-  def stage_words(:running), do: "running"
-  def stage_words(:done), do: "finished"
+  def stage_words(:signup), do: gettext("registration open")
+  def stage_words(:closed), do: gettext("registration closed")
+  def stage_words(:running), do: gettext("running")
+  def stage_words(:done), do: gettext("finished")
 
   @doc "A room's name inside its session: R1, R2, … (the engine id only as a fallback)."
-  def room_label(%{"no" => no}) when is_integer(no), do: "R#{no}"
-  def room_label(%{"id" => id}), do: "R#{id}"
+  def room_label(%{"no" => no}) when is_integer(no), do: gettext("R%{number}", number: no)
+  def room_label(%{"id" => id}), do: gettext("R%{number}", number: id)
 
   @doc "A URL as people read it: no scheme."
   def bare_url(url), do: String.replace(url, ~r{^https?://}, "")
 
   @doc "A room's ballot state in words."
-  def room_status_words("pending"), do: "waiting to start"
-  def room_status_words("judging"), do: "debating — waiting for the ballot"
-  def room_status_words("completed"), do: "ballot submitted"
-  def room_status_words("confirmed"), do: "ballot confirmed"
-  def room_status_words("void"), do: "void"
+  def room_status_words("pending"), do: gettext("waiting to start")
+  def room_status_words("judging"), do: gettext("debating — waiting for the ballot")
+  def room_status_words("completed"), do: gettext("ballot submitted")
+  def room_status_words("confirmed"), do: gettext("ballot confirmed")
+  def room_status_words("void"), do: gettext("void")
   def room_status_words(other), do: other
 
   @doc "A room row's status: motion state + ballot state."
   def room_words(room) do
-    motion = if room["Motion"], do: "motion set", else: "motion pending"
-    "#{motion}, #{room_status_words(room["status"])}"
+    status = room_status_words(room["status"])
+
+    if room["Motion"],
+      do: gettext("motion set, %{status}", status: status),
+      else: gettext("motion pending, %{status}", status: status)
   end
 
   @doc "The team at a side position; a 1-speaker team is marked (iron)."
@@ -45,7 +55,7 @@ defmodule CabWeb.SessionFormat do
 
       room_team ->
         name = get_in(room_team, ["Team", "name"]) || "—"
-        if iron_team?(room_team), do: "#{name} (iron)", else: name
+        if iron_team?(room_team), do: gettext("%{team} (iron)", team: name), else: name
     end
   end
 
@@ -73,7 +83,14 @@ defmodule CabWeb.SessionFormat do
   @doc "A room's teams in table (og/oo/cg/co) order."
   def sorted_teams(room), do: Enum.sort_by(room["RoomTeams"] || [], & &1["position"])
 
-  def side_code(position), do: Enum.at(~w(OG OO CG CO), (position || 1) - 1)
+  def side_code(position) do
+    case position || 1 do
+      1 -> gettext("OG")
+      2 -> gettext("OO")
+      3 -> gettext("CG")
+      _ -> gettext("CO")
+    end
+  end
 
   @doc "A team's speakers; an iron's two slots show once."
   def speaker_names(room_team) do
@@ -131,8 +148,8 @@ defmodule CabWeb.SessionFormat do
 
   defp score_value(_score), do: nil
 
-  def ordinal(1), do: "1st"
-  def ordinal(2), do: "2nd"
-  def ordinal(3), do: "3rd"
-  def ordinal(rank), do: "#{rank}th"
+  def ordinal(1), do: gettext("1st")
+  def ordinal(2), do: gettext("2nd")
+  def ordinal(3), do: gettext("3rd")
+  def ordinal(rank), do: gettext("%{rank}th", rank: rank)
 end

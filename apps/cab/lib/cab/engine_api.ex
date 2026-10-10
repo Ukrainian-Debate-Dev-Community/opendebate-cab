@@ -167,6 +167,7 @@ defmodule Cab.EngineApi do
   """
 
   require Logger
+  use Gettext, backend: CabWeb.Gettext
 
   alias Core.Engine
 
@@ -428,7 +429,7 @@ defmodule Cab.EngineApi do
 
         other ->
           Logger.warning("engine returned #{status}: #{inspect(other)}")
-          "Something went wrong, try again."
+          dgettext("errors", "Something went wrong, try again.")
       end
 
     {:error, message}
@@ -436,6 +437,6 @@ defmodule Cab.EngineApi do
 
   defp unwrap({:error, exception}) do
     Logger.warning("engine unreachable: #{Exception.message(exception)}")
-    {:error, "Something went wrong, try again."}
+    {:error, dgettext("errors", "Something went wrong, try again.")}
   end
 end

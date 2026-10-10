@@ -66,7 +66,7 @@ defmodule CabWeb.SessionLive do
         # the session vanished (cancelled) or the engine is down —
         # back to the club page, which degrades gracefully
         socket
-        |> put_flash(:error, "This session is unavailable right now.")
+        |> put_flash(:error, gettext("This session is unavailable right now."))
         |> redirect(to: ~p"/c/#{club.uuid}")
     end
   end

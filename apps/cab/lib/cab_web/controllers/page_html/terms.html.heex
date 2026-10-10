@@ -1,65 +1,68 @@
 <Layouts.app flash={@flash} current_user={@current_user}>
-  <.chrome here="Terms"></.chrome>
+  <.chrome here={gettext("Terms")}></.chrome>
 
   <div class="pbody legal-doc">
-    <.section title="About these terms" pad>
+    <.section title={gettext("About these terms")} pad>
       <p>
-        cab is a free service of the NGO Debate Federation of Ukraine (ВМГО «Федерація Дебатів
-        України») for running debate clubs and their sessions. By using it you agree to these
-        terms. How we handle personal data is in the <.link href={~p"/policy"}>Policy</.link>.
+        {gettext(
+          "cab is a free service of the NGO Debate Federation of Ukraine (ВМГО «Федерація Дебатів України») for running debate clubs and their sessions. By using it you agree to these terms. How we handle personal data is in the"
+        )} <.link href={~p"/policy"}>{gettext("Policy")}</.link>.
       </p>
-      <p class="mut">Last updated: 9 October 2026.</p>
-    </.section>
-
-    <.section title="Accounts and personal links" pad>
-      <p>
-        Sign in with your own account and keep it to yourself. A personal guest link is your
-        access to one session: anyone holding it acts as you, so share it with no one.
-        You can move a guest's results into your own account once you sign in.
+      <p class="mut">
+        {gettext("Last updated: 9 October 2026.")}
       </p>
     </.section>
 
-    <.section title="Club heads" pad>
+    <.section title={gettext("Accounts and personal links")} pad>
       <p>
-        A club head runs the club page, decides on join requests and runs the sessions: who
-        registers, who sits where, motions and ballots. A club head adds people only with their
-        agreement and treats what members write in their requests as confidential.
+        {gettext(
+          "Sign in with your own account and keep it to yourself. A personal guest link is your access to one session: anyone holding it acts as you, so share it with no one. You can move a guest's results into your own account once you sign in."
+        )}
       </p>
     </.section>
 
-    <.section title="Fair use" pad>
+    <.section title={gettext("Club heads")} pad>
       <p>
-        Use cab for debating. Do not impersonate others, enter false results, harass anyone
-        in names, motions or messages, or try to break, overload or get around the service's
-        access rules. We may remove content or suspend access that breaks these terms, and we
-        say why when we do.
+        {gettext(
+          "A club head runs the club page, decides on join requests and runs the sessions: who registers, who sits where, motions and ballots. A club head adds people only with their agreement and treats what members write in their requests as confidential."
+        )}
       </p>
     </.section>
 
-    <.section title="Results" pad>
+    <.section title={gettext("Fair use")} pad>
       <p>
-        Ballots and results are the record of a debate. Once a session is finished they stay,
-        including in standings, so that the club's history is complete. Mistakes are
-        corrected by the club head.
+        {gettext(
+          "Use cab for debating. Do not impersonate others, enter false results, harass anyone in names, motions or messages, or try to break, overload or get around the service's access rules. We may remove content or suspend access that breaks these terms, and we say why when we do."
+        )}
       </p>
     </.section>
 
-    <.section title="Beta" pad>
+    <.section title={gettext("Results")} pad>
       <p>
-        cab is in beta testing. It is offered as it is, may change, and may be unavailable at
-        times. We keep the data safe and backed up, but we cannot promise the service is free
-        of errors. To the extent the law allows, the Federation is not liable for indirect
-        losses from using cab.
+        {gettext(
+          "Ballots and results are the record of a debate. Once a session is finished they stay, including in standings, so that the club's history is complete. Mistakes are corrected by the club head."
+        )}
       </p>
     </.section>
 
-    <.section title="Changes and law" pad>
+    <.section title={gettext("Beta")} pad>
       <p>
-        We may update these terms; we change the date above and say so on this page before a
-        change applies. These terms are governed by the law of Ukraine.
+        {gettext(
+          "cab is in beta testing. It is offered as it is, may change, and may be unavailable at times. We keep the data safe and backed up, but we cannot promise the service is free of errors. To the extent the law allows, the Federation is not liable for indirect losses from using cab."
+        )}
+      </p>
+    </.section>
+
+    <.section title={gettext("Changes and law")} pad>
+      <p>
+        {gettext(
+          "We may update these terms; we change the date above and say so on this page before a change applies. These terms are governed by the law of Ukraine."
+        )}
       </p>
       <p>
-        Questions: <a href="mailto:ngo.dfu@uadebate.com">ngo.dfu@uadebate.com</a>. Support: <a href="mailto:support@uadebate.com">support@uadebate.com</a>.
+        {gettext("Questions:")} <a href="mailto:ngo.dfu@uadebate.com">ngo.dfu@uadebate.com</a>{gettext(
+          ". Support:"
+        )} <a href="mailto:support@uadebate.com">support@uadebate.com</a>.
       </p>
     </.section>
   </div>

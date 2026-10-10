@@ -25,6 +25,16 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/cab"
 import topbar from "../vendor/topbar"
 
+// Words the browser writes itself, in the page's language: the server
+// puts them in <meta name="cab-i18n"> (CabWeb.Layouts.js_strings/0);
+// the English fallbacks keep pages working without it. `{name}` marks
+// a value filled in here.
+const T = (() => {
+  try { return JSON.parse(document.querySelector('meta[name="cab-i18n"]')?.content || "{}") } catch (_e) { return {} }
+})()
+const t = (key, fallback, vars = {}) =>
+  (T[key] || fallback).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m))
+
 // ----------------------------------------------------------------
 // Hooks: every widget is a LiveView hook, so it survives live
 // re-renders. Pages rendered without LiveView mount the same hooks
@@ -44,16 +54,22 @@ const BallotMath = {
       const sums = teams.map(t => t.sum)
       const tied = sums.some((s, i) => sums.indexOf(s) !== i)
       const order = teams.slice().sort((a, b) => b.sum - a.sum)
-      const names = ["1st", "2nd", "3rd", "4th"]
-      teams.forEach(t => {
-        t.el.querySelector(".tot").textContent = String(t.sum)
-        t.el.querySelector(".rk").textContent = names[order.indexOf(t)] || `${order.indexOf(t) + 1}th`
-        t.el.querySelector(".bsum").classList.toggle("tied", teams.some(o => o !== t && o.sum === t.sum))
+      const names = [t("place_1", "1st"), t("place_2", "2nd"), t("place_3", "3rd"), t("place_4", "4th")]
+      teams.forEach(team => {
+        team.el.querySelector(".tot").textContent = String(team.sum)
+        team.el.querySelector(".rk").textContent =
+          names[order.indexOf(team)] || t("place_n", "{n}th", {n: order.indexOf(team) + 1})
+        team.el.querySelector(".bsum").classList.toggle("tied", teams.some(o => o !== team && o.sum === team.sum))
       })
       if (!this.msg || this.msg.querySelector(".err.server")) return
-      this.msg.innerHTML = tied
-        ? '<span class="err">Two teams share a total. BP allows no ties, so adjust the scores.</span>'
-        : "Ready to submit."
+      if (tied) {
+        const err = document.createElement("span")
+        err.className = "err"
+        err.textContent = t("ballot_tied", "Two teams share a total. BP allows no ties, so adjust the scores.")
+        this.msg.replaceChildren(err)
+      } else {
+        this.msg.textContent = t("ballot_ready", "Ready to submit.")
+      }
     }
     this.grid.addEventListener("input", this.recalc)
     this.recalc()
@@ -68,8 +84,10 @@ const PrepClock = {
       const left = new Date(this.el.dataset.prepDeadline) - Date.now()
       this.el.textContent =
         left <= 0
-          ? "prep time is over — debate"
-          : `prep: ${Math.floor(left / 60000)}:${String(Math.floor(left / 1000) % 60).padStart(2, "0")} left`
+          ? t("prep_over", "prep time is over — debate")
+          : t("prep_left", "prep: {time} left", {
+              time: `${Math.floor(left / 60000)}:${String(Math.floor(left / 1000) % 60).padStart(2, "0")}`,
+            })
     }
     this.tick()
     this.timer = setInterval(this.tick, 1000)
@@ -236,25 +254,28 @@ const drawCard = (canvas, d, draw = true) => {
   font(800, 40)
   for (const l of wrapLines(ctx, d.session || "", inner)) { text(l, pad, y, CARD.ink); y += 50 }
   font(500, 30); text(`${d.club}, ${formatWhen(d.date, "date")}`, pad, y, CARD.muted); y += 44
-  if (d.starts) { font(700, 30); text(`Starts at ${clock(d.starts)}`, pad, y, CARD.ink); y += 44 }
+  if (d.starts) { font(700, 30); text(t("card_starts", "Starts at {time}", {time: clock(d.starts)}), pad, y, CARD.ink); y += 44 }
   y += 20
 
   if (d.motion) {
-    font(800, 22); text("MOTION", pad, y, CARD.gold); y += 44
+    font(800, 22); text(t("card_motion", "MOTION"), pad, y, CARD.gold); y += 44
     font(700, 36)
     for (const l of wrapLines(ctx, d.motion, inner)) { text(l, pad, y, CARD.ink); y += 46 }
     if (d.infoslide) {
       y += 6; font(400, 26)
       for (const l of wrapLines(ctx, d.infoslide, inner)) { text(l, pad, y, CARD.muted); y += 34 }
     }
-    if (d.prep_until) { y += 8; font(600, 26); text(`Prep until ${clock(d.prep_until)}`, pad, y, CARD.brand); y += 34 }
+    if (d.prep_until) {
+      y += 8; font(600, 26)
+      text(t("card_prep", "Prep until {time}", {time: clock(d.prep_until)}), pad, y, CARD.brand); y += 34
+    }
     y += 30
   } else {
-    font(500, 28); text("Motion: not published yet", pad, y, CARD.muted); y += 62
+    font(500, 28); text(t("card_no_motion", "Motion: not published yet"), pad, y, CARD.muted); y += 62
   }
 
   // the draw
-  font(800, 22); text("DRAW", pad, y, CARD.gold); y += 22
+  font(800, 22); text(t("card_draw", "DRAW"), pad, y, CARD.gold); y += 22
   for (const t of d.teams) {
     const rowH = 76
     if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(pad, y, inner, 2) }
@@ -265,7 +286,7 @@ const drawCard = (canvas, d, draw = true) => {
     y += rowH
   }
   if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(pad, y, inner, 2) }
-  font(600, 28); text(`Adjudicator: ${d.judge}`, pad, y + 48, CARD.ink); y += 96
+  font(600, 28); text(t("card_adjudicator", "Adjudicator: {name}", {name: d.judge}), pad, y + 48, CARD.ink); y += 96
 
   // footer: the QR and the short link
   const qr = d.qr || []
@@ -279,9 +300,9 @@ const drawCard = (canvas, d, draw = true) => {
     qr.forEach((row, r) => { for (let c = 0; c < n; c++) if (row[c] === "1") ctx.fillRect(ox + (c + quiet) * cell, oy + (r + quiet) * cell, cell, cell) })
   }
   const tx = pad + qrSize + 40
-  font(600, 26); text("Scan or open", tx, y + pad + 70, CARD.muted)
+  font(600, 26); text(t("card_scan", "Scan or open"), tx, y + pad + 70, CARD.muted)
   font(800, 34); text(d.link_text, tx, y + pad + 120, CARD.ink)
-  font(500, 24); text("this room's draw and motion, live", tx, y + pad + 162, CARD.muted)
+  font(500, 24); text(t("card_live", "this room's draw and motion, live"), tx, y + pad + 162, CARD.muted)
   y += qrSize + pad * 2
   return y
 }
@@ -306,8 +327,11 @@ const RoomCard = {
         const blob = new Promise((resolve) => this.canvas.toBlob(resolve, "image/png"))
         if (navigator.clipboard && window.ClipboardItem) {
           navigator.clipboard.write([new ClipboardItem({"image/png": blob})])
-            .then(() => this.say("Copied. Paste it into the chat."), () => this.say("This browser cannot copy images. Use Save image."))
-        } else this.say("This browser cannot copy images. Use Save image.")
+            .then(
+              () => this.say(t("card_copied", "Copied. Paste it into the chat.")),
+              () => this.say(t("card_no_copy", "This browser cannot copy images. Use Save image.")),
+            )
+        } else this.say(t("card_no_copy", "This browser cannot copy images. Use Save image."))
       }
       if (e.target.closest("[data-card-save]")) {
         const a = document.createElement("a")
@@ -372,7 +396,7 @@ const markTheme = () => {
   const current = storedTheme()
   document.querySelectorAll('[data-cycle="theme"]').forEach(b => {
     b.dataset.state = current
-    b.setAttribute("aria-label", `Theme: ${current}`)
+    b.setAttribute("aria-label", t("theme_" + current, "Theme: " + current))
   })
 }
 // a linked table row opens its page; links, buttons and fields inside
@@ -404,10 +428,10 @@ document.addEventListener("click", e => {
   if (!btn) return
   const done = ok => {
     btn.classList.toggle("copied", ok)
-    btn.textContent = ok ? "Copied" : "Copy"
+    btn.textContent = ok ? t("copied", "Copied") : t("copy", "Copy")
     setTimeout(() => {
       btn.classList.remove("copied")
-      btn.textContent = "Copy"
+      btn.textContent = t("copy", "Copy")
     }, 1500)
   }
   if (navigator.clipboard && window.isSecureContext) {

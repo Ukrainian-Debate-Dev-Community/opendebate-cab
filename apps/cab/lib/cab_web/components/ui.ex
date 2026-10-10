@@ -9,6 +9,7 @@ defmodule CabWeb.Ui do
   """
 
   use Phoenix.Component
+  use Gettext, backend: CabWeb.Gettext
 
   import Phoenix.Controller, only: [get_csrf_token: 0]
 
@@ -103,49 +104,59 @@ defmodule CabWeb.Ui do
       <.link href={~p"/"} class="cap">cab</.link>
       <%= if @club do %>
         <div class="sec">{@club.name}</div>
-        <.nav_item active={@active} key="club" href={club_href(@club, @club_role)} label="Club" />
+        <.nav_item
+          active={@active}
+          key="club"
+          href={club_href(@club, @club_role)}
+          label={gettext("Club")}
+        />
         <.nav_item
           active={@active}
           key="rooms"
           href={rooms_href(@club, @club_role, @nav_session)}
-          label="Rooms"
+          label={gettext("Rooms")}
         />
         <.nav_item
           active={@active}
           key="standings"
           href={~p"/c/#{@club.uuid}/standings/teams"}
-          label="Standings"
+          label={gettext("Standings")}
         />
         <.nav_item
           :if={not @club.is_private or Cab.Clubs.covers?(@club_role, :member)}
           active={@active}
           key="members"
           href={members_href(@club, @club_role)}
-          label="Members"
+          label={gettext("Members")}
         />
         <.nav_item
           :if={@nav_session}
           active={@active}
           key="register"
           href={~p"/r/#{@nav_session.uuid}"}
-          label="Register"
+          label={gettext("Register")}
         />
       <% else %>
-        <.nav_item active={@active} key="clubs" href={~p"/"} label="Clubs" />
-        <.nav_item active={@active} key="standings" href={~p"/standings/teams"} label="Standings" />
+        <.nav_item active={@active} key="clubs" href={~p"/"} label={gettext("Clubs")} />
+        <.nav_item
+          active={@active}
+          key="standings"
+          href={~p"/standings/teams"}
+          label={gettext("Standings")}
+        />
         <.nav_item
           :if={@current_user && !guest?(@current_user)}
           active={@active}
           key="me"
           href={~p"/me"}
-          label="My page"
+          label={gettext("My page")}
         />
         <.nav_item
           :if={@current_user && @current_user.is_admin}
           active={@active}
           key="admin"
           href={~p"/admin"}
-          label="Admin"
+          label={gettext("Admin")}
         />
       <% end %>
       <div class="profile" id="sidenav-profile">
@@ -159,10 +170,12 @@ defmodule CabWeb.Ui do
                 <.link href={~p"/account"}>{@current_user.username}</.link>
               <% end %>
             </div>
-            <.link :if={guest?(@current_user)} href={~p"/signin"}>Sign in with an account</.link>
-            <.link class="out" href={~p"/auth/logout"}>Sign out</.link>
+            <.link :if={guest?(@current_user)} href={~p"/signin"}>
+              {gettext("Sign in with an account")}
+            </.link>
+            <.link class="out" href={~p"/auth/logout"}>{gettext("Sign out")}</.link>
           <% else %>
-            <.link href={~p"/signin"}>Sign in</.link>
+            <.link href={~p"/signin"}>{gettext("Sign in")}</.link>
           <% end %>
         </div>
         <div class="switches" id="sidenav-switches" phx-update="ignore">
@@ -171,8 +184,8 @@ defmodule CabWeb.Ui do
             class="cycle"
             data-cycle="theme"
             data-state="auto"
-            aria-label="Theme: auto"
-            title="Theme: light, auto or dark"
+            aria-label={gettext("Theme: auto")}
+            title={gettext("Theme: light, auto or dark")}
           >
             <svg class="i-light" viewBox="0 0 16 16" aria-hidden="true">
               <circle cx="8" cy="8" r="2.6" />
@@ -186,7 +199,7 @@ defmodule CabWeb.Ui do
             </svg>
           </button>
           <details class="langs" data-langs>
-            <summary class="cycle" aria-label="Language" title="Language">
+            <summary class="cycle" aria-label={gettext("Language")} title={gettext("Language")}>
               {CabWeb.Locale.short(Gettext.get_locale(CabWeb.Gettext))}
             </summary>
             <div class="menu" role="menu">
@@ -297,7 +310,7 @@ defmodule CabWeb.Ui do
     default: nil,
     doc: "row -> url the whole row opens (its links and buttons keep their own)"
 
-  attr :empty, :string, default: "Nothing here yet."
+  attr :empty, :string, default: nil, doc: "the empty-table line; nil = \"Nothing here yet.\""
 
   slot :col do
     attr :label, :string
@@ -328,7 +341,7 @@ defmodule CabWeb.Ui do
             class="empty"
             colspan={length(@col) + ((@rank && 1) || 0)}
           >
-            {@empty}
+            {@empty || gettext("Nothing here yet.")}
           </td>
         </tr>
         <tr
@@ -487,11 +500,11 @@ defmodule CabWeb.Ui do
         <div class="pills">
           <label>
             <input type="radio" name={@name} value="yes" checked={@b[:value] in [true, "yes"]} />
-            <span>Yes</span>
+            <span>{gettext("Yes")}</span>
           </label>
           <label>
             <input type="radio" name={@name} value="no" checked={@b[:value] in [false, "no"]} />
-            <span>No</span>
+            <span>{gettext("No")}</span>
           </label>
         </div>
         """
@@ -550,8 +563,13 @@ defmodule CabWeb.Ui do
 
         ~H"""
         <div class="half">
-          <input type="text" name={@date_name} value={@date_value} placeholder="YYYY-MM-DD" />
-          <input type="text" name={@time_name} value={@time_value} placeholder="HH:MM" />
+          <input
+            type="text"
+            name={@date_name}
+            value={@date_value}
+            placeholder={gettext("YYYY-MM-DD")}
+          />
+          <input type="text" name={@time_name} value={@time_value} placeholder={gettext("HH:MM")} />
         </div>
         """
     end
@@ -566,13 +584,6 @@ defmodule CabWeb.Ui do
   # ---------------------------------------------------------------
   # 4. Ballot
   # ---------------------------------------------------------------
-
-  @sides %{
-    og: "OG — OPENING GOV",
-    oo: "OO — OPENING OPP",
-    cg: "CG — CLOSING GOV",
-    co: "CO — CLOSING OPP"
-  }
 
   @doc """
   The scored BP ballot (club sessions, tournament prelims): motion
@@ -603,7 +614,9 @@ defmodule CabWeb.Ui do
     <form class="ballot" id={@id} action={@action} method="post" phx-hook="BallotMath">
       <input :if={@action} type="hidden" name="_csrf_token" value={get_csrf_token()} />
       <div class="b-motion">
-        <span class="k">Motion{@room && " — #{@room}"}</span>
+        <span class="k">
+          {if @room, do: gettext("Motion — %{room}", room: @room), else: gettext("Motion")}
+        </span>
         <b>{@motion}</b>
       </div>
       <div class="bgrid" data-ballot>
@@ -613,7 +626,7 @@ defmodule CabWeb.Ui do
             <span class="tname">{team.name}</span>
           </div>
           <div :for={row <- team.rows} class="brow">
-            <span class="role">{row.role}</span>
+            <span class="role">{Map.get(row, :role_label, row.role)}</span>
             <select class="who" name={"ballot[#{team.side}][#{row.role}][speaker]"}>
               <option
                 :for={{label, value} <- Enum.map(row[:speakers] || [], &option/1)}
@@ -628,7 +641,7 @@ defmodule CabWeb.Ui do
                 type="checkbox"
                 name={"ballot[#{team.side}][#{row.role}][iron]"}
                 checked={row[:iron]}
-              /> iron
+              /> {gettext("iron")}
             </span>
             <input
               type="number"
@@ -640,7 +653,7 @@ defmodule CabWeb.Ui do
             />
           </div>
           <div class={if team[:tied], do: "bsum tied", else: "bsum"}>
-            <span>team total</span><span class="tot">—</span><span class="rk">—</span>
+            <span>{gettext("team total")}</span><span class="tot">—</span><span class="rk">—</span>
           </div>
         </div>
       </div>
@@ -648,14 +661,18 @@ defmodule CabWeb.Ui do
         <%= if @error do %>
           <span class="err server">{@error}</span>
         <% else %>
-          Enter all eight scores — ranks derive from team totals.
+          {gettext("Enter all eight scores — ranks derive from team totals.")}
         <% end %>
       </div>
     </form>
     """
   end
 
-  defp side_label(side), do: @sides[side] || side |> to_string() |> String.upcase()
+  defp side_label(:og), do: gettext("OG — OPENING GOV")
+  defp side_label(:oo), do: gettext("OO — OPENING OPP")
+  defp side_label(:cg), do: gettext("CG — CLOSING GOV")
+  defp side_label(:co), do: gettext("CO — CLOSING OPP")
+  defp side_label(side), do: side |> to_string() |> String.upcase()
 
   # ---------------------------------------------------------------
   # 5. Allocator (drag-and-drop, server-held draft)
@@ -697,7 +714,7 @@ defmodule CabWeb.Ui do
     ~H"""
     <div class="dnd" id={@id} phx-hook="Allocator">
       <div class="tray" data-drop="tray">
-        <span class="tlabel">Waiting ({length(@tray)})</span>
+        <span class="tlabel">{gettext("Waiting (%{count})", count: length(@tray))}</span>
         <.chip :for={person <- @tray} person={person} />
       </div>
       <table>
@@ -710,17 +727,17 @@ defmodule CabWeb.Ui do
         <thead>
           <tr>
             <th></th>
-            <th>OG</th>
-            <th>OO</th>
-            <th>CG</th>
-            <th>CO</th>
-            <th>Adjudicator</th>
+            <th>{gettext("OG")}</th>
+            <th>{gettext("OO")}</th>
+            <th>{gettext("CG")}</th>
+            <th>{gettext("CO")}</th>
+            <th>{gettext("Adjudicator")}</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           <tr :for={room <- 1..@rooms}>
-            <td class="room">R{room}</td>
+            <td class="room">{gettext("R%{number}", number: room)}</td>
             <td :for={side <- @sides} class={"team t-#{side}"}>
               <div
                 :for={n <- 1..2}
@@ -728,14 +745,14 @@ defmodule CabWeb.Ui do
                 data-slot={"#{room}:#{side}:#{n}"}
               >
                 <%= if person = placed(@people, @draft, "#{room}:#{side}:#{n}") do %>
-                  <.chip person={person} tag="SPK" />
+                  <.chip person={person} tag={:spk} />
                 <% end %>
               </div>
             </td>
             <td class="judge">
               <div class="slot" data-slot={"#{room}:judge"}>
                 <%= if person = placed(@people, @draft, "#{room}:judge") do %>
-                  <.chip person={person} tag="ADJ" />
+                  <.chip person={person} tag={:adj} />
                 <% end %>
               </div>
             </td>
@@ -745,23 +762,29 @@ defmodule CabWeb.Ui do
       </table>
       <form id={@form_id} phx-submit={@submit}></form>
       <div class="bfoot">
-        Drag chips into slots; drop on a taken slot to swap; drag a placed
-        chip out of the table to unassign. A team with one speaker becomes an iron.
+        {gettext(
+          "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team with one speaker becomes an iron."
+        )}
       </div>
     </div>
     """
   end
 
   attr :person, :map, required: true
-  attr :tag, :string, default: nil, doc: "the seat's role once placed: SPK or ADJ"
+  attr :tag, :atom, default: nil, doc: "the seat's role once placed: :spk or :adj"
 
   defp chip(assigns) do
     ~H"""
-    <span class={["chip", @tag == "ADJ" && "adj"]} draggable="true" data-id={@person.id}>
-      <span class="n" title={@person.name}>{@person.name}</span><span :if={@tag} class="k">{@tag}</span>
+    <span class={["chip", @tag == :adj && "adj"]} draggable="true" data-id={@person.id}>
+      <span class="n" title={@person.name}>{@person.name}</span><span :if={@tag} class="k">{tag_word(
+        @tag
+      )}</span>
     </span>
     """
   end
+
+  defp tag_word(:spk), do: gettext("SPK")
+  defp tag_word(:adj), do: gettext("ADJ")
 
   defp placed(people, draft, key), do: draft[key] && people[draft[key]]
 
@@ -776,10 +799,17 @@ defmodule CabWeb.Ui do
     irons = Enum.count(teams, &(&1 == 1))
 
     cond do
-      Enum.sum(teams) == 0 and not judge? -> "empty"
-      Enum.all?(teams, &(&1 >= 1)) and judge? and irons > 0 -> "ready, #{irons} iron"
-      Enum.all?(teams, &(&1 >= 1)) and judge? -> "ready"
-      true -> "incomplete"
+      Enum.sum(teams) == 0 and not judge? ->
+        gettext("empty")
+
+      Enum.all?(teams, &(&1 >= 1)) and judge? and irons > 0 ->
+        gettext("ready, %{count} iron", count: irons)
+
+      Enum.all?(teams, &(&1 >= 1)) and judge? ->
+        gettext("ready")
+
+      true ->
+        gettext("incomplete")
     end
   end
 
@@ -833,7 +863,7 @@ defmodule CabWeb.Ui do
 
   def copy(assigns) do
     ~H"""
-    <button type="button" class="copy" data-copy={@text}>Copy</button>
+    <button type="button" class="copy" data-copy={@text}>{gettext("Copy")}</button>
     """
   end
 

@@ -1,13 +1,19 @@
 <%= case @state.stage do %>
   <% :signup -> %>
-    <.section title={"Allocation — #{Cab.Sessions.room_count(@state.signups)} room(s), count automatic"}>
+    <.section title={
+      gettext("Allocation — %{count} room(s), count automatic",
+        count: Cab.Sessions.room_count(@state.signups)
+      )
+    }>
       <div class="pad">
         <p>
-          A room seats nine (eight speakers and an adjudicator), so the room count follows the sign-ups;
-          <b>nobody is placed
-          automatically</b>
-          — drag people from the tray into the slots, then <b>Start session</b>
-          closes registration and opens these rooms.
+          {gettext(
+            "A room seats nine (eight speakers and an adjudicator), so the room count follows the sign-ups;"
+          )}
+          <b>{gettext("nobody is placed automatically")}</b>
+          {gettext("— drag people from the tray into the slots, then")}
+          <b>{gettext("Start session")}</b>
+          {gettext("closes registration and opens these rooms.")}
         </p>
       </div>
       <.allocator
@@ -19,11 +25,15 @@
       />
     </.section>
   <% :closed -> %>
-    <.section title={"Allocation — #{Cab.Sessions.room_count(@state.signups)} room(s), count automatic"}>
+    <.section title={
+      gettext("Allocation — %{count} room(s), count automatic",
+        count: Cab.Sessions.room_count(@state.signups)
+      )
+    }>
       <div class="pad">
         <p>
-          {attendance_line(@state.signups)} <b>Nobody is placed automatically</b> —
-          drag people from the tray into the slots.
+          {attendance_line(@state.signups)} <b>{gettext("Nobody is placed automatically")}</b>
+          {gettext("— drag people from the tray into the slots.")}
         </p>
       </div>
       <.allocator
@@ -35,7 +45,7 @@
       />
     </.section>
   <% _running_or_done -> %>
-    <.section title="Rooms">
+    <.section title={gettext("Rooms")}>
       <.table
         id="session-rooms"
         rows={@state.rooms}
@@ -54,8 +64,8 @@
         >
           {team_label(room, position)}
         </:col>
-        <:col :let={room} label="Adjudicator">{judge_name(room, @state.signups)}</:col>
-        <:col :let={room} label="Ballot" class="st">
+        <:col :let={room} label={gettext("Adjudicator")}>{judge_name(room, @state.signups)}</:col>
+        <:col :let={room} label={gettext("Ballot")} class="st">
           {room_status_words(room["status"])}
         </:col>
         <:col :let={room}>
@@ -63,34 +73,38 @@
             :if={room["status"] in ["pending", "judging"] and room["Motion"] != nil}
             href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}/ballot"}
           >
-            ballot
+            {gettext("ballot")}
           </.link>
           <.link
             :if={room["status"] in ["completed", "confirmed"] && @state.stage == :running}
             href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}/ballot"}
           >
-            edit ballot
+            {gettext("edit ballot")}
           </.link>
         </:col>
       </.table>
     </.section>
 
-    <.section title="Motions">
+    <.section title={gettext("Motions")}>
       <.table
         id="session-motions"
         rows={@state.rooms}
         row_href={fn room -> ~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}" end}
       >
         <:col :let={room} class="rank">{room_label(room)}</:col>
-        <:col :let={room} label="Motion">
+        <:col :let={room} label={gettext("Motion")}>
           <%= if motion = room["Motion"] do %>
             <b>{motion["motion_text"]}</b>
           <% else %>
-            <span class="mut">not published yet</span>
+            <span class="mut">{gettext("not published yet")}</span>
           <% end %>
         </:col>
-        <:col :let={room} label="Infoslide">{get_in(room, ["Motion", "infoslide"]) || "—"}</:col>
-        <:col :let={room} label="Keyword">{get_in(room, ["Motion", "keyword"]) || "—"}</:col>
+        <:col :let={room} label={gettext("Infoslide")}>
+          {get_in(room, ["Motion", "infoslide"]) || "—"}
+        </:col>
+        <:col :let={room} label={gettext("Keyword")}>
+          {get_in(room, ["Motion", "keyword"]) || "—"}
+        </:col>
       </.table>
     </.section>
 <% end %>

@@ -1,14 +1,16 @@
-<.section title={"People (#{signed_up_counts(@state.signups)})"}>
+<.section title={gettext("People (%{count})", count: signed_up_counts(@state.signups))}>
   <div :if={@links != []} class="pad">
-    <p>A guest's personal link is their only access — share it only with them.</p>
+    <p>{gettext("A guest's personal link is their only access — share it only with them.")}</p>
   </div>
-  <.table id="session-people" rows={@state.signups} empty="Nobody registered yet.">
-    <:col :let={participant} label="Name">
+  <.table id="session-people" rows={@state.signups} empty={gettext("Nobody registered yet.")}>
+    <:col :let={participant} label={gettext("Name")}>
       {participant["display_name"]}
       <.sub>{person_kind(participant, @links, @members, @invitations)}</.sub>
     </:col>
-    <:col :let={participant} label="Seat">{seat_words(participant, @state, @draft)}</:col>
-    <:col :let={participant} label="Personal link" code>
+    <:col :let={participant} label={gettext("Seat")}>
+      {seat_words(participant, @state, @draft)}
+    </:col>
+    <:col :let={participant} label={gettext("Personal link")} code>
       {if link = guest_link(participant, @links), do: url(~p"/l/#{link.code}"), else: "—"}
     </:col>
     <:col :let={participant}>
@@ -22,7 +24,7 @@
         }
         method="post"
       >
-        remove
+        {gettext("remove")}
       </.link>
     </:col>
   </.table>

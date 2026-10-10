@@ -92,7 +92,7 @@ defmodule CabWeb.EightPagesTest do
       # the split page: brand side + the no-passwords card
       assert html =~ ~s(class="auth")
       assert html =~ ~s(<div class="brand-top">cab</div>)
-      assert html =~ "We don't use passwords"
+      assert html =~ "We don&#39;t use passwords"
 
       # GitHub and Google both live, guest note present
       assert html =~ ~s(id="signin-github")

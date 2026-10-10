@@ -1,4 +1,5 @@
 defmodule CabWeb.UserAuth do
+  use Gettext, backend: CabWeb.Gettext
   import Plug.Conn
   import Phoenix.Controller
 
@@ -17,7 +18,7 @@ defmodule CabWeb.UserAuth do
 
       %{guest: true} ->
         conn
-        |> put_flash(:error, "Sign in with your own account first.")
+        |> put_flash(:error, gettext("Sign in with your own account first."))
         |> redirect(to: "/signin")
         |> halt()
 
@@ -32,7 +33,7 @@ defmodule CabWeb.UserAuth do
       conn
     else
       conn
-      |> put_flash(:error, "Please sign in.")
+      |> put_flash(:error, gettext("Please sign in."))
       |> redirect(to: "/signin")
       |> halt()
     end

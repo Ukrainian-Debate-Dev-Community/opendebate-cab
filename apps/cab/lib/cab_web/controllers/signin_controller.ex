@@ -19,13 +19,17 @@ defmodule CabWeb.SigninController do
   def show(conn, _params) do
     case {conn.assigns.current_user, existing(conn)} do
       {nil, nil} ->
-        render(conn, :show, existing: nil, providers: ["GitHub", "Google"], page_title: "Sign in")
+        render(conn, :show,
+          existing: nil,
+          providers: ["GitHub", "Google"],
+          page_title: gettext("Sign in")
+        )
 
       {nil, existing} ->
         render(conn, :show,
           existing: existing,
           providers: existing.providers,
-          page_title: "Sign in"
+          page_title: gettext("Sign in")
         )
 
       _signed_in ->
@@ -40,8 +44,11 @@ defmodule CabWeb.SigninController do
         conn = delete_session(conn, :pending_identity)
 
         case Accounts.create_pending(pending) do
-          {:ok, user} -> CabWeb.AuthController.signed_in(conn, user)
-          {:error, _} -> conn |> put_flash(:error, "Sign-in failed.") |> redirect(to: ~p"/signin")
+          {:ok, user} ->
+            CabWeb.AuthController.signed_in(conn, user)
+
+          {:error, _} ->
+            conn |> put_flash(:error, gettext("Sign-in failed.")) |> redirect(to: ~p"/signin")
         end
 
       _ ->

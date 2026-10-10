@@ -22,7 +22,10 @@ defmodule CabWeb.InvitationController do
           conn
           |> put_flash(
             :info,
-            "You are in #{session.name || "the session"} at #{session.club.name}."
+            gettext("You are in %{session} at %{club}.",
+              session: session.name || gettext("the session"),
+              club: session.club.name
+            )
           )
           |> redirect(to: ~p"/c/#{session.club.uuid}/s/#{session.uuid}")
 
@@ -38,7 +41,7 @@ defmodule CabWeb.InvitationController do
       case Invitations.decline(invitation) do
         :ok ->
           conn
-          |> put_flash(:info, "Invitation declined. Your name is removed.")
+          |> put_flash(:info, gettext("Invitation declined. Your name is removed."))
           |> redirect(to: ~p"/me")
 
         {:error, message} ->

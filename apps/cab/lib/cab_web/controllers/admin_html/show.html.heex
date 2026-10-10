@@ -1,30 +1,31 @@
 <Layouts.app flash={@flash} current_user={@current_user} active="admin">
-  <.chrome here="Admin">
-    <:seg form="create-club-form" primary>Create club</:seg>
+  <.chrome here={gettext("Admin")}>
+    <:seg form="create-club-form" primary>{gettext("Create club")}</:seg>
   </.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title="Clubs">
-      <.table id="admin-clubs" rows={@clubs} empty="No clubs yet.">
-        <:col :let={club} label="Club">
+    <.section title={gettext("Clubs")}>
+      <.table id="admin-clubs" rows={@clubs} empty={gettext("No clubs yet.")}>
+        <:col :let={club} label={gettext("Club")}>
           {club.name}
           <.sub>
-            {club.city || "—"}, {@member_counts[club.id] || 0} member{if (@member_counts[
-                                                                            club.id
-                                                                          ] || 0) != 1,
-                                                                         do: "s"}
+            {club.city || "—"}, {ngettext(
+              "%{count} member",
+              "%{count} members",
+              @member_counts[club.id] || 0
+            )}
           </.sub>
         </:col>
-        <:col :let={club} label="Head">
+        <:col :let={club} label={gettext("Head")}>
           {head_label(@heads[club.id])}
         </:col>
-        <:col :let={club} label="State">
-          {if club.archived_at, do: "archived", else: "live"}
+        <:col :let={club} label={gettext("State")}>
+          {if club.archived_at, do: gettext("archived"), else: gettext("live")}
         </:col>
         <:col :let={club}>
-          <.link href={~p"/c/#{club.uuid}"}>open</.link>
+          <.link href={~p"/c/#{club.uuid}"}>{gettext("open")}</.link>
         </:col>
         <:col :let={club}>
           <.link
@@ -32,75 +33,81 @@
             href={~p"/admin/clubs/#{club.uuid}/archive"}
             method="post"
           >
-            archive
+            {gettext("archive")}
           </.link>
         </:col>
       </.table>
     </.section>
 
-    <.section title="Create a club">
+    <.section title={gettext("Create a club")}>
       <.form_for
         id="create-club-form"
         action={~p"/admin/clubs"}
-        description="Club creation is admin-only — users can only request membership."
+        description={gettext("Club creation is admin-only — users can only request membership.")}
       >
-        <:block name={:name} type={:text} label="Club name" required />
-        <:block name={:city} type={:text} label="City" />
+        <:block name={:name} type={:text} label={gettext("Club name")} required />
+        <:block name={:city} type={:text} label={gettext("City")} />
         <:block
           name={:head_id}
           type={:select}
-          label="Head"
+          label={gettext("Head")}
           required
           options={user_options(@users)}
         />
       </.form_for>
     </.section>
 
-    <.section title="Change a club's head">
+    <.section title={gettext("Change a club's head")}>
       <.form_for
         id="change-head-form"
         action={~p"/admin/head"}
-        description="The new head takes over; the old head retires."
+        description={gettext("The new head takes over; the old head retires.")}
       >
         <:block
           name={:uuid}
           type={:select}
-          label="Club"
+          label={gettext("Club")}
           required
           options={club_options(@clubs)}
         />
         <:block
           name={:head_id}
           type={:select}
-          label="New head"
+          label={gettext("New head")}
           required
           options={user_options(@users)}
         />
-        <:submit note="Takes effect immediately.">Change head</:submit>
+        <:submit note={gettext("Takes effect immediately.")}>{gettext("Change head")}</:submit>
       </.form_for>
     </.section>
 
-    <.section title="Merge two accounts">
+    <.section title={gettext("Merge two accounts")}>
       <.form_for
         id="merge-accounts-form"
         action={~p"/admin/merge"}
-        description="For one person who ended up with two accounts and cannot sign in to both. The account that heads a club is kept, or else the older one; it gets the other's history, clubs, head positions and sign-in methods. It cannot be undone."
+        description={
+          gettext(
+            "For one person who ended up with two accounts and cannot sign in to both. The account that heads a club is kept, or else the older one; it gets the other's history, clubs, head positions and sign-in methods. It cannot be undone."
+          )
+        }
       >
         <:block
           name={:first_id}
           type={:select}
-          label="Account"
+          label={gettext("Account")}
           required
           options={user_options(@users)}
         />
         <:block
           name={:second_id}
           type={:select}
-          label="Same person's other account"
+          label={gettext("Same person's other account")}
           required
           options={user_options(@users)}
         />
-        <:submit note="Refused when both took part in the same session.">Merge accounts</:submit>
+        <:submit note={gettext("Refused when both took part in the same session.")}>
+          {gettext("Merge accounts")}
+        </:submit>
       </.form_for>
     </.section>
   </div>

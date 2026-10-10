@@ -11,10 +11,15 @@
       {@club.name, ~p"/c/#{@club.uuid}"},
       {@state.event["name"], ~p"/c/#{@club.uuid}/s/#{@session.uuid}"}
     ]}
-    here={"Room #{room_label(@room)} — #{room_status_words(@room["status"])}"}
+    here={
+      gettext("Room %{room} — %{status}",
+        room: room_label(@room),
+        status: room_status_words(@room["status"])
+      )
+    }
   >
     <:seg :if={@can_act && is_nil(@room["Motion"])} form={"room-motion-#{@room["id"]}"} primary>
-      Publish motion
+      {gettext("Publish motion")}
     </:seg>
     <:seg
       :if={@can_edit_ballot}
@@ -22,60 +27,67 @@
       primary={@room["Motion"] != nil}
     >
       {if @room["status"] in ["completed", "confirmed"],
-        do: "Edit ballot",
-        else: "Fill ballot"}
+        do: gettext("Edit ballot"),
+        else: gettext("Fill ballot")}
     </:seg>
   </.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title="Draw">
+    <.section title={gettext("Draw")}>
       <.table id={"room-#{@room["id"]}-draw"} rows={sorted_teams(@room)}>
-        <:col :let={room_team} label="Side" code>{side_code(room_team["position"])}</:col>
-        <:col :let={room_team} label="Team">{get_in(room_team, ["Team", "name"])}</:col>
-        <:col :let={room_team} :if={!ballot_in?(@room)} label="Speakers">
+        <:col :let={room_team} label={gettext("Side")} code>
+          {side_code(room_team["position"])}
+        </:col>
+        <:col :let={room_team} label={gettext("Team")}>
+          {get_in(room_team, ["Team", "name"])}
+        </:col>
+        <:col :let={room_team} :if={!ballot_in?(@room)} label={gettext("Speakers")}>
           {speaker_names(room_team)}
         </:col>
-        <:col :let={room_team} :if={ballot_in?(@room)} label="Speakers">
+        <:col :let={room_team} :if={ballot_in?(@room)} label={gettext("Speakers")}>
           <div :for={speech <- speeches(room_team)} class="speech">
-            {speech.name}<span :if={speech.iron} class="mut"> (iron)</span>
+            {speech.name}<span :if={speech.iron} class="mut">{gettext("(iron)")}</span>
             <b class="pts">{points_words(speech.points)}</b>
           </div>
         </:col>
-        <:col :let={room_team} :if={ballot_in?(@room)} label="Points" num>
+        <:col :let={room_team} :if={ballot_in?(@room)} label={gettext("Points")} num>
           {points_words(team_points(room_team))}
         </:col>
-        <:col :let={room_team} :if={ballot_in?(@room)} label="Place" num>
+        <:col :let={room_team} :if={ballot_in?(@room)} label={gettext("Place")} num>
           {if room_team["rank"], do: ordinal(room_team["rank"]), else: "—"}
         </:col>
       </.table>
-      <div class="pad">Adjudicator: <b>{judge_name(@room, @state.signups)}</b></div>
+      <div class="pad">{gettext("Adjudicator:")} <b>{judge_name(@room, @state.signups)}</b></div>
     </.section>
 
     <.section
       :if={@room["Motion"] && !(@can_act && @room["status"] in ["pending", "judging"])}
-      title="Motion"
+      title={gettext("Motion")}
       pad
     >
       <b id="room-motion-text">{@room["Motion"]["motion_text"]}</b>
       <p :if={@room["Motion"]["infoslide"]}>{@room["Motion"]["infoslide"]}</p>
       <p :if={@room["Motion"]["keyword"]} class="mut">
-        keyword: {@room["Motion"]["keyword"]}
+        {gettext("keyword: %{keyword}", keyword: @room["Motion"]["keyword"])}
       </p>
       <p :if={@room["prep_until"]} class="mut">
         <span id="prep-clock" phx-hook="PrepClock" data-prep-deadline={@room["prep_until"]}>
-          prep
+          {gettext("prep")}
         </span>
       </p>
     </.section>
-    <.section :if={!@room["Motion"] && !@can_act} title="Motion" pad>
-      Not set yet — the adjudicator sets it when the room begins.
+    <.section :if={!@room["Motion"] && !@can_act} title={gettext("Motion")} pad>
+      {gettext("Not set yet — the adjudicator sets it when the room begins.")}
     </.section>
-    <.section :if={@can_act && @room["status"] in ["pending", "judging"]} title="Motion">
+    <.section
+      :if={@can_act && @room["status"] in ["pending", "judging"]}
+      title={gettext("Motion")}
+    >
       <div :if={@room["prep_until"]} class="pad mut prep-line">
         <span id="prep-clock" phx-hook="PrepClock" data-prep-deadline={@room["prep_until"]}>
-          prep
+          {gettext("prep")}
         </span>
       </div>
       <.form_for
@@ -84,60 +96,66 @@
         description={
           if @room["Motion"],
             do: nil,
-            else: "Publishing shows it to the room and starts 15 minutes of prep."
+            else: gettext("Publishing shows it to the room and starts 15 minutes of prep.")
         }
       >
         <:block
           name={:motion_text}
           type={:text}
-          label="Motion"
+          label={gettext("Motion")}
           required
           value={get_in(@room, ["Motion", "motion_text"])}
         />
         <:block
           name={:infoslide}
           type={:longtext}
-          label="Infoslide"
-          hint="Optional context read before prep."
+          label={gettext("Infoslide")}
+          hint={gettext("Optional context read before prep.")}
           value={get_in(@room, ["Motion", "infoslide"])}
         />
         <:block
           name={:keyword}
           type={:text}
-          label="Keyword"
-          hint="Optional tag for finding the motion later."
+          label={gettext("Keyword")}
+          hint={gettext("Optional tag for finding the motion later.")}
           value={get_in(@room, ["Motion", "keyword"])}
         />
         <:block
           name={:prep_until}
           type={:text}
-          label="Prep ends at"
-          placeholder="HH:MM"
+          label={gettext("Prep ends at")}
+          placeholder={gettext("HH:MM")}
           hint={
             if @room["Motion"],
               do:
-                "Change the time to move the end of prep; left empty, it is 15 minutes from now.",
-              else: "Set to 15 minutes from publishing, or type a time."
+                gettext(
+                  "Change the time to move the end of prep; left empty, it is 15 minutes from now."
+                ),
+              else: gettext("Set to 15 minutes from publishing, or type a time.")
           }
           value={@room["prep_until"]}
         />
-        <:submit note="Visible to everyone in the room right away." quiet>
-          {if @room["Motion"], do: "Update motion", else: "Publish motion"}
+        <:submit note={gettext("Visible to everyone in the room right away.")} quiet>
+          {if @room["Motion"], do: gettext("Update motion"), else: gettext("Publish motion")}
         </:submit>
       </.form_for>
     </.section>
 
-    <.section title="Share this room">
+    <.section title={gettext("Share this room")}>
       <div
         class="pad sharecard"
         id={"room-card-#{@room["id"]}"}
         phx-hook="RoomCard"
         data-card={room_card(@state, @room, @session, @club)}
       >
-        <canvas id={"room-card-canvas-#{@room["id"]}"} role="img" aria-label="Room card preview"></canvas>
+        <canvas
+          id={"room-card-canvas-#{@room["id"]}"}
+          role="img"
+          aria-label={gettext("Room card preview")}
+        ></canvas>
         <div class="sharebtns">
-          <button type="button" class="copy" data-card-copy>Copy image</button>
-          <button type="button" class="copy" data-card-save>Save image</button>
+          <button type="button" class="copy" data-card-copy>{gettext("Copy image")}</button>
+          <button type="button" class="copy" data-card-save>{gettext("Save image")}</button>
           <span class="sharemsg" aria-live="polite"></span>
         </div>
       </div>

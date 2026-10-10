@@ -28,6 +28,8 @@ defmodule CabWeb.ClubScope do
     * `:owner` — head membership (admin included)
   """
 
+  use Gettext, backend: CabWeb.Gettext
+
   import Plug.Conn
   import Phoenix.Controller, only: [json: 2, get_format: 1, put_flash: 3, redirect: 2]
 
@@ -150,7 +152,7 @@ defmodule CabWeb.ClubScope do
 
       _ ->
         conn
-        |> put_flash(:error, "Please sign in.")
+        |> put_flash(:error, gettext("Please sign in."))
         |> redirect(to: "/signin")
         |> halt()
     end

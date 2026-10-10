@@ -6,37 +6,37 @@
   nav_session={@nav_session}
   active="club"
 >
-  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="Join"></.chrome>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here={gettext("Join")}></.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title="Join request">
+    <.section title={gettext("Join request")}>
       <.form_for
         id="join-request-form"
         action={~p"/c/#{@club.uuid}/join"}
-        title={"Join #{@club.name}"}
-        description="The club head reads your answers before approving."
+        title={gettext("Join %{club}", club: @club.name)}
+        description={gettext("The club head reads your answers before approving.")}
         errors={@errors}
       >
         <:block
           name={:message}
           type={:longtext}
-          label="About me"
+          label={gettext("About me")}
           required
           value={@message}
-          hint="Who you are and why you want to debate here."
+          hint={gettext("Who you are and why you want to debate here.")}
         />
         <:block
           name={:contact}
           type={:text}
-          label="Contact"
+          label={gettext("Contact")}
           required
           value={@contact}
-          hint="Telegram, phone or email the head can reach you at."
+          hint={gettext("Telegram, phone or email the head can reach you at.")}
         />
-        <:submit note="The club head will review your request.">
-          Send request
+        <:submit note={gettext("The club head will review your request.")}>
+          {gettext("Send request")}
         </:submit>
       </.form_for>
     </.section>

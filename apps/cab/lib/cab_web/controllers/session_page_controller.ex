@@ -31,7 +31,7 @@ defmodule CabWeb.SessionPageController do
          {pid, ""} <- Integer.parse(participant_id),
          :ok <- Sessions.remove_signup(user, %{session | club: club}, pid) do
       conn
-      |> put_flash(:info, "Registration cancelled.")
+      |> put_flash(:info, gettext("Registration cancelled."))
       |> redirect(to: back.(session))
     else
       nil ->
@@ -72,7 +72,10 @@ defmodule CabWeb.SessionPageController do
           conn
           |> put_flash(
             :info,
-            if(room["Motion"], do: "Motion updated.", else: "Motion published.")
+            if(room["Motion"],
+              do: gettext("Motion updated."),
+              else: gettext("Motion published.")
+            )
           )
           |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}/rooms/#{room["id"]}")
 
@@ -96,7 +99,7 @@ defmodule CabWeb.SessionPageController do
   # no motion, no ballot: back to the room, where the motion is set
   defp motion_first(conn, session, room) do
     conn
-    |> put_flash(:error, "Publish the room's motion first.")
+    |> put_flash(:error, gettext("Publish the room's motion first."))
     |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}/rooms/#{room["id"]}")
   end
 
@@ -108,7 +111,7 @@ defmodule CabWeb.SessionPageController do
       case Sessions.submit_ballot(conn.assigns.current_user, session, room["id"], scores) do
         :ok ->
           conn
-          |> put_flash(:info, "Ballot submitted.")
+          |> put_flash(:info, gettext("Ballot submitted."))
           |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}")
 
         {:error, :forbidden} ->
@@ -168,7 +171,7 @@ defmodule CabWeb.SessionPageController do
       room: room,
       teams: BallotForm.teams(room, ballot_params),
       error: error,
-      page_title: "Ballot — #{CabWeb.SessionFormat.room_label(room)}"
+      page_title: gettext("Ballot — %{room}", room: CabWeb.SessionFormat.room_label(room))
     )
   end
 
@@ -187,7 +190,7 @@ defmodule CabWeb.SessionPageController do
       cond do
         user == nil ->
           conn
-          |> put_flash(:error, "Please sign in.")
+          |> put_flash(:error, gettext("Please sign in."))
           |> redirect(to: ~p"/signin")
           |> halt()
 
@@ -206,7 +209,7 @@ defmodule CabWeb.SessionPageController do
     case {conn.assigns.current_user, Sessions.get_for_club(conn.assigns.club, session_uuid)} do
       {nil, %Session{}} ->
         conn
-        |> put_flash(:error, "Please sign in.")
+        |> put_flash(:error, gettext("Please sign in."))
         |> redirect(to: ~p"/signin")
         |> halt()
 
@@ -231,5 +234,5 @@ defmodule CabWeb.SessionPageController do
   defp presence(_value), do: nil
 
   defp error_message(message) when is_binary(message), do: message
-  defp error_message(_other), do: "This session is unavailable right now."
+  defp error_message(_other), do: gettext("This session is unavailable right now.")
 end

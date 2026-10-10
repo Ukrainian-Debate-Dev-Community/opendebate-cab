@@ -1,30 +1,31 @@
 <Layouts.app flash={@flash} current_user={@current_user}>
-  <.chrome crumbs={[{"Account", ~p"/account"}]} here="Merge accounts">
-    <:seg form="keep-form" quiet>Keep them separate</:seg>
-    <:seg form="merge-form" primary>Merge the accounts</:seg>
+  <.chrome crumbs={[{gettext("Account"), ~p"/account"}]} here={gettext("Merge accounts")}>
+    <:seg form="keep-form" quiet>{gettext("Keep them separate")}</:seg>
+    <:seg form="merge-form" primary>{gettext("Merge the accounts")}</:seg>
   </.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title="That sign-in has its own account" pad>
+    <.section title={gettext("That sign-in has its own account")} pad>
       <p>
-        It belongs to <b>{@other.name || @other.username}</b> ({@other.username}).
-        You can keep the two accounts apart, or merge them into one.
+        {gettext("It belongs to")} <b>{@other.name || @other.username}</b>
+        ({@other.username}). {gettext(
+          "You can keep the two accounts apart, or merge them into one."
+        )}
       </p>
       <p :if={@clubs != []}>
-        Its clubs: {Enum.map_join(@clubs, ", ", & &1.club.name)}.
+        {gettext("Its clubs: %{clubs}.", clubs: Enum.map_join(@clubs, ", ", & &1.club.name))}
       </p>
       <p>
-        The merged account is <b>{@kept.username}</b>: the one that heads a club, or else the
-        older one. It gets the other account's debate history (shown under its name), clubs,
-        club head positions, invitations and sign-in methods, and you stay signed in to it.
-        The other account is closed. A club where both are members keeps the stronger
-        membership. It cannot be undone.
+        {gettext("The merged account is")} <b>{@kept.username}</b>{gettext(
+          ": the one that heads a club, or else the older one. It gets the other account's debate history (shown under its name), clubs, club head positions, invitations and sign-in methods, and you stay signed in to it. The other account is closed. A club where both are members keeps the stronger membership. It cannot be undone."
+        )}
       </p>
       <p class="mut">
-        The merge is refused when both accounts took part in the same session; nothing changes
-        then.
+        {gettext(
+          "The merge is refused when both accounts took part in the same session; nothing changes then."
+        )}
       </p>
       <form id="merge-form" action={~p"/account/merge"} method="post">
         <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />

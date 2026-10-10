@@ -9,28 +9,28 @@
   <.chrome
     crumbs={[
       {@club.name, ~p"/c/#{@club.uuid}"},
-      {"Club", ~p"/c/#{@club.uuid}/owner"}
+      {gettext("Club"), ~p"/c/#{@club.uuid}/owner"}
     ]}
     here={"#{@state.event["name"]} — #{stage_words(@state.stage)}"}
   >
     <:seg :if={@state.stage == :signup} form="allocator-form" primary>
-      Start session
+      {gettext("Start session")}
     </:seg>
     <:seg :if={@state.stage == :closed} form="allocator-form" primary>
-      Start session
+      {gettext("Start session")}
     </:seg>
     <:seg
       :if={@state.stage == :closed}
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-signups"}
       method="post"
     >
-      Reopen registration
+      {gettext("Reopen registration")}
     </:seg>
     <:seg
       :if={@my_ballot_room}
       href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{@my_ballot_room["id"]}/ballot"}
     >
-      Fill ballot — {room_label(@my_ballot_room)}
+      {gettext("Fill ballot — %{room}", room: room_label(@my_ballot_room))}
     </:seg>
     <:seg
       :if={@state.stage == :running && deletable_rooms?(@state)}
@@ -38,7 +38,7 @@
       method="post"
       quiet
     >
-      Delete rooms
+      {gettext("Delete rooms")}
     </:seg>
     <:seg
       :if={@state.stage == :running}
@@ -46,7 +46,7 @@
       method="post"
       primary
     >
-      Finish session
+      {gettext("Finish session")}
     </:seg>
   </.chrome>
 
@@ -54,12 +54,12 @@
     <.flash_banners flash={@flash} />
 
     <%= if @state.stage == :done do %>
-      <.section title="Session" pad>
-        This session is finished — results live on the <.link href={
-          ~p"/c/#{@club.uuid}/s/#{@current.uuid}"
-        }>session page</.link>.
+      <.section title={gettext("Session")} pad>
+        {gettext("This session is finished — results live on the")}
+        <.link href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}>{gettext("session page")}</.link>.
         <p>
-          Previous sessions live on the <.link href={~p"/c/#{@club.uuid}/owner"}>club page</.link>.
+          {gettext("Previous sessions live on the")}
+          <.link href={~p"/c/#{@club.uuid}/owner"}>{gettext("club page")}</.link>.
         </p>
       </.section>
     <% else %>

@@ -30,10 +30,10 @@ defmodule CabWeb.PageController do
   end
 
   # GET /policy — how cab handles personal data
-  def policy(conn, _params), do: render(conn, :policy, page_title: "Policy")
+  def policy(conn, _params), do: render(conn, :policy, page_title: gettext("Policy"))
 
   # GET /terms — the terms of use
-  def terms(conn, _params), do: render(conn, :terms, page_title: "Terms")
+  def terms(conn, _params), do: render(conn, :terms, page_title: gettext("Terms"))
 
   # GET /privacy — the policy's old address
   def privacy_moved(conn, _params), do: redirect(conn, to: ~p"/policy")

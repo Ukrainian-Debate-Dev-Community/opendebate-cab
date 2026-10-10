@@ -1,60 +1,61 @@
 <Layouts.app flash={@flash} current_user={@current_user} active="clubs">
-  <.chrome here="Debate clubs of Ukraine"></.chrome>
+  <.chrome here={gettext("Debate clubs of Ukraine")}></.chrome>
   <div class="pbody">
     <.flash_banners flash={@flash} />
     <.banner
       :if={@open_club}
       kind={:info}
       href={~p"/c/#{@open_club.uuid}"}
-      link="Open →"
+      link={gettext("Open →")}
     >
-      {@open_club.name}: a session is open.
+      {gettext("%{club}: a session is open.", club: @open_club.name)}
     </.banner>
-    <.banner :if={@invitations > 0} kind={:info} href={~p"/me"} link="My page →">
-      {if @invitations == 1,
-        do: "A club head added you to a session.",
-        else: "Club heads added you to #{@invitations} sessions."} Accept or decline on My page.
+    <.banner :if={@invitations > 0} kind={:info} href={~p"/me"} link={gettext("My page →")}>
+      {ngettext(
+        "A club head added you to a session.",
+        "Club heads added you to %{count} sessions.",
+        @invitations
+      )} {gettext("Accept or decline on My page.")}
     </.banner>
 
     <div :if={!@current_user} class="welcome" id="welcome">
-      <h2>Welcome to <span class="brand-script">cab</span></h2>
+      <h2>{gettext("Welcome to")} <span class="brand-script">cab</span></h2>
       <p>
-        The home of Ukrainian debate clubs: find a club, register for a
-        session, debate — and follow standings and your own results in
-        one place. Free for every Ukrainian club, run by the Debate
-        Federation of Ukraine.
+        {gettext(
+          "The home of Ukrainian debate clubs: find a club, register for a session, debate — and follow standings and your own results in one place. Free for every Ukrainian club, run by the Debate Federation of Ukraine."
+        )}
       </p>
       <p class="mut">
-        Registering for a session needs no account — the club shares one
-        link. <.link href={~p"/signin"}>Sign in</.link>
-        to keep your history, schedule and personal stats.
+        {gettext("Registering for a session needs no account — the club shares one link.")}
+        <.link href={~p"/signin"}>{gettext("Sign in")}</.link>
+        {gettext("to keep your history, schedule and personal stats.")}
       </p>
     </div>
 
-    <.section title="Clubs">
-      <.table id="clubs-directory" rows={@clubs} empty="No clubs here yet.">
-        <:col :let={club} label="Club">
+    <.section title={gettext("Clubs")}>
+      <.table id="clubs-directory" rows={@clubs} empty={gettext("No clubs here yet.")}>
+        <:col :let={club} label={gettext("Club")}>
           <.link href={~p"/c/#{club.uuid}"}>{club.name}</.link>
         </:col>
-        <:col :let={club} label="City">{club.city}</:col>
-        <:col :let={club} label="Members" num>{@member_counts[club.id] || 0}</:col>
-        <:col :let={club} label="Next session" class="st">
+        <:col :let={club} label={gettext("City")}>{club.city}</:col>
+        <:col :let={club} label={gettext("Members")} num>{@member_counts[club.id] || 0}</:col>
+        <:col :let={club} label={gettext("Next session")} class="st">
           <%= case @tonight[club.id] do %>
             <% nil -> %>
-              not planned yet
+              {gettext("not planned yet")}
             <% {session, :signup, _rooms} -> %>
               <%= if session.scheduled_at do %>
                 <.local_time at={session.scheduled_at} as={:weekday_time} />
               <% else %>
-                registration open
+                {gettext("registration open")}
               <% end %>
-              — <.link href={~p"/r/#{session.uuid}"}>register</.link>
+              — <.link href={~p"/r/#{session.uuid}"}>{gettext("register")}</.link>
             <% {_session, :closed, _rooms} -> %>
-              registration closed
+              {gettext("registration closed")}
             <% {session, :running, _rooms} -> %>
-              running —
+              {gettext("running")} —
               <.link href={~p"/c/#{club.uuid}/s/#{session.uuid}"}>
-                watch rooms
+                {gettext("watch rooms")}
               </.link>
           <% end %>
         </:col>

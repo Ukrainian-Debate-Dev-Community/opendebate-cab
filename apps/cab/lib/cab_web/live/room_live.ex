@@ -58,7 +58,7 @@ defmodule CabWeb.RoomLive do
 
       {:error, _message} ->
         socket
-        |> put_flash(:error, "This session is unavailable right now.")
+        |> put_flash(:error, gettext("This session is unavailable right now."))
         |> redirect(to: ~p"/c/#{club.uuid}")
     end
   end
@@ -68,7 +68,7 @@ defmodule CabWeb.RoomLive do
     %{club: club, session: session} = socket.assigns
 
     socket
-    |> put_flash(:info, "The rooms were deleted. Back to the session.")
+    |> put_flash(:info, gettext("The rooms were deleted. Back to the session."))
     |> redirect(to: ~p"/c/#{club.uuid}/s/#{session.uuid}")
   end
 

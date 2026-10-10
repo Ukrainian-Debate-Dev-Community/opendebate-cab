@@ -107,3 +107,268 @@ msgstr ""
 
 msgid "must be equal to %{number}"
 msgstr ""
+
+#: lib/cab/invitations.ex:150
+#, elixir-autogen, elixir-format
+msgid "%{name} is already invited."
+msgstr ""
+
+#: lib/cab/sessions.ex:624
+#, elixir-autogen, elixir-format
+msgid "%{name} is not a member of this club."
+msgstr ""
+
+#: lib/cab/sessions.ex:685
+#, elixir-autogen, elixir-format
+msgid "%{name} is seated in a room. Only people still waiting can be removed."
+msgstr ""
+
+#: lib/cab/accounts.ex:323
+#, elixir-autogen, elixir-format
+msgid "Both accounts took part in the same session. Ask the club head to remove one of them from it first."
+msgstr ""
+
+#: lib/cab/links.ex:245
+#, elixir-autogen, elixir-format
+msgid "Could not create the personal link. Try again."
+msgstr ""
+
+#: lib/cab/accounts.ex:205
+#, elixir-autogen, elixir-format
+msgid "Could not link that sign-in. Try again."
+msgstr ""
+
+#: lib/cab/links.ex:251
+#: lib/cab/links.ex:256
+#, elixir-autogen, elixir-format
+msgid "Enter a name."
+msgstr ""
+
+#: lib/cab/sessions.ex:230
+#, elixir-autogen, elixir-format
+msgid "Enter the date as YYYY-MM-DD."
+msgstr ""
+
+#: lib/cab/sessions.ex:239
+#, elixir-autogen, elixir-format
+msgid "Enter the time as HH:MM."
+msgstr ""
+
+#: lib/cab/sessions.ex:978
+#, elixir-autogen, elixir-format
+msgid "Every room must be an object."
+msgstr ""
+
+#: lib/cab/sessions.ex:965
+#, elixir-autogen, elixir-format
+msgid "Every room needs %{count} teams of one or two speakers (a one-speaker team is an iron)."
+msgstr ""
+
+#: lib/cab/sessions.ex:954
+#, elixir-autogen, elixir-format
+msgid "Every room needs an adjudicator."
+msgstr ""
+
+#: lib/cab/sessions.ex:1257
+#, elixir-autogen, elixir-format
+msgid "Every score must be an object."
+msgstr ""
+
+#: lib/cab/sessions.ex:1240
+#, elixir-autogen, elixir-format
+msgid "Every score needs a speaker_participant_id."
+msgstr ""
+
+#: lib/cab/invitations.ex:140
+#, elixir-autogen, elixir-format
+msgid "Guests join through their personal link."
+msgstr ""
+
+#: lib/cab/accounts.ex:220
+#, elixir-autogen, elixir-format
+msgid "Keep at least one way to sign in."
+msgstr ""
+
+#: lib/cab/sessions.ex:1237
+#, elixir-autogen, elixir-format
+msgid "Position must be 1 to 4 (OG, OO, CG, CO)."
+msgstr ""
+
+#: lib/cab/sessions.ex:1163
+#, elixir-autogen, elixir-format
+msgid "Publish the room's motion first."
+msgstr ""
+
+#: lib/cab/sessions.ex:260
+#, elixir-autogen, elixir-format
+msgid "Registration can only be closed while it is open."
+msgstr ""
+
+#: lib/cab/sessions.ex:478
+#, elixir-autogen, elixir-format
+msgid "Registration can only reopen while it is closed."
+msgstr ""
+
+#: lib/cab/sessions.ex:827
+#, elixir-autogen, elixir-format
+msgid "Registration is not open."
+msgstr ""
+
+#: lib/cab/sessions.ex:830
+#, elixir-autogen, elixir-format
+msgid "Rooms are made after registration closes."
+msgstr ""
+
+#: lib/cab/sessions.ex:1056
+#, elixir-autogen, elixir-format
+msgid "Rooms can only be deleted before any ballot is in."
+msgstr ""
+
+#: lib/cab/sessions.ex:938
+#, elixir-autogen, elixir-format
+msgid "Rooms must be a non-empty list of room objects."
+msgstr ""
+
+#: lib/cab/sessions.ex:1243
+#, elixir-autogen, elixir-format
+msgid "Scores are whole points from 50 to 100."
+msgstr ""
+
+#: lib/cab/sessions.ex:1228
+#, elixir-autogen, elixir-format
+msgid "Scores must be a list of 8 entries."
+msgstr ""
+
+#: lib/cab/links.ex:89
+#, elixir-autogen, elixir-format
+msgid "Sign in with your own account to claim a guest history."
+msgstr ""
+
+#: lib/cab/sessions.ex:929
+#, elixir-autogen, elixir-format
+msgid "Someone is placed in two seats."
+msgstr ""
+
+#: lib/cab/sessions.ex:926
+#, elixir-autogen, elixir-format
+msgid "Someone placed in a room isn't in this session."
+msgstr ""
+
+#: lib/cab/accounts.ex:319
+#: lib/cab/accounts.ex:376
+#: lib/cab/clubs.ex:193
+#: lib/cab/clubs.ex:306
+#: lib/cab/engine_api.ex:432
+#: lib/cab/engine_api.ex:440
+#: lib/cab/invitations.ex:212
+#: lib/cab/links.ex:109
+#: lib/cab/links.ex:261
+#: lib/cab/sessions.ex:1521
+#: lib/cab/sessions.ex:1729
+#, elixir-autogen, elixir-format
+msgid "Something went wrong, try again."
+msgstr ""
+
+#: lib/cab/accounts.ex:330
+#, elixir-autogen, elixir-format
+msgid "That account still holds a role in a club. Ask a platform admin to merge them."
+msgstr ""
+
+#: lib/cab/accounts.ex:239
+#, elixir-autogen, elixir-format
+msgid "That is this account."
+msgstr ""
+
+#: lib/cab/sessions.ex:625
+#, elixir-autogen, elixir-format
+msgid "That person"
+msgstr ""
+
+#: lib/cab/clubs.ex:240
+#, elixir-autogen, elixir-format
+msgid "That person is not a member of this club."
+msgstr ""
+
+#: lib/cab/sessions.ex:695
+#, elixir-autogen, elixir-format
+msgid "That person isn't in this session."
+msgstr ""
+
+#: lib/cab/sessions.ex:1192
+#, elixir-autogen, elixir-format
+msgid "That room is not part of this session."
+msgstr ""
+
+#: lib/cab/sessions.ex:427
+#: lib/cab/sessions.ex:431
+#, elixir-autogen, elixir-format
+msgid "That seat doesn't exist."
+msgstr ""
+
+#: lib/cab/accounts.ex:217
+#, elixir-autogen, elixir-format
+msgid "That sign-in is not linked."
+msgstr ""
+
+#: lib/cab/clubs.ex:243
+#, elixir-autogen, elixir-format
+msgid "The club head cannot be removed."
+msgstr ""
+
+#: lib/cab/sessions.ex:412
+#, elixir-autogen, elixir-format
+msgid "The rooms are fixed once the session runs."
+msgstr ""
+
+#: lib/cab/accounts.ex:196
+#, elixir-autogen, elixir-format
+msgid "This account already has a different %{provider} sign-in linked."
+msgstr ""
+
+#: lib/cab/sessions.ex:1312
+#: lib/cab/sessions.ex:1332
+#: lib/cab/sessions.ex:1337
+#, elixir-autogen, elixir-format
+msgid "This ballot doesn't match the room's draw."
+msgstr ""
+
+#: lib/cab/clubs.ex:224
+#: lib/cab/clubs.ex:229
+#, elixir-autogen, elixir-format
+msgid "This join request was already answered."
+msgstr ""
+
+#: lib/cab/links.ex:92
+#, elixir-autogen, elixir-format
+msgid "This personal link cannot be claimed."
+msgstr ""
+
+#: lib/cab/sessions.ex:1053
+#, elixir-autogen, elixir-format
+msgid "This session has no rooms to delete."
+msgstr ""
+
+#: lib/cab/sessions.ex:679
+#, elixir-autogen, elixir-format
+msgid "This session is finished, so its people stay on record."
+msgstr ""
+
+#: lib/cab/sessions.ex:1299
+#, elixir-autogen, elixir-format
+msgid "Two teams share the total %{totals}. BP allows no ties, so adjust the scores."
+msgstr ""
+
+#: lib/cab/sessions.ex:1218
+#, elixir-autogen, elixir-format
+msgid "a full ballot is 8 scores — two per team position 1..4 (og, oo, cg, co)"
+msgstr ""
+
+#: lib/cab/clubs/membership.ex:30
+#, elixir-autogen, elixir-format
+msgid "already a member or pending join request"
+msgstr ""
+
+#: lib/cab/clubs/membership.ex:43
+#, elixir-autogen, elixir-format
+msgid "tell the head about yourself and how to reach you"
+msgstr ""

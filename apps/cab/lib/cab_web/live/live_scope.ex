@@ -10,6 +10,7 @@ defmodule CabWeb.LiveScope do
   """
   import Phoenix.Component, only: [assign: 3]
   import Phoenix.LiveView, only: [put_flash: 3, redirect: 2]
+  use Gettext, backend: CabWeb.Gettext
 
   alias Cab.{Accounts, Clubs, Sessions}
 
@@ -40,7 +41,8 @@ defmodule CabWeb.LiveScope do
         {:cont, socket}
 
       socket.assigns.current_user == nil ->
-        {:halt, socket |> put_flash(:error, "Please sign in.") |> redirect(to: "/signin")}
+        {:halt,
+         socket |> put_flash(:error, gettext("Please sign in.")) |> redirect(to: "/signin")}
 
       true ->
         raise CabWeb.ForbiddenError

@@ -10,6 +10,7 @@ defmodule Cab.Clubs do
   """
 
   import Ecto.Query
+  use Gettext, backend: CabWeb.Gettext
 
   alias Cab.Accounts
   alias Cab.Accounts.User
@@ -189,7 +190,7 @@ defmodule Cab.Clubs do
 
     case head && Accounts.ensure_node_user(head) do
       %User{node_user_id: id} when is_integer(id) -> {:ok, id}
-      _ -> {:error, "Something went wrong, try again."}
+      _ -> {:error, dgettext("errors", "Something went wrong, try again.")}
     end
   end
 
@@ -219,10 +220,13 @@ defmodule Cab.Clubs do
     membership |> Membership.changeset(%{status: "approved"}) |> Repo.update()
   end
 
-  def approve_join(%Membership{}), do: {:error, "This join request was already answered."}
+  def approve_join(%Membership{}),
+    do: {:error, dgettext("errors", "This join request was already answered.")}
 
   def decline_join(%Membership{status: "pending"} = membership), do: Repo.delete(membership)
-  def decline_join(%Membership{}), do: {:error, "This join request was already answered."}
+
+  def decline_join(%Membership{}),
+    do: {:error, dgettext("errors", "This join request was already answered.")}
 
   @doc """
   The head removes a member: the gateway membership row goes away
@@ -232,9 +236,14 @@ defmodule Cab.Clubs do
   """
   def remove_member(%Club{} = club, user_id) when is_integer(user_id) do
     case Repo.get_by(Membership, club_id: club.id, user_id: user_id) do
-      nil -> {:error, "That person is not a member of this club."}
-      %Membership{role: "head"} -> {:error, "The club head cannot be removed."}
-      membership -> Repo.delete(membership)
+      nil ->
+        {:error, dgettext("errors", "That person is not a member of this club.")}
+
+      %Membership{role: "head"} ->
+        {:error, dgettext("errors", "The club head cannot be removed.")}
+
+      membership ->
+        Repo.delete(membership)
     end
   end
 
@@ -292,5 +301,7 @@ defmodule Cab.Clubs do
   def club_history(%Club{} = club), do: {:ok, Sessions.archive(club)}
 
   defp require_node_user(%User{node_user_id: id}) when is_integer(id), do: {:ok, id}
-  defp require_node_user(%User{}), do: {:error, "Something went wrong, try again."}
+
+  defp require_node_user(%User{}),
+    do: {:error, dgettext("errors", "Something went wrong, try again.")}
 end

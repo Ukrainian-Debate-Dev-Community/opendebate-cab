@@ -1,17 +1,19 @@
-<.section title="Club Sessions">
-  <.table id="club-sessions" rows={@archive} empty="No sessions yet.">
-    <:col :let={row} label="Session">
+<.section title={gettext("Club Sessions")}>
+  <.table id="club-sessions" rows={@archive} empty={gettext("No sessions yet.")}>
+    <:col :let={row} label={gettext("Session")}>
       <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"}>{row.name}</.link>
       <.sub><.local_time at={row.date} as={:date} /></.sub>
     </:col>
-    <:col :let={row} label="Status" class="st">
+    <:col :let={row} label={gettext("Status")} class="st">
       <%= case row.status do %>
         <% :done -> %>
-          {if row.winner, do: "done — won by #{row.winner}", else: "done"}
+          {if row.winner,
+            do: gettext("done — won by %{winner}", winner: row.winner),
+            else: gettext("done")}
         <% :live -> %>
-          <b>running</b>
+          <b>{gettext("running")}</b>
         <% :open -> %>
-          registration open
+          {gettext("registration open")}
       <% end %>
     </:col>
   </.table>

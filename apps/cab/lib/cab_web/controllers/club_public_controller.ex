@@ -52,7 +52,7 @@ defmodule CabWeb.ClubPublicController do
             scope: scope,
             rows: standings_rows(tab, scope),
             archive: archive,
-            page_title: "#{club.name} — Standings"
+            page_title: gettext("%{club} — Standings", club: club.name)
           )
         else
           deny_private_standings(conn, club)
@@ -127,12 +127,13 @@ defmodule CabWeb.ClubPublicController do
     case conn.assigns.current_user do
       nil ->
         conn
-        |> put_flash(:error, "This club's standings are for members. Please sign in.")
+        |> put_flash(:error, gettext("This club's standings are for members. Please sign in."))
         |> redirect(to: ~p"/signin")
         |> halt()
 
       _user ->
-        conn |> CabWeb.ErrorHTML.respond(403, "This club's standings are for its members.")
+        conn
+        |> CabWeb.ErrorHTML.respond(403, gettext("This club's standings are for its members."))
     end
   end
 
@@ -155,7 +156,7 @@ defmodule CabWeb.ClubPublicController do
     case Clubs.request_join(conn.assigns.current_user, club, params) do
       {:ok, _membership} ->
         conn
-        |> put_flash(:info, "Request sent. The club head will review it.")
+        |> put_flash(:info, gettext("Request sent. The club head will review it."))
         |> redirect(to: ~p"/c/#{club.uuid}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -170,13 +171,15 @@ defmodule CabWeb.ClubPublicController do
       message: params["message"],
       contact: params["contact"],
       errors: errors,
-      page_title: "#{conn.assigns.club.name} — Join"
+      page_title: gettext("%{club} — Join", club: conn.assigns.club.name)
     )
   end
 
   defp join_errors(changeset) do
     changeset
-    |> Ecto.Changeset.traverse_errors(fn {message, _opts} -> message end)
+    |> Ecto.Changeset.traverse_errors(fn {message, opts} ->
+      Gettext.dgettext(CabWeb.Gettext, "errors", message, opts)
+    end)
     |> Enum.flat_map(fn
       {field, [message | _rest]} when field in [:message, :contact] -> [{field, message}]
       {_field, [message | _rest]} -> [{:message, message}]

@@ -36,8 +36,10 @@ defmodule CabWeb.GuestLinkController do
             |> put_session(:user_id, link.user_id)
             |> put_flash(
               :info,
-              "You are here through your personal link, #{link.user.name}. " <>
-                "Keep it — anyone with it acts as you."
+              gettext(
+                "You are here through your personal link, %{name}. Keep it — anyone with it acts as you.",
+                name: link.user.name
+              )
             )
             |> redirect(to: session_page)
 
@@ -46,7 +48,7 @@ defmodule CabWeb.GuestLinkController do
               link: link,
               club: link.session.club,
               session: link.session,
-              page_title: "Your guest history"
+              page_title: gettext("Your guest history")
             )
         end
     end
@@ -60,7 +62,10 @@ defmodule CabWeb.GuestLinkController do
       case Links.claim(link, account) do
         {:ok, _moved} ->
           conn
-          |> put_flash(:info, "#{link.user.name}'s guest history is now on your account.")
+          |> put_flash(
+            :info,
+            gettext("%{name}'s guest history is now on your account.", name: link.user.name)
+          )
           |> redirect(to: ~p"/me")
 
         {:error, message} ->
@@ -72,7 +77,7 @@ defmodule CabWeb.GuestLinkController do
       nil ->
         if conn.assigns[:current_user],
           do: CabWeb.ErrorHTML.respond(conn, 404),
-          else: conn |> put_flash(:error, "Please sign in.") |> redirect(to: ~p"/signin")
+          else: conn |> put_flash(:error, gettext("Please sign in.")) |> redirect(to: ~p"/signin")
     end
   end
 end

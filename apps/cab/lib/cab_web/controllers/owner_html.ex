@@ -23,28 +23,36 @@ defmodule CabWeb.OwnerHTML do
 
   defp person_kind(participant, links, members, invitations) do
     cond do
-      Map.has_key?(invitations, participant["id"]) -> "invited, not accepted yet"
-      guest_link(participant, links) -> "guest"
-      Enum.any?(members, &(&1.user.node_user_id == participant["user_id"])) -> "member"
-      true -> "signed-in user"
+      Map.has_key?(invitations, participant["id"]) -> gettext("invited, not accepted yet")
+      guest_link(participant, links) -> gettext("guest")
+      Enum.any?(members, &(&1.user.node_user_id == participant["user_id"])) -> gettext("member")
+      true -> gettext("signed-in user")
     end
   end
 
-  @seat_sides %{"og" => "OG", "oo" => "OO", "cg" => "CG", "co" => "CO"}
+  # a membership role, as the members table writes it
+  defp role_word("head"), do: gettext("head")
+  defp role_word("member"), do: gettext("member")
+  defp role_word(other), do: other
+
+  defp seat_side("og"), do: gettext("OG")
+  defp seat_side("oo"), do: gettext("OO")
+  defp seat_side("cg"), do: gettext("CG")
+  defp seat_side("co"), do: gettext("CO")
 
   # where the person sits: the draft before rooms exist, the rooms after
   defp seat_words(participant, %{rooms: rooms}, _draft) when rooms != [] do
-    Enum.find_value(rooms, "waiting", fn room ->
+    Enum.find_value(rooms, gettext("waiting"), fn room ->
       cond do
         Enum.any?(room["RoomAdjudicators"] || [], &seat_of?(&1, participant)) ->
-          "#{room_label(room)} adjudicator"
+          gettext("%{room} adjudicator", room: room_label(room))
 
         team =
             Enum.find(
               room["RoomTeams"] || [],
               &Enum.any?(&1["RoomSpeakers"] || [], fn s -> seat_of?(s, participant) end)
             ) ->
-          "#{room_label(room)} #{side_code(team["position"])}"
+          gettext("%{room} %{side}", room: room_label(room), side: side_code(team["position"]))
 
         true ->
           nil
@@ -56,12 +64,12 @@ defmodule CabWeb.OwnerHTML do
     case Enum.find(draft, fn {_key, pid} -> pid == participant["id"] end) do
       {key, _pid} ->
         case String.split(key, ":") do
-          [room, "judge"] -> "R#{room} adjudicator"
-          [room, side, _n] -> "R#{room} #{@seat_sides[side]}"
+          [room, "judge"] -> gettext("%{room} adjudicator", room: "R#{room}")
+          [room, side, _n] -> gettext("%{room} %{side}", room: "R#{room}", side: seat_side(side))
         end
 
       nil ->
-        "waiting"
+        gettext("waiting")
     end
   end
 
@@ -76,12 +84,18 @@ defmodule CabWeb.OwnerHTML do
 
   defp signed_up_counts(signups) do
     people = length(signups)
-    "#{people} #{if people == 1, do: "person", else: "people"}"
+    ngettext("%{count} person", "%{count} people", people)
   end
 
   defp attendance_line(signups) do
     rooms = Cab.Sessions.room_count(signups)
-    "#{signed_up_counts(signups)} checked in → #{rooms} room#{if rooms != 1, do: "s"}."
+
+    ngettext(
+      "%{people} checked in → %{count} room.",
+      "%{people} checked in → %{count} rooms.",
+      rooms,
+      people: signed_up_counts(signups)
+    )
   end
 
   defp deletable_rooms?(%{stage: :running, rooms: rooms}) when rooms != [],

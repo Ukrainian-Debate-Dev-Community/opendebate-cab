@@ -36,7 +36,7 @@ defmodule CabWeb.RegistrationController do
     case result do
       {:ok, _participant} ->
         conn
-        |> put_flash(:info, "You are registered.")
+        |> put_flash(:info, gettext("You are registered."))
         |> redirect(to: ~p"/c/#{session.club.uuid}/s/#{session.uuid}")
 
       {:error, :conflict, message} ->
@@ -71,7 +71,7 @@ defmodule CabWeb.RegistrationController do
           session: session,
           link: link,
           personal_url: url(~p"/l/#{link.code}"),
-          page_title: "#{session.club.name} — Registered"
+          page_title: gettext("%{club} — Registered", club: session.club.name)
         )
 
       {:error, :conflict, _message} ->
@@ -94,7 +94,7 @@ defmodule CabWeb.RegistrationController do
       state: state,
       name: params["name"],
       errors: errors,
-      page_title: "#{session.club.name} — Register"
+      page_title: gettext("%{club} — Register", club: session.club.name)
     )
   end
 
@@ -103,7 +103,7 @@ defmodule CabWeb.RegistrationController do
       club: session.club,
       session: session,
       state: state,
-      page_title: "#{session.club.name} — Registration closed"
+      page_title: gettext("%{club} — Registration closed", club: session.club.name)
     )
   end
 
@@ -127,5 +127,5 @@ defmodule CabWeb.RegistrationController do
   end
 
   defp error_message(message) when is_binary(message), do: message
-  defp error_message(_other), do: "registration is unavailable right now"
+  defp error_message(_other), do: gettext("registration is unavailable right now")
 end

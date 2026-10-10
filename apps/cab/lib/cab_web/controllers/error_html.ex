@@ -10,24 +10,26 @@ defmodule CabWeb.ErrorHTML do
 
   embed_templates "error_html/*"
 
-  @copy %{
-    403 => {"Not allowed", "This page is not open to your account."},
-    404 => {"Not found", "There is nothing at this address."},
-    500 => {"Something went wrong", "The error is logged — try again in a moment."}
-  }
+  defp page_copy(403), do: {gettext("Not allowed"), gettext("This page is not open to your account.")}
+  defp page_copy(404), do: {gettext("Not found"), gettext("There is nothing at this address.")}
+
+  defp page_copy(500),
+    do: {gettext("Something went wrong"), gettext("The error is logged — try again in a moment.")}
+
+  defp page_copy(_status), do: nil
 
   def render(template, _assigns) do
     status = template |> String.split(".") |> hd() |> String.to_integer()
 
     {heading, message} =
-      @copy[status] || {Phoenix.Controller.status_message_from_template(template), ""}
+      page_copy(status) || {Phoenix.Controller.status_message_from_template(template), ""}
 
     error(%{heading: heading, message: message})
   end
 
   @doc "Halts a controller with the branded error page for `status`."
   def respond(conn, status, message \\ nil) when status in [403, 404] do
-    {heading, default} = @copy[status]
+    {heading, default} = page_copy(status)
 
     conn
     |> put_status(status)

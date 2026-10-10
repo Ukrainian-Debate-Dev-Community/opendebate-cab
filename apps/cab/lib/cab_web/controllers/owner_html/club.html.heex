@@ -6,50 +6,62 @@
   nav_session={@nav_session}
   active="club"
 >
-  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="Edit">
-    <:seg href={~p"/c/#{@club.uuid}"} quiet>View as public</:seg>
-    <:seg form="open-session-form" primary={is_nil(@live)}>Open new session</:seg>
-    <:seg form="club-profile-form" primary={not is_nil(@live)}>Save</:seg>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here={gettext("Edit")}>
+    <:seg href={~p"/c/#{@club.uuid}"} quiet>{gettext("View as public")}</:seg>
+    <:seg form="open-session-form" primary={is_nil(@live)}>
+      {gettext("Open new session")}
+    </:seg>
+    <:seg form="club-profile-form" primary={not is_nil(@live)}>{gettext("Save")}</:seg>
   </.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title="Club profile">
+    <.section title={gettext("Club profile")}>
       <.form_for
         id="club-profile-form"
         action={~p"/c/#{@club.uuid}/owner/club"}
-        description="Exactly what visitors read on the club page."
+        description={gettext("Exactly what visitors read on the club page.")}
       >
-        <:block name={:name} type={:text} label="Club name" required value={@club.name} />
-        <:block name={:city} type={:text} label="City" value={@club.city} />
+        <:block
+          name={:name}
+          type={:text}
+          label={gettext("Club name")}
+          required
+          value={@club.name}
+        />
+        <:block name={:city} type={:text} label={gettext("City")} value={@club.city} />
         <:block
           name={:meeting_info}
           type={:text}
-          label="Meetings"
+          label={gettext("Meetings")}
           value={@club.meeting_info}
-          hint="When and where the club meets, e.g. Thursdays 18:30, Hrushevskoho 4."
+          hint={gettext("When and where the club meets, e.g. Thursdays 18:30, Hrushevskoho 4.")}
         />
         <:block
           name={:description}
           type={:longtext}
-          label="About the club"
+          label={gettext("About the club")}
           value={@club.description}
         />
         <:block
           name={:contacts}
           type={:text}
-          label="Contacts"
+          label={gettext("Contacts")}
           value={@club.contacts}
-          hint="Telegram, email — how newcomers reach the club."
+          hint={gettext("Telegram, email — how newcomers reach the club.")}
         />
         <:block
           name={:is_private}
           type={:select}
-          label="Standings"
+          label={gettext("Standings")}
           value={if @club.is_private, do: "true", else: "false"}
-          options={[{"public", "false"}, {"members only", "true"}]}
-          hint="Members only also keeps the club out of the global standings. Everything else stays public."
+          options={[{gettext("public"), "false"}, {gettext("members only"), "true"}]}
+          hint={
+            gettext(
+              "Members only also keeps the club out of the global standings. Everything else stays public."
+            )
+          }
         />
       </.form_for>
     </.section>
@@ -58,30 +70,30 @@
       :if={@live}
       kind={:info}
       href={~p"/c/#{@club.uuid}/owner/s/#{@live.uuid}"}
-      link="Open →"
+      link={gettext("Open →")}
     >
-      The current session lives under Rooms.
+      {gettext("The current session lives under Rooms.")}
     </.banner>
 
     <.archive_section club={@club} archive={@archive} />
 
-    <.section title="Open a session">
+    <.section title={gettext("Open a session")}>
       <.form_for
         id="open-session-form"
         action={~p"/c/#{@club.uuid}/owner/sessions"}
-        description="Registration opens as soon as you open the session."
+        description={gettext("Registration opens as soon as you open the session.")}
       >
         <:block
           name={:name}
           type={:text}
-          label="Session name"
-          hint="Shown to members on the club page; defaults to the date."
+          label={gettext("Session name")}
+          hint={gettext("Shown to members on the club page; defaults to the date.")}
         />
         <:block
           names={[:date, :time]}
           type={:datetime}
-          label="Date and start time"
-          hint="Optional — when the session is planned to start, in your time zone."
+          label={gettext("Date and start time")}
+          hint={gettext("Optional — when the session is planned to start, in your time zone.")}
         />
       </.form_for>
     </.section>

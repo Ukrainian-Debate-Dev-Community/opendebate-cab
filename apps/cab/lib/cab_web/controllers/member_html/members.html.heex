@@ -6,19 +6,19 @@
   nav_session={@nav_session}
   active="members"
 >
-  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="Members"></.chrome>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here={gettext("Members")}></.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title={"Members (#{length(@members)})"}>
-      <.table id="members-list" rows={@members} empty="No members yet.">
-        <:col :let={membership} label="Member">
+    <.section title={gettext("Members (%{count})", count: length(@members))}>
+      <.table id="members-list" rows={@members} empty={gettext("No members yet.")}>
+        <:col :let={membership} label={gettext("Member")}>
           {membership.user.username}
           <.sub :if={membership.user.name}>{membership.user.name}</.sub>
         </:col>
-        <:col :let={membership} label="Role">{membership.role}</:col>
-        <:col :let={membership} label="Since">
+        <:col :let={membership} label={gettext("Role")}>{role_word(membership.role)}</:col>
+        <:col :let={membership} label={gettext("Since")}>
           <.local_time at={membership.inserted_at} as={:date} />
         </:col>
       </.table>

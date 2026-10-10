@@ -7,6 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
+    <meta name="cab-i18n" content={Jason.encode!(CabWeb.Layouts.js_strings())} />
     <.live_title default="cab" suffix=" | cab" phx-no-format>{assigns[:page_title]}</.live_title>
     <script>
       // the footer's theme choice, applied before the first paint

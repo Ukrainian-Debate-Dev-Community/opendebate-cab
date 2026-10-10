@@ -17,6 +17,8 @@ defmodule Cab.Links do
 
   import Ecto.Query
 
+  use Gettext, backend: CabWeb.Gettext
+
   alias Cab.Accounts.User
   alias Cab.Clubs.Club
   alias Cab.Links.Link
@@ -84,10 +86,10 @@ defmodule Cab.Links do
   def claim(%Link{user: %User{} = guest} = link, %User{} = account) do
     cond do
       guest.id == account.id or guest?(account.id) ->
-        {:error, "Sign in with your own account to claim a guest history."}
+        {:error, dgettext("errors", "Sign in with your own account to claim a guest history.")}
 
       is_nil(link.engine_participant_id) or is_nil(link.claim_token) ->
-        {:error, "This personal link cannot be claimed."}
+        {:error, dgettext("errors", "This personal link cannot be claimed.")}
 
       true ->
         with %User{node_user_id: actor} when is_integer(actor) <-
@@ -104,7 +106,7 @@ defmodule Cab.Links do
           Sessions.broadcast(link.session)
           {:ok, 1}
         else
-          %User{} -> {:error, "Something went wrong, try again."}
+          %User{} -> {:error, dgettext("errors", "Something went wrong, try again.")}
           error -> error
         end
     end
@@ -236,23 +238,27 @@ defmodule Cab.Links do
     |> Link.changeset()
     |> Repo.insert()
     |> case do
-      {:ok, link} -> {:ok, %{link | user: guest}}
-      {:error, _changeset} -> {:error, "Could not create the personal link. Try again."}
+      {:ok, link} ->
+        {:ok, %{link | user: guest}}
+
+      {:error, _changeset} ->
+        {:error, dgettext("errors", "Could not create the personal link. Try again.")}
     end
   end
 
   defp validate_name(name) when is_binary(name) do
     case String.trim(name) do
-      "" -> {:error, %{name: "Enter a name."}}
+      "" -> {:error, %{name: dgettext("errors", "Enter a name.")}}
       trimmed -> {:ok, trimmed}
     end
   end
 
-  defp validate_name(_name), do: {:error, %{name: "Enter a name."}}
+  defp validate_name(_name), do: {:error, %{name: dgettext("errors", "Enter a name.")}}
 
   defp create_guest_user(name, attempts \\ @username_attempts)
 
-  defp create_guest_user(_name, 0), do: {:error, "Something went wrong, try again."}
+  defp create_guest_user(_name, 0),
+    do: {:error, dgettext("errors", "Something went wrong, try again.")}
 
   defp create_guest_user(name, attempts) do
     suffix = :crypto.strong_rand_bytes(5) |> Base.encode32(case: :lower, padding: false)

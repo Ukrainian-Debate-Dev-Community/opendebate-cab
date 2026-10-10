@@ -6,27 +6,33 @@
   nav_session={@nav_session}
   active="members"
 >
-  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here="Members"></.chrome>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here={gettext("Members")}></.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title={"Join requests (#{length(@join_requests)})"}>
+    <.section title={gettext("Join requests (%{count})", count: length(@join_requests))}>
       <.table
         id="join-requests"
         rows={@join_requests}
         row_id={&"join-request-#{&1.id}"}
-        empty="No pending requests."
+        empty={gettext("No pending requests.")}
       >
-        <:col :let={request} label="Who">
+        <:col :let={request} label={gettext("Who")}>
           {request.user.username}
-          <.sub>signed-in user{if request.user.name, do: " (#{request.user.name})"}</.sub>
+          <.sub>
+            {if request.user.name,
+              do: gettext("signed-in user (%{name})", name: request.user.name),
+              else: gettext("signed-in user")}
+          </.sub>
         </:col>
-        <:col :let={request} label="About them">
+        <:col :let={request} label={gettext("About them")}>
           {request.message || "—"}
-          <.sub :if={request.contact}>contact: {request.contact}</.sub>
+          <.sub :if={request.contact}>
+            {gettext("contact: %{contact}", contact: request.contact)}
+          </.sub>
         </:col>
-        <:col :let={request} label="Requested">
+        <:col :let={request} label={gettext("Requested")}>
           <.local_time at={request.inserted_at} as={:date} />
         </:col>
         <:col :let={request}>
@@ -34,7 +40,7 @@
             href={~p"/c/#{@club.uuid}/owner/join-requests/#{request.id}/approve"}
             method="post"
           >
-            approve
+            {gettext("approve")}
           </.link>
         </:col>
         <:col :let={request}>
@@ -42,20 +48,20 @@
             href={~p"/c/#{@club.uuid}/owner/join-requests/#{request.id}/decline"}
             method="post"
           >
-            decline
+            {gettext("decline")}
           </.link>
         </:col>
       </.table>
     </.section>
 
-    <.section title={"Members (#{length(@members)})"}>
-      <.table id="members-list" rows={@members} empty="No members yet.">
-        <:col :let={membership} label="Member">
+    <.section title={gettext("Members (%{count})", count: length(@members))}>
+      <.table id="members-list" rows={@members} empty={gettext("No members yet.")}>
+        <:col :let={membership} label={gettext("Member")}>
           {membership.user.username}
           <.sub :if={membership.user.name}>{membership.user.name}</.sub>
         </:col>
-        <:col :let={membership} label="Role">{membership.role}</:col>
-        <:col :let={membership} label="Since">
+        <:col :let={membership} label={gettext("Role")}>{role_word(membership.role)}</:col>
+        <:col :let={membership} label={gettext("Since")}>
           <.local_time at={membership.inserted_at} as={:date} />
         </:col>
         <:col :let={membership}>
@@ -64,7 +70,7 @@
             href={~p"/c/#{@club.uuid}/owner/members/#{membership.user_id}/remove"}
             method="post"
           >
-            remove
+            {gettext("remove")}
           </.link>
         </:col>
       </.table>
