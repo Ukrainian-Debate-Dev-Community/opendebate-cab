@@ -837,6 +837,14 @@ defmodule Cab.SessionsTest do
     assert speaks[201] == 76.0 and speaks[202] == 75.0
     # not an iron in the draw, so no speech is marked for the engine
     refute Enum.any?(params["speakerScores"], &Map.has_key?(&1, "is_iron"))
+    # the teammate's seat carries who actually spoke
+    moved = Enum.find(params["speakerScores"], &(&1["room_speaker_id"] == 202))
+    assert moved["participant_id"] == 301
+
+    refute Map.has_key?(
+             Enum.find(params["speakerScores"], &(&1["room_speaker_id"] == 201)),
+             "participant_id"
+           )
   end
 
   test "an iron team's marked speech goes to the engine as is_iron", %{club: club} do

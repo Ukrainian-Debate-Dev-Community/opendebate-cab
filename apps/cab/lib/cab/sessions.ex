@@ -1318,6 +1318,14 @@ defmodule Cab.Sessions do
           |> Enum.reduce({[], slots}, fn {entry, index}, {acc, free} ->
             {slot, free} = take_slot(free, entry.speaker_participant_id)
             score = %{room_speaker_id: slot["id"], score: entry.score}
+
+            # the speech went to a teammate's drawn seat: name who gave it,
+            # so the absent teammate is not credited
+            score =
+              if get_in(slot, ["EventParticipant", "id"]) == entry.speaker_participant_id,
+                do: score,
+                else: Map.put(score, :participant_id, entry.speaker_participant_id)
+
             score = if index == marked, do: Map.put(score, :is_iron, true), else: score
             {[score | acc], free}
           end)
