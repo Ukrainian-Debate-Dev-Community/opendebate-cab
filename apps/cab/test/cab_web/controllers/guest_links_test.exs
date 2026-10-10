@@ -271,6 +271,41 @@ defmodule CabWeb.GuestLinksTest do
       assert conn |> get(~p"/l/#{link.code}") |> response(404)
     end
 
+    test "claiming a finished night the guest's team won credits the win to the account",
+         %{conn: conn, club: club, guest: guest} do
+      finished = session_fixture(club, engine_event_id: 11, finished_at: ~U[2026-10-08 20:00:00Z])
+      link = link_fixture(guest, finished, participant_id: 41)
+      account = user_fixture(%{node_user_id: 504, name: "Winning Greta"})
+
+      won_room =
+        running_room(9)
+        |> Map.put("status", "confirmed")
+        |> update_in(["RoomTeams"], fn teams ->
+          Enum.map(teams, fn
+            %{"position" => 1} = team ->
+              team
+              |> Map.put("rank", 1)
+              |> put_in(["RoomSpeakers", Access.at(0), "EventParticipant", "id"], 41)
+
+            team ->
+              Map.put(team, "rank", team["position"])
+          end)
+        end)
+
+      stub_stage([guest_signup(41, nil)], [won_room], fn conn, _params ->
+        case {conn.method, conn.request_path} do
+          {"POST", "/api/users/claim-participant/41"} -> ok(conn, %{"id" => 41})
+          {"PUT", "/api/events/11/participants/41"} -> ok(conn, %{})
+          _other -> nil
+        end
+      end)
+
+      claimed = conn |> log_in(account) |> post(~p"/l/#{link.code}/claim")
+      assert redirected_to(claimed) == "/me"
+
+      assert 504 in Repo.get!(Cab.Sessions.Session, finished.id).winner_user_ids
+    end
+
     test "an engine refusal keeps everything and says why",
          %{conn: conn, link: link, guest: guest} do
       account = user_fixture(%{node_user_id: 502})

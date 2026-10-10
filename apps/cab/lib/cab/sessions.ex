@@ -1362,6 +1362,37 @@ defmodule Cab.Sessions do
     notify(result, session)
   end
 
+  @doc """
+  A guest's place claimed after the session finished: if that place
+  was on a winning team, the account that claimed it is credited with
+  the win (the winners were recorded when the guest had no account).
+  """
+  def credit_claimed_win(
+        %Session{finished_at: %DateTime{}} = session,
+        participant_id,
+        node_user_id
+      )
+      when is_integer(node_user_id) do
+    with {:ok, state} <- state(session),
+         true <- won_by?(state.rooms, participant_id),
+         false <- node_user_id in session.winner_user_ids do
+      record(session, winner_user_ids: session.winner_user_ids ++ [node_user_id])
+    end
+
+    :ok
+  end
+
+  def credit_claimed_win(_session, _participant_id, _node_user_id), do: :ok
+
+  defp won_by?(rooms, participant_id) do
+    rooms
+    |> Enum.filter(&(&1["status"] in ["completed", "confirmed"]))
+    |> Enum.flat_map(&(&1["RoomTeams"] || []))
+    |> Enum.filter(&(&1["rank"] == 1))
+    |> Enum.flat_map(&(&1["RoomSpeakers"] || []))
+    |> Enum.any?(&(get_in(&1, ["EventParticipant", "id"]) == participant_id))
+  end
+
   # the winning team's members as gateway-visible engine user ids —
   # copied once at finish so history never re-walks the rooms
   defp winner_user_ids(%{rooms: rooms, signups: signups}) do

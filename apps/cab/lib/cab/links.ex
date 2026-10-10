@@ -99,6 +99,7 @@ defmodule Cab.Links do
                  link.claim_token
                ) do
           rename(link, account)
+          Sessions.credit_claimed_win(link.session, link.engine_participant_id, actor)
           Repo.delete(guest)
           Sessions.broadcast(link.session)
           {:ok, 1}
