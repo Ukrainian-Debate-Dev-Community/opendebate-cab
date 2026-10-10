@@ -45,7 +45,7 @@
         </:col>
         <:col :let={row} :if={@tab == "adjudicators"} label="Adjudicator">{row["name"]}</:col>
         <:col :let={row} :if={@tab == "adjudicators"} label="Rooms adjudicated" num>
-          {row["rooms_judged"]}
+          {row["rooms_adjudicated"]}
         </:col>
         <:col :let={row} :if={@tab == "adjudicators"} label="Avg feedback" num>
           {row["avg_feedback"] || "—"}

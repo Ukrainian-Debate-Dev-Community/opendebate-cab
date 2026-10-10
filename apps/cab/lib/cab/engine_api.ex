@@ -405,8 +405,8 @@ defmodule Cab.EngineApi do
     Engine.get(actor, "/api/events/#{event_id}/standings/calculated/speakers") |> unwrap()
   end
 
-  def judge_stats(actor, event_id) do
-    Engine.get(actor, "/api/events/#{event_id}/stats/judges") |> unwrap()
+  def adjudicator_stats(actor, event_id) do
+    Engine.get(actor, "/api/events/#{event_id}/stats/adjudicators") |> unwrap()
   end
 
   # ---------------------------------------------------------------

@@ -224,9 +224,9 @@ defmodule CabWeb.EightPagesTest do
         "/api/events/11/standings/calculated/speakers" ->
           ok(conn, [%{"id" => 7, "name" => "Anna Kovalenko", "total_points" => 101.53}])
 
-        "/api/events/11/stats/judges" ->
+        "/api/events/11/stats/adjudicators" ->
           ok(conn, [
-            %{"id" => 90, "name" => "Petro", "rooms_judged" => 2, "avg_feedback" => 8.5}
+            %{"id" => 90, "name" => "Petro", "rooms_adjudicated" => 2, "avg_feedback" => 8.5}
           ])
 
         # the scope card's archive selector peeks at winners

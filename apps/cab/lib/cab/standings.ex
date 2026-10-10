@@ -5,7 +5,7 @@ defmodule Cab.Standings do
 
     * teams    — GET /events/:id/standings/calculated/teams
     * speakers — GET /events/:id/standings/calculated/speakers
-    * judges   — GET /events/:id/stats/judges
+    * adjudicators — GET /events/:id/stats/adjudicators
     * clubs    — plain counts from cab's records (members, sessions,
                  rooms)
 
@@ -87,12 +87,12 @@ defmodule Cab.Standings do
   end
 
   @doc """
-  Judges of the scope's session — the ENGINE's judge stats verbatim
-  (`GET /events/:id/stats/judges`): `[{id, name, rooms_judged,
-  avg_feedback}]`, rule 0.
+  Adjudicators of the scope's session — the ENGINE's adjudicator stats
+  verbatim (`GET /events/:id/stats/adjudicators`): `[{id, name,
+  rooms_adjudicated, avg_feedback}]`, rule 0.
   """
   def adjudicators(%{actor: actor, session: session}) do
-    case EngineApi.judge_stats(actor, session.engine_event_id) do
+    case EngineApi.adjudicator_stats(actor, session.engine_event_id) do
       {:ok, rows} -> rows
       {:error, _message} -> []
     end

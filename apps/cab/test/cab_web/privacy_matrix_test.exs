@@ -106,7 +106,7 @@ defmodule CabWeb.PrivacyMatrixTest do
         {"GET", "/api/events/11/standings/calculated/" <> _tab} ->
           ok(conn, [%{"id" => 1, "name" => "Team 1", "total_points" => 3}])
 
-        {"GET", "/api/events/11/stats/judges"} ->
+        {"GET", "/api/events/11/stats/adjudicators"} ->
           ok(conn, [])
 
         {"GET", "/api/users/history"} ->
