@@ -20,6 +20,11 @@ defmodule CabWeb.Router do
     plug :fetch_current_user
   end
 
+  # the container health check: no pipeline, so no session or cookie
+  scope "/", CabWeb do
+    get "/healthz", HealthController, :show
+  end
+
   # Global pages. Navigation lives in the sidenav, every page's chrome
   # carries only that page's actions, status is written out as words.
   scope "/", CabWeb do

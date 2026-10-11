@@ -4,6 +4,7 @@ on:
   push:
     branches: [master, nightly]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -63,3 +64,30 @@ jobs:
       - run: mix gettext.extract --check-up-to-date
         working-directory: apps/uadebate
       - run: mix hex.audit
+
+  # master moves only on release; every pull request goes to nightly
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull requests target nightly
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$BASE" = "master" ]; then
+            echo "::error::Pull requests go to nightly; master moves only on release."
+            exit 1
+          fi
+          echo "ok"
+
+  # the release image must keep building; pushed only by the release workflow
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
