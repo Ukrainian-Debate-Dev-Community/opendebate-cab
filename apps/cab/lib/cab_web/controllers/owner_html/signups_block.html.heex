@@ -1,6 +1,20 @@
 <.section title={gettext("People (%{count})", count: signed_up_counts(@state.signups))}>
   <div :if={@links != []} class="pad">
     <p>{gettext("A guest's personal link is their only access — share it only with them.")}</p>
+    <.form for={%{}} id="send-guest-link" class="send-link" phx-submit="send_link">
+      <select name="link" aria-label={gettext("Guest")}>
+        <option :for={link <- @links} value={link.id}>{link.user.name}</option>
+      </select>
+      <input
+        type="email"
+        name="email"
+        required
+        autocomplete="off"
+        placeholder={gettext("their e-mail address")}
+        aria-label={gettext("E-mail address")}
+      />
+      <button type="submit" class="btn-quiet">{gettext("Send link")}</button>
+    </.form>
   </div>
   <.table id="session-people" rows={@state.signups} empty={gettext("Nobody registered yet.")}>
     <:col :let={participant} label={gettext("Name")}>

@@ -511,6 +511,10 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .guest-offer .row input { flex:1; min-width:0; padding:9px 12px; border:1px solid var(--line);
                           border-radius:8px; font:inherit; background:var(--surface); color:var(--ink); }
 .guest-offer .row button { flex:none; justify-content:center; }
+.send-link { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.send-link select, .send-link input { padding:7px 10px; border:1px solid var(--line); border-radius:8px;
+                                      font:inherit; background:var(--surface); color:var(--ink); }
+.send-link input { flex:1; min-width:12rem; }
 
 /* the room card preview: the PNG people paste into a messenger */
 .sharecard canvas { display:block; width:100%; max-width:540px; height:auto;

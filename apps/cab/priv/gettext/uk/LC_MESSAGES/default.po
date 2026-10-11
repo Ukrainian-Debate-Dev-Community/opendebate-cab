@@ -79,13 +79,13 @@ msgstr[0] "%{count} людина"
 msgstr[1] "%{count} людини"
 msgstr[2] "%{count} людей"
 
-#: lib/cab_web/controllers/owner_controller.ex:249
-#: lib/cab_web/live/owner_session_live.ex:107
+#: lib/cab_web/controllers/owner_controller.ex:263
+#: lib/cab_web/live/owner_session_live.ex:165
 #, elixir-autogen, elixir-format
 msgid "%{count} room(s) created."
 msgstr "Створено кімнат: %{count}."
 
-#: lib/cab_web/controllers/owner_controller.ex:309
+#: lib/cab_web/controllers/owner_controller.ex:323
 #, elixir-autogen, elixir-format
 msgid "%{count} room(s) deleted. Allocate the rooms again."
 msgstr "Видалено кімнат: %{count}. Розподіліть кімнати ще раз."
@@ -101,17 +101,12 @@ msgstr "%{method} тепер прив'язано до цього акаунта.
 msgid "%{method} was already linked."
 msgstr "%{method} вже було прив'язано."
 
-#: lib/cab_web/live/owner_session_live.ex:84
-#, elixir-autogen, elixir-format
-msgid "%{name} added as a guest. Copy their personal link from People and send it to %{email}."
-msgstr "%{name} додано як гостя. Скопіюйте персональне посилання в розділі «Люди» й надішліть його на %{email}."
-
-#: lib/cab_web/controllers/owner_controller.ex:215
+#: lib/cab_web/controllers/owner_controller.ex:217
 #, elixir-autogen, elixir-format
 msgid "%{name} added as a guest. Personal link: %{url}"
 msgstr "%{name} додано як гостя. Персональне посилання: %{url}"
 
-#: lib/cab_web/controllers/owner_controller.ex:207
+#: lib/cab_web/controllers/owner_controller.ex:206
 #, elixir-autogen, elixir-format
 msgid "%{name} is in the session. They accept on their My page."
 msgstr "%{name} додано до сесії. Запрошення приймають на «Моїй сторінці»."
@@ -631,7 +626,7 @@ msgid "Drag chips into slots; drop on a taken slot to swap; drag a placed chip o
 msgstr "Перетягуйте учасників у слоти; кинете на зайнятий слот, і вони поміняються місцями; витягніть учасника за межі таблиці, щоб зняти його з місця. Команда з одного спікера стає айроном."
 
 #: lib/cab_web/controllers/owner_controller.ex:141
-#: lib/cab_web/controllers/owner_controller.ex:254
+#: lib/cab_web/controllers/owner_controller.ex:268
 #, elixir-autogen, elixir-format
 msgid "Drag people into the rooms first. Nobody is placed automatically."
 msgstr "Спершу розподіліть людей по кімнатах. Автоматично нікого не розсаджують."
@@ -656,12 +651,7 @@ msgstr "Редагувати белот"
 msgid "Edit club"
 msgstr "Редагувати клуб"
 
-#: lib/cab_web/controllers/owner_html/registration_block.html.heex:71
-#, elixir-autogen, elixir-format
-msgid "Email comes later; send them their personal link from People."
-msgstr "E-mail з'явиться пізніше; надішліть людині персональне посилання з розділу «Люди»."
-
-#: lib/cab_web/live/owner_session_live.ex:80
+#: lib/cab_web/live/owner_session_live.ex:86
 #, elixir-autogen, elixir-format
 msgid "Enter a name."
 msgstr "Введіть ім'я."
@@ -994,7 +984,7 @@ msgstr "Моя сторінка"
 msgid "My schedule"
 msgstr "Мій розклад"
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:6
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:20
 #: lib/cab_web/controllers/session_page_html/show.html.heex:84
 #, elixir-autogen, elixir-format
 msgid "Name"
@@ -1078,7 +1068,7 @@ msgstr "Ніхто в cab не використовує %{email}. Ім'я ціє
 msgid "Nobody is placed automatically"
 msgstr "Автоматично нікого не розсаджують"
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:5
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:19
 #: lib/cab_web/controllers/session_page_html/show.html.heex:82
 #, elixir-autogen, elixir-format
 msgid "Nobody registered yet."
@@ -1186,7 +1176,7 @@ msgid "People (%{count})"
 msgstr "Люди (%{count})"
 
 #: lib/cab_web/controllers/account_html/show.html.heex:49
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:13
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:27
 #: lib/cab_web/controllers/registration_html/created.html.heex:23
 #, elixir-autogen, elixir-format
 msgid "Personal link"
@@ -1376,7 +1366,7 @@ msgstr "Реєстрацію на цю сесію закрито."
 msgid "Registration opens as soon as you open the session."
 msgstr "Реєстрація відкривається, щойно ви відкриєте сесію."
 
-#: lib/cab_web/controllers/owner_controller.ex:232
+#: lib/cab_web/controllers/owner_controller.ex:246
 #, elixir-autogen, elixir-format
 msgid "Registration removed."
 msgstr "Реєстрацію видалено."
@@ -1500,7 +1490,7 @@ msgstr "Зберегти зображення"
 msgid "Scan or open"
 msgstr "Скануйте або відкрийте"
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:10
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:24
 #, elixir-autogen, elixir-format
 msgid "Seat"
 msgstr "Місце"
@@ -1529,12 +1519,12 @@ msgstr "Надішліть людині персональне посиланн�
 msgid "Session"
 msgstr "Сесія"
 
-#: lib/cab_web/controllers/owner_controller.ex:324
+#: lib/cab_web/controllers/owner_controller.ex:338
 #, elixir-autogen, elixir-format
 msgid "Session cancelled."
 msgstr "Сесію скасовано."
 
-#: lib/cab_web/controllers/owner_controller.ex:346
+#: lib/cab_web/controllers/owner_controller.ex:360
 #, elixir-autogen, elixir-format
 msgid "Session finished."
 msgstr "Сесію завершено."
@@ -1550,7 +1540,7 @@ msgid "Session opened. Registration is open."
 msgstr "Сесію відкрито. Реєстрація відкрита."
 
 #: lib/cab_web/controllers/owner_controller.ex:136
-#: lib/cab_web/live/owner_session_live.ex:101
+#: lib/cab_web/live/owner_session_live.ex:159
 #, elixir-autogen, elixir-format
 msgid "Session started with %{count} room(s)."
 msgstr "Сесію почато, кімнат: %{count}."
@@ -1776,7 +1766,7 @@ msgstr "Telegram, телефон або e-mail, за якими голова к�
 msgid "Terms"
 msgstr "Умови"
 
-#: lib/cab_web/controllers/owner_controller.ex:237
+#: lib/cab_web/controllers/owner_controller.ex:251
 #, elixir-autogen, elixir-format
 msgid "That person isn't in this session."
 msgstr "Цієї людини немає в сесії."
@@ -1936,7 +1926,7 @@ msgid "This session is finished — results live on the"
 msgstr "Цю сесію завершено — результати на"
 
 #: lib/cab_web/controllers/session_page_controller.ex:237
-#: lib/cab_web/live/owner_session_live.ex:157
+#: lib/cab_web/live/owner_session_live.ex:215
 #: lib/cab_web/live/room_live.ex:62
 #: lib/cab_web/live/session_live.ex:93
 #, elixir-autogen, elixir-format
@@ -1953,7 +1943,7 @@ msgstr "Часовий пояс"
 msgid "Two teams share a total. BP allows no ties, so adjust the scores."
 msgstr "Дві команди мають однакову суму. У БП нічиїх не буває, тож виправте бали."
 
-#: lib/cab_web/controllers/owner_controller.ex:222
+#: lib/cab_web/controllers/owner_controller.ex:224
 #, elixir-autogen, elixir-format
 msgid "Type a member's name, a user's exact username or email, or a guest's name."
 msgstr "Введіть ім'я члена клубу, точне ім'я користувача чи e-mail або ім'я гостя."
@@ -2106,9 +2096,10 @@ msgid "Your personal link"
 msgstr "Ваше персональне посилання"
 
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex:13
+#: lib/cab_web/emails.ex:80
 #, elixir-autogen, elixir-format
 msgid "a session"
-msgstr "без назви"
+msgstr "сесії"
 
 #: lib/cab_web/controllers/me_html/show.html.heex:25
 #, elixir-autogen, elixir-format
@@ -2426,7 +2417,7 @@ msgstr "реєстрація відкрита"
 
 #: lib/cab_web/controllers/account_html/show.html.heex:69
 #: lib/cab_web/controllers/owner_html/members.html.heex:69
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:27
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:41
 #, elixir-autogen, elixir-format
 msgid "remove"
 msgstr "видалити"
@@ -2469,7 +2460,7 @@ msgstr "спікер"
 msgid "team total"
 msgstr "сума команди"
 
-#: lib/cab_web/live/owner_session_live.ex:131
+#: lib/cab_web/live/owner_session_live.ex:189
 #, elixir-autogen, elixir-format
 msgid "that did not work — try again"
 msgstr "не вийшло — спробуйте ще раз"
@@ -2834,4 +2825,89 @@ msgstr "школярі"
 #: lib/cab_web/club_profile.ex:27
 #, elixir-autogen, elixir-format
 msgid "university students"
-msgstr ""
+msgstr "студенти"
+
+#: lib/cab_web/emails.ex:44
+#, elixir-autogen, elixir-format
+msgid "%{club} added you to %{session}"
+msgstr "%{club} додав вас до %{session}"
+
+#: lib/cab_web/live/owner_session_live.ex:101
+#, elixir-autogen, elixir-format
+msgid "%{name} added as a guest, but the e-mail could not be sent. Copy their personal link from People."
+msgstr "%{name} додано як гостя, але e-mail не вдалося надіслати. Скопіюйте персональне посилання в розділі «Люди»."
+
+#: lib/cab_web/live/owner_session_live.ex:94
+#, elixir-autogen, elixir-format
+msgid "%{name} added as a guest; we e-mailed their personal link to %{email}."
+msgstr "%{name} додано як гостя; ми надіслали персональне посилання на %{email}."
+
+#: lib/cab_web/live/owner_session_live.ex:122
+#, elixir-autogen, elixir-format
+msgid "Choose a guest."
+msgstr "Оберіть гостя."
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:14
+#, elixir-autogen, elixir-format
+msgid "E-mail address"
+msgstr "Адреса e-mail"
+
+#: lib/cab_web/live/owner_session_live.ex:125
+#, elixir-autogen, elixir-format
+msgid "Enter an e-mail address."
+msgstr "Введіть адресу e-mail."
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "Guest"
+msgstr "Гість"
+
+#: lib/cab_web/emails.ex:21
+#, elixir-autogen, elixir-format
+msgid "Hello %{name},\n\n%{club} added you to %{session}. This personal link is your way in: it shows the session, your seat and your room.\n\n%{url}\n\nAnyone with this link acts as you, so keep it to yourself. If you sign in to cab later, you can move your results into your account from this link.\n"
+msgstr "Вітаємо, %{name}.\n\n%{club} додав вас до %{session}. Через це персональне посилання ви входите: на ньому видно сесію, ваше місце і вашу кімнату.\n\n%{url}\n\nХто має це посилання, діє від вашого імені, тож нікому його не передавайте. Якщо згодом увійдете в cab, за цим посиланням зможете перенести свої результати у свій акаунт.\n"
+
+#: lib/cab_web/emails.ex:48
+#, elixir-autogen, elixir-format
+msgid "Hello %{name},\n\nThe head of %{club} added you to %{session}. Accept or decline on your page in cab:\n\n%{url}\n"
+msgstr "Вітаємо, %{name}.\n\nГолова клубу %{club} додав вас до %{session}. Прийміть або відхиліть запрошення на своїй сторінці в cab:\n\n%{url}\n"
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:16
+#, elixir-autogen, elixir-format
+msgid "Send link"
+msgstr "Надіслати посилання"
+
+#: lib/cab_web/controllers/owner_controller.ex:236
+#, elixir-autogen, elixir-format
+msgid "The e-mail could not be sent."
+msgstr "E-mail не вдалося надіслати."
+
+#: lib/cab_web/live/owner_session_live.ex:145
+#, elixir-autogen, elixir-format
+msgid "The e-mail could not be sent. Copy the personal link instead."
+msgstr "E-mail не вдалося надіслати. Скопіюйте персональне посилання."
+
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex:71
+#, elixir-autogen, elixir-format
+msgid "We e-mail them their personal link; the address is not stored."
+msgstr "Ми надішлемо персональне посилання на цю адресу; адресу не зберігаємо."
+
+#: lib/cab_web/live/owner_session_live.ex:134
+#, elixir-autogen, elixir-format
+msgid "We e-mailed %{name}'s personal link to %{email}."
+msgstr "Ми надіслали персональне посилання для %{name} на %{email}."
+
+#: lib/cab_web/controllers/owner_controller.ex:235
+#, elixir-autogen, elixir-format
+msgid "We e-mailed them."
+msgstr "Ми надіслали їм e-mail."
+
+#: lib/cab_web/emails.ex:20
+#, elixir-autogen, elixir-format
+msgid "Your link to %{session}"
+msgstr "Ваше посилання на %{session}"
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "their e-mail address"
+msgstr "їхня адреса e-mail"

@@ -201,12 +201,14 @@ defmodule CabWeb.OwnerController do
              do: {:ok, gettext("Registered %{name}.", name: user.name || user.username)}
 
       {:user, user} ->
-        with {:ok, _} <- Cab.Invitations.invite(head, session, user),
-             do:
-               {:ok,
-                gettext("%{name} is in the session. They accept on their My page.",
-                  name: user.name || user.username
-                )}
+        with {:ok, _} <- Cab.Invitations.invite(head, session, user) do
+          added =
+            gettext("%{name} is in the session. They accept on their My page.",
+              name: user.name || user.username
+            )
+
+          {:ok, added <> " " <> invitation_mail(user, session)}
+        end
 
       {:guest, name} ->
         with {:ok, link} <- Links.register_guest(session, name),
@@ -220,6 +222,18 @@ defmodule CabWeb.OwnerController do
       nil ->
         {:error,
          gettext("Type a member's name, a user's exact username or email, or a guest's name.")}
+    end
+  end
+
+  # the invite stands whether or not the e-mail goes out
+  defp invitation_mail(%{email: email}, _session) when email in [nil, ""], do: ""
+
+  defp invitation_mail(user, session) do
+    session = Cab.Repo.preload(session, :club)
+
+    case CabWeb.Emails.invitation(user, session, session.club) do
+      :ok -> gettext("We e-mailed them.")
+      {:error, _reason} -> gettext("The e-mail could not be sent.")
     end
   end
 

@@ -77,13 +77,13 @@ msgid_plural "%{count} people"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/cab_web/controllers/owner_controller.ex:249
-#: lib/cab_web/live/owner_session_live.ex:107
+#: lib/cab_web/controllers/owner_controller.ex:263
+#: lib/cab_web/live/owner_session_live.ex:165
 #, elixir-autogen, elixir-format
 msgid "%{count} room(s) created."
 msgstr ""
 
-#: lib/cab_web/controllers/owner_controller.ex:309
+#: lib/cab_web/controllers/owner_controller.ex:323
 #, elixir-autogen, elixir-format
 msgid "%{count} room(s) deleted. Allocate the rooms again."
 msgstr ""
@@ -99,17 +99,12 @@ msgstr ""
 msgid "%{method} was already linked."
 msgstr ""
 
-#: lib/cab_web/live/owner_session_live.ex:84
-#, elixir-autogen, elixir-format
-msgid "%{name} added as a guest. Copy their personal link from People and send it to %{email}."
-msgstr ""
-
-#: lib/cab_web/controllers/owner_controller.ex:215
+#: lib/cab_web/controllers/owner_controller.ex:217
 #, elixir-autogen, elixir-format
 msgid "%{name} added as a guest. Personal link: %{url}"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_controller.ex:207
+#: lib/cab_web/controllers/owner_controller.ex:206
 #, elixir-autogen, elixir-format
 msgid "%{name} is in the session. They accept on their My page."
 msgstr ""
@@ -628,7 +623,7 @@ msgid "Drag chips into slots; drop on a taken slot to swap; drag a placed chip o
 msgstr ""
 
 #: lib/cab_web/controllers/owner_controller.ex:141
-#: lib/cab_web/controllers/owner_controller.ex:254
+#: lib/cab_web/controllers/owner_controller.ex:268
 #, elixir-autogen, elixir-format
 msgid "Drag people into the rooms first. Nobody is placed automatically."
 msgstr ""
@@ -653,12 +648,7 @@ msgstr ""
 msgid "Edit club"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/registration_block.html.heex:71
-#, elixir-autogen, elixir-format
-msgid "Email comes later; send them their personal link from People."
-msgstr ""
-
-#: lib/cab_web/live/owner_session_live.ex:80
+#: lib/cab_web/live/owner_session_live.ex:86
 #, elixir-autogen, elixir-format
 msgid "Enter a name."
 msgstr ""
@@ -991,7 +981,7 @@ msgstr ""
 msgid "My schedule"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:6
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:20
 #: lib/cab_web/controllers/session_page_html/show.html.heex:84
 #, elixir-autogen, elixir-format
 msgid "Name"
@@ -1075,7 +1065,7 @@ msgstr ""
 msgid "Nobody is placed automatically"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:5
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:19
 #: lib/cab_web/controllers/session_page_html/show.html.heex:82
 #, elixir-autogen, elixir-format
 msgid "Nobody registered yet."
@@ -1183,7 +1173,7 @@ msgid "People (%{count})"
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex:49
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:13
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:27
 #: lib/cab_web/controllers/registration_html/created.html.heex:23
 #, elixir-autogen, elixir-format
 msgid "Personal link"
@@ -1373,7 +1363,7 @@ msgstr ""
 msgid "Registration opens as soon as you open the session."
 msgstr ""
 
-#: lib/cab_web/controllers/owner_controller.ex:232
+#: lib/cab_web/controllers/owner_controller.ex:246
 #, elixir-autogen, elixir-format
 msgid "Registration removed."
 msgstr ""
@@ -1497,7 +1487,7 @@ msgstr ""
 msgid "Scan or open"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:10
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:24
 #, elixir-autogen, elixir-format
 msgid "Seat"
 msgstr ""
@@ -1526,12 +1516,12 @@ msgstr ""
 msgid "Session"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_controller.ex:324
+#: lib/cab_web/controllers/owner_controller.ex:338
 #, elixir-autogen, elixir-format
 msgid "Session cancelled."
 msgstr ""
 
-#: lib/cab_web/controllers/owner_controller.ex:346
+#: lib/cab_web/controllers/owner_controller.ex:360
 #, elixir-autogen, elixir-format
 msgid "Session finished."
 msgstr ""
@@ -1547,7 +1537,7 @@ msgid "Session opened. Registration is open."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_controller.ex:136
-#: lib/cab_web/live/owner_session_live.ex:101
+#: lib/cab_web/live/owner_session_live.ex:159
 #, elixir-autogen, elixir-format
 msgid "Session started with %{count} room(s)."
 msgstr ""
@@ -1773,7 +1763,7 @@ msgstr ""
 msgid "Terms"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_controller.ex:237
+#: lib/cab_web/controllers/owner_controller.ex:251
 #, elixir-autogen, elixir-format
 msgid "That person isn't in this session."
 msgstr ""
@@ -1933,7 +1923,7 @@ msgid "This session is finished — results live on the"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_controller.ex:237
-#: lib/cab_web/live/owner_session_live.ex:157
+#: lib/cab_web/live/owner_session_live.ex:215
 #: lib/cab_web/live/room_live.ex:62
 #: lib/cab_web/live/session_live.ex:93
 #, elixir-autogen, elixir-format
@@ -1950,7 +1940,7 @@ msgstr ""
 msgid "Two teams share a total. BP allows no ties, so adjust the scores."
 msgstr ""
 
-#: lib/cab_web/controllers/owner_controller.ex:222
+#: lib/cab_web/controllers/owner_controller.ex:224
 #, elixir-autogen, elixir-format
 msgid "Type a member's name, a user's exact username or email, or a guest's name."
 msgstr ""
@@ -2103,6 +2093,7 @@ msgid "Your personal link"
 msgstr ""
 
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex:13
+#: lib/cab_web/emails.ex:80
 #, elixir-autogen, elixir-format
 msgid "a session"
 msgstr ""
@@ -2423,7 +2414,7 @@ msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex:69
 #: lib/cab_web/controllers/owner_html/members.html.heex:69
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:27
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:41
 #, elixir-autogen, elixir-format
 msgid "remove"
 msgstr ""
@@ -2466,7 +2457,7 @@ msgstr ""
 msgid "team total"
 msgstr ""
 
-#: lib/cab_web/live/owner_session_live.ex:131
+#: lib/cab_web/live/owner_session_live.ex:189
 #, elixir-autogen, elixir-format
 msgid "that did not work — try again"
 msgstr ""
@@ -2830,4 +2821,89 @@ msgstr ""
 #: lib/cab_web/club_profile.ex:27
 #, elixir-autogen, elixir-format
 msgid "university students"
+msgstr ""
+
+#: lib/cab_web/emails.ex:44
+#, elixir-autogen, elixir-format
+msgid "%{club} added you to %{session}"
+msgstr ""
+
+#: lib/cab_web/live/owner_session_live.ex:101
+#, elixir-autogen, elixir-format
+msgid "%{name} added as a guest, but the e-mail could not be sent. Copy their personal link from People."
+msgstr ""
+
+#: lib/cab_web/live/owner_session_live.ex:94
+#, elixir-autogen, elixir-format
+msgid "%{name} added as a guest; we e-mailed their personal link to %{email}."
+msgstr ""
+
+#: lib/cab_web/live/owner_session_live.ex:122
+#, elixir-autogen, elixir-format
+msgid "Choose a guest."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:14
+#, elixir-autogen, elixir-format
+msgid "E-mail address"
+msgstr ""
+
+#: lib/cab_web/live/owner_session_live.ex:125
+#, elixir-autogen, elixir-format
+msgid "Enter an e-mail address."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "Guest"
+msgstr ""
+
+#: lib/cab_web/emails.ex:21
+#, elixir-autogen, elixir-format
+msgid "Hello %{name},\n\n%{club} added you to %{session}. This personal link is your way in: it shows the session, your seat and your room.\n\n%{url}\n\nAnyone with this link acts as you, so keep it to yourself. If you sign in to cab later, you can move your results into your account from this link.\n"
+msgstr ""
+
+#: lib/cab_web/emails.ex:48
+#, elixir-autogen, elixir-format
+msgid "Hello %{name},\n\nThe head of %{club} added you to %{session}. Accept or decline on your page in cab:\n\n%{url}\n"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:16
+#, elixir-autogen, elixir-format
+msgid "Send link"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_controller.ex:236
+#, elixir-autogen, elixir-format
+msgid "The e-mail could not be sent."
+msgstr ""
+
+#: lib/cab_web/live/owner_session_live.ex:145
+#, elixir-autogen, elixir-format
+msgid "The e-mail could not be sent. Copy the personal link instead."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex:71
+#, elixir-autogen, elixir-format
+msgid "We e-mail them their personal link; the address is not stored."
+msgstr ""
+
+#: lib/cab_web/live/owner_session_live.ex:134
+#, elixir-autogen, elixir-format
+msgid "We e-mailed %{name}'s personal link to %{email}."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_controller.ex:235
+#, elixir-autogen, elixir-format
+msgid "We e-mailed them."
+msgstr ""
+
+#: lib/cab_web/emails.ex:20
+#, elixir-autogen, elixir-format
+msgid "Your link to %{session}"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "their e-mail address"
 msgstr ""

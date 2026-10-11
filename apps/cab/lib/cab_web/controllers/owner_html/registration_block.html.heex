@@ -68,7 +68,7 @@
             <input id="add-guest-name" type="text" name="name" required autocomplete="off" />
             <button type="submit">{gettext("Add as a guest")}</button>
           </div>
-          <p>{gettext("Email comes later; send them their personal link from People.")}</p>
+          <p>{gettext("We e-mail them their personal link; the address is not stored.")}</p>
         </.form>
         <p :if={String.trim(@query) == "" and @suggestions.members == []}>
           {gettext("Every member is in this session. Type a name to add a guest.")}

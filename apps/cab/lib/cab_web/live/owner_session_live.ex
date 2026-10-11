@@ -42,6 +42,9 @@ defmodule CabWeb.OwnerSessionLive do
      assign(socket, :draft, Sessions.draft(%{session | draft_allocation: draft}, state.signups))}
   end
 
+  # anything else (a test mailer's copy of a sent e-mail, say) is not ours
+  def handle_info(_message, socket), do: {:noreply, socket}
+
   @impl true
   def handle_event("place", %{"id" => id, "slot" => slot}, socket) do
     socket.assigns.current
@@ -73,20 +76,75 @@ defmodule CabWeb.OwnerSessionLive do
 
   def handle_event("add_guest", %{"name" => name}, socket), do: add(socket, {:guest, name})
 
-  # the address is only shown back to the head, never stored
+  # the address is used once to send the personal link, never stored
   def handle_event("add_guest_by_email", %{"name" => name, "email" => email}, socket) do
+    %{current: session, club: club} = socket.assigns
+    email = String.trim(email)
+
     case String.trim(name) do
       "" ->
         {:noreply, put_flash(socket, :error, gettext("Enter a name."))}
 
       name ->
-        add(socket, {:guest, name}, fn _info ->
-          gettext(
-            "%{name} added as a guest. Copy their personal link from People and send it to %{email}.",
-            name: name,
-            email: String.trim(email)
-          )
-        end)
+        case Links.register_guest(session, name) do
+          {:ok, link} ->
+            info =
+              case CabWeb.Emails.guest_link(email, link, session, club) do
+                :ok ->
+                  gettext(
+                    "%{name} added as a guest; we e-mailed their personal link to %{email}.",
+                    name: name,
+                    email: email
+                  )
+
+                {:error, _reason} ->
+                  gettext(
+                    "%{name} added as a guest, but the e-mail could not be sent. Copy their personal link from People.",
+                    name: name
+                  )
+              end
+
+            {:noreply, socket |> put_flash(:info, info) |> assign(:query, "") |> load()}
+
+          error ->
+            reply(error, socket)
+        end
+    end
+  end
+
+  # an existing guest's personal link, sent to an address typed once
+  def handle_event("send_link", %{"link" => link_id, "email" => email}, socket) do
+    %{current: session, club: club, links: links} = socket.assigns
+    email = String.trim(email)
+
+    case Enum.find(links, &(to_string(&1.id) == link_id)) do
+      nil ->
+        {:noreply, put_flash(socket, :error, gettext("Choose a guest."))}
+
+      _link when email == "" ->
+        {:noreply, put_flash(socket, :error, gettext("Enter an e-mail address."))}
+
+      link ->
+        case CabWeb.Emails.guest_link(email, link, session, club) do
+          :ok ->
+            {:noreply,
+             put_flash(
+               socket,
+               :info,
+               gettext("We e-mailed %{name}'s personal link to %{email}.",
+                 name: link.user.name,
+                 email: email
+               )
+             )}
+
+          {:error, _reason} ->
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("The e-mail could not be sent. Copy the personal link instead.")
+             )}
+        end
     end
   end
 

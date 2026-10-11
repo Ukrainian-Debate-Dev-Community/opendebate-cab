@@ -3,6 +3,7 @@ defmodule Cab.InvitationsTest do
 
   import Cab.Fixtures
   import Phoenix.LiveViewTest
+  import Swoosh.TestAssertions
 
   alias Cab.Invitations
   alias Cab.Invitations.Invitation
@@ -275,9 +276,18 @@ defmodule Cab.InvitationsTest do
 
     html = view |> form("#add-person-form", %{q: "olena@example.com"}) |> render_change()
     assert html =~ "registered user, will accept"
+    refute render(view) =~ ~s(id="send-guest-link")
     view |> element("#add-person-suggestions button", "olena") |> render_click()
     assert [%Invitation{}] = Repo.all(Invitation)
-    assert render(view) =~ "invited, not accepted yet"
+    html = render(view)
+    assert html =~ "invited, not accepted yet"
+    assert html =~ "We e-mailed them."
+
+    assert_email_sent(fn email ->
+      assert email.to == [{"", "olena@example.com"}]
+      assert email.subject =~ "added you to"
+      assert email.text_body =~ "/me"
+    end)
 
     # a name nobody in cab answers to: a guest, with what to do next
     html = view |> form("#add-person-form", %{q: "Zara Nova"}) |> render_change()
@@ -294,8 +304,31 @@ defmodule Cab.InvitationsTest do
       |> form("#add-guest-by-email", %{name: "Zara Nova"})
       |> render_submit()
 
-    assert html =~ "Zara Nova added as a guest"
-    assert html =~ "send it to nova@example.com"
+    assert html =~
+             "Zara Nova added as a guest; we e-mailed their personal link to nova@example.com."
+
+    [link] = Cab.Links.list_for_session(session)
+
+    assert_email_sent(fn email ->
+      assert email.to == [{"", "nova@example.com"}]
+      assert email.subject =~ "Your link to"
+      assert email.text_body =~ "/l/#{link.code}"
+    end)
+
+    # an existing guest's link, sent to an address typed once
+    assert html =~ ~s(id="send-guest-link")
+
+    html =
+      view
+      |> form("#send-guest-link", %{link: link.id, email: "zara@example.com"})
+      |> render_submit()
+
+    assert html =~ "personal link to zara@example.com"
+
+    assert_email_sent(fn email ->
+      assert email.to == [{"", "zara@example.com"}]
+      assert email.text_body =~ "/l/#{link.code}"
+    end)
 
     assert Enum.any?(
              calls(agent, "POST", "/api/events/11/participants"),
@@ -303,6 +336,29 @@ defmodule Cab.InvitationsTest do
            )
 
     refute Repo.get_by(Cab.Accounts.User, email: "nova@example.com")
+  end
+
+  test "when the e-mail cannot be sent, the guest is still added and the head is told", %{
+    conn: conn,
+    head: head,
+    club: club,
+    session: session
+  } do
+    mailer = Application.get_env(:core, Core.Mailer)
+    Application.put_env(:core, Core.Mailer, adapter: Cab.FailingMailAdapter)
+    on_exit(fn -> Application.put_env(:core, Core.Mailer, mailer) end)
+
+    {:ok, view, _html} =
+      conn
+      |> init_test_session(%{user_id: head.id})
+      |> live(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+
+    view |> form("#add-person-form", %{q: "nova@example.com"}) |> render_change()
+
+    html = view |> form("#add-guest-by-email", %{name: "Zara Nova"}) |> render_submit()
+
+    assert html =~ "Zara Nova added as a guest, but the e-mail could not be sent."
+    assert [_link] = Cab.Links.list_for_session(session)
   end
 
   defp name_error({:error, message}), do: {:error, String.downcase(message)}
