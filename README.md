@@ -10,7 +10,7 @@ The OpenDebate platform, an Elixir umbrella:
 Dependencies point down only: uadebate -> dfu -> cab -> core. cab knows
 nothing above it.
 
-`engine/` is the debate engine, [opendebate-engine](https://github.com/Ukrainian-Debate-Dev-Community/opendebate-dev),
+`engine/` is the debate engine, [opendebate-engine](https://github.com/Ukrainian-Debate-Dev-Community/opendebate-engine),
 pinned as a git submodule. Policy and Terms are deployment documents:
 in development they are read from the `opendebate-server` checkout next
 to this repo, in production from `LEGAL_DIR`.
