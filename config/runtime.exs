@@ -154,6 +154,13 @@ if config_env() == :prod do
     IO.warn("SMTP_HOST is not set: e-mails are kept in memory and never sent", [])
   end
 
+  # Share the sign-in with sibling sites: SESSION_COOKIE_DOMAIN=".example.org"
+  # lets every *.example.org host read cab's session cookie (read only).
+  # Unset, the cookie stays on cab's own host.
+  if domain = System.get_env("SESSION_COOKIE_DOMAIN") do
+    config :cab, :session_cookie_domain, domain
+  end
+
   case Regex.run(~r/^\s*(.*?)\s*<([^>]+)>\s*$/, System.get_env("MAIL_FROM", "")) do
     [_, name, address] -> config :cab, :mail_from, {name, address}
     _ -> :ok
