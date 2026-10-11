@@ -350,18 +350,18 @@ defmodule Cab.EngineApi do
   fall-through). The engine creates a released event motion and
   attaches it to the room atomically.
   """
-  @doc "Sets or clears (nil) when the room's prep ends (chair, or owner/organiser)."
-  def set_room_prep(actor, room_id, prep_ends_at) do
-    Engine.patch(actor, "/api/rooms/#{room_id}/prep", %{prep_ends_at: prep_ends_at})
-    |> unwrap()
-  end
-
   def set_room_motion(actor, room_id, motion_text, attrs \\ %{}) do
     Engine.post(
       actor,
       "/api/rooms/#{room_id}/motion",
       Map.merge(%{motion_text: motion_text}, attrs)
     )
+    |> unwrap()
+  end
+
+  @doc "Sets or clears (nil) when the room's prep ends (chair, or owner/organiser)."
+  def set_room_prep(actor, room_id, prep_ends_at) do
+    Engine.patch(actor, "/api/rooms/#{room_id}/prep", %{prep_ends_at: prep_ends_at})
     |> unwrap()
   end
 
