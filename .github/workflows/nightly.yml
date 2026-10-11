@@ -1,8 +1,8 @@
 name: nightly
 
-# Every night: master with the engine pin moved to the engine's latest
-# main. When the tests pass, the result becomes the nightly branch, from
-# which a pull request brings the new engine into master.
+# Every night: move the engine pin to the engine's latest main. When it
+# changed, the move lands on the engine/bump branch with a pull request
+# into nightly; CI runs on it, and a maintainer merges it like any other.
 on:
   schedule:
     - cron: "0 2 * * *"
@@ -10,51 +10,53 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
+  actions: write
 
 # never two nightly runs at once
 concurrency: nightly
 
-env:
-  MIX_ENV: test
-  ELIXIR_VERSION: "1.18.5"
-  OTP_VERSION: "27"
-
 jobs:
-  nightly:
+  engine-bump:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: master
+          ref: nightly
           fetch-depth: 0
       - name: Move the engine pin to its latest main
+        id: bump
         run: |
           git submodule set-url engine https://github.com/Ukrainian-Debate-Dev-Community/opendebate-engine.git
           git submodule update --init engine
+          before=$(git -C engine rev-parse HEAD)
           git -C engine fetch origin main
           git -C engine checkout origin/main
           git checkout -- .gitmodules
-          echo "ENGINE=$(git -C engine rev-parse --short HEAD)" >> "$GITHUB_ENV"
-      - uses: erlef/setup-beam@v1
-        with:
-          elixir-version: ${{ env.ELIXIR_VERSION }}
-          otp-version: ${{ env.OTP_VERSION }}
-      - run: mix deps.get
-      - run: mix compile --warnings-as-errors
-      - run: mix test
-      - name: Publish the nightly branch
+          after=$(git -C engine rev-parse HEAD)
+          echo "short=$(git -C engine rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          if [ "$before" = "$after" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open or update the pull request
+        if: steps.bump.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c engine/bump
           git add engine
-          git diff --cached --quiet || git commit -m "chore: engine at ${ENGINE}"
-          git push --force origin HEAD:nightly
+          git commit -m "chore: engine at ${{ steps.bump.outputs.short }}"
+          git push --force origin engine/bump
+          if [ -z "$(gh pr list --head engine/bump --base nightly --state open --json number -q '.[].number')" ]; then
+            gh pr create --head engine/bump --base nightly \
+              --title "chore: engine at ${{ steps.bump.outputs.short }}" \
+              --body "The engine's latest main. Merge when CI is green."
+          else
+            gh pr edit engine/bump --title "chore: engine at ${{ steps.bump.outputs.short }}"
+          fi
+          # pull requests opened by this token start no workflows themselves
+          gh workflow run ci.yml --ref engine/bump
