@@ -69,7 +69,7 @@ config :uadebate,
   ecto_repos: [Uadebate.Repo],
   generators: [timestamp_type: :utc_datetime]
 
-config :uadebate, UadebateWeb.Gettext, default_locale: "en", locales: ~w(en)
+config :uadebate, UadebateWeb.Gettext, default_locale: "en", locales: ~w(en uk)
 
 config :uadebate, UadebateWeb.Endpoint,
   url: [host: "localhost"],
