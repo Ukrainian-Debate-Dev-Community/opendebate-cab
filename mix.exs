@@ -3,7 +3,7 @@ defmodule Platform.MixProject do
 
   # Umbrella of the uadebate platform. Layering (deps point down only):
   #
-  #   engine (Node, cab/api) <- core <- cab <- dfu <- uadebate
+  #   engine (Node, engine/) <- core <- cab <- dfu <- uadebate
   #
   # uadebate is the public facade at the top: it aggregates data from
   # cab (tournaments, clubs, motions) and dfu (public org documents).

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prime a clickable demo world around a REAL signed-in user (dev only).
 #
-#   platform/apps/cab/priv/prime_demo.sh <your_username>
+#   apps/cab/priv/prime_demo.sh <your_username>
 #
 # M8a shell: navigation lives in the LEFT SIDENAV (brand cap -> home;
 # global: Clubs | Standings | Admin; club: Club | Rooms | Sessions |

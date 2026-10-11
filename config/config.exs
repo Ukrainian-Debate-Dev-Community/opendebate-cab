@@ -18,8 +18,9 @@ config :core, Core.Mailer, adapter: Swoosh.Adapters.Local
 config :cab, :mail_from, {"cab", "noreply@localhost"}
 
 # Policy and Terms are the deployment's own documents, one folder per
-# language (en/policy.html, en/terms.html, ...); cab only serves them
-config :cab, :legal_dir, Path.expand("../legal", __DIR__)
+# language (en/policy.md, en/terms.md, ...); cab only serves them
+# (in development: the opendebate-server checkout next to this repo)
+config :cab, :legal_dir, Path.expand("../../opendebate-server/legal", __DIR__)
 
 # Configure the endpoint
 # English by default; Ukrainian when the browser or the footer asks

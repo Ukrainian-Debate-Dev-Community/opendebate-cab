@@ -1,6 +1,6 @@
 import Config
 
-# In dev, load platform/.env into the environment ourselves: `source
+# In dev, load the repo root's .env into the environment ourselves: `source
 # .env` only creates shell variables, it does not export them to the
 # mix process. The path is fixed to the umbrella root so mix tasks run
 # from an app directory find it too. Exported variables still win.

@@ -52,7 +52,7 @@
             echo \"unix_socket_directories = '$PGDATA'\" >> $PGDATA/postgresql.conf && \
             pg_start && \
             createdb"
-          # run ecto.setup in every phoenix app under platform/
+          # run ecto.setup in every phoenix app (from apps/)
           alias ecto_setup_all='for d in */; do \
             [ -f "$d/mix.exs" ] && (cd "$d" && mix ecto.setup); done; true'
           alias pg_stop='pg_ctl -D $PGDATA stop'

@@ -5,3 +5,4 @@ deps/
 .mix/
 .DS_Store
 erl_crash.dump
+.run/

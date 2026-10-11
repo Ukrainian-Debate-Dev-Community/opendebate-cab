@@ -5,7 +5,7 @@ defmodule Cab.EngineApi do
   `{:error, message}` with a human-readable message suitable for
   inline display.
 
-  ## ENGINE AUDIT (cab/api, branch feat/engine-light, 2026-09)
+  ## ENGINE AUDIT (engine/, branch feat/engine-light, 2026-09)
 
   Base URL `/api`, auth `Authorization: Bearer <HS256 JWT {id, isAdmin}>`.
   Responses: `{"status":"success","data"|... }`; errors
