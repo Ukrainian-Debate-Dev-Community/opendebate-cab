@@ -91,6 +91,10 @@ defmodule CabWeb.HtmlTreesTest do
     club: club,
     head: head
   } do
+    Req.Test.stub(Core.Engine, fn conn ->
+      Req.Test.json(conn, %{"status" => "success", "data" => %{}})
+    end)
+
     html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
 
     # the profile form with Save in the chrome

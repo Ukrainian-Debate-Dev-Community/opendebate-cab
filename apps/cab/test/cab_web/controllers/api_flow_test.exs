@@ -642,6 +642,10 @@ defmodule CabWeb.ApiFlowTest do
   end
 
   test "club management: PATCH profile and member removal", %{conn: conn, club: club, head: head} do
+    Req.Test.stub(Core.Engine, fn conn ->
+      Req.Test.json(conn, %{"status" => "success", "data" => %{}})
+    end)
+
     member = user_fixture(%{node_user_id: 44})
     membership_fixture(member, club)
 

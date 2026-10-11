@@ -168,6 +168,10 @@ defmodule Cab.ClubsTest do
       head = user_fixture()
       club = club_fixture(head, %{name: "Old Name", city: "Kyiv"})
 
+      Req.Test.stub(Core.Engine, fn conn ->
+        Req.Test.json(conn, %{"status" => "success", "data" => %{}})
+      end)
+
       assert {:ok, updated} = Clubs.update_club(club, %{"name" => "New Name", "city" => "Lviv"})
       assert updated.name == "New Name"
       assert updated.city == "Lviv"
@@ -217,6 +221,39 @@ defmodule Cab.ClubsTest do
 
       # the admin listing still sees it
       assert club.id in (Clubs.list_all_clubs() |> Enum.map(& &1.id))
+    end
+  end
+
+  describe "update_club/2 and the engine organisation" do
+    test "a rename reaches the engine organisation first; other edits stay in cab" do
+      head = user_fixture(%{node_user_id: 9})
+      club = club_fixture(head, %{engine_organisation_id: 3, name: "Old Name"})
+      test_pid = self()
+
+      stub(fn conn, params ->
+        send(test_pid, {conn.method, conn.request_path, params})
+        ok(conn, %{"id" => 3, "name" => params["name"]})
+      end)
+
+      assert {:ok, %{city: "Lviv"}} = Clubs.update_club(club, %{"city" => "Lviv"})
+      refute_received {_, _, _}
+
+      assert {:ok, %{name: "New Name"}} = Clubs.update_club(club, %{"name" => "New Name"})
+      assert_received {"PUT", "/api/organisations/3", %{"name" => "New Name"}}
+    end
+
+    test "an engine refusal keeps the old name in cab too" do
+      head = user_fixture(%{node_user_id: 9})
+      club = club_fixture(head, %{engine_organisation_id: 3, name: "Kept Name"})
+
+      stub(fn conn, _params ->
+        conn
+        |> Plug.Conn.put_resp_content_type("application/json")
+        |> Plug.Conn.send_resp(403, ~s({"status":"fail","message":"nope"}))
+      end)
+
+      assert {:error, _} = Clubs.update_club(club, %{"name" => "Other Name"})
+      assert Repo.get!(Cab.Clubs.Club, club.id).name == "Kept Name"
     end
   end
 

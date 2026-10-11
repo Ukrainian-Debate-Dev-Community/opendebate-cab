@@ -198,6 +198,11 @@ defmodule Cab.EngineApi do
     |> unwrap()
   end
 
+  @doc "Renames an organisation (its owner may)."
+  def rename_organisation(actor, org_id, name) do
+    Engine.put(actor, "/api/organisations/#{org_id}", %{name: name}) |> unwrap()
+  end
+
   def add_owner(actor, org_id, target_user_id) do
     Engine.post(actor, "/api/organisations/#{org_id}/owners", %{targetUserId: target_user_id},
       admin: true

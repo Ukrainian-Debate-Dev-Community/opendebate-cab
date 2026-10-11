@@ -68,7 +68,22 @@ defmodule Cab.Clubs do
 
   @doc "The head/admin edits the club profile — gateway row only."
   def update_club(%Club{} = club, attrs) do
-    club |> Club.changeset(attrs) |> Repo.update()
+    changeset = Club.changeset(club, attrs)
+
+    # the club's name is also its engine organisation's name: a rename
+    # reaches the engine first, so the two never drift apart
+    with {:ok, _} <- rename_in_engine(club, Ecto.Changeset.get_change(changeset, :name)) do
+      Repo.update(changeset)
+    end
+  end
+
+  defp rename_in_engine(_club, nil), do: {:ok, :unchanged}
+  defp rename_in_engine(%Club{engine_organisation_id: nil}, _name), do: {:ok, :no_engine}
+
+  defp rename_in_engine(%Club{} = club, name) do
+    with {:ok, actor} <- club_actor(club) do
+      EngineApi.rename_organisation(actor, club.engine_organisation_id, name)
+    end
   end
 
   @doc """
