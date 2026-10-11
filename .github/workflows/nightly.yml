@@ -1,0 +1,57 @@
+name: nightly
+
+# Every night: master with the engine pin moved to the engine's latest
+# main. When the tests pass, the result becomes the nightly branch, from
+# which a pull request brings the new engine into master.
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  MIX_ENV: test
+  ELIXIR_VERSION: "1.18.5"
+  OTP_VERSION: "27"
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+      - name: Move the engine pin to its latest main
+        run: |
+          git submodule set-url engine https://github.com/Ukrainian-Debate-Dev-Community/opendebate-engine.git
+          git submodule update --init engine
+          git -C engine fetch origin main
+          git -C engine checkout origin/main
+          git checkout -- .gitmodules
+          echo "ENGINE=$(git -C engine rev-parse --short HEAD)" >> "$GITHUB_ENV"
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+      - run: mix deps.get
+      - run: mix compile --warnings-as-errors
+      - run: mix test
+      - name: Publish the nightly branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add engine
+          git diff --cached --quiet || git commit -m "chore: engine at ${ENGINE}"
+          git push --force origin HEAD:nightly
