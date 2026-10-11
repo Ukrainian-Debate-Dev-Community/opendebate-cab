@@ -1,0 +1,15 @@
+.git
+.github
+.run
+.env
+.env.*
+_build
+deps
+engine
+tools
+**/node_modules
+apps/cab/priv/static/assets
+**/erl_crash.dump
+*.jpg
+*.png
+!apps/*/priv/static/**/*.png
