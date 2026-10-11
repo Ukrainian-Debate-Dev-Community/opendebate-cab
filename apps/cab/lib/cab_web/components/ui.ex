@@ -83,6 +83,13 @@ defmodule CabWeb.Ui do
     """
   end
 
+  @doc "The beta tag beside the cab wordmark, until cab leaves beta."
+  def beta(assigns) do
+    ~H"""
+    <span class="beta-tag">{gettext("beta")}</span>
+    """
+  end
+
   @doc """
   The left sidenav - ONLY navigation: brand script cap -> home, plain
   place-name items for the current context (global: Clubs / Standings
@@ -101,7 +108,7 @@ defmodule CabWeb.Ui do
   def sidenav(assigns) do
     ~H"""
     <nav class="sidenav" id="sidenav">
-      <.link href={~p"/"} class="cap">cab</.link>
+      <.link href={~p"/"} class="cap">cab<.beta /></.link>
       <%= if @club do %>
         <div class="sec">{@club.name}</div>
         <.nav_item
