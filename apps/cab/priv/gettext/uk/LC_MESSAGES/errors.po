@@ -164,7 +164,7 @@ msgstr "Кожна кімната має бути об'єктом."
 #: lib/cab/sessions.ex:974
 #, elixir-autogen, elixir-format
 msgid "Every room needs %{count} teams of one or two speakers (a one-speaker team is an iron)."
-msgstr "У кожній кімнаті має бути %{count} команди з одного або двох спікерів (команда з одного спікера — айрон)."
+msgstr "У кожній кімнаті має бути %{count} команди з одного або двох спікерів (команда з одного спікера є айроном)."
 
 #: lib/cab/sessions.ex:963
 #, elixir-autogen, elixir-format
@@ -234,7 +234,7 @@ msgstr "Кімнати мають бути непорожнім списком �
 #: lib/cab/sessions.ex:1252
 #, elixir-autogen, elixir-format
 msgid "Scores are whole points from 50 to 100."
-msgstr "Бали — цілі числа від 50 до 100."
+msgstr "Бали є цілими числами від 50 до 100."
 
 #: lib/cab/sessions.ex:1237
 #, elixir-autogen, elixir-format

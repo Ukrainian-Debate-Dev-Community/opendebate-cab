@@ -104,7 +104,7 @@ msgstr "%{method} вже було прив'язано."
 #: lib/cab_web/live/owner_session_live.ex:84
 #, elixir-autogen, elixir-format
 msgid "%{name} added as a guest. Copy their personal link from People and send it to %{email}."
-msgstr "%{name} додано як гостя. Скопіюйте персональне посилання в розділі «Люди» й надішліть його на %{email}."
+msgstr "%{name} додано як гостя. Скопіюйте персональне посилання в розділі Люди й надішліть його на %{email}."
 
 #: lib/cab_web/controllers/owner_controller.ex:211
 #, elixir-autogen, elixir-format
@@ -114,7 +114,7 @@ msgstr "%{name} додано як гостя. Персональне посил�
 #: lib/cab_web/controllers/owner_controller.ex:203
 #, elixir-autogen, elixir-format
 msgid "%{name} is in the session. They accept on their My page."
-msgstr "%{name} додано до сесії. Запрошення приймають на «Моїй сторінці»."
+msgstr "%{name} додано до сесії. Запрошення приймають на Моїй сторінці."
 
 #: lib/cab_web/controllers/account_controller.ex:137
 #: lib/cab_web/controllers/guest_link_controller.ex:67
@@ -190,7 +190,7 @@ msgstr "4-те"
 #: lib/cab_web/controllers/account_html/merge.html.heex:21
 #, elixir-autogen, elixir-format
 msgid ": the one that heads a club, or else the older one. It gets the other account's debate history (shown under its name), clubs, club head positions, invitations and sign-in methods, and you stay signed in to it. The other account is closed. A club where both are members keeps the stronger membership. It cannot be undone."
-msgstr ": той, що очолює клуб, а якщо такого немає — старіший. До нього перейдуть історія дебатів іншого акаунта (під його ім'ям), клуби, посади голови клубу, запрошення та способи входу, і ви залишитеся в ньому. Інший акаунт буде закрито. Якщо обидва акаунти є членами одного клубу, лишається вище членство. Скасувати це неможливо."
+msgstr ": той, що очолює клуб, а якщо такого немає, то старіший. До нього перейдуть історія дебатів іншого акаунта (під його ім'ям), клуби, посади голови клубу, запрошення та способи входу, і ви залишитеся в ньому. Інший акаунт буде закрито. Якщо обидва акаунти є членами одного клубу, лишається вище членство. Скасувати це неможливо."
 
 #: lib/cab_web/controllers/page_html/home.html.heex:14
 #, elixir-autogen, elixir-format
@@ -203,7 +203,7 @@ msgstr[2] "Вас додали до %{count} сесій."
 #: lib/cab_web/controllers/me_html/show.html.heex:35
 #, elixir-autogen, elixir-format
 msgid "A club head added you to these sessions. Accept to see them on My page under your name; decline to have your name removed."
-msgstr "Голова клубу додав вас до цих сесій. Прийміть, щоб бачити їх на «Моїй сторінці» під своїм ім'ям; відхиліть, щоб ваше ім'я прибрали."
+msgstr "Голова клубу додав вас до цих сесій. Прийміть, щоб бачити їх на Моїй сторінці під своїм ім'ям; відхиліть, щоб ваше ім'я прибрали."
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex:3
 #, elixir-autogen, elixir-format
@@ -248,7 +248,7 @@ msgstr "Про людину"
 #: lib/cab_web/controllers/page_html/home.html.heex:18
 #, elixir-autogen, elixir-format
 msgid "Accept or decline on My page."
-msgstr "Прийміть або відхиліть на «Моїй сторінці»."
+msgstr "Прийміть або відхиліть на Моїй сторінці."
 
 #: lib/cab_web/controllers/account_controller.ex:152
 #: lib/cab_web/controllers/account_html/merge.html.heex:2
@@ -450,7 +450,7 @@ msgstr "Клуб"
 #: lib/cab_web/controllers/admin_controller.ex:31
 #, elixir-autogen, elixir-format
 msgid "Club %{club} created, headed by %{head}."
-msgstr "Клуб %{club} створено, голова — %{head}."
+msgstr "Клуб %{club} створено, голова: %{head}."
 
 #: lib/cab_web/controllers/member_html/archive_section.html.heex:1
 #, elixir-autogen, elixir-format
@@ -628,7 +628,7 @@ msgstr "Ім'я для показу"
 #: lib/cab_web/components/ui.ex:765
 #, elixir-autogen, elixir-format
 msgid "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team with one speaker becomes an iron."
-msgstr "Перетягуйте учасників у слоти; кинете на зайнятий слот — вони поміняються місцями; витягніть учасника за межі таблиці, щоб зняти його з місця. Команда з одного спікера стає айроном."
+msgstr "Перетягуйте учасників у слоти; кинете на зайнятий слот, і вони поміняються місцями; витягніть учасника за межі таблиці, щоб зняти його з місця. Команда з одного спікера стає айроном."
 
 #: lib/cab_web/controllers/owner_controller.ex:137
 #: lib/cab_web/controllers/owner_controller.ex:250
@@ -659,7 +659,7 @@ msgstr "Редагувати клуб"
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex:71
 #, elixir-autogen, elixir-format
 msgid "Email comes later; send them their personal link from People."
-msgstr "E-mail з'явиться пізніше; надішліть людині персональне посилання з розділу «Люди»."
+msgstr "E-mail з'явиться пізніше; надішліть людині персональне посилання з розділу Люди."
 
 #: lib/cab_web/live/owner_session_live.ex:80
 #, elixir-autogen, elixir-format
@@ -710,7 +710,7 @@ msgstr "Акаунт створюється автоматично під час
 #: lib/cab_web/controllers/admin_html/show.html.heex:91
 #, elixir-autogen, elixir-format
 msgid "For one person who ended up with two accounts and cannot sign in to both. The account that heads a club is kept, or else the older one; it gets the other's history, clubs, head positions and sign-in methods. It cannot be undone."
-msgstr "Для людини, у якої опинилося два акаунти і яка не може увійти в обидва. Лишається акаунт, що очолює клуб, а якщо такого немає — старіший; до нього переходять історія, клуби, посади голови та способи входу іншого. Скасувати це неможливо."
+msgstr "Для людини, у якої опинилося два акаунти і яка не може увійти в обидва. Лишається акаунт, що очолює клуб, а якщо такого немає, то старіший; до нього переходять історія, клуби, посади голови та способи входу іншого. Скасувати це неможливо."
 
 #: lib/cab_web/ballot_form.ex:79
 #, elixir-autogen, elixir-format
@@ -752,7 +752,7 @@ msgstr "Історія"
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex:17
 #, elixir-autogen, elixir-format
 msgid "If that guest was you, add their results to your account. They show on My page under your name, and this link stops working."
-msgstr "Якщо цим гостем були ви, додайте його результати до свого акаунта. Вони з'являться на «Моїй сторінці» під вашим ім'ям, а це посилання перестане працювати."
+msgstr "Якщо цим гостем були ви, додайте його результати до свого акаунта. Вони з'являться на Моїй сторінці під вашим ім'ям, а це посилання перестане працювати."
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:110
 #: lib/cab_web/controllers/session_page_html/room.html.heex:125
@@ -840,7 +840,7 @@ msgstr "Мова"
 #: lib/cab_web/controllers/account_html/show.html.heex:77
 #, elixir-autogen, elixir-format
 msgid "Linking lets you sign in to this same account with either. Separate accounts are fine too: link only if you want them to be one. If the method you link already has its own cab account, you can merge the two."
-msgstr "Прив'язка дає змогу входити в цей самий акаунт будь-яким із цих способів. Окремі акаунти — теж нормально: прив'язуйте, лише якщо хочете, щоб це був один акаунт. Якщо спосіб, який ви прив'язуєте, вже має власний акаунт у cab, ці два акаунти можна об'єднати."
+msgstr "Прив'язка дає змогу входити в цей самий акаунт будь-яким із цих способів. Окремі акаунти теж нормально: прив'язуйте, лише якщо хочете, щоб це був один акаунт. Якщо спосіб, який ви прив'язуєте, вже має власний акаунт у cab, ці два акаунти можна об'єднати."
 
 #: lib/cab_web/controllers/me_html/show.html.heex:134
 #, elixir-autogen, elixir-format
@@ -911,7 +911,7 @@ msgstr "Члени клубу (%{count})"
 #: lib/cab_web/controllers/owner_html/club.html.heex:61
 #, elixir-autogen, elixir-format
 msgid "Members only also keeps the club out of the global standings. Everything else stays public."
-msgstr "Режим «лише для членів клубу» також прибирає клуб із загального рейтингу. Усе інше лишається публічним."
+msgstr "Режим лише для членів клубу також прибирає клуб із загального рейтингу. Усе інше лишається публічним."
 
 #: lib/cab_web/controllers/account_controller.ex:70
 #: lib/cab_web/controllers/account_html/merge.html.heex:2
@@ -1248,7 +1248,7 @@ msgstr "Підготовка до {time}"
 #: lib/cab_web/controllers/owner_html/session.html.heex:61
 #, elixir-autogen, elixir-format
 msgid "Previous sessions live on the"
-msgstr "Попередні сесії — на"
+msgstr "Попередні сесії є на"
 
 #: lib/cab_web/controllers/account_html/show.html.heex:10
 #: lib/cab_web/controllers/me_html/show.html.heex:7
@@ -1512,7 +1512,7 @@ msgstr "Надіслати заявку"
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex:54
 #, elixir-autogen, elixir-format
 msgid "Send them their personal link from People."
-msgstr "Надішліть людині персональне посилання з розділу «Люди»."
+msgstr "Надішліть людині персональне посилання з розділу Люди."
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex:12
 #: lib/cab_web/controllers/me_html/show.html.heex:14
@@ -1592,7 +1592,7 @@ msgstr "Показується замість імені користувача 
 #: lib/cab_web/controllers/owner_html/club.html.heex:90
 #, elixir-autogen, elixir-format
 msgid "Shown to members on the club page; defaults to the date."
-msgstr "Бачать члени клубу на сторінці клубу; за замовчуванням — дата."
+msgstr "Бачать члени клубу на сторінці клубу; за замовчуванням дата."
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex:53
 #: lib/cab_web/controllers/session_page_html/show.html.heex:150
@@ -1692,7 +1692,7 @@ msgstr "Рейтинг"
 #: lib/cab_web/controllers/club_public_html/show.html.heex:52
 #, elixir-autogen, elixir-format
 msgid "Standings for each session are under"
-msgstr "Рейтинг кожної сесії — у розділі"
+msgstr "Рейтинг кожної сесії є в розділі"
 
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex:68
 #, elixir-autogen, elixir-format
@@ -1820,7 +1820,7 @@ msgstr "Клубу потрібна назва."
 #: lib/cab_web/controllers/owner_html/club.html.heex:75
 #, elixir-autogen, elixir-format
 msgid "The current session lives under Rooms."
-msgstr "Поточна сесія — у розділі «Кімнати»."
+msgstr "Поточна сесія є в розділі Кімнати."
 
 #: lib/cab_web/controllers/error_html.ex:19
 #, elixir-autogen, elixir-format
@@ -1856,7 +1856,7 @@ msgstr "Об'єднання неможливе, якщо обидва акаун
 #: lib/cab_web/controllers/account_html/merge.html.heex:21
 #, elixir-autogen, elixir-format
 msgid "The merged account is"
-msgstr "Об'єднаний акаунт —"
+msgstr "Об'єднаний акаунт:"
 
 #: lib/cab_web/controllers/admin_html/show.html.heex:64
 #, elixir-autogen, elixir-format
@@ -1897,17 +1897,17 @@ msgstr "За цією адресою нічого немає."
 #: lib/cab_web/components/layouts.ex:59
 #, elixir-autogen, elixir-format
 msgid "This browser cannot copy images. Use Save image."
-msgstr "Цей браузер не вміє копіювати зображення. Скористайтеся «Зберегти зображення»."
+msgstr "Цей браузер не вміє копіювати зображення. Скористайтеся кнопкою Зберегти зображення."
 
 #: lib/cab_web/controllers/club_public_controller.ex:136
 #, elixir-autogen, elixir-format
 msgid "This club's standings are for its members."
-msgstr "Рейтинг цього клубу — для його членів."
+msgstr "Рейтинг цього клубу лише для його членів."
 
 #: lib/cab_web/controllers/club_public_controller.ex:130
 #, elixir-autogen, elixir-format
 msgid "This club's standings are for members. Please sign in."
-msgstr "Рейтинг цього клубу — для членів клубу. Будь ласка, увійдіть."
+msgstr "Рейтинг цього клубу лише для членів клубу. Будь ласка, увійдіть."
 
 #: lib/cab_web/controllers/account_html/show.html.heex:25
 #, elixir-autogen, elixir-format
@@ -2400,7 +2400,7 @@ msgstr "реєструйтеся на сесію клубу за одним по
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex:47
 #, elixir-autogen, elixir-format
 msgid "registered user, will accept on My page"
-msgstr "зареєстрований користувач, прийме запрошення на «Моїй сторінці»"
+msgstr "зареєстрований користувач, прийме запрошення на Моїй сторінці"
 
 #: lib/cab_web/controllers/me_html.ex:12
 #: lib/cab_web/controllers/page_html/home.html.heex:54
