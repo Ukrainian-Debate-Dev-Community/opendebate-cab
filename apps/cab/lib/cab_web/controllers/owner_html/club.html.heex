@@ -52,6 +52,28 @@
           hint={gettext("Telegram, email — how newcomers reach the club.")}
         />
         <:block
+          name={:formats}
+          type={:multi}
+          label={gettext("Format")}
+          value={@club.formats}
+          options={CabWeb.ClubProfile.format_options()}
+          hint={gettext("Tick all that apply.")}
+        />
+        <:block
+          name={:languages}
+          type={:multi}
+          label={gettext("Language")}
+          value={@club.languages}
+          options={CabWeb.ClubProfile.language_options()}
+        />
+        <:block
+          name={:audiences}
+          type={:multi}
+          label={gettext("Audience")}
+          value={@club.audiences}
+          options={CabWeb.ClubProfile.audience_options()}
+        />
+        <:block
           name={:is_private}
           type={:select}
           label={gettext("Standings")}

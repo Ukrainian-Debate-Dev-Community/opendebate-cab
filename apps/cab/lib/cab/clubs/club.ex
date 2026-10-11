@@ -10,6 +10,10 @@ defmodule Cab.Clubs.Club do
     field :meeting_info, :string
     field :description, :string
     field :contacts, :string
+    # what the club plays, in which languages and for whom; any of each
+    field :formats, {:array, :string}, default: []
+    field :languages, {:array, :string}, default: []
+    field :audiences, {:array, :string}, default: []
     # private = standings only (excluded from global standings, own
     # standings members-only); everything else stays public
     field :is_private, :boolean, default: false
@@ -23,10 +27,31 @@ defmodule Cab.Clubs.Club do
     timestamps(type: :utc_datetime)
   end
 
+  @formats ~w(bp apf other)
+  @languages ~w(uk en other)
+  @audiences ~w(school university open)
+
+  def formats, do: @formats
+  def languages, do: @languages
+  def audiences, do: @audiences
+
   def changeset(club, attrs) do
     club
-    |> cast(attrs, [:name, :city, :meeting_info, :description, :contacts, :is_private])
+    |> cast(attrs, [
+      :name,
+      :city,
+      :meeting_info,
+      :description,
+      :contacts,
+      :is_private,
+      :formats,
+      :languages,
+      :audiences
+    ])
     |> validate_required([:name])
+    |> validate_subset(:formats, @formats)
+    |> validate_subset(:languages, @languages)
+    |> validate_subset(:audiences, @audiences)
     |> put_uuid()
     |> unique_constraint(:uuid)
   end

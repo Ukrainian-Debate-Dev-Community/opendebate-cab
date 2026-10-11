@@ -44,6 +44,15 @@
       <p :if={@club.description}>{@club.description}</p>
       <p :if={@club.meeting_info}>{gettext("Meetings:")} {@club.meeting_info}</p>
       <p :if={@club.contacts}>{gettext("Contacts:")} {@club.contacts}</p>
+      <p :if={CabWeb.ClubProfile.formats(@club.formats)}>
+        {gettext("Format:")} {CabWeb.ClubProfile.formats(@club.formats)}
+      </p>
+      <p :if={CabWeb.ClubProfile.languages(@club.languages)}>
+        {gettext("Language:")} {CabWeb.ClubProfile.languages(@club.languages)}
+      </p>
+      <p :if={CabWeb.ClubProfile.audiences(@club.audiences)}>
+        {gettext("Audience:")} {CabWeb.ClubProfile.audiences(@club.audiences)}
+      </p>
     </.section>
 
     <CabWeb.MemberHTML.archive_section club={@club} archive={@recent} />

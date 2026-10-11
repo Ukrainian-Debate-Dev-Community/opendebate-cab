@@ -38,6 +38,9 @@
           <.link href={~p"/c/#{club.uuid}"}>{club.name}</.link>
         </:col>
         <:col :let={club} label={gettext("City")}>{club.city}</:col>
+        <:col :let={club} label={gettext("Format")}>
+          {CabWeb.ClubProfile.formats(club.formats)}
+        </:col>
         <:col :let={club} label={gettext("Members")} num>{@member_counts[club.id] || 0}</:col>
         <:col :let={club} label={gettext("Next session")} class="st">
           <%= case @tonight[club.id] do %>

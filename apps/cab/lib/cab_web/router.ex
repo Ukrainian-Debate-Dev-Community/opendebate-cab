@@ -171,6 +171,7 @@ defmodule CabWeb.Router do
   scope "/api/v1", CabWeb.Api do
     pipe_through :api
 
+    get "/clubs", ClubController, :index
     get "/clubs/:uuid", ClubController, :show
     patch "/clubs/:uuid", ClubController, :update
     get "/clubs/:uuid/members", ClubController, :members

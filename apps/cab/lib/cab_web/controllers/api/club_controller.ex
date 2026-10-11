@@ -10,42 +10,58 @@ defmodule CabWeb.Api.ClubController do
   plug ClubScope, [source: :club, require: :roster] when action == :members
   plug ClubScope, [source: :club, require: :owner] when action in [:update, :remove_member]
 
+  # GET /api/v1/clubs - every club that is not archived, public profile
+  # only: what other services read to list clubs (members-only clubs
+  # too, since only their standings and roster are private)
+  def index(conn, _params) do
+    json(conn, %{clubs: Enum.map(Clubs.list_clubs(), &profile/1)})
+  end
+
   # GET /api/v1/clubs/:uuid - public profile + history (with winners)
   def show(conn, _params) do
     club = conn.assigns.club
 
     with {:ok, history} <- Clubs.club_history(club) do
-      json(conn, %{
-        uuid: club.uuid,
-        name: club.name,
-        city: club.city,
-        meeting_info: club.meeting_info,
-        description: club.description,
-        contacts: club.contacts,
-        history:
+      json(
+        conn,
+        Map.put(
+          profile(club),
+          :history,
           Enum.map(history, fn row ->
             %{session_uuid: row.session_uuid, name: row.name, winner: row.winner}
           end)
-      })
+        )
+      )
     end
   end
 
   # PATCH /api/v1/clubs/:uuid {"name", "city", "meeting_info",
-  # "description", "contacts", "is_private"} - head edits the profile
+  # "description", "contacts", "is_private", "formats", "languages",
+  # "audiences"} - head edits the profile; fields left out stay
   def update(conn, params) do
     attrs =
-      Map.take(params, ["name", "city", "meeting_info", "description", "contacts", "is_private"])
+      Map.take(
+        params,
+        ~w(name city meeting_info description contacts is_private formats languages audiences)
+      )
 
     with {:ok, club} <- Clubs.update_club(conn.assigns.club, attrs) do
-      json(conn, %{
-        uuid: club.uuid,
-        name: club.name,
-        city: club.city,
-        meeting_info: club.meeting_info,
-        description: club.description,
-        contacts: club.contacts
-      })
+      json(conn, profile(club))
     end
+  end
+
+  defp profile(club) do
+    %{
+      uuid: club.uuid,
+      name: club.name,
+      city: club.city,
+      meeting_info: club.meeting_info,
+      description: club.description,
+      contacts: club.contacts,
+      formats: club.formats,
+      languages: club.languages,
+      audiences: club.audiences
+    }
   end
 
   # GET /api/v1/clubs/:uuid/members - roster, members only

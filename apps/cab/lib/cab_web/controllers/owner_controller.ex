@@ -25,11 +25,15 @@ defmodule CabWeb.OwnerController do
     )
   end
 
+  @profile_fields ~w(name city meeting_info description contacts is_private formats languages audiences)
+
   # POST /c/:club_uuid/owner/club - the in-place save; twin of
   # PATCH /api/v1/clubs/:uuid
   def update_club(conn, params) do
+    # an unticked group sends nothing, so the form means "none of them"
     attrs =
-      Map.take(params, ["name", "city", "meeting_info", "description", "contacts", "is_private"])
+      %{"formats" => [], "languages" => [], "audiences" => []}
+      |> Map.merge(Map.take(params, @profile_fields))
 
     case Clubs.update_club(conn.assigns.club, attrs) do
       {:ok, _club} ->
