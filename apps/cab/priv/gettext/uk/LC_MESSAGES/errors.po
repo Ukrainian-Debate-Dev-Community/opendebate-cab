@@ -125,7 +125,7 @@ msgstr "%{name} не є членом цього клубу."
 msgid "%{name} is seated in a room. Only people still waiting can be removed."
 msgstr "%{name} вже сидить у кімнаті. Видалити можна лише тих, хто ще чекає."
 
-#: lib/cab/accounts.ex:323
+#: lib/cab/accounts.ex:345
 #, elixir-autogen, elixir-format
 msgid "Both accounts took part in the same session. Ask the club head to remove one of them from it first."
 msgstr "Обидва акаунти брали участь в одній сесії. Попросіть голову клубу спершу прибрати з неї один із них."
@@ -135,7 +135,7 @@ msgstr "Обидва акаунти брали участь в одній сес
 msgid "Could not create the personal link. Try again."
 msgstr "Не вдалося створити персональне посилання. Спробуйте ще раз."
 
-#: lib/cab/accounts.ex:205
+#: lib/cab/accounts.ex:227
 #, elixir-autogen, elixir-format
 msgid "Could not link that sign-in. Try again."
 msgstr "Не вдалося прив'язати цей спосіб входу. Спробуйте ще раз."
@@ -186,7 +186,7 @@ msgstr "Кожен бал має містити speaker_participant_id."
 msgid "Guests join through their personal link."
 msgstr "Гості приєднуються через своє персональне посилання."
 
-#: lib/cab/accounts.ex:220
+#: lib/cab/accounts.ex:242
 #, elixir-autogen, elixir-format
 msgid "Keep at least one way to sign in."
 msgstr "Залиште хоча б один спосіб входу."
@@ -256,8 +256,8 @@ msgstr "Когось розміщено на двох місцях."
 msgid "Someone placed in a room isn't in this session."
 msgstr "Хтось із розміщених у кімнаті не бере участі в цій сесії."
 
-#: lib/cab/accounts.ex:319
-#: lib/cab/accounts.ex:376
+#: lib/cab/accounts.ex:341
+#: lib/cab/accounts.ex:398
 #: lib/cab/clubs.ex:208
 #: lib/cab/clubs.ex:321
 #: lib/cab/engine_api.ex:476
@@ -271,12 +271,12 @@ msgstr "Хтось із розміщених у кімнаті не бере у�
 msgid "Something went wrong, try again."
 msgstr "Щось пішло не так, спробуйте ще раз."
 
-#: lib/cab/accounts.ex:330
+#: lib/cab/accounts.ex:352
 #, elixir-autogen, elixir-format
 msgid "That account still holds a role in a club. Ask a platform admin to merge them."
 msgstr "Цей акаунт досі має роль у клубі. Попросіть адміністратора платформи об'єднати їх."
 
-#: lib/cab/accounts.ex:239
+#: lib/cab/accounts.ex:261
 #, elixir-autogen, elixir-format
 msgid "That is this account."
 msgstr "Це і є цей акаунт."
@@ -307,7 +307,7 @@ msgstr "Ця кімната не належить до цієї сесії."
 msgid "That seat doesn't exist."
 msgstr "Такого місця немає."
 
-#: lib/cab/accounts.ex:217
+#: lib/cab/accounts.ex:239
 #, elixir-autogen, elixir-format
 msgid "That sign-in is not linked."
 msgstr "Цей спосіб входу не прив'язано."
@@ -322,7 +322,7 @@ msgstr "Голову клубу не можна видалити."
 msgid "The rooms are fixed once the session runs."
 msgstr "Після початку сесії кімнати не змінюються."
 
-#: lib/cab/accounts.ex:196
+#: lib/cab/accounts.ex:218
 #, elixir-autogen, elixir-format
 msgid "This account already has a different %{provider} sign-in linked."
 msgstr "До цього акаунта вже прив'язано інший вхід через %{provider}."
