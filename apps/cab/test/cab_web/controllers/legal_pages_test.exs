@@ -12,6 +12,12 @@ defmodule CabWeb.LegalPagesTest do
     assert terms =~ ~s(href="/policy")
   end
 
+  test "each language reads its own copy of the documents", %{conn: conn} do
+    policy = conn |> put_req_cookie("cab_locale", "uk") |> get(~p"/policy") |> html_response(200)
+    assert policy =~ "Політика конфіденційності"
+    refute policy =~ "Who we are"
+  end
+
   test "the old /privacy address leads to the Policy", %{conn: conn} do
     assert conn |> get("/privacy") |> redirected_to() == "/policy"
   end

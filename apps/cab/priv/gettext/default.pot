@@ -209,16 +209,6 @@ msgstr[1] ""
 msgid "A club head added you to these sessions. Accept to see them on My page under your name; decline to have your name removed."
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/policy.html.heex:56
-#, elixir-autogen, elixir-format
-msgid "A club head can add a registered person by their exact username or e-mail. We keep the invitation until you accept or decline it."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/terms.html.heex:28
-#, elixir-autogen, elixir-format
-msgid "A club head runs the club page, decides on join requests and runs the sessions: who registers, who sits where, motions and ballots. A club head adds people only with their agreement and treats what members write in their requests as confidential."
-msgstr ""
-
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex:3
 #, elixir-autogen, elixir-format
 msgid "A guest's personal link is their only access — share it only with them."
@@ -270,11 +260,6 @@ msgstr ""
 #: lib/cab_web/controllers/admin_html/show.html.heex:99
 #, elixir-autogen, elixir-format
 msgid "Account"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/terms.html.heex:19
-#, elixir-autogen, elixir-format
-msgid "Accounts and personal links"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex:6
@@ -401,16 +386,6 @@ msgstr ""
 msgid "Ballots"
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/terms.html.heex:42
-#, elixir-autogen, elixir-format
-msgid "Ballots and results are the record of a debate. Once a session is finished they stay, including in standings, so that the club's history is complete. Mistakes are corrected by the club head."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/terms.html.heex:47
-#, elixir-autogen, elixir-format
-msgid "Beta"
-msgstr ""
-
 #: lib/cab_web/controllers/signin_html/show.html.heex:100
 #, elixir-autogen, elixir-format
 msgid "By continuing you agree to the"
@@ -462,16 +437,6 @@ msgstr ""
 msgid "Change the time to move the end of prep; left empty, it is 15 minutes from now."
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/terms.html.heex:54
-#, elixir-autogen, elixir-format
-msgid "Changes and law"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:130
-#, elixir-autogen, elixir-format
-msgid "Children"
-msgstr ""
-
 #: lib/cab_web/controllers/admin_html/show.html.heex:49
 #: lib/cab_web/controllers/owner_html/club.html.heex:33
 #: lib/cab_web/controllers/page_html/home.html.heex:40
@@ -506,25 +471,10 @@ msgstr ""
 msgid "Club creation is admin-only — users can only request membership."
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/terms.html.heex:26
-#, elixir-autogen, elixir-format
-msgid "Club heads"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:41
-#, elixir-autogen, elixir-format
-msgid "Club membership."
-msgstr ""
-
 #: lib/cab_web/controllers/admin_html/show.html.heex:48
 #: lib/cab_web/controllers/owner_html/club.html.heex:29
 #, elixir-autogen, elixir-format
 msgid "Club name"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:98
-#, elixir-autogen, elixir-format
-msgid "Club pages, session pages, draws and results are public, so anyone can see the names in them. A club can make its standings and roster visible to members only. Your account details, e-mail and join-request messages are never public."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex:20
@@ -581,11 +531,6 @@ msgstr ""
 #: lib/cab_web/controllers/signin_html/show.html.heex:78
 #, elixir-autogen, elixir-format
 msgid "Continue with %{provider}"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:79
-#, elixir-autogen, elixir-format
-msgid "Cookies and browser storage"
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex:61
@@ -679,11 +624,6 @@ msgstr ""
 msgid "Debate clubs of Ukraine"
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/policy.html.heex:46
-#, elixir-autogen, elixir-format
-msgid "Debates."
-msgstr ""
-
 #: lib/cab_web/controllers/owner_html/session.html.heex:41
 #, elixir-autogen, elixir-format
 msgid "Delete rooms"
@@ -750,11 +690,6 @@ msgstr ""
 msgid "Exactly what visitors read on the club page."
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/terms.html.heex:33
-#, elixir-autogen, elixir-format
-msgid "Fair use"
-msgstr ""
-
 #: lib/cab_web/controllers/session_page_html/room.html.heex:37
 #, elixir-autogen, elixir-format
 msgid "Fill ballot"
@@ -781,11 +716,6 @@ msgstr ""
 msgid "First sign-in creates your account automatically."
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/policy.html.heex:46
-#, elixir-autogen, elixir-format
-msgid "For each session you take part in we keep your registration, your seat in the draw, the motions, the ballots and scores, and the results. Standings and your personal statistics are computed from exactly these records."
-msgstr ""
-
 #: lib/cab_web/controllers/admin_html/show.html.heex:91
 #, elixir-autogen, elixir-format
 msgid "For one person who ended up with two accounts and cannot sign in to both. The account that heads a club is kept, or else the older one; it gets the other's history, clubs, head positions and sign-in methods. It cannot be undone."
@@ -804,11 +734,6 @@ msgstr ""
 #: lib/cab_web/controllers/account_html/show.html.heex:39
 #, elixir-autogen, elixir-format
 msgid "Guest history"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:51
-#, elixir-autogen, elixir-format
-msgid "Guests."
 msgstr ""
 
 #: lib/cab_web/components/ui.ex:572
@@ -833,19 +758,9 @@ msgstr ""
 msgid "History"
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/policy.html.heex:103
-#, elixir-autogen, elixir-format
-msgid "How long we keep it"
-msgstr ""
-
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex:17
 #, elixir-autogen, elixir-format
 msgid "If that guest was you, add their results to your account. They show on My page under your name, and this link stops working."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:51
-#, elixir-autogen, elixir-format
-msgid "If you register without an account we keep the name you enter and a personal link to that one session. If a club head adds you by name, the same applies."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:110
@@ -862,11 +777,6 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/show.html.heex:12
 #, elixir-autogen, elixir-format
 msgid "Invitations"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:56
-#, elixir-autogen, elixir-format
-msgid "Invitations."
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/merge.html.heex:12
@@ -934,16 +844,6 @@ msgstr ""
 #: lib/cab_web/components/ui.ex:202
 #, elixir-autogen, elixir-format
 msgid "Language"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:110
-#, elixir-autogen, elixir-format
-msgid "Leaving a session before you are seated in a room, or being removed by the club head, deletes your name from it. A guest who leaves or is removed loses the guest account and the personal link. A guest who later signs in can move their results into their account, and the guest record is deleted."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:74
-#, elixir-autogen, elixir-format
-msgid "Legal basis: providing the service you asked for (GDPR Art. 6(1)(b); Law 2297-VI Art. 11), and our legitimate interest in running safe, fair debate sessions and keeping their results (GDPR Art. 6(1)(f))."
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex:77
@@ -1252,11 +1152,6 @@ msgstr ""
 msgid "OW"
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/policy.html.heex:81
-#, elixir-autogen, elixir-format
-msgid "One cookie keeps you signed in. It is strictly necessary and needs no consent. Your theme choice (light, dark or system) is kept in your browser only and never sent to us. cab uses no analytics, no advertising and no third-party trackers, and its pages load nothing from other companies."
-msgstr ""
-
 #: lib/cab_web/controllers/owner_html/club.html.heex:80
 #, elixir-autogen, elixir-format
 msgid "Open a session"
@@ -1354,8 +1249,6 @@ msgstr ""
 
 #: lib/cab_web/components/layouts/app.html.heex:45
 #: lib/cab_web/controllers/page_controller.ex:33
-#: lib/cab_web/controllers/page_html/policy.html.heex:2
-#: lib/cab_web/controllers/page_html/terms.html.heex:14
 #: lib/cab_web/controllers/signin_html/show.html.heex:102
 #, elixir-autogen, elixir-format
 msgid "Policy"
@@ -1536,11 +1429,6 @@ msgstr ""
 #: lib/cab_web/controllers/session_page_html/show.html.heex:157
 #, elixir-autogen, elixir-format
 msgid "Result"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/terms.html.heex:40
-#, elixir-autogen, elixir-format
-msgid "Results"
 msgstr ""
 
 #: lib/cab_web/controllers/member_html/members.html.heex:20
@@ -1750,11 +1638,6 @@ msgstr ""
 msgid "Sign in with an account"
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/terms.html.heex:21
-#, elixir-autogen, elixir-format
-msgid "Sign in with your own account and keep it to yourself. A personal guest link is your access to one session: anyone holding it acts as you, so share it with no one. You can move a guest's results into your own account once you sign in."
-msgstr ""
-
 #: lib/cab_web/user_auth.ex:21
 #, elixir-autogen, elixir-format
 msgid "Sign in with your own account first."
@@ -1894,11 +1777,6 @@ msgstr ""
 msgid "Teams"
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/policy.html.heex:66
-#, elixir-autogen, elixir-format
-msgid "Technical data."
-msgstr ""
-
 #: lib/cab_web/controllers/owner_html/club.html.heex:52
 #, elixir-autogen, elixir-format
 msgid "Telegram, email — how newcomers reach the club."
@@ -1911,7 +1789,6 @@ msgstr ""
 
 #: lib/cab_web/components/layouts/app.html.heex:46
 #: lib/cab_web/controllers/page_controller.ex:36
-#: lib/cab_web/controllers/page_html/terms.html.heex:2
 #: lib/cab_web/controllers/signin_html/show.html.heex:101
 #, elixir-autogen, elixir-format
 msgid "Terms"
@@ -2109,11 +1986,6 @@ msgstr ""
 msgid "Update motion"
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/terms.html.heex:35
-#, elixir-autogen, elixir-format
-msgid "Use cab for debating. Do not impersonate others, enter false results, harass anyone in names, motions or messages, or try to break, overload or get around the service's access rules. We may remove content or suspend access that breaks these terms, and we say why when we do."
-msgstr ""
-
 #: lib/cab_web/controllers/signin_html/show.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Use one of the following sign-in methods. We don't use passwords."
@@ -2134,19 +2006,9 @@ msgstr ""
 msgid "Waiting (%{count})"
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/terms.html.heex:56
-#, elixir-autogen, elixir-format
-msgid "We may update these terms; we change the date above and say so on this page before a change applies. These terms are governed by the law of Ukraine."
-msgstr ""
-
 #: lib/cab_web/controllers/page_html/home.html.heex:22
 #, elixir-autogen, elixir-format
 msgid "Welcome to"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:34
-#, elixir-autogen, elixir-format
-msgid "What we store and why"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex:39
@@ -2154,34 +2016,9 @@ msgstr ""
 msgid "When and where the club meets, e.g. Thursdays 18:30, Hrushevskoho 4."
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/policy.html.heex:41
-#, elixir-autogen, elixir-format
-msgid "When you ask to join a club we keep your request, the message and the contact you wrote for the club head, your role and the dates. The club head reads them to decide on your request."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:36
-#, elixir-autogen, elixir-format
-msgid "When you sign in with GitHub or Google we receive and keep your name, e-mail address, picture link and your account number there (and your GitHub username). We never see your password. Each sign-in method is its own cab account unless you link them on your Account page. We use these to sign you in and to show your name on rosters and draws. You can change your display name on your Account page."
-msgstr ""
-
 #: lib/cab_web/controllers/owner_html/members.html.heex:21
 #, elixir-autogen, elixir-format
 msgid "Who"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:96
-#, elixir-autogen, elixir-format
-msgid "Who can see what"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:86
-#, elixir-autogen, elixir-format
-msgid "Who else handles the data"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:16
-#, elixir-autogen, elixir-format
-msgid "Who we are"
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_html/join.html.heex:28
@@ -2255,11 +2092,6 @@ msgstr ""
 msgid "You are registered."
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/policy.html.heex:125
-#, elixir-autogen, elixir-format
-msgid "You can also complain to the Ukrainian Parliament Commissioner for Human Rights (Уповноважений Верховної Ради України з прав людини) or, in the EU, to your data protection authority."
-msgstr ""
-
 #: lib/cab_web/controllers/account_html/merge.html.heex:13
 #, elixir-autogen, elixir-format
 msgid "You can keep the two accounts apart, or merge them into one."
@@ -2268,16 +2100,6 @@ msgstr ""
 #: lib/cab_web/controllers/signin_html/show.html.heex:26
 #, elixir-autogen, elixir-format
 msgid "You may already have an account"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:105
-#, elixir-autogen, elixir-format
-msgid "Your account stays until you ask us to delete it. Results are the record of a debate and stay; when an account is deleted, its name in past results is replaced, so history stays complete without identifying you."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:36
-#, elixir-autogen, elixir-format
-msgid "Your account."
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex:84
@@ -2299,36 +2121,6 @@ msgstr ""
 #: lib/cab_web/controllers/registration_html/created.html.heex:20
 #, elixir-autogen, elixir-format
 msgid "Your personal link"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:115
-#, elixir-autogen, elixir-format
-msgid "Your rights"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:22
-#, elixir-autogen, elixir-format
-msgid "[code]"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:135
-#, elixir-autogen, elixir-format
-msgid "[confirm the age with a lawyer]"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:91
-#, elixir-autogen, elixir-format
-msgid "[data centre location]"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:21
-#, elixir-autogen, elixir-format
-msgid "[legal address]"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:69
-#, elixir-autogen, elixir-format
-msgid "[retention, e.g. 14 days]"
 msgstr ""
 
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex:13
@@ -2394,11 +2186,6 @@ msgstr ""
 #: lib/cab_web/components/layouts/app.html.heex:42
 #, elixir-autogen, elixir-format
 msgid "cab is in beta testing."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/terms.html.heex:49
-#, elixir-autogen, elixir-format
-msgid "cab is in beta testing. It is offered as it is, may change, and may be unavailable at times. We keep the data safe and backed up, but we cannot promise the service is free of errors. To the extent the law allows, the Federation is not liable for indirect losses from using cab."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:16
@@ -2772,67 +2559,6 @@ msgstr ""
 msgid "— drag people from the tray into the slots."
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/policy.html.heex:89
-#, elixir-autogen, elixir-format
-msgid "GitHub and Google handle your sign-in when you choose them. Hetzner hosts our servers in %{location}. We sell or give your data to no one."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:7
-#: lib/cab_web/controllers/page_html/terms.html.heex:7
-#, elixir-autogen, elixir-format
-msgid "Last updated: 9 October 2026"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:133
-#, elixir-autogen, elixir-format
-msgid "Many debaters are at school. If you are under 14, a parent or guardian should agree to your registration and can make any request on this page for you. %{note}"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:67
-#, elixir-autogen, elixir-format
-msgid "Our web server logs each request (IP address, page, time and browser) to keep the service secure and working. These logs are kept for %{retention}."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:6
-#, elixir-autogen, elixir-format
-msgid "Privacy policy"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:28
-#, elixir-autogen, elixir-format
-msgid "Questions and requests about your data: %{email}."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/terms.html.heex:62
-#, elixir-autogen, elixir-format
-msgid "Questions: %{questions}. Support: %{support}."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/terms.html.heex:6
-#, elixir-autogen, elixir-format
-msgid "Terms of use"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:11
-#, elixir-autogen, elixir-format
-msgid "This policy follows the Law of Ukraine «Про захист персональних даних» (No. 2297-VI) and, for people in the European Union, the GDPR. cab is in beta testing; when we change this policy we update the date above and say so on this page."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:118
-#, elixir-autogen, elixir-format
-msgid "You can ask to see your data, correct it, delete it, restrict or object to how we use it, and get a copy to take elsewhere. Write to %{email} and we answer within 30 days."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/terms.html.heex:12
-#, elixir-autogen, elixir-format
-msgid "cab is a free service of the NGO Debate Federation of Ukraine (ВМГО «Федерація Дебатів України») for running debate clubs and their sessions. By using it you agree to these terms. How we handle personal data is in the %{policy}."
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:19
-#, elixir-autogen, elixir-format
-msgid "cab is run by the NGO Debate Federation of Ukraine (ВМГО «Федерація Дебатів України»), the controller of the personal data described here. Address: %{address}. ЄДРПОУ: %{code}."
-msgstr ""
-
 #: lib/cab_web/controllers/feedback_html/new.html.heex:44
 #, elixir-autogen, elixir-format
 msgid "%{adjudicator} sees it, without your team's name, once the session is finished."
@@ -2866,11 +2592,6 @@ msgstr ""
 #: lib/cab_web/controllers/feedback_html/new.html.heex:55
 #, elixir-autogen, elixir-format
 msgid "Adjudicator: %{name}"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:61
-#, elixir-autogen, elixir-format
-msgid "After a room's ballot is in, each team can send one feedback on its adjudicator: two scores from 1 to 10 and a written discussion, kept with the debate's results. The team that sent it and the club head see it with the team's name; the adjudicator sees it without the team's name once the club head finishes the session. Everyone sees each adjudicator's average, where a base of 5 counts as one vote."
 msgstr ""
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex:40
@@ -2912,11 +2633,6 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:71
 #, elixir-autogen, elixir-format
 msgid "Feedback"
-msgstr ""
-
-#: lib/cab_web/controllers/page_html/policy.html.heex:61
-#, elixir-autogen, elixir-format
-msgid "Feedback on adjudicators."
 msgstr ""
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex:36

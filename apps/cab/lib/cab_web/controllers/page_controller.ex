@@ -30,10 +30,10 @@ defmodule CabWeb.PageController do
   end
 
   # GET /policy — how cab handles personal data
-  def policy(conn, _params), do: render(conn, :policy, page_title: gettext("Policy"))
+  def policy(conn, _params), do: legal(conn, "policy", gettext("Policy"))
 
   # GET /terms — the terms of use
-  def terms(conn, _params), do: render(conn, :terms, page_title: gettext("Terms"))
+  def terms(conn, _params), do: legal(conn, "terms", gettext("Terms"))
 
   # GET /privacy — the policy's old address
   def privacy_moved(conn, _params), do: redirect(conn, to: ~p"/policy")
@@ -47,5 +47,17 @@ defmodule CabWeb.PageController do
         _ -> nil
       end
     end)
+  end
+
+  # Policy and Terms are documents kept outside the code, one file per
+  # language in priv/legal/<locale>/, read on each request so an edit
+  # shows without a release; a language without its own copy gets English.
+  defp legal(conn, doc, title) do
+    body =
+      [Gettext.get_locale(CabWeb.Gettext), "en"]
+      |> Enum.map(&Path.join([:code.priv_dir(:cab), "legal", &1, doc <> ".html"]))
+      |> Enum.find_value(&(File.exists?(&1) && File.read!(&1)))
+
+    render(conn, :legal, doc: doc, body: Phoenix.HTML.raw(body), page_title: title)
   end
 end
