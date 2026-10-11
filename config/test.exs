@@ -1,5 +1,7 @@
 import Config
 
+config :core, Core.Mailer, adapter: Swoosh.Adapters.Test
+
 config :cab, :legal_dir, Path.expand("../apps/cab/test/support/legal", __DIR__)
 
 # Configure your database

@@ -11,6 +11,12 @@ config :cab,
   ecto_repos: [Cab.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# Mail goes through Core.Mailer: kept in memory (and shown at
+# /dev/mailbox) until runtime.exs points it at an SMTP server
+config :swoosh, :api_client, false
+config :core, Core.Mailer, adapter: Swoosh.Adapters.Local
+config :cab, :mail_from, {"cab", "noreply@localhost"}
+
 # Policy and Terms are the deployment's own documents, one folder per
 # language (en/policy.html, en/terms.html, ...); cab only serves them
 config :cab, :legal_dir, Path.expand("../legal", __DIR__)

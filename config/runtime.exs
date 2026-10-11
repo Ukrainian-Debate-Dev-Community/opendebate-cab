@@ -126,6 +126,28 @@ if config_env() == :prod do
 
   host = System.get_env("PHX_HOST") || "example.com"
 
+  # Mail: SMTP when SMTP_HOST is set, otherwise kept in memory (nothing
+  # leaves the server). MAIL_FROM is "Name <address>".
+  if smtp_host = System.get_env("SMTP_HOST") do
+    config :core, Core.Mailer,
+      adapter: Swoosh.Adapters.SMTP,
+      relay: smtp_host,
+      port: String.to_integer(System.get_env("SMTP_PORT", "587")),
+      username: System.get_env("SMTP_USERNAME"),
+      password: System.get_env("SMTP_PASSWORD"),
+      tls: :always,
+      auth: :always,
+      ssl: false,
+      retries: 1
+  else
+    IO.warn("SMTP_HOST is not set: e-mails are kept in memory and never sent", [])
+  end
+
+  case Regex.run(~r/^\s*(.*?)\s*<([^>]+)>\s*$/, System.get_env("MAIL_FROM", "")) do
+    [_, name, address] -> config :cab, :mail_from, {name, address}
+    _ -> :ok
+  end
+
   config :cab, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :cab, CabWeb.Endpoint,

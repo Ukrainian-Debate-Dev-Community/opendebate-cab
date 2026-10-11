@@ -229,6 +229,9 @@ defmodule CabWeb.Router do
 
       live_dashboard "/dashboard", metrics: CabWeb.Telemetry
 
+      # e-mails the local adapter kept instead of sending
+      forward "/mailbox", Plug.Swoosh.MailboxPreview
+
       # DEV ONLY: session user switcher (bypasses OAuth).
       get "/switch-user", CabWeb.DevSessionController, :switch
     end
