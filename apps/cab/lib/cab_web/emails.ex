@@ -9,7 +9,7 @@ defmodule CabWeb.Emails do
   import Swoosh.Email
 
   alias Cab.Accounts.User
-  alias Cab.Clubs.Club
+  alias Cab.Clubs.{Club, HeadInvitation}
   alias Cab.Links.Link
   alias Cab.Sessions.Session
 
@@ -62,6 +62,35 @@ defmodule CabWeb.Emails do
   end
 
   def invitation(_user, _session, _club), do: {:error, :no_address}
+
+  @doc "An invitation to head a club, sent to the address an admin typed."
+  def head_invitation(%HeadInvitation{} = invitation, token, %User{} = inviter) do
+    deliver(
+      invitation.email,
+      gettext("%{club}: you are invited to be its head", club: invitation.club.name),
+      gettext(
+        """
+        Hello %{name},
+
+        %{inviter} invites you to be the head of %{club} in cab, where debate clubs run their sessions.
+
+        Open this link and sign in with GitHub or Google; you become the head as soon as you are signed in:
+
+        %{url}
+
+        The link works once and expires on %{date}.
+        """,
+        name: invitation.name,
+        inviter: inviter.name || inviter.username,
+        club: invitation.club.name,
+        url: head_invitation_url(token),
+        date: Calendar.strftime(invitation.expires_at, "%Y-%m-%d")
+      )
+    )
+  end
+
+  @doc "The link inside a head invitation."
+  def head_invitation_url(token), do: url(~p"/head-invitations/#{token}")
 
   defp deliver(address, subject, body) do
     new()

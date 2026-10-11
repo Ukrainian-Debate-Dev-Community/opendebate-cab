@@ -186,7 +186,7 @@ defmodule CabWeb.ShellPagesTest do
       created =
         conn
         |> log_in(admin)
-        |> post(~p"/admin/clubs", %{name: "Admin Club", city: "Kyiv", head_id: "#{head.id}"})
+        |> post(~p"/admin/clubs", %{name: "Admin Club", city: "Kyiv", head: head.username})
 
       assert redirected_to(created) == "/admin"
       assert [club] = Cab.Clubs.list_clubs() |> Enum.filter(&(&1.name == "Admin Club"))
@@ -208,7 +208,7 @@ defmodule CabWeb.ShellPagesTest do
       changed =
         conn
         |> log_in(admin)
-        |> post(~p"/admin/head", %{uuid: club.uuid, head_id: "#{new_head.id}"})
+        |> post(~p"/admin/head", %{uuid: club.uuid, head: new_head.username})
 
       assert redirected_to(changed) == "/admin"
       assert Cab.Clubs.role_for(club, new_head) == :owner

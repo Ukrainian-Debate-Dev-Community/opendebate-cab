@@ -22,6 +22,7 @@ defmodule CabWeb.SigninController do
         render(conn, :show,
           existing: nil,
           providers: ["GitHub", "Google"],
+          head_club: CabWeb.HeadInvitationController.pending_club(conn),
           page_title: gettext("Sign in")
         )
 
@@ -29,6 +30,7 @@ defmodule CabWeb.SigninController do
         render(conn, :show,
           existing: existing,
           providers: existing.providers,
+          head_club: CabWeb.HeadInvitationController.pending_club(conn),
           page_title: gettext("Sign in")
         )
 

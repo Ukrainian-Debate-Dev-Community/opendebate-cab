@@ -1,0 +1,9 @@
+<Layouts.app flash={@flash} current_user={@current_user}>
+  <.chrome here={gettext("Invitation")}></.chrome>
+
+  <div class="pbody">
+    <.section title={reason_words(@reason)} pad>
+      <p>{gettext("Ask the admin who invited you to send a new link.")}</p>
+    </.section>
+  </div>
+</Layouts.app>

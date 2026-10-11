@@ -48,11 +48,23 @@
         <:block name={:name} type={:text} label={gettext("Club name")} required />
         <:block name={:city} type={:text} label={gettext("City")} />
         <:block
-          name={:head_id}
-          type={:select}
+          name={:head}
+          type={:text}
           label={gettext("Head")}
           required
-          options={user_options(@users)}
+          list="cab-accounts"
+          placeholder={gettext("username or e-mail")}
+          hint={
+            gettext(
+              "An account's username or e-mail. An e-mail no account uses sends an invitation instead."
+            )
+          }
+        />
+        <:block
+          name={:head_name}
+          type={:text}
+          label={gettext("Their name")}
+          hint={gettext("Only for an invitation: the name the e-mail greets.")}
         />
       </.form_for>
     </.section>
@@ -71,17 +83,58 @@
           options={club_options(@clubs)}
         />
         <:block
-          name={:head_id}
-          type={:select}
+          name={:head}
+          type={:text}
           label={gettext("New head")}
           required
-          options={user_options(@users)}
+          list="cab-accounts"
+          placeholder={gettext("username or e-mail")}
+          hint={
+            gettext(
+              "An account's username or e-mail. An e-mail no account uses sends an invitation instead."
+            )
+          }
         />
-        <:submit note={gettext("Takes effect immediately.")} quiet>
+        <:block
+          name={:head_name}
+          type={:text}
+          label={gettext("Their name")}
+          hint={gettext("Only for an invitation: the name the e-mail greets.")}
+        />
+        <:submit
+          note={gettext("An account takes over at once; an invitation once it is accepted.")}
+          quiet
+        >
           {gettext("Change head")}
         </:submit>
       </.form_for>
     </.section>
+
+    <.section :if={@head_invitations != []} title={gettext("Pending head invitations")}>
+      <.table id="head-invitations" rows={@head_invitations}>
+        <:col :let={invitation} label={gettext("Club")}>{invitation.club.name}</:col>
+        <:col :let={invitation} label={gettext("Invited")}>
+          {invitation.name}
+          <.sub>{invitation.email}</.sub>
+        </:col>
+        <:col :let={invitation} label={gettext("Sent")}>{day(invitation.updated_at)}</:col>
+        <:col :let={invitation} label={gettext("Expires")}>{day(invitation.expires_at)}</:col>
+        <:col :let={invitation}>
+          <.link href={~p"/admin/head-invitations/#{invitation.id}/resend"} method="post">
+            {gettext("resend")}
+          </.link>
+        </:col>
+        <:col :let={invitation}>
+          <.link href={~p"/admin/head-invitations/#{invitation.id}/cancel"} method="post">
+            {gettext("cancel")}
+          </.link>
+        </:col>
+      </.table>
+    </.section>
+
+    <datalist id="cab-accounts">
+      <option :for={account <- @accounts} value={account.username}>{account.name}</option>
+    </datalist>
 
     <.section title={gettext("Merge two accounts")}>
       <.form_for
