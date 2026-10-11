@@ -27,6 +27,28 @@ defmodule Cab.Accounts do
 
   def get_user_by_username(_username), do: nil
 
+  @doc """
+  The account with exactly this username or e-mail (case-insensitive),
+  or nil. Guests (personal-link identities) are never returned.
+  """
+  def get_user_by_login(login) when is_binary(login) do
+    case String.downcase(String.trim(login)) do
+      "" ->
+        nil
+
+      q ->
+        Repo.one(
+          from u in User,
+            as: :user,
+            where: fragment("lower(?)", u.username) == ^q or fragment("lower(?)", u.email) == ^q,
+            where: not exists(from l in Cab.Links.Link, where: l.user_id == parent_as(:user).id),
+            limit: 1
+        )
+    end
+  end
+
+  def get_user_by_login(_login), do: nil
+
   def list_users, do: Repo.all(from u in User, order_by: u.username)
 
   @doc "The /account profile edit - display name only; identity fields stay provider-fed."

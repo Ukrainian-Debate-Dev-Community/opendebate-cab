@@ -139,6 +139,12 @@ main.page-main { width:100%; flex:1 0 auto; }
 .sidenav .cap { display:block; font-family:"Cedarville Cursive",cursive;
                 font-size:1.5rem; color:var(--brand); text-decoration:none;
                 padding:2px 16px 8px; }
+/* the beta tag beside the wordmark: outlined in the wordmark's own colour */
+.beta-tag { display:inline-block; vertical-align:top; margin:.35em 0 0 .45em;
+            font-family:-apple-system,"Inter","Segoe UI",system-ui,sans-serif;
+            font-size:max(10px,.18em); font-weight:700; line-height:1.3;
+            letter-spacing:.08em; text-transform:uppercase;
+            border:1px solid currentColor; border-radius:4px; padding:0 .45em; }
 .sidenav .sec { font-size:.6rem; letter-spacing:.12em; text-transform:uppercase;
                 color:var(--muted); font-weight:700; padding:10px 16px 4px; }
 .sidenav a.item { display:block; padding:6px 16px; color:var(--ink);

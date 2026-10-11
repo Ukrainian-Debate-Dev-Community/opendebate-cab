@@ -212,7 +212,7 @@ msgstr ""
 msgid "A room seats nine (eight speakers and an adjudicator), so the room count follows the sign-ups;"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:787
+#: lib/cab_web/components/ui.ex:794
 #, elixir-autogen, elixir-format
 msgid "ADJ"
 msgstr ""
@@ -271,7 +271,7 @@ msgstr ""
 msgid "Added by"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:734
+#: lib/cab_web/components/ui.ex:741
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex:5
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:67
 #: lib/cab_web/controllers/session_page_html/show.html.heex:112
@@ -296,7 +296,7 @@ msgstr ""
 msgid "Adjudicators"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:159
+#: lib/cab_web/components/ui.ex:166
 #: lib/cab_web/controllers/admin_controller.ex:101
 #: lib/cab_web/controllers/admin_html/show.html.heex:2
 #, elixir-autogen, elixir-format
@@ -374,7 +374,7 @@ msgstr ""
 msgid "By continuing you agree to the"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:732
+#: lib/cab_web/components/ui.ex:739
 #: lib/cab_web/controllers/owner_html.ex:40
 #: lib/cab_web/session_format.ex:15
 #: lib/cab_web/session_format.ex:90
@@ -382,12 +382,12 @@ msgstr ""
 msgid "CG"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:673
+#: lib/cab_web/components/ui.ex:680
 #, elixir-autogen, elixir-format
 msgid "CG — CLOSING GOV"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:733
+#: lib/cab_web/components/ui.ex:740
 #: lib/cab_web/controllers/owner_html.ex:41
 #: lib/cab_web/session_format.ex:16
 #: lib/cab_web/session_format.ex:91
@@ -395,7 +395,7 @@ msgstr ""
 msgid "CO"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:674
+#: lib/cab_web/components/ui.ex:681
 #, elixir-autogen, elixir-format
 msgid "CO — CLOSING OPP"
 msgstr ""
@@ -428,7 +428,7 @@ msgstr ""
 msgid "City"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:111
+#: lib/cab_web/components/ui.ex:118
 #: lib/cab_web/controllers/admin_html/show.html.heex:11
 #: lib/cab_web/controllers/admin_html/show.html.heex:69
 #: lib/cab_web/controllers/me_html/show.html.heex:44
@@ -475,7 +475,7 @@ msgstr ""
 msgid "Club sessions, rooms, ballots and standings — one place for debaters, adjudicators and club heads."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:140
+#: lib/cab_web/components/ui.ex:147
 #: lib/cab_web/controllers/admin_html/show.html.heex:9
 #: lib/cab_web/controllers/page_html/home.html.heex:35
 #: lib/cab_web/controllers/standings_html.ex:50
@@ -527,7 +527,7 @@ msgid "Copied. Paste it into the chat."
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex:60
-#: lib/cab_web/components/ui.ex:866
+#: lib/cab_web/components/ui.ex:873
 #, elixir-autogen, elixir-format
 msgid "Copy"
 msgstr ""
@@ -617,7 +617,7 @@ msgstr ""
 msgid "Display name"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:765
+#: lib/cab_web/components/ui.ex:772
 #, elixir-autogen, elixir-format
 msgid "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team with one speaker becomes an iron."
 msgstr ""
@@ -653,7 +653,7 @@ msgstr ""
 msgid "Enter a name."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:664
+#: lib/cab_web/components/ui.ex:671
 #, elixir-autogen, elixir-format
 msgid "Enter all eight scores — ranks derive from team totals."
 msgstr ""
@@ -714,7 +714,7 @@ msgstr ""
 msgid "Guest history"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:572
+#: lib/cab_web/components/ui.ex:579
 #: lib/cab_web/controllers/session_page_html/room.html.heex:140
 #, elixir-autogen, elixir-format
 msgid "HH:MM"
@@ -818,8 +818,8 @@ msgstr ""
 msgid "LO"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:202
-#: lib/cab_web/components/ui.ex:202
+#: lib/cab_web/components/ui.ex:209
+#: lib/cab_web/components/ui.ex:209
 #: lib/cab_web/controllers/owner_html/club.html.heex:65
 #, elixir-autogen, elixir-format
 msgid "Language"
@@ -881,7 +881,7 @@ msgstr ""
 msgid "Member, registered user or guest"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:130
+#: lib/cab_web/components/ui.ex:137
 #: lib/cab_web/controllers/member_html/members.html.heex:9
 #: lib/cab_web/controllers/owner_html/members.html.heex:9
 #: lib/cab_web/controllers/page_html/home.html.heex:44
@@ -923,7 +923,7 @@ msgstr ""
 msgid "Method"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:618
+#: lib/cab_web/components/ui.ex:625
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:103
 #: lib/cab_web/controllers/session_page_html/room.html.heex:80
 #: lib/cab_web/controllers/session_page_html/room.html.heex:94
@@ -943,7 +943,7 @@ msgstr ""
 msgid "Motion updated."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:618
+#: lib/cab_web/components/ui.ex:625
 #, elixir-autogen, elixir-format
 msgid "Motion — %{room}"
 msgstr ""
@@ -968,7 +968,7 @@ msgstr ""
 msgid "My clubs"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:152
+#: lib/cab_web/components/ui.ex:159
 #: lib/cab_web/controllers/me_controller.ex:32
 #: lib/cab_web/controllers/me_html/show.html.heex:2
 #: lib/cab_web/controllers/page_html/home.html.heex:13
@@ -998,7 +998,7 @@ msgstr ""
 msgid "Next session"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:507
+#: lib/cab_web/components/ui.ex:514
 #, elixir-autogen, elixir-format
 msgid "No"
 msgstr ""
@@ -1091,12 +1091,12 @@ msgstr ""
 msgid "Not set yet — the adjudicator sets it when the room begins."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:344
+#: lib/cab_web/components/ui.ex:351
 #, elixir-autogen, elixir-format
 msgid "Nothing here yet."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:730
+#: lib/cab_web/components/ui.ex:737
 #: lib/cab_web/controllers/owner_html.ex:38
 #: lib/cab_web/session_format.ex:13
 #: lib/cab_web/session_format.ex:88
@@ -1104,12 +1104,12 @@ msgstr ""
 msgid "OG"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:671
+#: lib/cab_web/components/ui.ex:678
 #, elixir-autogen, elixir-format
 msgid "OG — OPENING GOV"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:731
+#: lib/cab_web/components/ui.ex:738
 #: lib/cab_web/controllers/owner_html.ex:39
 #: lib/cab_web/session_format.ex:14
 #: lib/cab_web/session_format.ex:89
@@ -1117,7 +1117,7 @@ msgstr ""
 msgid "OO"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:672
+#: lib/cab_web/components/ui.ex:679
 #, elixir-autogen, elixir-format
 msgid "OO — OPENING OPP"
 msgstr ""
@@ -1264,7 +1264,7 @@ msgstr ""
 msgid "Publishing shows it to the room and starts 15 minutes of prep."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:740
+#: lib/cab_web/components/ui.ex:747
 #: lib/cab_web/session_format.ex:27
 #: lib/cab_web/session_format.ex:28
 #, elixir-autogen, elixir-format
@@ -1286,7 +1286,7 @@ msgstr ""
 msgid "Refused when both took part in the same session."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:137
+#: lib/cab_web/components/ui.ex:144
 #: lib/cab_web/controllers/registration_html/new.html.heex:35
 #: lib/cab_web/controllers/registration_html/new.html.heex:58
 #: lib/cab_web/controllers/session_page_html/show.html.heex:18
@@ -1437,7 +1437,7 @@ msgstr ""
 msgid "Room card preview"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:117
+#: lib/cab_web/components/ui.ex:124
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:48
 #: lib/cab_web/controllers/session_page_html/show.html.heex:93
 #: lib/cab_web/controllers/session_page_html/show.html.heex:139
@@ -1461,7 +1461,7 @@ msgstr ""
 msgid "Run by the NGO Debate Federation of Ukraine (ВМГО «Федерація Дебатів України»)."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:786
+#: lib/cab_web/components/ui.ex:793
 #, elixir-autogen, elixir-format
 msgid "SPK"
 msgstr ""
@@ -1588,7 +1588,7 @@ msgstr ""
 msgid "Side"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:178
+#: lib/cab_web/components/ui.ex:185
 #: lib/cab_web/controllers/page_html/home.html.heex:30
 #: lib/cab_web/controllers/signin_controller.ex:25
 #: lib/cab_web/controllers/signin_controller.ex:32
@@ -1602,7 +1602,7 @@ msgstr ""
 msgid "Sign in another way"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:174
+#: lib/cab_web/components/ui.ex:181
 #, elixir-autogen, elixir-format
 msgid "Sign in with an account"
 msgstr ""
@@ -1612,7 +1612,7 @@ msgstr ""
 msgid "Sign in with your own account first."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:176
+#: lib/cab_web/components/ui.ex:183
 #: lib/cab_web/controllers/account_html/show.html.heex:4
 #, elixir-autogen, elixir-format
 msgid "Sign out"
@@ -1664,8 +1664,8 @@ msgstr ""
 msgid "Speakers"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:123
-#: lib/cab_web/components/ui.ex:145
+#: lib/cab_web/components/ui.ex:130
+#: lib/cab_web/components/ui.ex:152
 #: lib/cab_web/controllers/club_public_html/show.html.heex:60
 #: lib/cab_web/controllers/club_public_html/show.html.heex:62
 #: lib/cab_web/controllers/club_public_html/standings.html.heex:9
@@ -1857,7 +1857,7 @@ msgid "The rooms were deleted. Back to the session."
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex:63
-#: lib/cab_web/components/ui.ex:187
+#: lib/cab_web/components/ui.ex:194
 #, elixir-autogen, elixir-format
 msgid "Theme: auto"
 msgstr ""
@@ -1872,7 +1872,7 @@ msgstr ""
 msgid "Theme: light"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:188
+#: lib/cab_web/components/ui.ex:195
 #, elixir-autogen, elixir-format
 msgid "Theme: light, auto or dark"
 msgstr ""
@@ -1970,7 +1970,7 @@ msgstr ""
 msgid "View as public"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:717
+#: lib/cab_web/components/ui.ex:724
 #, elixir-autogen, elixir-format
 msgid "Waiting (%{count})"
 msgstr ""
@@ -2015,12 +2015,12 @@ msgstr ""
 msgid "Winners:"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:570
+#: lib/cab_web/components/ui.ex:577
 #, elixir-autogen, elixir-format
 msgid "YYYY-MM-DD"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:503
+#: lib/cab_web/components/ui.ex:510
 #, elixir-autogen, elixir-format
 msgid "Yes"
 msgstr ""
@@ -2204,7 +2204,7 @@ msgstr ""
 msgid "edit ballot"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:803
+#: lib/cab_web/components/ui.ex:810
 #, elixir-autogen, elixir-format
 msgid "empty"
 msgstr ""
@@ -2231,7 +2231,7 @@ msgstr ""
 msgid "head: %{name}"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:812
+#: lib/cab_web/components/ui.ex:819
 #, elixir-autogen, elixir-format
 msgid "incomplete"
 msgstr ""
@@ -2241,7 +2241,7 @@ msgstr ""
 msgid "invited, not accepted yet"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:644
+#: lib/cab_web/components/ui.ex:651
 #, elixir-autogen, elixir-format
 msgid "iron"
 msgstr ""
@@ -2366,12 +2366,12 @@ msgstr ""
 msgid "quiet"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:809
+#: lib/cab_web/components/ui.ex:816
 #, elixir-autogen, elixir-format
 msgid "ready"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:806
+#: lib/cab_web/components/ui.ex:813
 #, elixir-autogen, elixir-format
 msgid "ready, %{count} iron"
 msgstr ""
@@ -2452,7 +2452,7 @@ msgstr ""
 msgid "speaker"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex:656
+#: lib/cab_web/components/ui.ex:663
 #, elixir-autogen, elixir-format
 msgid "team total"
 msgstr ""
@@ -2906,4 +2906,9 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex:13
 #, elixir-autogen, elixir-format
 msgid "their e-mail address"
+msgstr ""
+
+#: lib/cab_web/components/ui.ex:89
+#, elixir-autogen, elixir-format
+msgid "beta"
 msgstr ""
