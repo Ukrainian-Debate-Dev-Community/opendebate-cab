@@ -84,7 +84,7 @@ bin/full eval "Uadebate.Release.migrate()"
 | `MAIL_FROM` | for mail | `Name <address>`, e.g. `cab <noreply@uadebate.com>` |
 | `PHX_SERVER` | set by the image | starts the web servers |
 | `PORT`, `UADEBATE_PORT` | no | 4000 and 4001 by default |
-| `POOL_SIZE`, `UADEBATE_POOL_SIZE` | no | database pools, 10 by default |
+| `POOL_SIZE`, `UADEBATE_POOL_SIZE` | no | database pools, 10 and 5 by default |
 | `DNS_CLUSTER_QUERY` | no | only for clustering several nodes |
 
 ## License
