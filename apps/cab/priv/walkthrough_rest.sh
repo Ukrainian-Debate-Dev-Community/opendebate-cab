@@ -18,7 +18,7 @@
 
 set -u
 BASE="${BASE:-http://localhost:4000}"
-ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 RUN="$(date +%s)"
 JARS="$(mktemp -d)"
 BODY="$JARS/body.json"
@@ -87,7 +87,7 @@ echo "ok     11 users signed in (wt-$RUN-*)"
 # ----------------------------------------------------------------
 say "seed club via mix task (club creation is NOT in the API)"
 # ----------------------------------------------------------------
-SEED_OUT=$(cd "$ROOT/platform" && nix develop --command sh -c \
+SEED_OUT=$(cd "$ROOT" && nix develop --command sh -c \
   "mix cab.seed_club 'BP Walkthrough $RUN' 'Kyiv' 'wt-$RUN-head'" 2>&1) \
   || { echo "$SEED_OUT"; fail "mix cab.seed_club failed"; }
 CLUB=$(printf '%s\n' "$SEED_OUT" | sed -n 's/^CLUB_UUID=//p' | tail -1)

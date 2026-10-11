@@ -23,7 +23,7 @@
 #                       approve yourself.
 set -u
 BASE="${BASE:-http://localhost:4000}"
-ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 ME="${1:?usage: prime_demo.sh <your_username>}"
 JARS="$(mktemp -d)"
 BODY="$JARS/body.json"
@@ -53,12 +53,12 @@ done
 mkjar me "$ME"
 
 echo "== $ME becomes a platform admin (the sidenav Admin item + /admin)"
-(cd "$ROOT/platform" && nix develop --command sh -c \
+(cd "$ROOT" && nix develop --command sh -c \
   "mix run -e 'Cab.Repo.get_by!(Cab.Accounts.User, username: \"$ME\") |> Ecto.Changeset.change(is_admin: true) |> Cab.Repo.update!()'" \
   >/dev/null 2>&1) || fail "could not set is_admin on $ME"
 
 echo "== Kyiv Debate Club (head: $ME)"
-SEED_OUT=$(cd "$ROOT/platform" && nix develop --command sh -c \
+SEED_OUT=$(cd "$ROOT" && nix develop --command sh -c \
   "mix cab.seed_club 'Kyiv Debate Club' 'Kyiv' '$ME'" 2>&1) || { echo "$SEED_OUT"; fail "seed kyiv"; }
 KYIV=$(printf '%s\n' "$SEED_OUT" | sed -n 's/^CLUB_UUID=//p' | tail -1)
 [ -n "$KYIV" ] || fail "no kyiv uuid"
@@ -90,7 +90,7 @@ req j1 POST "/api/v1/sessions/$SESS/signups" '{}'
 [ "$STATUS" = "201" ] || fail "signup j1: $STATUS"
 
 echo "== Lviv Debate Society (you are an outsider)"
-SEED_OUT=$(cd "$ROOT/platform" && nix develop --command sh -c \
+SEED_OUT=$(cd "$ROOT" && nix develop --command sh -c \
   "mix cab.seed_club 'Lviv Debate Society' 'Lviv' 'demo-lviv-head'" 2>&1) || { echo "$SEED_OUT"; fail "seed lviv"; }
 LVIV=$(printf '%s\n' "$SEED_OUT" | sed -n 's/^CLUB_UUID=//p' | tail -1)
 req lviv-m1 POST "/api/v1/clubs/$LVIV/join-requests" \
