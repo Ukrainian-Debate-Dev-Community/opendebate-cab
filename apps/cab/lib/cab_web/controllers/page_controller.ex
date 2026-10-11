@@ -49,15 +49,21 @@ defmodule CabWeb.PageController do
     end)
   end
 
-  # Policy and Terms are documents kept outside the code, one file per
-  # language in priv/legal/<locale>/, read on each request so an edit
-  # shows without a release; a language without its own copy gets English.
+  # Policy and Terms are the deployment's documents, not cab's: one file
+  # per language in the configured legal_dir, read on each request so an
+  # edit shows without a release; a language without its own copy gets
+  # English, and a deployment without them answers 404.
   defp legal(conn, doc, title) do
-    body =
-      [Gettext.get_locale(CabWeb.Gettext), "en"]
-      |> Enum.map(&Path.join([:code.priv_dir(:cab), "legal", &1, doc <> ".html"]))
-      |> Enum.find_value(&(File.exists?(&1) && File.read!(&1)))
+    dir = Application.get_env(:cab, :legal_dir)
 
-    render(conn, :legal, doc: doc, body: Phoenix.HTML.raw(body), page_title: title)
+    body =
+      dir &&
+        [Gettext.get_locale(CabWeb.Gettext), "en"]
+        |> Enum.map(&Path.join([dir, &1, doc <> ".html"]))
+        |> Enum.find_value(&(File.exists?(&1) && File.read!(&1)))
+
+    if body,
+      do: render(conn, :legal, doc: doc, body: Phoenix.HTML.raw(body), page_title: title),
+      else: raise(CabWeb.NotFoundError)
   end
 end

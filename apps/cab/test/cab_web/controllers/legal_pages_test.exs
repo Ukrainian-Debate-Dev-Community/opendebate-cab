@@ -1,21 +1,28 @@
 defmodule CabWeb.LegalPagesTest do
-  use CabWeb.ConnCase, async: true
+  use CabWeb.ConnCase, async: false
 
   test "the Policy and the Terms are public pages", %{conn: conn} do
     policy = conn |> get(~p"/policy") |> html_response(200)
-    assert policy =~ "Who we are"
-    assert policy =~ "ВМГО \u00ABФедерація Дебатів України\u00BB"
-    assert policy =~ "Your rights"
+    assert policy =~ "Test policy"
+    assert policy =~ ~s(class="pbody legal-doc")
 
     terms = conn |> get(~p"/terms") |> html_response(200)
-    assert terms =~ "Fair use"
+    assert terms =~ "Test terms"
     assert terms =~ ~s(href="/policy")
   end
 
-  test "each language reads its own copy of the documents", %{conn: conn} do
-    policy = conn |> put_req_cookie("cab_locale", "uk") |> get(~p"/policy") |> html_response(200)
-    assert policy =~ "Політика конфіденційності"
-    refute policy =~ "Who we are"
+  test "each language reads its own copy, English when it has none", %{conn: conn} do
+    uk = conn |> put_req_cookie("cab_locale", "uk")
+    assert uk |> get(~p"/policy") |> html_response(200) =~ "Тестова політика"
+    assert uk |> get(~p"/terms") |> html_response(200) =~ "Test terms"
+  end
+
+  test "a deployment without documents answers 404", %{conn: conn} do
+    dir = Application.get_env(:cab, :legal_dir)
+    Application.put_env(:cab, :legal_dir, Path.join(dir, "missing"))
+    on_exit(fn -> Application.put_env(:cab, :legal_dir, dir) end)
+
+    assert_error_sent 404, fn -> get(conn, ~p"/policy") end
   end
 
   test "the old /privacy address leads to the Policy", %{conn: conn} do

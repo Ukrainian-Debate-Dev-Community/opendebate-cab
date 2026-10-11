@@ -11,6 +11,10 @@ config :cab,
   ecto_repos: [Cab.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# Policy and Terms are the deployment's own documents, one folder per
+# language (en/policy.html, en/terms.html, ...); cab only serves them
+config :cab, :legal_dir, Path.expand("../legal", __DIR__)
+
 # Configure the endpoint
 # English by default; Ukrainian when the browser or the footer asks
 config :cab, CabWeb.Gettext, default_locale: "en", locales: ~w(en uk)

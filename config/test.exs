@@ -1,5 +1,7 @@
 import Config
 
+config :cab, :legal_dir, Path.expand("../apps/cab/test/support/legal", __DIR__)
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used
