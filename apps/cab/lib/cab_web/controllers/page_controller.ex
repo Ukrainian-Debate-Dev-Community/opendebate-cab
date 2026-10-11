@@ -49,21 +49,38 @@ defmodule CabWeb.PageController do
     end)
   end
 
-  # Policy and Terms are the deployment's documents, not cab's: one file
-  # per language in the configured legal_dir, read on each request so an
-  # edit shows without a release; a language without its own copy gets
-  # English, and a deployment without them answers 404.
+  # Policy and Terms are the deployment's documents, not cab's: one
+  # Markdown file per language in the configured legal_dir, read on each
+  # request so an edit shows without a release; a language without its
+  # own copy gets English, and a deployment without them answers 404.
   defp legal(conn, doc, title) do
     dir = Application.get_env(:cab, :legal_dir)
 
-    body =
+    markdown =
       dir &&
         [Gettext.get_locale(CabWeb.Gettext), "en"]
-        |> Enum.map(&Path.join([dir, &1, doc <> ".html"]))
+        |> Enum.map(&Path.join([dir, &1, doc <> ".md"]))
         |> Enum.find_value(&(File.exists?(&1) && File.read!(&1)))
 
-    if body,
-      do: render(conn, :legal, doc: doc, body: Phoenix.HTML.raw(body), page_title: title),
+    if markdown,
+      do:
+        render(conn, :legal,
+          doc: doc,
+          body: Phoenix.HTML.raw(legal_html(markdown)),
+          page_title: title
+        ),
       else: raise(CabWeb.NotFoundError)
+  end
+
+  # MDEx drops raw HTML. The title and the line under it become the
+  # document header, and [[...]] marks a detail still to be filled in.
+  defp legal_html(markdown) do
+    markdown
+    |> MDEx.to_html!()
+    |> String.replace(
+      ~r{\A\s*<h1>(.*?)</h1>\s*<p>(.*?)</p>}s,
+      ~s(<header><h1>\\1</h1><p class="doc-meta">\\2</p></header>)
+    )
+    |> String.replace(~r/\[\[(.+?)\]\]/, ~s(<mark class="todo">[\\1]</mark>))
   end
 end

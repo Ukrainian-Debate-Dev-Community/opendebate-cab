@@ -3,8 +3,13 @@ defmodule CabWeb.LegalPagesTest do
 
   test "the Policy and the Terms are public pages", %{conn: conn} do
     policy = conn |> get(~p"/policy") |> html_response(200)
-    assert policy =~ "Test policy"
-    assert policy =~ ~s(class="pbody legal-doc")
+
+    assert policy =~
+             ~s(<header><h1>Test policy</h1><p class="doc-meta">Last updated: 1 January 2026</p></header>)
+
+    assert policy =~ ~s(<mark class="todo">[address]</mark>)
+    assert policy =~ ~s(<a href="/terms">Terms</a>)
+    refute policy =~ "<script>alert"
 
     terms = conn |> get(~p"/terms") |> html_response(200)
     assert terms =~ "Test terms"
