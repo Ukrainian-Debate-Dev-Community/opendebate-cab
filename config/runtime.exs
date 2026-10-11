@@ -136,6 +136,17 @@ if config_env() == :prod do
       username: System.get_env("SMTP_USERNAME"),
       password: System.get_env("SMTP_PASSWORD"),
       tls: :always,
+      # gen_smtp verifies nothing on its own: without the system CAs and
+      # the server name the STARTTLS handshake fails
+      tls_options: [
+        verify: :verify_peer,
+        cacerts: :public_key.cacerts_get(),
+        server_name_indication: String.to_charlist(smtp_host),
+        depth: 99,
+        customize_hostname_check: [
+          match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+        ]
+      ],
       auth: :always,
       ssl: false,
       retries: 1
