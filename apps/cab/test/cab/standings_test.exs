@@ -2,7 +2,7 @@ defmodule Cab.StandingsTest do
   @moduledoc """
   RULE 0 at the context level: standings are the engine's calculated
   output verbatim for ONE session, plus plain counts. WHICH session
-  is shown comes from cab's own records (finished_at) — no engine
+  is shown comes from cab's own records (finished_at) - no engine
   scan.
   """
 
@@ -28,7 +28,7 @@ defmodule Cab.StandingsTest do
     )
   end
 
-  test "latest_finished reads cab's records — no engine call" do
+  test "latest_finished reads cab's records - no engine call" do
     head = user_fixture(%{node_user_id: 9})
     club = club_fixture(head, %{engine_organisation_id: 3})
     _open = session_fixture(club, engine_event_id: 12)

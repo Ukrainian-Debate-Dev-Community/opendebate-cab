@@ -1,6 +1,6 @@
 defmodule CabWeb.GuestLinkController do
   @moduledoc """
-  The guest's permanent personal link: `/l/:code` is AUTH ONLY — the
+  The guest's permanent personal link: `/l/:code` is AUTH ONLY - the
   code resolves on every request (revoked or unknown is a plain 404),
   the browser session adopts the guest identity ("anyone with the
   link acts as you") and the guest lands on P6, their session's page,
@@ -14,7 +14,7 @@ defmodule CabWeb.GuestLinkController do
 
   alias Cab.Links
 
-  # GET /l/:code — adopt the guest identity, land on P6. A signed-in
+  # GET /l/:code - adopt the guest identity, land on P6. A signed-in
   # ACCOUNT is never replaced: opening someone's link (an owner
   # checking it, a shared device) must not log anyone out.
   def show(conn, %{"code" => code}) do
@@ -54,7 +54,7 @@ defmodule CabWeb.GuestLinkController do
     end
   end
 
-  # POST /l/:code/claim — a signed-in account takes over the guest's
+  # POST /l/:code/claim - a signed-in account takes over the guest's
   # history; the guest account and this link are gone afterwards
   def claim(conn, %{"code" => code}) do
     with %Cab.Accounts.User{} = account <- conn.assigns[:current_user],

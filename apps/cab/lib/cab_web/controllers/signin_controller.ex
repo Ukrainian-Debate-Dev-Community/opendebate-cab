@@ -1,6 +1,6 @@
 defmodule CabWeb.SigninController do
   @moduledoc """
-  P1 `/signin` — the ONLY auth entry. Every "Sign in" link and every
+  P1 `/signin` - the ONLY auth entry. Every "Sign in" link and every
   auth-required redirect lands here; `/auth/:provider` stays as the
   provider hop this page's buttons point at. When a new sign-in's
   verified address already has an account, the page offers that
@@ -37,7 +37,7 @@ defmodule CabWeb.SigninController do
     end
   end
 
-  # POST /signin/separate — the person wants a separate account after all
+  # POST /signin/separate - the person wants a separate account after all
   def separate(conn, _params) do
     case get_session(conn, :pending_identity) do
       %{pending: pending} ->

@@ -107,7 +107,7 @@ defmodule Cab.ClubsTest do
       assert Clubs.list_join_requests(club) == []
     end
 
-    test "both answers are REQUIRED — never a bare button", %{club: club} do
+    test "both answers are REQUIRED - never a bare button", %{club: club} do
       user = user_fixture()
 
       assert {:error, changeset} = Clubs.request_join(user, club)
@@ -142,7 +142,7 @@ defmodule Cab.ClubsTest do
   end
 
   describe "club_history/1" do
-    test "finished sessions with their recorded winners — no engine call" do
+    test "finished sessions with their recorded winners - no engine call" do
       head = user_fixture(%{node_user_id: 9})
       club = club_fixture(head, %{engine_organisation_id: 3})
 

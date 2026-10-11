@@ -6,7 +6,7 @@ defmodule CabWeb.SessionPageController do
 
   Its actions are identity-gated, not tree-gated: cancel removes only
   the viewer's OWN registration, the ballot opens only for the room's
-  chair (or the head) — which is exactly how a guest (session identity
+  chair (or the head) - which is exactly how a guest (session identity
   adopted via `/l/:code`) registers out or judges through this page.
   """
 
@@ -19,7 +19,7 @@ defmodule CabWeb.SessionPageController do
 
   plug CabWeb.ClubScope, source: :club, require: :public
 
-  # POST .../signups/:participant_id/remove — the viewer cancels
+  # POST .../signups/:participant_id/remove - the viewer cancels
   # their OWN registration (member or guest alike; the context
   # authorises owner-or-self)
   def cancel_signup(conn, %{"session_uuid" => session_uuid, "participant_id" => participant_id}) do
@@ -51,7 +51,7 @@ defmodule CabWeb.SessionPageController do
     end
   end
 
-  # POST .../rooms/:id/motion — chair or head sets this room's motion
+  # POST .../rooms/:id/motion - chair or head sets this room's motion
   def motion(conn, %{"session_uuid" => session_uuid, "id" => id} = params) do
     with_chaired_room(conn, session_uuid, id, fn conn, session, room ->
       attrs =
@@ -87,7 +87,7 @@ defmodule CabWeb.SessionPageController do
     end)
   end
 
-  # GET .../rooms/:id/ballot — the room judge's ballot (chair or head)
+  # GET .../rooms/:id/ballot - the room judge's ballot (chair or head)
   def ballot(conn, %{"id" => id} = params) do
     with_chaired_room(conn, params["session_uuid"], id, fn conn, session, room ->
       if Sessions.motion?(room),
@@ -103,7 +103,7 @@ defmodule CabWeb.SessionPageController do
     |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}/rooms/#{room["id"]}")
   end
 
-  # POST .../rooms/:id/ballot — redirect + flash, amber re-render
+  # POST .../rooms/:id/ballot - redirect + flash, amber re-render
   def submit_ballot(conn, %{"id" => id} = params) do
     with_chaired_room(conn, params["session_uuid"], id, fn conn, session, room ->
       scores = BallotForm.scores_from_params(params["ballot"])

@@ -1,11 +1,11 @@
 defmodule CabWeb.AdminController do
   @moduledoc """
-  `/admin` — the platform admin console (is_admin only; everyone
+  `/admin` - the platform admin console (is_admin only; everyone
   else gets a plain 404, the page does not exist for them). Club
   creation is ADMIN-ONLY: this form replaces the admin's need for
   `mix cab.seed_club` (the task stays for scripting). Change head
   and archive live here too; archiving sets the gateway
-  `archived_at` flag only — the engine stays untouched.
+  `archived_at` flag only - the engine stays untouched.
 
   Admin is HTML-only by design: no API twins.
   """
@@ -37,7 +37,7 @@ defmodule CabWeb.AdminController do
     end
   end
 
-  # POST /admin/head {"uuid", "head_id"} — the club rides in the body
+  # POST /admin/head {"uuid", "head_id"} - the club rides in the body
   # (one dropdown form serves every club)
   def change_head(conn, %{"uuid" => uuid} = params) do
     with %Club{} = club <- Clubs.get_by_uuid(uuid),
@@ -55,7 +55,7 @@ defmodule CabWeb.AdminController do
     end
   end
 
-  # POST /admin/merge {"first_id", "second_id"} — one person's two
+  # POST /admin/merge {"first_id", "second_id"} - one person's two
   # accounts, for when they cannot sign in to both themselves
   def merge(conn, params) do
     with {:ok, first} <- picked_user(params["first_id"]),
@@ -73,7 +73,7 @@ defmodule CabWeb.AdminController do
     end
   end
 
-  # POST /admin/clubs/:uuid/archive — the club disappears from every
+  # POST /admin/clubs/:uuid/archive - the club disappears from every
   # public surface; history stays in the engine
   def archive(conn, %{"uuid" => uuid}) do
     with %Club{} = club <- Clubs.get_by_uuid(uuid),
@@ -118,7 +118,7 @@ defmodule CabWeb.AdminController do
     |> redirect(to: ~p"/admin")
   end
 
-  # the page does not exist for non-admins — a plain 404, never 403
+  # the page does not exist for non-admins - a plain 404, never 403
   defp require_admin(conn, _opts) do
     case conn.assigns.current_user do
       %{is_admin: true} -> conn

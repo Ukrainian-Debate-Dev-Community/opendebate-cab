@@ -361,11 +361,6 @@ msgstr ""
 msgid "Two teams share the total %{totals}. BP allows no ties, so adjust the scores."
 msgstr ""
 
-#: lib/cab/sessions.ex:1227
-#, elixir-autogen, elixir-format
-msgid "a full ballot is 8 scores — two per team position 1..4 (og, oo, cg, co)"
-msgstr ""
-
 #: lib/cab/clubs/membership.ex:30
 #, elixir-autogen, elixir-format
 msgid "already a member or pending join request"
@@ -374,4 +369,9 @@ msgstr ""
 #: lib/cab/clubs/membership.ex:43
 #, elixir-autogen, elixir-format
 msgid "tell the head about yourself and how to reach you"
+msgstr ""
+
+#: lib/cab/sessions.ex:1227
+#, elixir-autogen, elixir-format
+msgid "a full ballot is 8 scores: two per team position 1..4 (og, oo, cg, co)"
 msgstr ""

@@ -7,7 +7,7 @@ defmodule Cab.Repo.Migrations.CreateClubLifecycle do
     drop_if_exists table(:clubs)
 
     create table(:clubs) do
-      # public id — engine integer ids stay internal
+      # public id - engine integer ids stay internal
       add :uuid, :uuid, null: false
       add :name, :string, null: false
       add :city, :string

@@ -8,7 +8,7 @@ defmodule Cab.Repo.Migrations.AddClubProfileAndJoinAnswers do
       add :meeting_info, :text
       add :description, :text
       add :contacts, :text
-      # admin archive flag — archived clubs disappear from every
+      # admin archive flag - archived clubs disappear from every
       # public surface; the engine organisation stays untouched
       add :archived_at, :utc_datetime
     end

@@ -19,7 +19,7 @@ defmodule CabWeb.BallotForm do
   map on a failed POST) the chosen speakers, iron flags and scores
   are echoed back and teams with tied totals carry `tied: true`.
   Without params, a room that already carries submitted scores
-  prefills them — editing a ballot never means retyping it.
+  prefills them - editing a ballot never means retyping it.
   """
   def teams(room, ballot_params \\ nil) do
     tied = tied_sides(ballot_params)
@@ -82,9 +82,9 @@ defmodule CabWeb.BallotForm do
   def role_label(role), do: role
 
   @doc """
-  The submitted `ballot` params —
+  The submitted `ballot` params -
   `%{"og" => %{"PM" => %{"speaker" => _, "iron" => _, "score" => _}, ...}, ...}`
-  — as the flat scores list `Cab.Sessions.submit_ballot/4` takes.
+  - as the flat scores list `Cab.Sessions.submit_ballot/4` takes.
   """
   def scores_from_params(%{} = ballot_params) do
     for {side, position} <- Enum.with_index(@sides, 1),
@@ -140,7 +140,7 @@ defmodule CabWeb.BallotForm do
 
   defp parse_score(_value), do: nil
 
-  # sides whose submitted totals collide — the amber tied state
+  # sides whose submitted totals collide - the amber tied state
   defp tied_sides(nil), do: []
 
   defp tied_sides(ballot_params) do

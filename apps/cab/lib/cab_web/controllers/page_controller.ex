@@ -3,7 +3,7 @@ defmodule CabWeb.PageController do
 
   alias Cab.{Clubs, Invitations, Sessions}
 
-  # GET / — the clubs directory with each club's next session, the
+  # GET / - the clubs directory with each club's next session, the
   # same for everyone; signed in, banners point at a session open in
   # one of my clubs and at invitations waiting on My page
   def home(conn, _params) do
@@ -29,13 +29,13 @@ defmodule CabWeb.PageController do
     )
   end
 
-  # GET /policy — how cab handles personal data
+  # GET /policy - how cab handles personal data
   def policy(conn, _params), do: legal(conn, "policy", gettext("Policy"))
 
-  # GET /terms — the terms of use
+  # GET /terms - the terms of use
   def terms(conn, _params), do: legal(conn, "terms", gettext("Terms"))
 
-  # GET /privacy — the policy's old address
+  # GET /privacy - the policy's old address
   def privacy_moved(conn, _params), do: redirect(conn, to: ~p"/policy")
 
   # The first of my clubs with a session open right now (registration

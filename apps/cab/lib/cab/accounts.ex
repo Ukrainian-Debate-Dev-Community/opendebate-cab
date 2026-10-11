@@ -29,7 +29,7 @@ defmodule Cab.Accounts do
 
   def list_users, do: Repo.all(from u in User, order_by: u.username)
 
-  @doc "The /account profile edit — display name only; identity fields stay provider-fed."
+  @doc "The /account profile edit - display name only; identity fields stay provider-fed."
   # the zones offered on /account; "" = the device's own zone
   @time_zones ~w(Europe/Kyiv Europe/Warsaw Europe/Vilnius Europe/Riga Europe/Tallinn
                  Europe/Bucharest Europe/Chisinau Europe/Prague Europe/Berlin Europe/Paris

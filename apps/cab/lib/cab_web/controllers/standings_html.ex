@@ -8,7 +8,7 @@ defmodule CabWeb.StandingsHTML do
   embed_templates "standings_html/*"
 
   @doc """
-  The standings tabs (`.selrow`), shared by both scopes —
+  The standings tabs (`.selrow`), shared by both scopes -
   the Clubs tab is GLOBAL-ONLY (a club comparing clubs inside its
   own scope makes no sense).
   """
@@ -19,7 +19,7 @@ defmodule CabWeb.StandingsHTML do
   def standings_tabs(assigns)
 
   @doc """
-  One standings tab's content — RULE 0: the engine's output verbatim
+  One standings tab's content - RULE 0: the engine's output verbatim
   for ONE session (teams, speakers, judge stats), clubs as plain
   counts. With `archive` and `base` the scope card links the earlier
   sessions (club scope); nil = global.
@@ -33,7 +33,7 @@ defmodule CabWeb.StandingsHTML do
 
   def standings_body(assigns)
 
-  # the archive minus the shown session — the selector links on the
+  # the archive minus the shown session - the selector links on the
   # scope card (club scope passes archive + base; global passes none)
   defp earlier_rows(%{archive: archive, scope: scope}) when is_list(archive) do
     shown = scope && scope.session.uuid

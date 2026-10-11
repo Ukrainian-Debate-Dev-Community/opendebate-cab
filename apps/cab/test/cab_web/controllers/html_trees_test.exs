@@ -57,7 +57,7 @@ defmodule CabWeb.HtmlTreesTest do
         winner_name: "Winners"
       )
 
-    # the club page is cab's own records — no engine call at all
+    # the club page is cab's own records - no engine call at all
     stub(fn _conn, _params -> raise "the club page must not call the engine" end)
 
     html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
@@ -71,7 +71,7 @@ defmodule CabWeb.HtmlTreesTest do
     # recent sessions: rows -> session page, progress as words
     assert html =~ ~s(id="club-sessions")
     assert html =~ "Night 1"
-    assert html =~ "done — won by Winners"
+    assert html =~ "done \u2014 won by Winners"
     assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
 
     # anonymous: the gold join CTA routes to /signin; club sidenav
@@ -146,7 +146,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert form =~ ~s(name="message")
     assert form =~ ~s(name="contact")
 
-    # missing answers re-render with the errors — no request created
+    # missing answers re-render with the errors - no request created
     failed = conn |> log_in(user) |> post(~p"/c/#{club.uuid}/join", %{message: "hi"})
     assert html_response(failed, 422) =~ "tell the head"
     assert Cab.Clubs.list_join_requests(club) == []
@@ -280,7 +280,7 @@ defmodule CabWeb.HtmlTreesTest do
       end
     end)
 
-    # the club page IS the archive now — public, full list, no form
+    # the club page IS the archive now - public, full list, no form
     member_html =
       conn |> log_in(member) |> get(~p"/c/#{club.uuid}") |> html_response(200)
 
@@ -324,11 +324,11 @@ defmodule CabWeb.HtmlTreesTest do
   # Old routes: the M7 member page and the ?tab console are gone
   # ---------------------------------------------------------------
 
-  test "the member tree is gone — v3.1 keeps one URL per view", %{conn: conn, club: club} do
+  test "the member tree is gone - v3.1 keeps one URL per view", %{conn: conn, club: club} do
     assert conn |> get("/c/#{club.uuid}/member") |> response(404)
   end
 
-  test "the owner ?tab console is gone — /owner?tab=x is the club edit page", %{
+  test "the owner ?tab console is gone - /owner?tab=x is the club edit page", %{
     conn: conn,
     club: club,
     head: head
@@ -538,7 +538,7 @@ defmodule CabWeb.HtmlTreesTest do
     refute html =~ "Delete rooms"
 
     # registration: the shared URL; one people table; one add form
-    # (member or guest); rooms: the allocator — all ONE page now
+    # (member or guest); rooms: the allocator - all ONE page now
     assert html =~ ~s(id="shared-registration-url")
     assert html =~ ~s(id="session-people")
     assert html =~ "/c/#{club.uuid}/owner/sessions/#{session.uuid}/signups/1/remove"
@@ -549,7 +549,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(phx-click="add_member")
     assert html =~ "benched"
 
-    # the EMBEDDED allocator: automatic room count, EMPTY slots —
+    # the EMBEDDED allocator: automatic room count, EMPTY slots -
     # nobody is ever placed automatically
     assert html =~ ~s(id="allocator-form" phx-submit="start")
     assert html =~ ~s(phx-hook="Allocator")
@@ -651,7 +651,7 @@ defmodule CabWeb.HtmlTreesTest do
   end
 
   # ---------------------------------------------------------------
-  # The embedded allocator (dnd) — Start session consumes its state
+  # The embedded allocator (dnd) - Start session consumes its state
   # ---------------------------------------------------------------
 
   test "the allocator is the dnd table; Start session posts the composition", %{
@@ -680,7 +680,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> html_response(200)
 
     # the allocator: a tray of draggable chips over keyed slots the
-    # server fills from its draft — NO dropdowns anywhere, slots EMPTY
+    # server fills from its draft - NO dropdowns anywhere, slots EMPTY
     assert html =~ ~s(phx-hook="Allocator")
     assert html =~ ~s(data-drop="tray")
     assert html =~ ~s(draggable="true")
@@ -692,19 +692,19 @@ defmodule CabWeb.HtmlTreesTest do
     refute html =~ "<select"
 
     # the submit segment is the chrome's one gold action; the room
-    # count is automatic — 8 speakers = 1 room, no "+ room" anywhere
+    # count is automatic - 8 speakers = 1 room, no "+ room" anywhere
     assert html =~ ~s(form="allocator-form")
     assert html =~ "Start session"
     refute html =~ "+ room"
     refute html =~ ~s(data-slot="2:og:1")
 
-    # the count is ceiling-based — 13 speakers and a judge open 2 rooms
+    # the count is ceiling-based - 13 speakers and a judge open 2 rooms
     fourteen = for i <- 1..14, do: %{"role" => "speaker", "id" => i}
     assert Cab.Sessions.room_count(fourteen) == 2
     assert Cab.Sessions.room_count([%{"role" => "speaker", "id" => 1}]) == 1
 
     # an impossible composition bounces back with the reason and the
-    # window ROLLS BACK open — the session stays at :signup
+    # window ROLLS BACK open - the session stays at :signup
     bounced =
       conn
       |> log_in(head)
@@ -725,7 +725,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert Cab.Sessions.get_for_club(club, session.uuid).signups_closed_at == nil
 
     # the dnd slots post rooms[i][side][slot] (+ judge); empty slots
-    # post "" — an iron team is a single filled slot. Start closes
+    # post "" - an iron team is a single filled slot. Start closes
     # registration and makes exactly these rooms.
     posted =
       conn
@@ -755,7 +755,7 @@ defmodule CabWeb.HtmlTreesTest do
 
     assert Cab.Sessions.get_for_club(club, session.uuid).signups_closed_at != nil
 
-    # starting is owner-tree only — a member gets 403
+    # starting is owner-tree only - a member gets 403
     member = user_fixture(%{node_user_id: 55})
     membership_fixture(member, club)
 
@@ -765,7 +765,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert response(denied, 403)
   end
 
-  test "start without a dragged allocation errors — nothing is auto-placed",
+  test "start without a dragged allocation errors - nothing is auto-placed",
        %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
     stub_signup_stage(signup_stage_signups())
@@ -972,7 +972,7 @@ defmodule CabWeb.HtmlTreesTest do
       end
     end)
 
-    # anonymous: the draw and the honest "not set yet" — no form
+    # anonymous: the draw and the honest "not set yet" - no form
     public_html =
       conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71") |> html_response(200)
 
@@ -1014,7 +1014,7 @@ defmodule CabWeb.HtmlTreesTest do
     {:ok, ends_at, _} = DateTime.from_iso8601(ends_at)
     assert_in_delta DateTime.diff(ends_at, DateTime.utc_now()), 900, 5
 
-    # a plain member is neither chair nor head — no motion for them
+    # a plain member is neither chair nor head - no motion for them
     outsider = user_fixture(%{node_user_id: 55})
     membership_fixture(outsider, club)
 
@@ -1201,11 +1201,11 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(class="ballot")
     assert html =~ ~s(action="/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
 
-    # the owner tree stays owner-only for members…
+    # the owner tree stays owner-only for members...
     denied = conn |> log_in(member) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
     assert response(denied, 403)
 
-    # …but the ladder lets a platform admin (no membership) through
+    # ...but the ladder lets a platform admin (no membership) through
     admin =
       user_fixture(%{node_user_id: 56})
       |> Ecto.Changeset.change(is_admin: true)
@@ -1268,7 +1268,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert_received :room_deleted
 
     # confirmed room: no delete segment, an edit ballot link instead
-    # (lock/unlock stays internal — the page never says it)
+    # (lock/unlock stays internal - the page never says it)
     confirmed_room =
       %{running_room(44) | "status" => "confirmed"}
       |> update_in(["RoomTeams"], fn teams ->

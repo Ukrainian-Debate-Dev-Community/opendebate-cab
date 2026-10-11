@@ -360,11 +360,6 @@ msgstr "Сесію завершено, тож її учасники лишают
 msgid "Two teams share the total %{totals}. BP allows no ties, so adjust the scores."
 msgstr "Дві команди мають однакову суму %{totals}. У БП нічиїх не буває, тож виправте бали."
 
-#: lib/cab/sessions.ex:1227
-#, elixir-autogen, elixir-format
-msgid "a full ballot is 8 scores — two per team position 1..4 (og, oo, cg, co)"
-msgstr "повний бюлетень — це 8 балів, по два на кожну позицію команди 1..4 (ВУ, ВО, ЗУ, ЗО)"
-
 #: lib/cab/clubs/membership.ex:30
 #, elixir-autogen, elixir-format
 msgid "already a member or pending join request"
@@ -374,3 +369,8 @@ msgstr "вже член клубу або запит на вступ ще роз
 #, elixir-autogen, elixir-format
 msgid "tell the head about yourself and how to reach you"
 msgstr "розкажіть голові клубу про себе і як з вами зв'язатися"
+
+#: lib/cab/sessions.ex:1227
+#, elixir-autogen, elixir-format
+msgid "a full ballot is 8 scores: two per team position 1..4 (og, oo, cg, co)"
+msgstr "повний бюлетень: 8 балів, по два на кожну позицію команди 1..4 (ВУ, ВО, ЗУ, ЗО)"

@@ -13,7 +13,7 @@ defmodule CabWeb.SessionPageHTML do
 
   embed_templates "session_page_html/*"
 
-  # the prep clock: 15 minutes from the motion's publication — the
+  # the prep clock: 15 minutes from the motion's publication - the
   # engine ships created_at (ISO) with the motion; absent = no clock
   defp prep_deadline(room), do: room["prep_until"]
 

@@ -9,7 +9,7 @@ defmodule Cab.Clubs.Membership do
   schema "memberships" do
     field :role, :string
     field :status, :string
-    # the join form's answers (user params by design) — the head
+    # the join form's answers (user params by design) - the head
     # reads them in Requests before approving
     field :message, :string
     field :contact, :string

@@ -12,14 +12,14 @@ defmodule Cab.EngineApi do
   `{"status":"fail"|"error","message": "..."}` with 4xx/5xx.
 
   ### Authorisation model (src/middleware/authMiddleware.js)
-  - `restrictToAdmin` — `isAdmin` claim only.
-  - `restrictToOwnOrg` — admin OR Owner of the event's organisation OR
+  - `restrictToAdmin` - `isAdmin` claim only.
+  - `restrictToOwnOrg` - admin OR Owner of the event's organisation OR
     Organizer of the event (`hasEventPrivilege`). Org-scoped routes
     (no event): owner of that org. Format routes: admin only.
-  - `restrictToChair` — room chair, WITH FALL-THROUGH to
+  - `restrictToChair` - room chair, WITH FALL-THROUGH to
     `hasEventPrivilege` (admin/owner/organiser). => Owner/organiser CAN
     submit and edit scores for any room. NO ENGINE PATCH NEEDED.
-  - Feedback: `POST /rooms/:roomId/feedback` — any authenticated user.
+  - Feedback: `POST /rooms/:roomId/feedback` - any authenticated user.
 
   ### Users
   - `POST /users/register` {username,password} -> 201 {token,data:{id}}
@@ -27,30 +27,30 @@ defmodule Cab.EngineApi do
   - `POST /users/login` {username,password} -> {token}
 
   ### Organisations
-  - `POST /organisations` {name, owner_id, type?} — ADMIN ONLY;
+  - `POST /organisations` {name, owner_id, type?} - ADMIN ONLY;
     creates the Owner row for owner_id too -> 201 data{id,name}
-  - `POST /organisations/:orgId/owners` {targetUserId} — owner-of-org
+  - `POST /organisations/:orgId/owners` {targetUserId} - owner-of-org
     or admin -> 201
-  - `GET /organisations`, `GET /organisations/:id` — any authed user
+  - `GET /organisations`, `GET /organisations/:id` - any authed user
 
   ### Events
-  - `GET /events` — PUBLIC list (paginated, default 20; ?status=&from=&to=)
+  - `GET /events` - PUBLIC list (paginated, default 20; ?status=&from=&to=)
     data: [{id,name,start_date,end_date,status,is_ranked,Organisation}]
   - `POST /events/:organisationId` {name,start_date,end_date,is_ranked}
-    — owner of org -> 201 data (event, status "scheduled")
-  - `GET /events/:eventId` — any authed
-  - `PUT /events/:eventId` {name,status,...} — status in
-    scheduled|in_progress|completed — owner/organiser
-  - `GET /events/organisation/:organisationId` — any authed
+    - owner of org -> 201 data (event, status "scheduled")
+  - `GET /events/:eventId` - any authed
+  - `PUT /events/:eventId` {name,status,...} - status in
+    scheduled|in_progress|completed - owner/organiser
+  - `GET /events/organisation/:organisationId` - any authed
   - `GET /events/:eventId/access` -> data{isPrivileged}
-  - `DELETE /events/:eventId` — owner/organiser; archives (soft) by
+  - `DELETE /events/:eventId` - owner/organiser; archives (soft) by
     default, `?hard=true` is admin-only. Archived events drop out of
     all paranoid listings.
 
   ### Organizers (event roles)
   - `GET /events/:eventId/organizers`
-  - `POST /events/:eventId/organizers` {targetUserId, role} — role in
-    organiser|tab|adjcore (default organiser) — owner/organiser
+  - `POST /events/:eventId/organizers` {targetUserId, role} - role in
+    organiser|tab|adjcore (default organiser) - owner/organiser
   - `PATCH /events/:eventId/organizers/:targetUserId` {role}
   - `DELETE /events/:eventId/organizers/:targetUserId`
 
@@ -58,17 +58,17 @@ defmodule Cab.EngineApi do
   - `GET /events/:eventId/participants` -> data [{id,user_id,
     display_name,role,checked_in,is_eliminated}]
   - `POST /events/:eventId/participants` {user_id?,display_name,role}
-    — role speaker|adjudicator. Privileged callers may register other
+    - role speaker|adjudicator. Privileged callers may register other
     users or guests (guest gets raw_claim_token). -> 201 data{id,...}
   - `PATCH /events/:eventId/participants/:pid/check-in` {checked_in}
-    — organiser or self
+    - organiser or self
   - `PATCH /events/:eventId/check-ins` {status, participant_ids[]}
-    — bulk, owner/organiser
+    - bulk, owner/organiser
   - `PATCH /events/:eventId/eliminations` {status, team_ids[]?,
-    participant_ids[]?} — owner/organiser (adjudicators not eliminable)
-  - `DELETE /events/:eventId/participants/:pid` — owner/organiser;
+    participant_ids[]?} - owner/organiser (adjudicators not eliminable)
+  - `DELETE /events/:eventId/participants/:pid` - owner/organiser;
     archives. 409 while a TeamMember row or a RoomAdjudicator seat
-    exists for the participant — NOTE these checks do not join the
+    exists for the participant - NOTE these checks do not join the
     (paranoid) Team/Room, so a participant who was EVER paired stays
     unremovable even after their team/room was archived. Removal is
     therefore a sign-up-stage operation.
@@ -77,10 +77,10 @@ defmodule Cab.EngineApi do
   - `GET /events/:eventId/teams` -> data [{id,name,is_temporary,
     is_swing,is_eliminated,speakers:[{participant_id,name,user_id}]}]
   - `POST /events/:eventId/teams` {name, participant_ids[], is_swing?}
-    — duplicates in participant_ids = iron-person; one permanent team
+    - duplicates in participant_ids = iron-person; one permanent team
     per participant per event -> 201 data{id,...}
   - `PUT /events/:eventId/teams/:teamId` {name?,participant_ids?,is_swing?}
-  - `GET /events/:eventId/teams/auto-generate?format_id=` — PROPOSES
+  - `GET /events/:eventId/teams/auto-generate?format_id=` - PROPOSES
     random teams from free (checked-in) speakers; does NOT create rooms.
 
   ### Rounds
@@ -88,7 +88,7 @@ defmodule Cab.EngineApi do
     is_hidden}] (status draft|in_progress|completed)
   - `POST /events/:eventId/rounds` {name, sequence, is_hidden?} -> 201
   - `PUT /rounds/:roundId` {name?,sequence?,status?,is_hidden?}
-  - `PATCH /events/:eventId/rounds/release-all` — un-hides all rounds
+  - `PATCH /events/:eventId/rounds/release-all` - un-hides all rounds
 
   ### Teams vs rooms lifecycle (verified for the rebuild loop)
   - POST rooms accepts `{name, participant_ids, position}` entries
@@ -102,38 +102,38 @@ defmodule Cab.EngineApi do
     (`where archived_at is null`), so names can be reused after a
     rebuild. => club pairing uses inline temporary teams.
 
-  ### Rooms (no auto-generate endpoint — rooms are created explicitly)
+  ### Rooms (no auto-generate endpoint - rooms are created explicitly)
   - `GET /rounds/:roundId/rooms` -> data [{id,status,Format,
     RoomAdjudicators:[{id,role,EventParticipant}],
     RoomTeams:[{id,position,rank,Team,RoomSpeakers:[{id,rank,
     EventParticipant}]}]}]
   - `POST /rounds/:roundId/rooms` {format_id, motion_id?, teams:
     [{team_id,position}|{name,participant_ids,position}], adjudicators:
-    [{participant_id, role: chair|panelist|trainee}]} — exactly
+    [{participant_id, role: chair|panelist|trainee}]} - exactly
     format.teams_per_room teams, positions a permutation of 1..N, at
     least one chair; adjudicator must have role "adjudicator" and not
     already sit in this round; speakers can't be double-booked.
     Room statuses: pending -> judging -> completed -> confirmed | void.
   - `PATCH /rounds/:roundId/rooms/swap-teams` {room_team_id_a,
-    room_team_id_b} — both rooms must be 'pending', same format.
-  - `POST /rooms/:roomId/motion` {motion_text, infoslide?} — the
+    room_team_id_b} - both rooms must be 'pending', same format.
+  - `POST /rooms/:roomId/motion` {motion_text, infoslide?} - the
     room's CHAIR (owner/organiser fall-through) sets this room's
     motion while pending/judging: creates a released event motion and
     attaches it atomically. Rooms of one round may carry different
     motions (club sessions). Room listing includes each room's Motion.
-  - `DELETE /rooms/:roomId` — not while judging/completed/confirmed.
+  - `DELETE /rooms/:roomId` - not while judging/completed/confirmed.
 
   ### Motions (event-scoped; rooms reference motion_id optionally)
-  - `GET /events/:eventId/motions` — unreleased text masked for
+  - `GET /events/:eventId/motions` - unreleased text masked for
     unprivileged viewers; 404 when none exist
   - `POST /events/:eventId/motions` {motion_text, infoslide?,
     is_released?} -> 201
   - `PUT /events/:eventId/motions/:motionId` {motion_text?, infoslide?,
-    is_released?} — releasing = is_released: true
+    is_released?} - releasing = is_released: true
 
   ### Scores / ballots (all allowed for owner/organiser via fall-through)
   - `POST /rooms/:roomId/scores` {teamRankings:[{room_team_id,rank}],
-    speakerScores:[{room_speaker_id,score}]} — ranks a permutation of
+    speakerScores:[{room_speaker_id,score}]} - ranks a permutation of
     1..teams_per_room, exactly teams_per_room*speakers_per_team scores,
     each within format score_min..score_max (BP: 50..100). Attributed
     to the room's chair. Room -> 'completed'. A completed room accepts
@@ -141,11 +141,11 @@ defmodule Cab.EngineApi do
     completed); only 'confirmed' and 'void' reject submission, so
     editing a locked ballot = unconfirm + resubmit. Nothing ever wipes
     a submitted result.
-  - `PATCH /rooms/:roomId/confirm` — completed -> confirmed (locks)
-  - `PATCH /rooms/:roomId/unconfirm` — confirmed -> completed
+  - `PATCH /rooms/:roomId/confirm` - completed -> confirmed (locks)
+  - `PATCH /rooms/:roomId/unconfirm` - confirmed -> completed
 
   ### Standings
-  - `GET /events/:eventId/standings/teams` — raw per-room ranks
+  - `GET /events/:eventId/standings/teams` - raw per-room ranks
   - `GET /events/:eventId/standings/calculated/teams` -> sorted
     [{id,name,total_points}] where points = sum(N - rank); swing teams
     excluded; hidden rounds included only for privileged viewers.
@@ -153,12 +153,12 @@ defmodule Cab.EngineApi do
     [{id,name,total_points}], points = sum(score * (1+(N-rank)*0.1))
 
   ### Formats
-  - `GET /formats` — seeded: id 1 = British Parliamentary (BP),
+  - `GET /formats` - seeded: id 1 = British Parliamentary (BP),
     4 teams/room, 2 speakers/team, scores 50..100. Writes admin-only.
 
   ### Conclusion
-  Everything the gateway needs exists. The one gap-shaped item — organiser
-  score submission — is already covered by `restrictToChair`'s
+  Everything the gateway needs exists. The one gap-shaped item - organiser
+  score submission - is already covered by `restrictToChair`'s
   owner/organiser fall-through, so no engine patch was required.
   Room "auto-generate" does not exist; the gateway pairs teams itself
   and POSTs explicit rooms. Organisation creation is admin-only; the
@@ -303,7 +303,7 @@ defmodule Cab.EngineApi do
   @doc """
   Removes (archives) an event participant. Owner/organiser-only in
   the engine; 409 while the participant is attached to a team or
-  seated as a room adjudicator — see the module audit.
+  seated as a room adjudicator - see the module audit.
   """
   def delete_participant(actor, event_id, participant_id) do
     Engine.delete(actor, "/api/events/#{event_id}/participants/#{participant_id}") |> unwrap()
@@ -338,7 +338,7 @@ defmodule Cab.EngineApi do
   end
 
   @doc """
-  Deletes a room (engine refuses while judging/completed/confirmed —
+  Deletes a room (engine refuses while judging/completed/confirmed -
   i.e. only pending rooms go). Used by the delete-draw rebuild loop.
   """
   def delete_room(actor, room_id) do

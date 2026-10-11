@@ -1,8 +1,8 @@
 defmodule CabWeb.MeController do
   @moduledoc """
-  GET /me — the signed-in user's personal page: invitations to
+  GET /me - the signed-in user's personal page: invitations to
   accept, my clubs and schedule, engine statistics VERBATIM
-  (`GET /users/:id/stats`, rule 0 — cab never derives its own
+  (`GET /users/:id/stats`, rule 0 - cab never derives its own
   numbers) plus the participation history rows.
   """
   use CabWeb, :controller
@@ -34,7 +34,7 @@ defmodule CabWeb.MeController do
   end
 
   # the engine's stats payload or nil (never participated / engine
-  # trouble) — the page says so in words either way
+  # trouble) - the page says so in words either way
   defp fetch_stats(user) do
     with %{node_user_id: id} when is_integer(id) <- Accounts.ensure_node_user(user),
          {:ok, stats} when is_map(stats) <- EngineApi.user_stats(id, id) do

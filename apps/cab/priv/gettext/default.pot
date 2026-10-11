@@ -120,13 +120,6 @@ msgstr ""
 msgid "%{name}'s guest history is now on your account."
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html.ex:93
-#, elixir-autogen, elixir-format
-msgid "%{people} checked in → %{count} room."
-msgid_plural "%{people} checked in → %{count} rooms."
-msgstr[0] ""
-msgstr[1] ""
-
 #: lib/cab_web/session_format.ex:162
 #, elixir-autogen, elixir-format
 msgid "%{rank}th"
@@ -276,11 +269,6 @@ msgstr ""
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex:4
 #, elixir-autogen, elixir-format
 msgid "Add to my account"
-msgstr ""
-
-#: lib/cab_web/controllers/owner_html/registration_block.html.heex:51
-#, elixir-autogen, elixir-format
-msgid "Add “%{name}” as a guest"
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex:20
@@ -992,13 +980,9 @@ msgstr ""
 #: lib/cab_web/components/ui.ex:152
 #: lib/cab_web/controllers/me_controller.ex:32
 #: lib/cab_web/controllers/me_html/show.html.heex:2
-#, elixir-autogen, elixir-format
-msgid "My page"
-msgstr ""
-
 #: lib/cab_web/controllers/page_html/home.html.heex:13
 #, elixir-autogen, elixir-format
-msgid "My page →"
+msgid "My page"
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex:68
@@ -1165,12 +1149,6 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/club.html.heex:12
 #, elixir-autogen, elixir-format
 msgid "Open new session"
-msgstr ""
-
-#: lib/cab_web/controllers/owner_html/club.html.heex:73
-#: lib/cab_web/controllers/page_html/home.html.heex:9
-#, elixir-autogen, elixir-format
-msgid "Open →"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex:126
@@ -2602,11 +2580,6 @@ msgstr ""
 msgid "Average"
 msgstr ""
 
-#: lib/cab_web/controllers/standings_html/standings_body.html.heex:60
-#, elixir-autogen, elixir-format
-msgid "Avg feedback counts a base of 5 as one vote: (5 + every feedback score) ÷ (feedback count + 1)."
-msgstr ""
-
 #: lib/cab_web/controllers/feedback_html/new.html.heex:41
 #: lib/cab_web/controllers/feedback_html/new.html.heex:87
 #: lib/cab_web/controllers/me_html/show.html.heex:117
@@ -2757,4 +2730,27 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/show.html.heex:92
 #, elixir-autogen, elixir-format
 msgid "give feedback"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html.ex:93
+#, elixir-autogen, elixir-format
+msgid "%{people} checked in, %{count} room."
+msgid_plural "%{people} checked in, %{count} rooms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex:51
+#, elixir-autogen, elixir-format
+msgid "Add \"%{name}\" as a guest"
+msgstr ""
+
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex:60
+#, elixir-autogen, elixir-format
+msgid "Avg feedback counts a base of 5 as one vote: (5 + every feedback score) / (feedback count + 1)."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/club.html.heex:73
+#: lib/cab_web/controllers/page_html/home.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "Open"
 msgstr ""

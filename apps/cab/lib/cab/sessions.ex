@@ -3,8 +3,8 @@ defmodule Cab.Sessions do
   Routine club sessions: a gateway row (public uuid) over a one-round
   engine event. Debate state (signups, rooms, ballots) lives in the
   engine and `state/1` reads it for the live pages. cab records the
-  lifecycle facts it performs itself — open, rooms made, finish and
-  the winner — on the row, so lists never walk the engine
+  lifecycle facts it performs itself - open, rooms made, finish and
+  the winner - on the row, so lists never walk the engine
   (`stage_of/1`, `club_sessions/1`, `archive/1`).
   """
 
@@ -49,7 +49,7 @@ defmodule Cab.Sessions do
     if watched?(uuid) do
       # the first writer becomes the reader; writers arriving while it
       # reads only count themselves, and the reader reads once more for
-      # all of them — twenty simultaneous ballots cost a read or two
+      # all of them - twenty simultaneous ballots cost a read or two
       if :ets.update_counter(:cab_session_changes, uuid, 1, {uuid, 0}) == 1 do
         try do
           publish_until_settled(session, 1)
@@ -148,7 +148,7 @@ defmodule Cab.Sessions do
     Repo.all(from s in Session, where: s.club_id == ^club.id, order_by: [desc: s.id])
   end
 
-  @doc "The club's session with this uuid, or nil — guards cross-club ids."
+  @doc "The club's session with this uuid, or nil - guards cross-club ids."
   def get_for_club(%Club{} = club, uuid) do
     case get_by_uuid(uuid) do
       %Session{club_id: club_id} = session when club_id == club.id -> session
@@ -184,9 +184,9 @@ defmodule Cab.Sessions do
 
   @doc """
   Opens a session: a one-round event in the club's engine organisation,
-  ready for sign-ups, plus the gateway row. Motions are NOT set here —
+  ready for sign-ups, plus the gateway row. Motions are NOT set here -
   each room's judge sets their own room's motion once rooms are made.
-  `scheduled_at` is the optional planned start (UTC) — see
+  `scheduled_at` is the optional planned start (UTC) - see
   `parse_schedule/2` for the form's date/time pair.
   """
   def open(%User{} = head, %Club{} = club, name, scheduled_at \\ nil) do
@@ -260,7 +260,7 @@ defmodule Cab.Sessions do
   The head explicitly closes sign-ups (flow-2's "sign-ups close" edge):
   only possible while `:signup`; rooms are then composed from the
   final attendance. Returns `{:ok, session}` or
-  `{:error, :conflict, message}` — the 409 gate.
+  `{:error, :conflict, message}` - the 409 gate.
   """
   def close_signups(%Session{} = session) do
     result =
@@ -282,7 +282,7 @@ defmodule Cab.Sessions do
 
   @doc """
   REOPEN REGISTRATION (M9): from a running session whose rooms are
-  still all pending — the rooms (and their temporary teams) are
+  still all pending - the rooms (and their temporary teams) are
   deleted and the public window opens again.
   """
   def reopen_registration(%User{} = head, %Session{} = session) do
@@ -293,7 +293,7 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  START SESSION (M9): one gold action — closes public registration
+  START SESSION (M9): one gold action - closes public registration
   and creates the rooms FROM THE ALLOCATOR STATE. Only the room
   COUNT is ever automatic; people are placed by the head's drag,
   never by cab. If room creation fails the window reopens, so the
@@ -316,9 +316,9 @@ defmodule Cab.Sessions do
 
   @doc """
   THE ALLOCATOR DRAFT (server-held): the head drops a person on a
-  slot — `"<room>:<og|oo|cg|co>:<1|2>"` for speakers,
+  slot - `"<room>:<og|oo|cg|co>:<1|2>"` for speakers,
   `"<room>:judge"` for the chair. Registration carries no role, so
-  anyone fits any slot — the drag decides who judges. The person
+  anyone fits any slot - the drag decides who judges. The person
   leaves any previous slot; an occupied target sends its occupant to
   that previous slot (a swap) or back to the tray. Editable while
   the session is :signup or :closed. Returns `{:ok, session}`.
@@ -499,7 +499,7 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Registration: the user registers themselves for this session — no
+  Registration: the user registers themselves for this session - no
   role; the head decides who judges and who speaks at allocation.
   Only while the session is `:signup` (409 gate once sign-ups close).
   Their engine counterpart is ensured lazily; the engine enforces one
@@ -552,7 +552,7 @@ defmodule Cab.Sessions do
   A guest registers through the shared URL or is added by name: an
   engine participant with no engine account behind it, made as the
   club head. Only while `:signup`. Returns the engine participant,
-  `raw_claim_token` included — the guest's link keeps both.
+  `raw_claim_token` included - the guest's link keeps both.
   """
   def add_guest(%Session{} = session, display_name) do
     club = session_club(session)
@@ -644,7 +644,7 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  REMOVE — the one verb for taking a person out of a session: the head
+  REMOVE - the one verb for taking a person out of a session: the head
   removes anyone, a person removes themselves. Only people on the
   waitlist go: everyone before rooms exist, afterwards whoever is not
   seated in a room (a seated person's scores are the session's
@@ -677,7 +677,7 @@ defmodule Cab.Sessions do
     notify(result, session)
   end
 
-  @doc "Participant ids seated in a room — as a speaker or the chair."
+  @doc "Participant ids seated in a room - as a speaker or the chair."
   def seated_ids(rooms) do
     for room <- rooms,
         seat <-
@@ -749,7 +749,7 @@ defmodule Cab.Sessions do
     end
   end
 
-  # rooms carry their number inside the session ("no": 1, 2, …) in
+  # rooms carry their number inside the session ("no": 1, 2, ...) in
   # creation order; the engine id stays the room's address
   defp number_rooms(rooms) do
     rooms
@@ -784,7 +784,7 @@ defmodule Cab.Sessions do
   end
 
   # the four engine reads are independent once the round id is known
-  # (stamped at open) — fan them out instead of paying their sum
+  # (stamped at open) - fan them out instead of paying their sum
   defp state_reads(actor, %Session{engine_round_id: round_id} = session)
        when is_integer(round_id) do
     fan_out([
@@ -814,7 +814,7 @@ defmodule Cab.Sessions do
     |> Enum.map(fn {:ok, result} -> result end)
   end
 
-  # most flows only need the round's id — the stamp answers without
+  # most flows only need the round's id - the stamp answers without
   # an engine call; legacy rows fall back to the lookup
   defp session_round_id(_actor, %Session{engine_round_id: id}) when is_integer(id), do: {:ok, id}
 
@@ -829,7 +829,7 @@ defmodule Cab.Sessions do
   defp stage(_event, _rooms, _session), do: :running
 
   # the lifecycle gates: sign-ups while :signup, composition while
-  # :closed — anything else is a 409 for the API, a flash for HTML
+  # :closed - anything else is a 409 for the API, a flash for HTML
   defp require_stage(%{stage: stage}, stage), do: :ok
 
   defp require_stage(_session, :signup),
@@ -842,7 +842,7 @@ defmodule Cab.Sessions do
   EXPLICIT room composition: the head says who goes where.
   `rooms_spec` is a list of
   `%{"adjudicator_participant_id" => id, "teams" => [[pid] | [pid, pid] x #{@teams_per_room}]}`
-  (atom keys and integer-strings accepted) — a 1-speaker team is a
+  (atom keys and integer-strings accepted) - a 1-speaker team is a
   declared iron. Only while `:closed`. People are ALWAYS placed by
   the head; cab never pairs anyone automatically. Validated
   against the signups: every pid a signed-up speaker placed at most
@@ -872,7 +872,7 @@ defmodule Cab.Sessions do
   end
 
   # the drag decides roles: chairs become adjudicators, everyone in a
-  # team a speaker — only rows whose engine role differs are written
+  # team a speaker - only rows whose engine role differs are written
   defp assign_roles(actor, session, signups, rooms) do
     wanted =
       Map.merge(
@@ -1007,7 +1007,7 @@ defmodule Cab.Sessions do
   defp first_name(nil), do: "?"
   defp first_name(display_name), do: display_name |> String.split() |> hd()
 
-  # team names are unique per engine event — suffix repeats
+  # team names are unique per engine event - suffix repeats
   defp dedupe_names(specs) do
     {specs, _seen} =
       Enum.map_reduce(specs, %{}, fn spec, seen ->
@@ -1022,7 +1022,7 @@ defmodule Cab.Sessions do
   # Rooms are created motion-less: each room's judge sets their own
   # motion afterwards via set_room_motion/5. Teams go in INLINE as
   # temporary teams (the engine purges them with the room on
-  # delete_rooms/2 and they never lock speakers) — the
+  # delete_rooms/2 and they never lock speakers) - the
   # delete-and-recompose loop depends on it.
   defp create_session_rooms(actor, round, team_specs, judges) do
     team_specs
@@ -1082,7 +1082,7 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Cancels the session: the engine event is archived (soft delete —
+  Cancels the session: the engine event is archived (soft delete -
   owner-only) and the gateway row removed, so the club is back to
   "no session". Works at any stage; finished sessions should be left
   for history instead.
@@ -1098,7 +1098,7 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  The room's judge sets that room's motion (per-room motions — rooms
+  The room's judge sets that room's motion (per-room motions - rooms
   of one session may debate different ones). Chair-guarded by the
   engine, with owner/organiser fall-through for the head.
   """
@@ -1112,8 +1112,8 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Submits a room's scored BP ballot: 8 speaker scores — two per team
-  in og/oo/cg/co table order — team ranks DERIVE from team totals
+  Submits a room's scored BP ballot: 8 speaker scores - two per team
+  in og/oo/cg/co table order - team ranks DERIVE from team totals
   (winner = rank 1, the judge never picks places), tied team totals
   rejected because BP demands a strict order of all four teams.
 
@@ -1124,7 +1124,7 @@ defmodule Cab.Sessions do
   scores are whole points, 50-100.
 
   Only the room's chair (the signed-up judge) or the club head may
-  submit — `{:error, :forbidden}` otherwise. The ballot goes in as
+  submit - `{:error, :forbidden}` otherwise. The ballot goes in as
   the acting user (the engine's chair guard with owner fall-through
   applies) and is then confirmed as the club head, since confirm is
   owner/organiser-only in the frozen engine.
@@ -1155,7 +1155,7 @@ defmodule Cab.Sessions do
     notify(result, session)
   end
 
-  # editing a confirmed ballot: the lock/unlock dance is internal —
+  # editing a confirmed ballot: the lock/unlock dance is internal -
   # the head just edits, cab unconfirms, the resubmission atomically
   # replaces the ballot (never wiped) and it re-confirms right after
   defp maybe_unconfirm(head_actor, %{"id" => id, "status" => "confirmed"}),
@@ -1226,7 +1226,7 @@ defmodule Cab.Sessions do
              scores:
                dgettext(
                  "errors",
-                 "a full ballot is 8 scores — two per team position 1..4 (og, oo, cg, co)"
+                 "a full ballot is 8 scores: two per team position 1..4 (og, oo, cg, co)"
                )
            }}
         end
@@ -1272,7 +1272,7 @@ defmodule Cab.Sessions do
     end
   end
 
-  # whole points only — the engine stores scores as integers
+  # whole points only - the engine stores scores as integers
   defp valid_score?(score),
     do: is_number(score) and score >= 50 and score <= 100 and trunc(score) == score
 
@@ -1441,7 +1441,7 @@ defmodule Cab.Sessions do
     |> Enum.any?(&(get_in(&1, ["EventParticipant", "id"]) == participant_id))
   end
 
-  # the winning team's members as gateway-visible engine user ids —
+  # the winning team's members as gateway-visible engine user ids -
   # copied once at finish so history never re-walks the rooms
   defp winner_user_ids(%{rooms: rooms, signups: signups}) do
     user_of = Map.new(signups, &{&1["id"], &1["user_id"]})
@@ -1456,7 +1456,7 @@ defmodule Cab.Sessions do
     |> Enum.uniq()
   end
 
-  # writes a lifecycle fact onto the session row — unconditionally: the
+  # writes a lifecycle fact onto the session row - unconditionally: the
   # struct in hand may be stale, so a changeset diff could skip it
   defp record(%Session{id: id}, changes) do
     from(s in Session, where: s.id == ^id)
@@ -1487,7 +1487,7 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  The session's stage from cab's own records — for lists and
+  The session's stage from cab's own records - for lists and
   overviews, no engine call. Detail pages use `state/1`, which reads
   the engine and is authoritative.
   """
@@ -1508,7 +1508,7 @@ defmodule Cab.Sessions do
 
   @doc """
   Each club's unfinished session and its stage, as
-  %{club_id => {session, stage, rooms}} — cab's own records, no engine
+  %{club_id => {session, stage, rooms}} - cab's own records, no engine
   call; a club with no unfinished session maps to nil.
   """
   def next_by_club(clubs) do
@@ -1564,7 +1564,7 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  The user's past participations, newest first — ONE engine call
+  The user's past participations, newest first - ONE engine call
   (`GET /users/history`, self-scoped) mapped onto cab's session rows:
   `%{date, club, club_uuid, session_uuid, role, won}`. `won` reads the
   winner recorded at finish; judges never "win". Sessions cab does
@@ -1608,7 +1608,7 @@ defmodule Cab.Sessions do
   @doc """
   The user's upcoming signups ACROSS CLUBS (the cabinet's schedule):
   the engine's self-scoped schedule read mapped back onto gateway
-  sessions — `%{session, club, role}` rows, soonest first. Sessions
+  sessions - `%{session, club, role}` rows, soonest first. Sessions
   the gateway does not know (foreign events) are dropped.
   """
   def user_schedule(%User{node_user_id: node_user_id} = user) when is_integer(node_user_id) do
@@ -1642,7 +1642,7 @@ defmodule Cab.Sessions do
 
   @doc """
   The club page's "Club Sessions" table: EVERY session, newest first,
-  with its status from cab's records — done (+ the winner recorded at
+  with its status from cab's records - done (+ the winner recorded at
   finish) | live | open. Pure database, no engine call.
   """
   def club_sessions(%Club{} = club) do
@@ -1664,7 +1664,7 @@ defmodule Cab.Sessions do
 
   @doc """
   The FINISHED sessions (the standings selector), newest finish
-  first, from cab's records — the winner is the engine's, copied
+  first, from cab's records - the winner is the engine's, copied
   verbatim at finish (rule 0).
   """
   def archive(%Club{} = club) do

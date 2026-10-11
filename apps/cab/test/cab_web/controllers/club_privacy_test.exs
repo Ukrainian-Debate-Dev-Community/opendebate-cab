@@ -1,7 +1,7 @@
 defmodule CabWeb.ClubPrivacyTest do
   @moduledoc """
   Private = STANDINGS ONLY: a private club never feeds the global
-  standings, and its own standings are members-only — except that
+  standings, and its own standings are members-only - except that
   whoever played the shown session keeps that session's data.
   Everything else about the club stays public.
   """
@@ -78,7 +78,7 @@ defmodule CabWeb.ClubPrivacyTest do
   test "a private club never feeds the global standings", %{club: club} do
     stub_finished()
 
-    # the latest-finished scan skips it entirely — no engine calls needed
+    # the latest-finished scan skips it entirely - no engine calls needed
     assert Cab.Standings.latest_finished() == nil
     # and the clubs tab drops it from the counts
     refute Enum.any?(Cab.Standings.clubs(), &(&1.club.id == club.id))

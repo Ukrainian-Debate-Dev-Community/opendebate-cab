@@ -1,7 +1,7 @@
 defmodule CabWeb.LiveScope do
   @moduledoc """
   The live twin of `CabWeb.UserAuth.fetch_current_user/2` +
-  `CabWeb.ClubScope`: same URLs, same ladder, same answers — 404 for
+  `CabWeb.ClubScope`: same URLs, same ladder, same answers - 404 for
   an unknown or archived club, the /signin wall for anonymous, 403
   for a role that does not cover the tree.
 

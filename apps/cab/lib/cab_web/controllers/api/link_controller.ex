@@ -8,7 +8,7 @@ defmodule CabWeb.Api.LinkController do
 
   plug ClubScope, source: :session, require: :owner
 
-  # GET /api/v1/sessions/:uuid/links — head only: the session's
+  # GET /api/v1/sessions/:uuid/links - head only: the session's
   # active guest links with each guest's name and signed-up role
   def index(conn, _params) do
     session = conn.assigns.session
@@ -23,7 +23,7 @@ defmodule CabWeb.Api.LinkController do
     end
   end
 
-  # POST /api/v1/sessions/:uuid/links {"name"} — the head
+  # POST /api/v1/sessions/:uuid/links {"name"} - the head
   # issues a guest registration + personal link by hand
   def create(conn, params) do
     with {:ok, link} <-

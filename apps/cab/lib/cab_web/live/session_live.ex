@@ -1,12 +1,12 @@
 defmodule CabWeb.SessionLive do
   @moduledoc """
-  P6 `/c/:club_uuid/s/:session_uuid` — THE session page, live: one
+  P6 `/c/:club_uuid/s/:session_uuid` - THE session page, live: one
   page per session, public, stage-aware, re-read whenever the session
   announces a change (signups, rooms, motions, ballots, finish).
 
   Its actions stay REST: Register links to `/r/:sess`, cancel and the
   ballot POST to their controller routes, so every write keeps its
-  API twin. Identity-gated, not tree-gated — a guest (session
+  API twin. Identity-gated, not tree-gated - a guest (session
   identity adopted via `/l/:code`) sees the same page.
   """
   use CabWeb, :live_view
@@ -87,7 +87,7 @@ defmodule CabWeb.SessionLive do
         show(socket, state)
 
       {:error, _message} ->
-        # the session vanished (cancelled) or the engine is down —
+        # the session vanished (cancelled) or the engine is down -
         # back to the club page, which degrades gracefully
         socket
         |> put_flash(:error, gettext("This session is unavailable right now."))
@@ -101,7 +101,7 @@ defmodule CabWeb.SessionLive do
   defp my_signup(_state, _user), do: nil
 
   # the chrome's gold "Fill ballot" segment: the open room this
-  # viewer chairs — a completed (not yet confirmed) ballot is still
+  # viewer chairs - a completed (not yet confirmed) ballot is still
   # editable by resubmission
   defp my_ballot_room(%{stage: :running, rooms: rooms}, %User{} = user) do
     Enum.find(rooms, fn room ->

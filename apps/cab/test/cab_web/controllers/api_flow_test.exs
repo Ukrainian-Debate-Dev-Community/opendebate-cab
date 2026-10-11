@@ -50,7 +50,7 @@ defmodule CabWeb.ApiFlowTest do
     # anonymous cannot ask
     assert conn |> post(~p"/api/v1/clubs/#{club.uuid}/join-requests") |> json_response(401)
 
-    # the two answers are REQUIRED — a bare request is rejected
+    # the two answers are REQUIRED - a bare request is rejected
     missing =
       conn
       |> log_in(user)
@@ -634,7 +634,7 @@ defmodule CabWeb.ApiFlowTest do
 
     assert cancelled == %{"uuid" => session.uuid, "status" => "cancelled"}
 
-    # the row is gone — the uuid no longer resolves
+    # the row is gone - the uuid no longer resolves
     assert conn
            |> log_in(head)
            |> get(~p"/api/v1/sessions/#{session.uuid}")

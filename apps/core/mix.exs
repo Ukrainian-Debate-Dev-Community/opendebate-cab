@@ -1,7 +1,7 @@
 defmodule Core.MixProject do
   use Mix.Project
 
-  # L0 of the umbrella: shared kernel. Depends on no other app —
+  # L0 of the umbrella: shared kernel. Depends on no other app -
   # engine HTTP client, auth/JWT primitives, design-system UI
   # components. Everything above (cab, uadebate, dfu) may depend on
   # core; core may depend on nothing above it.

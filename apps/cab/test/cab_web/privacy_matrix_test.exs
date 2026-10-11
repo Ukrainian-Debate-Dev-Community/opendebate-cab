@@ -2,7 +2,7 @@ defmodule CabWeb.PrivacyMatrixTest do
   @moduledoc """
   The privacy matrix: every page and API read against every kind of
   viewer, for a public and a private club. Each cell is the expected
-  outcome — 200, :signin (sent to /signin), :head_view (a head sent
+  outcome - 200, :signin (sent to /signin), :head_view (a head sent
   to the session's Rooms page), 401, 403 or 404. A private
   club differs from a public one only where a row says so.
 

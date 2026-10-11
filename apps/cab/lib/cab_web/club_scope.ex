@@ -2,7 +2,7 @@ defmodule CabWeb.ClubScope do
   @moduledoc """
   The role-scoped URL tree plug chain: resolve the club behind the
   request, derive the current user's ACTUAL role in it, and assert
-  the role covers the requested tree — else 403.
+  the role covers the requested tree - else 403.
 
   Used by both the JSON controllers and the HTML role trees; the
   engine enforces again on its side, but the gateway never skips its
@@ -11,21 +11,21 @@ defmodule CabWeb.ClubScope do
       plug CabWeb.ClubScope, source: :club, require: :owner
 
   Sources (how the club is found):
-    * `:club` — `club_uuid`/`uuid` path param is a club uuid
-    * `:session` — `session_uuid`/`uuid` path param is a session uuid
+    * `:club` - `club_uuid`/`uuid` path param is a club uuid
+    * `:session` - `session_uuid`/`uuid` path param is a session uuid
       (assigns `:session` too)
-    * `:join_request` — `id` path param is a membership id
+    * `:join_request` - `id` path param is a membership id
       (assigns `:join_request` too)
-    * `:room_session` — `session_uuid` body param names the session
+    * `:room_session` - `session_uuid` body param names the session
       the room belongs to (assigns `:session` too)
 
-  Requirements (what the tree demands), one strict ladder — every
+  Requirements (what the tree demands), one strict ladder - every
   role covers all trees below it (`Cab.Clubs.covers?/2`):
-    * `:public` — anyone, resolution only
-    * `:authenticated` — any signed-in account (a guest identity is not one)
-    * `:roster` — anyone for a public club, `:member` for a private one
-    * `:member` — approved membership (owner and admin included)
-    * `:owner` — head membership (admin included)
+    * `:public` - anyone, resolution only
+    * `:authenticated` - any signed-in account (a guest identity is not one)
+    * `:roster` - anyone for a public club, `:member` for a private one
+    * `:member` - approved membership (owner and admin included)
+    * `:owner` - head membership (admin included)
   """
 
   use Gettext, backend: CabWeb.Gettext
@@ -63,7 +63,7 @@ defmodule CabWeb.ClubScope do
     end
   end
 
-  # archived clubs are hidden everywhere — only a platform admin
+  # archived clubs are hidden everywhere - only a platform admin
   # still resolves them (the /admin table is their home)
   defp archived_hidden?(club, user) do
     club.archived_at != nil and not (user != nil and user.is_admin)

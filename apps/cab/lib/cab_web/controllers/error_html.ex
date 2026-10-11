@@ -1,7 +1,7 @@
 defmodule CabWeb.ErrorHTML do
   @moduledoc """
-  Every HTML error — raised (404/403 from live pages, 500) or sent by a
-  controller through `respond/3` — renders the same branded page.
+  Every HTML error - raised (404/403 from live pages, 500) or sent by a
+  controller through `respond/3` - renders the same branded page.
   """
   use CabWeb, :html
 

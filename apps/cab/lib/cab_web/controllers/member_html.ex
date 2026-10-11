@@ -4,7 +4,7 @@ defmodule CabWeb.MemberHTML do
 
   embed_templates "member_html/*"
 
-  @doc "The Club Sessions table — every session with its status in words; shared by the club and owner pages."
+  @doc "The Club Sessions table - every session with its status in words; shared by the club and owner pages."
   attr :club, :any, required: true
   attr :archive, :list, required: true
 

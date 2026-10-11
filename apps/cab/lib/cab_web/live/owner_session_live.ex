@@ -1,6 +1,6 @@
 defmodule CabWeb.OwnerSessionLive do
   @moduledoc """
-  `/c/:club_uuid/owner/s/:session_uuid` — the owner session page, live:
+  `/c/:club_uuid/owner/s/:session_uuid` - the owner session page, live:
   signups appear as people register, and the allocator works on the
   SERVER-HELD draft (`Cab.Sessions.place/3`, `unplace/2`). A drop is one
   event; the server saves it and every open copy of the page re-renders

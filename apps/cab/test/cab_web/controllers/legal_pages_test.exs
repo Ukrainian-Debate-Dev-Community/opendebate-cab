@@ -4,7 +4,7 @@ defmodule CabWeb.LegalPagesTest do
   test "the Policy and the Terms are public pages", %{conn: conn} do
     policy = conn |> get(~p"/policy") |> html_response(200)
     assert policy =~ "Who we are"
-    assert policy =~ "ВМГО «Федерація Дебатів України»"
+    assert policy =~ "ВМГО \u00ABФедерація Дебатів України\u00BB"
     assert policy =~ "Your rights"
 
     terms = conn |> get(~p"/terms") |> html_response(200)

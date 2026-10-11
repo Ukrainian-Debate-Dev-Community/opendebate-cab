@@ -309,7 +309,7 @@ defmodule CabWeb.CabinetHomeTest do
     html = conn |> log_in(user) |> get(~p"/me") |> html_response(200)
 
     assert html =~ ~s(id="my-schedule")
-    # one row per signup, across clubs — membership not required
+    # one row per signup, across clubs - membership not required
     assert html =~ ~s(href="/c/#{club_a.uuid}/s/#{s1.uuid}")
     assert html =~ ~s(href="/c/#{club_b.uuid}/s/#{s2.uuid}")
     # registration carries no role, so the schedule shows none

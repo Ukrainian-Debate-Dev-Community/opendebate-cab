@@ -50,7 +50,7 @@ defmodule CabWeb.MePageTest do
     html = conn |> log_in(user) |> get(~p"/me") |> html_response(200)
 
     assert html =~ ~s(id="me-stats")
-    # the engine's numbers, as reported — nothing recomputed
+    # the engine's numbers, as reported - nothing recomputed
     assert html =~ "77.40"
     assert html =~ "27.3%"
     assert html =~ ~s(id="me-history")
@@ -59,7 +59,7 @@ defmodule CabWeb.MePageTest do
     assert html =~ ">My page<"
   end
 
-  test "no logged debates yet — words, not an error", %{conn: conn} do
+  test "no logged debates yet - words, not an error", %{conn: conn} do
     user = user_fixture(%{node_user_id: 345})
 
     Req.Test.stub(Core.Engine, fn req ->

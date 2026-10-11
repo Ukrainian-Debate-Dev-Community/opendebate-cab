@@ -91,8 +91,8 @@ defmodule CabWeb.OwnerHTML do
     rooms = Cab.Sessions.room_count(signups)
 
     ngettext(
-      "%{people} checked in → %{count} room.",
-      "%{people} checked in → %{count} rooms.",
+      "%{people} checked in, %{count} room.",
+      "%{people} checked in, %{count} rooms.",
       rooms,
       people: signed_up_counts(signups)
     )

@@ -1,6 +1,6 @@
 defmodule CabWeb.RoomLive do
   @moduledoc """
-  `/c/:club_uuid/s/:session_uuid/rooms/:id` — ONE room URL for every
+  `/c/:club_uuid/s/:session_uuid/rooms/:id` - ONE room URL for every
   viewer, live: the draw, the motion the moment it is published (with
   the prep clock), the ballot state. Identity picks what renders: the
   chair or the head also gets the motion form and the ballot link.

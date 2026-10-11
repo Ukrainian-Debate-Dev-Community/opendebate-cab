@@ -88,7 +88,7 @@ defmodule CabWeb.ShellPagesTest do
         assert html =~ ">#{item}<"
       end
 
-      # the Sessions item is gone — the club page is the archive
+      # the Sessions item is gone - the club page is the archive
       refute html =~ ">Sessions<"
 
       # public: Rooms -> the session page; the roster behind the wall;
@@ -142,7 +142,7 @@ defmodule CabWeb.ShellPagesTest do
   # ---------------------------------------------------------------
 
   describe "/admin" do
-    test "404 for anonymous and plain users — the page does not exist for them",
+    test "404 for anonymous and plain users - the page does not exist for them",
          %{conn: conn} do
       assert conn |> get(~p"/admin") |> response(404)
       assert conn |> log_in(user_fixture()) |> get(~p"/admin") |> response(404)
@@ -223,7 +223,7 @@ defmodule CabWeb.ShellPagesTest do
       archived = conn |> log_in(admin) |> post(~p"/admin/clubs/#{club.uuid}/archive")
       assert redirected_to(archived) == "/admin"
 
-      # gone from the directory and every public page — a plain 404
+      # gone from the directory and every public page - a plain 404
       front = conn |> get(~p"/") |> html_response(200)
       refute front =~ club.name
       assert conn |> get(~p"/c/#{club.uuid}") |> response(404)
@@ -238,7 +238,7 @@ defmodule CabWeb.ShellPagesTest do
   end
 
   # ---------------------------------------------------------------
-  # /standings — global tabs, rule-0 passthrough
+  # /standings - global tabs, rule-0 passthrough
   # ---------------------------------------------------------------
 
   describe "/standings" do

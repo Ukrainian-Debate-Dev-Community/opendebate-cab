@@ -54,19 +54,19 @@ defmodule Cab.Clubs do
   end
 
   @doc """
-  All LIVE clubs, alphabetical — the public directory and every other
+  All LIVE clubs, alphabetical - the public directory and every other
   public surface. Archived clubs never appear here.
   """
   def list_clubs do
     Repo.all(from c in Club, where: is_nil(c.archived_at), order_by: c.name)
   end
 
-  @doc "Every club, archived included — the /admin table only."
+  @doc "Every club, archived included - the /admin table only."
   def list_all_clubs do
     Repo.all(from c in Club, order_by: c.name)
   end
 
-  @doc "The head/admin edits the club profile — gateway row only."
+  @doc "The head/admin edits the club profile - gateway row only."
   def update_club(%Club{} = club, attrs) do
     changeset = Club.changeset(club, attrs)
 
@@ -87,7 +87,7 @@ defmodule Cab.Clubs do
   end
 
   @doc """
-  Admin archives a club: the gateway `archived_at` flag only — the
+  Admin archives a club: the gateway `archived_at` flag only - the
   engine organisation and all debate history stay untouched. Archived
   clubs disappear from every public surface.
   """
@@ -163,7 +163,7 @@ defmodule Cab.Clubs do
   @doc """
   The viewer's actual role in a club: `:admin` (platform admin),
   `:owner` (head membership), `:member` (approved membership) or
-  `:public`. One strict ladder — see `covers?/2`.
+  `:public`. One strict ladder - see `covers?/2`.
   """
   def role_for(%Club{}, nil), do: :public
 
@@ -245,7 +245,7 @@ defmodule Cab.Clubs do
 
   @doc """
   The head removes a member: the gateway membership row goes away
-  (the engine shadow user and any past participations stay — history
+  (the engine shadow user and any past participations stay - history
   is debate data and the engine owns it). The head's own row is
   protected; removing a pending row is the same as declining it.
   """
@@ -310,7 +310,7 @@ defmodule Cab.Clubs do
   # ---------------------------------------------------------------
 
   @doc """
-  The club's finished sessions with their recorded winners — cab's
+  The club's finished sessions with their recorded winners - cab's
   own rows (the winner was copied from the engine at finish).
   """
   def club_history(%Club{} = club), do: {:ok, Sessions.archive(club)}

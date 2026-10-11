@@ -8,7 +8,7 @@ defmodule CabWeb.ClubPublicController do
   plug CabWeb.ClubScope,
        [source: :club, require: :authenticated] when action in [:join_form, :join]
 
-  # GET /c/:club_uuid — the club page, a PROFILE VIEW: about card
+  # GET /c/:club_uuid - the club page, a PROFILE VIEW: about card
   # (meeting info, description, contacts), recent finished sessions,
   # join CTA. The owner edits the same page in place at /owner.
   def show(conn, _params) do
@@ -21,7 +21,7 @@ defmodule CabWeb.ClubPublicController do
     )
   end
 
-  # GET /c/:club_uuid/standings[/:tab] — teams, speakers, adjudicators
+  # GET /c/:club_uuid/standings[/:tab] - teams, speakers, adjudicators
   # scoped to this club (RULE 0 passthrough); Clubs is global-only
   def standings(conn, params) do
     club = conn.assigns.club
@@ -97,7 +97,7 @@ defmodule CabWeb.ClubPublicController do
   end
 
   # private = standings only: members (ladder) always pass; a guest or
-  # user who PLAYED the shown session keeps that session's data — any
+  # user who PLAYED the shown session keeps that session's data - any
   # other session is lost to them
   defp standings_allowed?(%{is_private: false}, _conn, _scope), do: true
 
@@ -142,13 +142,13 @@ defmodule CabWeb.ClubPublicController do
   defp standings_rows("speakers", scope), do: Standings.speakers(scope)
   defp standings_rows("adjudicators", scope), do: Standings.adjudicators(scope)
 
-  # GET /c/:club_uuid/join — the join-request FORM (required: about
+  # GET /c/:club_uuid/join - the join-request FORM (required: about
   # me + contact). Never a bare button.
   def join_form(conn, _params) do
     render_join(conn, %{}, %{})
   end
 
-  # POST /c/:club_uuid/join — creates the pending membership with
+  # POST /c/:club_uuid/join - creates the pending membership with
   # the form's answers; the head reads them in Requests
   def join(conn, params) do
     club = conn.assigns.club

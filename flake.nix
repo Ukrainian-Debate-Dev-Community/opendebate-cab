@@ -1,5 +1,5 @@
 {
-  description = "uadebate — DFU platform (uadebate.com / cab / dfu)";
+  description = "uadebate: DFU platform (uadebate.com / cab / dfu)";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";

@@ -13,7 +13,7 @@ defmodule Cab.Clubs.Club do
     # private = standings only (excluded from global standings, own
     # standings members-only); everything else stays public
     field :is_private, :boolean, default: false
-    # admin archive flag — set server-side, never cast
+    # admin archive flag - set server-side, never cast
     field :archived_at, :utc_datetime
     field :engine_organisation_id, :integer
 

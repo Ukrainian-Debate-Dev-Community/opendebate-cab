@@ -9,7 +9,7 @@ defmodule CabWeb.UiTest do
   # chrome
   # ---------------------------------------------------------------
 
-  test "chrome renders crumbs and segments only — no brand cap, no account, no stage pill" do
+  test "chrome renders crumbs and segments only - no brand cap, no account, no stage pill" do
     assigns = %{}
 
     html =
@@ -107,7 +107,7 @@ defmodule CabWeb.UiTest do
       assert member_html =~ ">#{item}<"
     end
 
-    # the Sessions item is gone — the club page is the archive
+    # the Sessions item is gone - the club page is the archive
     refute member_html =~ ">Sessions<"
 
     assert member_html =~ ~s(href="/c/abc")
@@ -336,12 +336,12 @@ defmodule CabWeb.UiTest do
 
     assert html =~ ~s(class="ballot")
     assert html =~ "THW let judges pick the motions."
-    assert html =~ "Motion — Room 1"
+    assert html =~ "Motion \u2014 Room 1"
     assert html =~ ~s(data-ballot)
 
     for side <- ~w(og oo cg co), do: assert(html =~ ~s(class="bteam #{side}"))
-    assert html =~ "OG — OPENING GOV"
-    assert html =~ "CO — CLOSING OPP"
+    assert html =~ "OG \u2014 OPENING GOV"
+    assert html =~ "CO \u2014 CLOSING OPP"
 
     # per row: speaker dropdown, iron check, score input 50-100 step .5
     assert html =~ ~s(class="who")
@@ -375,7 +375,7 @@ defmodule CabWeb.UiTest do
     assert html =~ ~s(phx-hook="Allocator")
     assert html =~ ~s(id="allocator-form" phx-submit="start")
 
-    # the tray holds only the unplaced — Anna sits in her slot
+    # the tray holds only the unplaced - Anna sits in her slot
     [tray, table] = String.split(html, "<table>", parts: 2)
     refute tray =~ "Anna"
     assert tray =~ "Bohdan"
@@ -401,13 +401,13 @@ defmodule CabWeb.UiTest do
 
     html =
       rendered_to_string(~H"""
-      <.banner kind={:good} href="/club" link="Go to club →">Your join request was approved.</.banner>
+      <.banner kind={:good} href="/club" link="Go to club">Your join request was approved.</.banner>
       """)
 
     assert html =~ ~s(class="banner good")
     assert html =~ "Your join request was approved."
     assert html =~ ~s(href="/club")
-    assert html =~ "Go to club →"
+    assert html =~ "Go to club"
 
     plain =
       rendered_to_string(~H"""

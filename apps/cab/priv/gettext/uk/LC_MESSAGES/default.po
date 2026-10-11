@@ -122,14 +122,6 @@ msgstr "%{name} додано до сесії. Запрошення прийма�
 msgid "%{name}'s guest history is now on your account."
 msgstr "Гостьова історія %{name} тепер у вашому акаунті."
 
-#: lib/cab_web/controllers/owner_html.ex:93
-#, elixir-autogen, elixir-format
-msgid "%{people} checked in → %{count} room."
-msgid_plural "%{people} checked in → %{count} rooms."
-msgstr[0] "%{people} на місці → %{count} кімната."
-msgstr[1] "%{people} на місці → %{count} кімнати."
-msgstr[2] "%{people} на місці → %{count} кімнат."
-
 #: lib/cab_web/session_format.ex:162
 #, elixir-autogen, elixir-format
 msgid "%{rank}th"
@@ -281,11 +273,6 @@ msgstr "Додати як гостя"
 #, elixir-autogen, elixir-format
 msgid "Add to my account"
 msgstr "Додати до мого акаунта"
-
-#: lib/cab_web/controllers/owner_html/registration_block.html.heex:51
-#, elixir-autogen, elixir-format
-msgid "Add “%{name}” as a guest"
-msgstr "Додати «%{name}» як гостя"
 
 #: lib/cab_web/controllers/me_html/show.html.heex:20
 #, elixir-autogen, elixir-format
@@ -996,14 +983,10 @@ msgstr "Мої клуби"
 #: lib/cab_web/components/ui.ex:152
 #: lib/cab_web/controllers/me_controller.ex:32
 #: lib/cab_web/controllers/me_html/show.html.heex:2
+#: lib/cab_web/controllers/page_html/home.html.heex:13
 #, elixir-autogen, elixir-format
 msgid "My page"
 msgstr "Моя сторінка"
-
-#: lib/cab_web/controllers/page_html/home.html.heex:13
-#, elixir-autogen, elixir-format
-msgid "My page →"
-msgstr "Моя сторінка →"
 
 #: lib/cab_web/controllers/me_html/show.html.heex:68
 #, elixir-autogen, elixir-format
@@ -1170,12 +1153,6 @@ msgstr "Відкрити сторінку моєї сесії"
 #, elixir-autogen, elixir-format
 msgid "Open new session"
 msgstr "Відкрити нову сесію"
-
-#: lib/cab_web/controllers/owner_html/club.html.heex:73
-#: lib/cab_web/controllers/page_html/home.html.heex:9
-#, elixir-autogen, elixir-format
-msgid "Open →"
-msgstr "Відкрити →"
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex:126
 #, elixir-autogen, elixir-format
@@ -2606,11 +2583,6 @@ msgstr "Суддя: %{name}"
 msgid "Average"
 msgstr "Середнє"
 
-#: lib/cab_web/controllers/standings_html/standings_body.html.heex:60
-#, elixir-autogen, elixir-format
-msgid "Avg feedback counts a base of 5 as one vote: (5 + every feedback score) ÷ (feedback count + 1)."
-msgstr "Сер. відгук рахує базову 5 як один голос: (5 + усі оцінки з відгуків) ÷ (кількість відгуків + 1)."
-
 #: lib/cab_web/controllers/feedback_html/new.html.heex:41
 #: lib/cab_web/controllers/feedback_html/new.html.heex:87
 #: lib/cab_web/controllers/me_html/show.html.heex:117
@@ -2762,3 +2734,27 @@ msgstr "Ваша команда: %{team} (%{side}). Один відгук на �
 #, elixir-autogen, elixir-format
 msgid "give feedback"
 msgstr "залишити відгук"
+
+#: lib/cab_web/controllers/owner_html.ex:93
+#, elixir-autogen, elixir-format
+msgid "%{people} checked in, %{count} room."
+msgid_plural "%{people} checked in, %{count} rooms."
+msgstr[0] "%{people} на місці, %{count} кімната."
+msgstr[1] "%{people} на місці, %{count} кімнати."
+msgstr[2] "%{people} на місці, %{count} кімнат."
+
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex:51
+#, elixir-autogen, elixir-format
+msgid "Add \"%{name}\" as a guest"
+msgstr "Додати \"%{name}\" як гостя"
+
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex:60
+#, elixir-autogen, elixir-format
+msgid "Avg feedback counts a base of 5 as one vote: (5 + every feedback score) / (feedback count + 1)."
+msgstr "Сер. відгук рахує базову 5 як один голос: (5 + усі оцінки з відгуків) / (кількість відгуків + 1)."
+
+#: lib/cab_web/controllers/owner_html/club.html.heex:73
+#: lib/cab_web/controllers/page_html/home.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "Open"
+msgstr "Відкрити"

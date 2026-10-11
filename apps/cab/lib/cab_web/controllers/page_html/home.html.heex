@@ -6,11 +6,11 @@
       :if={@open_club}
       kind={:info}
       href={~p"/c/#{@open_club.uuid}"}
-      link={gettext("Open →")}
+      link={gettext("Open")}
     >
       {gettext("%{club}: a session is open.", club: @open_club.name)}
     </.banner>
-    <.banner :if={@invitations > 0} kind={:info} href={~p"/me"} link={gettext("My page →")}>
+    <.banner :if={@invitations > 0} kind={:info} href={~p"/me"} link={gettext("My page")}>
       {ngettext(
         "A club head added you to a session.",
         "Club heads added you to %{count} sessions.",

@@ -8,7 +8,7 @@ defmodule CabWeb.Api.SignupController do
 
   plug ClubScope, source: :session, require: :member
 
-  # POST /api/v1/sessions/:uuid/signups {"username": optional — head
+  # POST /api/v1/sessions/:uuid/signups {"username": optional - head
   # only, signs up any approved member}. No role: the head decides
   # who judges at allocation.
   def create(conn, %{"username" => username}) when is_binary(username) do
@@ -29,7 +29,7 @@ defmodule CabWeb.Api.SignupController do
     end
   end
 
-  # DELETE /api/v1/sessions/:uuid/signups/:participant_id — the head
+  # DELETE /api/v1/sessions/:uuid/signups/:participant_id - the head
   # removes anyone, a member removes their own signup
   def delete(conn, %{"participant_id" => participant_id}) do
     with {:ok, participant_id} <- parse_id(participant_id),

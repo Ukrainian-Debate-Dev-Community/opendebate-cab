@@ -12,7 +12,7 @@ defmodule CabWeb.OwnerController do
   # as an edit-in-place form (Save lives in the chrome)
   # ---------------------------------------------------------------
 
-  # GET /c/:club_uuid/owner — the club page as an edit-in-place form,
+  # GET /c/:club_uuid/owner - the club page as an edit-in-place form,
   # with the session archive and the open-session form below (v3.1:
   # there is no separate owner Sessions page)
   def club(conn, _params) do
@@ -25,7 +25,7 @@ defmodule CabWeb.OwnerController do
     )
   end
 
-  # POST /c/:club_uuid/owner/club — the in-place save; twin of
+  # POST /c/:club_uuid/owner/club - the in-place save; twin of
   # PATCH /api/v1/clubs/:uuid
   def update_club(conn, params) do
     attrs =
@@ -48,7 +48,7 @@ defmodule CabWeb.OwnerController do
   # Opening a session (the form lives on /owner)
   # ---------------------------------------------------------------
 
-  # POST /c/:club_uuid/owner/sessions — name + optional date/time;
+  # POST /c/:club_uuid/owner/sessions - name + optional date/time;
   # lands on the new session's owner surface
   def open_session(conn, params) do
     with {:ok, scheduled_at} <- Sessions.parse_schedule(params["date"], params["time"]),
@@ -121,7 +121,7 @@ defmodule CabWeb.OwnerController do
   # The owner session page and its lifecycle actions
   # ---------------------------------------------------------------
 
-  # POST .../owner/sessions/:session_uuid/start — the gold action:
+  # POST .../owner/sessions/:session_uuid/start - the gold action:
   # closes registration and creates the rooms from the dragged
   # allocator state (only the room count was automatic)
   def start(conn, %{"session_uuid" => session_uuid} = params) do
@@ -139,7 +139,7 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST .../owner/sessions/:session_uuid/reopen-registration — from a
+  # POST .../owner/sessions/:session_uuid/reopen-registration - from a
   # running session with all rooms still pending: rooms die, the
   # public window opens again
   def reopen_registration(conn, %{"session_uuid" => session_uuid}) do
@@ -174,7 +174,7 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST .../owner/sessions/:session_uuid/signups {"q"} — the add field
+  # POST .../owner/sessions/:session_uuid/signups {"q"} - the add field
   # without JavaScript: an exact member username signs them up, an
   # exact registered user is invited, anything else becomes a guest
   def add_person(conn, %{"session_uuid" => session_uuid} = params) do
@@ -235,7 +235,7 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST .../owner/sessions/:session_uuid/rooms — the allocator form
+  # POST .../owner/sessions/:session_uuid/rooms - the allocator form
   # at :closed; the head's explicit composition, never auto-paired
   def make_rooms(conn, %{"session_uuid" => session_uuid} = params) do
     with_session(conn, session_uuid, fn session ->
@@ -296,7 +296,7 @@ defmodule CabWeb.OwnerController do
 
   defp presence(value), do: value
 
-  # POST .../owner/sessions/:session_uuid/rooms/delete — rebuild:
+  # POST .../owner/sessions/:session_uuid/rooms/delete - rebuild:
   # pending rooms go away so the head can recompose
   def delete_rooms(conn, %{"session_uuid" => session_uuid}) do
     with_session(conn, session_uuid, fn session ->
@@ -331,7 +331,7 @@ defmodule CabWeb.OwnerController do
     end
   end
 
-  # POST .../owner/sessions/:session_uuid/finish — results live on
+  # POST .../owner/sessions/:session_uuid/finish - results live on
   # the public session page
   def finish(conn, %{"session_uuid" => session_uuid}) do
     case Sessions.get_for_club(conn.assigns.club, session_uuid) do

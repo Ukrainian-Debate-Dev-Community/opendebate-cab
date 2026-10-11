@@ -116,7 +116,7 @@ defmodule CabWeb.EightPagesTest do
   end
 
   # ---------------------------------------------------------------
-  # P6 /c/:club/s/:session — stage variants
+  # P6 /c/:club/s/:session - stage variants
   # ---------------------------------------------------------------
 
   describe "P6 stage variants" do
@@ -134,7 +134,7 @@ defmodule CabWeb.EightPagesTest do
 
       html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
 
-      # the stage is written out as words in the crumb — no pill
+      # the stage is written out as words in the crumb - no pill
       assert html =~ "registration open"
       refute html =~ "class=\"stage"
       assert html =~ ~s(id="session-signups")
@@ -206,7 +206,7 @@ defmodule CabWeb.EightPagesTest do
   end
 
   # ---------------------------------------------------------------
-  # /c/:club/standings — the SAME four tabs, rule-0 passthrough
+  # /c/:club/standings - the SAME four tabs, rule-0 passthrough
   # ---------------------------------------------------------------
 
   defp stub_calculated do
@@ -254,13 +254,13 @@ defmodule CabWeb.EightPagesTest do
       %{conn: conn, club: club, session: session}
     end
 
-    test "teams/speakers tabs show the engine calculated standings verbatim — no cab math",
+    test "teams/speakers tabs show the engine calculated standings verbatim - no cab math",
          %{conn: conn, club: club} do
       stub_calculated()
 
       html = conn |> get(~p"/c/#{club.uuid}/standings/speakers") |> html_response(200)
 
-      # three tabs at club scope — Clubs is global-only
+      # three tabs at club scope - Clubs is global-only
       assert html =~ ~s(id="standings-tabs")
 
       for tab <- ~w(teams speakers adjudicators) do
@@ -309,7 +309,7 @@ defmodule CabWeb.EightPagesTest do
 
     test "?session walks the archive; earlier sessions are linked",
          %{conn: conn, club: club, session: first_session} do
-      # a second, newer finished session — the default scope lands on it
+      # a second, newer finished session - the default scope lands on it
       _newer =
         session_fixture(club,
           engine_event_id: 10,

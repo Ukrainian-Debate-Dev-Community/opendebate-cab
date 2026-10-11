@@ -360,7 +360,7 @@ defmodule Cab.SessionsTest do
              %{"participant_ids" => [4, 5], "position" => 4}
            ] = room_params["teams"]
 
-    # a 1-speaker team is a declared iron — valid composition, the
+    # a 1-speaker team is a declared iron - valid composition, the
     # single speaker goes in alone (speakers 4 and 5 sit out)
     iron_composition = [
       %{
@@ -379,7 +379,7 @@ defmodule Cab.SessionsTest do
              %{"participant_ids" => [5], "position" => 4}
            ] = room_params["teams"]
 
-    # the start is recorded on cab's row — lists read it, not the engine
+    # the start is recorded on cab's row - lists read it, not the engine
     recorded = Sessions.get_by_uuid(session.uuid)
     assert %DateTime{} = recorded.started_at
     assert recorded.rooms_count == 1
@@ -486,7 +486,7 @@ defmodule Cab.SessionsTest do
     assert {:error, %{rooms: _}} = Sessions.make_rooms(head, session, [])
     assert {:error, %{rooms: _}} = Sessions.make_rooms(head, session, "nope")
 
-    # integer-strings (the HTML compose form) parse fine — but then
+    # integer-strings (the HTML compose form) parse fine - but then
     # the engine call runs, so stub the room POST too
     stub(fn conn, _params ->
       state_stub(conn, speakers ++ judges) ||
@@ -567,7 +567,7 @@ defmodule Cab.SessionsTest do
     assert {:error, :forbidden} = Sessions.remove_signup(member, session, 42)
     refute_received {:deleted, _pid, _claims}
 
-    # self-removal — the engine call still runs as the club head
+    # self-removal - the engine call still runs as the club head
     # (participant deletion is owner-only in the engine); the name is
     # overwritten first, so the archived row keeps nothing personal
     assert :ok = Sessions.remove_signup(member, session, 41)
@@ -694,7 +694,7 @@ defmodule Cab.SessionsTest do
 
     scores = ballot_scores([{1, 151}, {2, 157}, {3, 149}, {4, 147}])
 
-    # the chair cannot edit once confirmed — the ballot is the head's
+    # the chair cannot edit once confirmed - the ballot is the head's
     assert {:error, :forbidden} = Sessions.submit_ballot(judge, session, 71, scores)
     refute_received {:unconfirmed, _}
 
@@ -833,7 +833,7 @@ defmodule Cab.SessionsTest do
     session = session_fixture(club, engine_event_id: 11)
     stub_ballot_room(engine_room(), self())
 
-    # participant 301 speaks both OG speeches (iron) — second score
+    # participant 301 speaks both OG speeches (iron) - second score
     # lands on room_speaker 202, the teammate's slot
     scores =
       ballot_scores([{2, 157}, {3, 149}, {4, 147}]) ++
@@ -1049,7 +1049,7 @@ defmodule Cab.SessionsTest do
         "/api/users/history" ->
           send(test_pid, {:history_for, claims(conn)["id"]})
 
-          # 99 is an event cab does not know — dropped
+          # 99 is an event cab does not know - dropped
           case claims(conn)["id"] do
             44 ->
               ok(conn, %{"as_adjudicator" => [], "as_player" => [%{"id" => 11}, %{"id" => 99}]})

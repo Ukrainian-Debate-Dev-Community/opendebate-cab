@@ -1,15 +1,15 @@
 defmodule Cab.Standings do
   @moduledoc """
-  RULE 0 — ENGINE STATISTICS ONLY. Standings are shown PER SESSION,
+  RULE 0 - ENGINE STATISTICS ONLY. Standings are shown PER SESSION,
   verbatim as the engine returns them:
 
-    * teams    — GET /events/:id/standings/calculated/teams
-    * speakers — GET /events/:id/standings/calculated/speakers
-    * adjudicators — GET /events/:id/stats/adjudicators
-    * clubs    — plain counts from cab's records (members, sessions,
+    * teams    - GET /events/:id/standings/calculated/teams
+    * speakers - GET /events/:id/standings/calculated/speakers
+    * adjudicators - GET /events/:id/stats/adjudicators
+    * clubs    - plain counts from cab's records (members, sessions,
                  rooms)
 
-  Which session is shown comes from cab's records (finished_at) — one
+  Which session is shown comes from cab's records (finished_at) - one
   engine call per tab, the standings themselves. No cab-side math.
   """
 
@@ -26,7 +26,7 @@ defmodule Cab.Standings do
 
   @doc """
   The latest finished session, platform-wide (archived and private
-  clubs excluded) or scoped to one club — straight from cab's records.
+  clubs excluded) or scoped to one club - straight from cab's records.
   Returns `%{session, club, actor}` or `nil` (none finished).
   """
   def latest_finished do
@@ -53,7 +53,7 @@ defmodule Cab.Standings do
   end
 
   @doc """
-  The scope for ONE chosen session (the club standings selector) —
+  The scope for ONE chosen session (the club standings selector) -
   same shape as `latest_finished/1`, nil unless that session finished.
   """
   def finished(%Session{} = session), do: scope(session)
@@ -87,7 +87,7 @@ defmodule Cab.Standings do
   end
 
   @doc """
-  Adjudicators of the scope's session — the ENGINE's adjudicator stats
+  Adjudicators of the scope's session - the ENGINE's adjudicator stats
   verbatim (`GET /events/:id/stats/adjudicators`): `[{id, name,
   rooms_adjudicated, avg_feedback}]`, rule 0.
   """
@@ -99,7 +99,7 @@ defmodule Cab.Standings do
   end
 
   @doc """
-  The clubs tab: plain counts per public club from cab's records —
+  The clubs tab: plain counts per public club from cab's records -
   members, sessions and rooms made. Most members first.
   """
   def clubs do

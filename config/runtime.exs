@@ -32,10 +32,10 @@ if config_env() != :test do
   engine_secret =
     case {config_env(), System.get_env("ENGINE_JWT_SECRET")} do
       {:prod, secret} when secret in [nil, ""] ->
-        raise "ENGINE_JWT_SECRET is missing — the engine would trust a public default"
+        raise "ENGINE_JWT_SECRET is missing; the engine would trust a public default"
 
       {:prod, "insecure-dev-engine-secret"} ->
-        raise "ENGINE_JWT_SECRET is the public dev default — set a real secret"
+        raise "ENGINE_JWT_SECRET is the public dev default; set a real secret"
 
       {_env, nil} ->
         "insecure-dev-engine-secret"

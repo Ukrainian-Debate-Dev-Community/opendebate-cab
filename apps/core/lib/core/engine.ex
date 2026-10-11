@@ -3,7 +3,7 @@ defmodule Core.Engine do
   HTTP client for the Node tab engine.
 
   The engine trusts HS256 JWTs signed with a shared secret
-  (`ENGINE_JWT_SECRET`), payload `{id, isAdmin}` — compatible with the
+  (`ENGINE_JWT_SECRET`), payload `{id, isAdmin}` - compatible with the
   Node `jsonwebtoken` verify on the other side. The gateway mints
   short-lived tokens per request instead of storing engine sessions.
   """
@@ -162,7 +162,7 @@ defmodule Core.Engine do
     |> Req.Request.append_response_steps(engine_log: &log_call/1)
   end
 
-  # one debug line per engine call ("engine GET /api/... 200 12ms") —
+  # one debug line per engine call ("engine GET /api/... 200 12ms") -
   # visible in dev, silent at the production log level
   defp start_clock(request),
     do: Req.Request.put_private(request, :engine_started, System.monotonic_time())

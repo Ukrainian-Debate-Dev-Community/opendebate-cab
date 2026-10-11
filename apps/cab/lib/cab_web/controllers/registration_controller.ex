@@ -1,7 +1,7 @@
 defmodule CabWeb.RegistrationController do
   @moduledoc """
   THE one registration URL (v3.1): `/r/:session_uuid` is what the
-  head gives out — it serves everyone. A guest fills name + role and
+  head gives out - it serves everyone. A guest fills name + role and
   gets a permanent personal `/l/:code` URL; a signed-in user gets the
   form prefilled (role pills only) and signs up as themselves. Any
   other stage serves the "registration closed" notice.
@@ -12,7 +12,7 @@ defmodule CabWeb.RegistrationController do
   alias Cab.{Links, Sessions}
   alias Cab.Sessions.Session
 
-  # GET /r/:session_uuid — the form while :signup, the notice after
+  # GET /r/:session_uuid - the form while :signup, the notice after
   def new(conn, %{"session_uuid" => session_uuid} = params) do
     with_session(conn, session_uuid, fn conn, session, state ->
       case state.stage do
@@ -25,7 +25,7 @@ defmodule CabWeb.RegistrationController do
     end)
   end
 
-  # a signed-in user registers as themselves — no guest link involved
+  # a signed-in user registers as themselves - no guest link involved
   defp create_signed_in(conn, user, session) do
     result =
       case Cab.Invitations.pending(session, user) do
@@ -51,7 +51,7 @@ defmodule CabWeb.RegistrationController do
     end
   end
 
-  # POST /r/:session_uuid {"name"} — guest user + engine signup
+  # POST /r/:session_uuid {"name"} - guest user + engine signup
   # + link row, then the personal-link page (the URL must be SHOWN,
   # so this render is the one deliberate exception to redirect+flash)
   def create(conn, %{"session_uuid" => session_uuid} = params) do

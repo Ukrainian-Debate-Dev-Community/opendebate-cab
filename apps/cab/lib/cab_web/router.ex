@@ -33,7 +33,7 @@ defmodule CabWeb.Router do
     get "/signin", SigninController, :show
     post "/signin/separate", SigninController, :separate
 
-    # my page — engine stats verbatim + participation history
+    # my page - engine stats verbatim + participation history
     get "/me", MeController, :show
 
     # the Policy (personal data) and the Terms, linked from the footer;
@@ -43,7 +43,7 @@ defmodule CabWeb.Router do
     get "/locale/:locale", LocaleController, :set
     get "/privacy", PageController, :privacy_moved
 
-    # profile — entry only via the sidenav bottom
+    # profile - entry only via the sidenav bottom
     get "/account", AccountController, :show
     post "/account", AccountController, :update
     post "/account/claim", AccountController, :claim
@@ -56,14 +56,14 @@ defmodule CabWeb.Router do
     post "/invitations/:id/decline", InvitationController, :decline
 
     # platform admin (is_admin; 404 for everyone else). Club creation
-    # is ADMIN-ONLY — users can only request membership.
+    # is ADMIN-ONLY - users can only request membership.
     get "/admin", AdminController, :show
     post "/admin/clubs", AdminController, :create_club
     post "/admin/head", AdminController, :change_head
     post "/admin/merge", AdminController, :merge
     post "/admin/clubs/:uuid/archive", AdminController, :archive
 
-    # global standings: four tabs, RULE 0 — engine output verbatim
+    # global standings: four tabs, RULE 0 - engine output verbatim
     # per session (default: the latest finished platform-wide)
     get "/standings", StandingsController, :index
     get "/standings/:tab", StandingsController, :show
@@ -98,7 +98,7 @@ defmodule CabWeb.Router do
          SessionPageController,
          :cancel_signup
 
-    # ONE room URL for every viewer — identity picks the render and
+    # ONE room URL for every viewer - identity picks the render and
     # gates the actions (chair/head set the motion, ballot below)
     post "/s/:session_uuid/rooms/:id/motion", SessionPageController, :motion
 
@@ -109,7 +109,7 @@ defmodule CabWeb.Router do
     get "/s/:session_uuid/rooms/:id/feedback", FeedbackController, :new
     post "/s/:session_uuid/rooms/:id/feedback", FeedbackController, :create
 
-    # the roster — the only member-gated page (v3.1: the member tree
+    # the roster - the only member-gated page (v3.1: the member tree
     # is gone; registration lives at /r/:sess, the club page is the
     # sessions archive)
     get "/members", MemberController, :members
@@ -152,7 +152,7 @@ defmodule CabWeb.Router do
 
   # /r/:session_uuid is THE one registration URL (v3.1): guests get a
   # personal link, signed-in users sign up as themselves; /l/:code is a
-  # guest's permanent personal link — the code IS the identity:
+  # guest's permanent personal link - the code IS the identity:
   # opening it signs the browser session in as the guest and lands
   # on the session page, where their cancel/ballot actions work by
   # that identity.
@@ -198,7 +198,7 @@ defmodule CabWeb.Router do
 
     # guest links (head only): list, add a guest by hand. A guest
     # leaves through DELETE signups like everyone else. The public
-    # shared URL has no API twin — it IS an HTML flow.
+    # shared URL has no API twin - it IS an HTML flow.
     get "/sessions/:uuid/people", PeopleController, :search
     post "/sessions/:uuid/invitations", PeopleController, :invite
 

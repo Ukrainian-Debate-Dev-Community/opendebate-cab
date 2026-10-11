@@ -1,6 +1,6 @@
 defmodule CabWeb.AccountController do
   @moduledoc """
-  `/account` — the signed-in profile page, opened from the sidenav
+  `/account` - the signed-in profile page, opened from the sidenav
   bottom only: display name (editable), provider/avatar info, sign
   out, and claiming a guest history by pasting its personal link.
   """
@@ -17,7 +17,7 @@ defmodule CabWeb.AccountController do
     render_account(conn)
   end
 
-  # POST /account {"name"} — display name only
+  # POST /account {"name"} - display name only
   def update(conn, params) do
     case Accounts.update_profile(conn.assigns.current_user, params) do
       {:ok, user} ->
@@ -35,7 +35,7 @@ defmodule CabWeb.AccountController do
 
   @providers ~w(github google)
 
-  # GET /account/link/:provider — remember the intent, then the
+  # GET /account/link/:provider - remember the intent, then the
   # provider's own sign-in; the callback links instead of signing in
   def link(conn, %{"provider" => provider}) when provider in @providers do
     conn
@@ -56,7 +56,7 @@ defmodule CabWeb.AccountController do
     end
   end
 
-  # GET /account/merge — the sign-in just linked has its own account
+  # GET /account/merge - the sign-in just linked has its own account
   def merge_form(conn, _params) do
     case merge_candidate(conn) do
       nil ->
@@ -119,7 +119,7 @@ defmodule CabWeb.AccountController do
     end
   end
 
-  # POST /account/claim {"link"} — the pasted personal link's guest
+  # POST /account/claim {"link"} - the pasted personal link's guest
   # history moves onto this account
   def claim(conn, params) do
     case Links.find_by_pasted(params["link"]) do

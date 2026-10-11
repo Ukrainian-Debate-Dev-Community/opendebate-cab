@@ -28,7 +28,7 @@
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
 /* ================================================================
-   cab design system v2 — ported verbatim from
+   cab design system v2 - ported verbatim from
    legacy/design/components-v2.html + legacy/design/pages-v2.html.
    Tokens + 4 core components (chrome, table, form, ballot) and the
    3 extras (tag, banner, section). Plain CSS on purpose.
@@ -175,7 +175,7 @@ main.page-main { width:100%; flex:1 0 auto; }
 @media (max-width:700px) { .footer .cols { grid-template-columns:1fr; gap:14px; } }
 
 /* ================================================================
-   1. CHROME / ACTION BAR — thin strip, actions are SEGMENTS of it
+   1. CHROME / ACTION BAR - thin strip, actions are SEGMENTS of it
    ================================================================ */
 .chrome { display:flex; align-items:stretch; height:34px; background:var(--surface);
           font-size:.8rem; border-bottom:1px solid var(--line); }
@@ -204,7 +204,7 @@ main.page-main { width:100%; flex:1 0 auto; }
 .chrome .seg .me { color:var(--brand-700); font-weight:650; }
 
 /* ================================================================
-   2. TABLE / STANDINGS — dense, every cell format
+   2. TABLE / STANDINGS - dense, every cell format
    ================================================================ */
 table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .t th { text-align:left; font-size:.64rem; letter-spacing:.08em;
@@ -227,7 +227,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
             font-size:.84rem; }
 
 /* ================================================================
-   3. FORM — one flowing piece: title block + field blocks + submit,
+   3. FORM - one flowing piece: title block + field blocks + submit,
        divided by hairlines inside one container (google-form style)
    ================================================================ */
 .form { font-size:.86rem; }
@@ -290,7 +290,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .f-submit .note { font-size:.74rem; color:var(--muted); }
 
 /* ================================================================
-   4. BALLOT — tabbycat-style BP ballot: scores in, ranks derived
+   4. BALLOT - tabbycat-style BP ballot: scores in, ranks derived
    ================================================================ */
 .ballot .b-motion { padding:12px var(--px); border-bottom:1px solid var(--line);
                     font-size:.84rem; }
@@ -337,7 +337,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .bfoot .err { color:var(--warn); font-weight:650; }
 
 /* ================================================================
-   5. DRAG-AND-DROP TABLE — tabbycat allocation model:
+   5. DRAG-AND-DROP TABLE - tabbycat allocation model:
        unallocated tray + droppable slots in rows
    ================================================================ */
 .dnd .tray { display:flex; flex-wrap:wrap; align-items:flex-start; gap:6px;
@@ -410,11 +410,11 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .card .pad p { color:var(--muted); font-size:.82rem; margin-top:3px; }
 
 /* ================================================================
-   M7 additions — ported from legacy/design/pages-v3.html
+   M7 additions - ported from legacy/design/pages-v3.html
    ================================================================ */
 
 /* tab row under the chrome (pages-v6 .selrow): real borders, no
-   shadows — the active tab carries a bottom border */
+   shadows - the active tab carries a bottom border */
 .selrow { display:flex; align-items:stretch; height:30px; background:var(--surface);
           border-bottom:1px solid var(--line); font-size:.74rem; }
 .selrow a { display:flex; align-items:center; padding:0 14px; color:var(--muted);
@@ -430,7 +430,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .t tr.me td { background:var(--me-tint); }
 
 /* ================================================================
-   P1 sign-in — legacy/design/signin.html verbatim, tokens mapped onto the
+   P1 sign-in - legacy/design/signin.html verbatim, tokens mapped onto the
    current kit (violet-* -> brand scale)
    ================================================================ */
 .auth { display:grid; grid-template-columns:1.1fr 1fr; min-height:100vh; flex:1 0 auto; }

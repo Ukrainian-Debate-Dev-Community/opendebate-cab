@@ -13,7 +13,7 @@ defmodule CabWeb.Api.RoomController do
   plug ClubScope, [source: :room_session, require: :member] when action in [:motion, :ballot]
 
   # POST /api/v1/sessions/:uuid/rooms {"rooms": [{"adjudicator_participant_id",
-  # "teams": [[pid,pid] x4]}]} — the head's composition; the spec is
+  # "teams": [[pid,pid] x4]}]} - the head's composition; the spec is
   # REQUIRED, cab never pairs anyone automatically
   def create(conn, %{"rooms" => rooms_spec}) do
     with {:ok, count} <-
@@ -23,9 +23,9 @@ defmodule CabWeb.Api.RoomController do
   end
 
   def create(_conn, _params),
-    do: {:error, %{rooms: "the rooms spec is required — nothing is allocated automatically"}}
+    do: {:error, %{rooms: "the rooms spec is required; nothing is allocated automatically"}}
 
-  # DELETE /api/v1/sessions/:uuid/rooms — rebuild: pending rooms (and
+  # DELETE /api/v1/sessions/:uuid/rooms - rebuild: pending rooms (and
   # their temporary teams) go away so the head can recompose
   def delete(conn, _params) do
     with {:ok, count} <- Sessions.delete_rooms(conn.assigns.current_user, conn.assigns.session) do
@@ -63,7 +63,7 @@ defmodule CabWeb.Api.RoomController do
   def motion(_conn, _params), do: {:error, "motion_text is required"}
 
   # POST /api/v1/rooms/:id/ballot {"session_uuid", "scores": [8 x
-  # {"position", "speaker_participant_id", "iron", "score"}]} — ranks
+  # {"position", "speaker_participant_id", "iron", "score"}]} - ranks
   # derive from team totals, winner = rank 1, room ends confirmed
   def ballot(conn, %{"id" => id, "scores" => scores}) when is_list(scores) do
     with {:ok, room_id} <- room_id(id),

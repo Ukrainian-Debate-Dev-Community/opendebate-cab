@@ -1,5 +1,5 @@
 defmodule CabWeb.AdminHTML do
-  @moduledoc "/admin — clubs table, create a club, change a head."
+  @moduledoc "/admin - clubs table, create a club, change a head."
   use CabWeb, :html
 
   embed_templates "admin_html/*"

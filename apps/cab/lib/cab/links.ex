@@ -32,7 +32,7 @@ defmodule Cab.Links do
   # Reads
   # ---------------------------------------------------------------
 
-  @doc "The link behind a code, ONLY while not revoked — revoked is gone (404)."
+  @doc "The link behind a code, ONLY while not revoked - revoked is gone (404)."
   def get_active_by_code(code) when is_binary(code) do
     Repo.one(
       from l in Link,
@@ -202,8 +202,8 @@ defmodule Cab.Links do
   def holds_session?(_user_id, _session), do: false
 
   @doc """
-  Deletes a removed guest's cab account — their personal links go with
-  it (the foreign key cascades) — so nothing personal stays behind. A
+  Deletes a removed guest's cab account - their personal links go with
+  it (the foreign key cascades) - so nothing personal stays behind. A
   real account is never touched: only a user holding links and no
   sign-in identity is a guest.
   """

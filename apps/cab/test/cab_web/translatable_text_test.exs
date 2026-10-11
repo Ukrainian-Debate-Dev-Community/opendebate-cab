@@ -3,7 +3,7 @@ defmodule CabWeb.TranslatableTextTest do
   Every word people read goes through gettext, so Ukrainian (and any
   later language) needs only a translation file. This scans every HEEx
   template and every ~H block under lib/cab_web and fails on visible
-  text — a text node or an attribute people see — written as a bare
+  text - a text node or an attribute people see - written as a bare
   literal instead of `{gettext(...)}`.
   """
   use ExUnit.Case, async: true
@@ -64,7 +64,7 @@ defmodule CabWeb.TranslatableTextTest do
     attrs ++ texts
   end
 
-  # drop {…} interpolations, braces nested to any depth
+  # drop {...} interpolations, braces nested to any depth
   defp strip_expressions(source) do
     {out, _depth} =
       source

@@ -1,10 +1,10 @@
 defmodule CabWeb.MeHTML do
-  @moduledoc "/me — profile, invitations, my clubs and schedule, engine stats verbatim, history."
+  @moduledoc "/me - profile, invitations, my clubs and schedule, engine stats verbatim, history."
   use CabWeb, :html
 
   embed_templates "me_html/*"
 
-  # the Next session column, written out as words — no pills anywhere
+  # the Next session column, written out as words - no pills anywhere
   defp tonight_words(nil), do: gettext("quiet")
 
   defp tonight_words({_session, :signup, _rooms}), do: gettext("registration open")

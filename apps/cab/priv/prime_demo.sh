@@ -74,7 +74,7 @@ for u in s1 s2 s3 s4 s5 s6 s7 s8 j1; do
   [ "$STATUS" = "200" ] || fail "approve $u: $STATUS"
 done
 req nina POST "/api/v1/clubs/$KYIV/join-requests" \
-  '{"message":"Nina here — saw your club at the uni fair, want to try BP","contact":"@demo-nina"}'
+  '{"message":"Nina here, saw your club at the uni fair, want to try BP","contact":"@demo-nina"}'
 [ "$STATUS" = "201" ] || fail "join nina: $STATUS"
 
 echo "== open session + sign-ups (9 people; you seat the judge by dragging)"
@@ -102,22 +102,22 @@ req lviv-head PATCH "/api/v1/join-requests/$rid" '{"action":"approve"}'
 
 cat <<EOF
 
-PRIMED. Your world ($ME) — the M8a sidenav shell:
+PRIMED. Your world ($ME), the M8a sidenav shell:
 
-GLOBAL (sidenav: Clubs | Standings | Admin · profile at the bottom)
+GLOBAL (sidenav: Clubs | Standings | Admin, profile at the bottom)
   home / cabinet   $BASE/
                    - clubs directory with the words "Tonight" column;
                      signed in it adds My clubs / My sessions
   sign-in          $BASE/signin
   standings        $BASE/standings/teams
-                   - four tabs: Teams | Speakers | Judges | Clubs —
+                   - four tabs: Teams | Speakers | Judges | Clubs,
                      ONE session's engine output verbatim (latest
                      finished); nothing finished yet = the notice
   account          $BASE/account   (sidenav bottom: avatar + $ME)
   admin            $BASE/admin     (you are is_admin: clubs table,
                      create club, change head, archive)
 
-KYIV — you are head (club sidenav: Club | Rooms | Sessions |
+KYIV, you are head (club sidenav: Club | Rooms | Sessions |
 Standings | Members)
   club page        $BASE/c/$KYIV
   edit in place    $BASE/c/$KYIV/owner            (Save in the chrome)
@@ -130,15 +130,15 @@ Standings | Members)
                      as the judge: $BASE/dev/switch-user?username=demo-j1)
                      -> Finish session
   Sessions         $BASE/c/$KYIV/owner/sessions   (archive + Open new
-                     session — the open form moved here)
+                     session, the open form moved here)
   Members          $BASE/c/$KYIV/owner/members
                    - nina's request is PENDING with her form answers
-                     (about me + contact) — approve or decline
+                     (about me + contact), approve or decline
   Standings        $BASE/c/$KYIV/standings/teams  (same four tabs,
                      club-scoped; fills up after Finish session)
   session page     $BASE/c/$KYIV/s/$SESS          (public, stage-aware)
 
-LVIV — you are an outsider
+LVIV, you are an outsider
   club page        $BASE/c/$LVIV
                    - "Request to join" opens the JOIN FORM
                      ($BASE/c/$LVIV/join): about me + contact are

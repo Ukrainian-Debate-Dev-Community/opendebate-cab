@@ -3,7 +3,7 @@ defmodule CabWeb.Ui do
   The design-system kit: the core components (chrome/action bar,
   sidenav, table, form, ballot, allocator) plus banner and section.
 
-  Every page is a chrome bar and a stack of sections — nothing
+  Every page is a chrome bar and a stack of sections - nothing
   actionable exists outside the chrome, and no element outside this
   kit may appear on a page (whitelist doctrine).
   """
@@ -24,13 +24,13 @@ defmodule CabWeb.Ui do
 
   @doc """
   The control mechanism of every page: crumb + THIS page's
-  actions only, as flush tape-deck segments — navigation and the
+  actions only, as flush tape-deck segments - navigation and the
   profile live in the sidenav, status lives in the page content as
   words. Max one `primary` (gold) segment per page; `quiet` =
   destructive or exit.
 
   A segment with `form` renders as that form's submit button instead
-  of a link — the design's "submit lives in the chrome" rule for the
+  of a link - the design's "submit lives in the chrome" rule for the
   ballot/compose/edit pages (the components carry no buttons).
 
       <.chrome crumbs={[{@club.name, ~p"/c/\#{@club.uuid}"}]} here="sessions">
@@ -84,7 +84,7 @@ defmodule CabWeb.Ui do
   end
 
   @doc """
-  The left sidenav — ONLY navigation: brand script cap -> home, plain
+  The left sidenav - ONLY navigation: brand script cap -> home, plain
   place-name items for the current context (global: Clubs / Standings
   / My page / + Admin for admins; club: Club / Rooms / Standings /
   Members / Register) and the profile block
@@ -264,7 +264,7 @@ defmodule CabWeb.Ui do
   end
 
   @doc """
-  The tab row under the chrome (`.selrow`) — picks WHICH
+  The tab row under the chrome (`.selrow`) - picks WHICH
   view of the page is shown (the four standings tabs). Real borders,
   no badges. `tabs` entries are `{key, label, href}`.
   """
@@ -590,13 +590,13 @@ defmodule CabWeb.Ui do
   header, one color block per team side (OG violet, OO blue, CG
   green, CO amber), position rows = speaker dropdown + iron check +
   score input (whole points, 50-100). Team totals and ranks DERIVE live
-  (the BallotMath hook); tied totals mark both blocks amber — BP forbids ties.
+  (the BallotMath hook); tied totals mark both blocks amber - BP forbids ties.
   Submit lives in the chrome, not here.
 
   `teams` is a list of `%{side: :og, name: "...", rows: [...]}` where
   each row is `%{role: "PM", speakers: [{label, value}], selected:
   value, iron: boolean, score: number}`. A team may carry
-  `tied: true` — its total block renders the amber tied state.
+  `tied: true` - its total block renders the amber tied state.
 
   Server errors re-render the same page: pass the message as `error`
   and it replaces the footer line in the amber style, with the
@@ -684,11 +684,11 @@ defmodule CabWeb.Ui do
   The allocation surface (tabbycat's drag-and-drop model), rendered
   from the SERVER-HELD draft: a tray of everyone not placed yet over
   one row per room whose slots carry their key ("1:og:2", "1:judge").
-  The Allocator hook only reports drops — `place {id, slot}` or
-  `unplace {id}` — and the server re-renders, so new signups simply
+  The Allocator hook only reports drops - `place {id, slot}` or
+  `unplace {id}` - and the server re-renders, so new signups simply
   appear in the tray and nothing is ever placed automatically.
 
-  `people` maps participant id => `%{id, name}` — registration carries
+  `people` maps participant id => `%{id, name}` - registration carries
   no role, so anyone fits any slot and the drag decides who judges;
   `draft` maps slot key => participant id. The hidden form
   `form_id` carries the submit (the chrome's gold segment).

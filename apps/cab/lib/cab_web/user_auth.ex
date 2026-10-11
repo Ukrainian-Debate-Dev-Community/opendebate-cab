@@ -27,7 +27,7 @@ defmodule CabWeb.UserAuth do
     end
   end
 
-  # Every auth wall lands on P1 /signin — never straight to a provider.
+  # Every auth wall lands on P1 /signin - never straight to a provider.
   def require_authenticated_user(conn, _opts) do
     if conn.assigns[:current_user] do
       conn

@@ -278,7 +278,7 @@ defmodule Cab.Feedback do
   defp team_id(room_team), do: get_in(room_team, ["Team", "id"])
 
   # ---------------------------------------------------------------
-  # Reading — always as the club head, then filtered
+  # Reading - always as the club head, then filtered
   # ---------------------------------------------------------------
 
   @doc "Every feedback of the session (engine records), or [] when unreadable."

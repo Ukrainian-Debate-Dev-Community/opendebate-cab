@@ -37,7 +37,7 @@ defmodule CabWeb.Api.SessionController do
     end
   end
 
-  # GET /api/v1/sessions/:uuid — the session as anyone may read it: names,
+  # GET /api/v1/sessions/:uuid - the session as anyone may read it: names,
   # stage, rooms, motions and results, no engine ids or accounts. The
   # club head also gets every room's and person's `id` (their API calls
   # address rooms and people by it); a room's chair gets them for the
@@ -123,7 +123,7 @@ defmodule CabWeb.Api.SessionController do
   defp with_id(map, id, true), do: Map.put(map, :id, id)
   defp with_id(map, _id, _ids?), do: map
 
-  # POST /api/v1/sessions/:uuid/start {"rooms": [...]} — M9's one
+  # POST /api/v1/sessions/:uuid/start {"rooms": [...]} - M9's one
   # action: closes registration and creates the rooms from the
   # allocator state (the spec is REQUIRED; nothing is auto-placed)
   def start(conn, %{"rooms" => rooms_spec}) when is_list(rooms_spec) do
@@ -138,11 +138,11 @@ defmodule CabWeb.Api.SessionController do
     |> put_status(422)
     |> json(%{
       error: "validation failed",
-      details: %{rooms: "the allocator spec is required — nothing is allocated automatically"}
+      details: %{rooms: "the allocator spec is required; nothing is allocated automatically"}
     })
   end
 
-  # POST /api/v1/sessions/:uuid/reopen-registration — pending rooms
+  # POST /api/v1/sessions/:uuid/reopen-registration - pending rooms
   # die, the public window opens again
   def reopen_registration(conn, _params) do
     with {:ok, session} <-
@@ -151,7 +151,7 @@ defmodule CabWeb.Api.SessionController do
     end
   end
 
-  # POST /api/v1/sessions/:uuid/close-signups — flow-2's explicit
+  # POST /api/v1/sessions/:uuid/close-signups - flow-2's explicit
   # "sign-ups close" edge; 409 unless the session is :signup
   def close_signups(conn, _params) do
     with {:ok, session} <- Sessions.close_signups(conn.assigns.session) do
@@ -159,7 +159,7 @@ defmodule CabWeb.Api.SessionController do
     end
   end
 
-  # POST /api/v1/sessions/:uuid/reopen-signups — 409 unless :closed
+  # POST /api/v1/sessions/:uuid/reopen-signups - 409 unless :closed
   def reopen_signups(conn, _params) do
     with {:ok, session} <- Sessions.reopen_signups(conn.assigns.session) do
       json(conn, %{uuid: session.uuid, stage: :signup})
@@ -173,7 +173,7 @@ defmodule CabWeb.Api.SessionController do
     end
   end
 
-  # DELETE /api/v1/sessions/:uuid — head cancels: engine event
+  # DELETE /api/v1/sessions/:uuid - head cancels: engine event
   # archived, gateway row removed, club back to "no session"
   def delete(conn, _params) do
     with {:ok, _session} <- Sessions.cancel(conn.assigns.current_user, conn.assigns.session) do

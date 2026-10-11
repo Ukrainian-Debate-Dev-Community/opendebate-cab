@@ -48,7 +48,7 @@
         </button>
         <div :if={@suggestions.guest} class="guest-offer">
           <button type="button" phx-click="add_guest" phx-value-name={@suggestions.guest}>
-            {gettext("Add “%{name}” as a guest", name: @suggestions.guest)}
+            {gettext("Add \"%{name}\" as a guest", name: @suggestions.guest)}
             <span>{gettext("not in cab")}</span>
           </button>
           <p>{gettext("Send them their personal link from People.")}</p>

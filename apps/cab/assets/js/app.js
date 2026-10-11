@@ -38,7 +38,7 @@ const t = (key, fallback, vars = {}) =>
 // ----------------------------------------------------------------
 // Hooks: every widget is a LiveView hook, so it survives live
 // re-renders. Pages rendered without LiveView mount the same hooks
-// once (see mountDeadHooks below) — one implementation for both.
+// once (see mountDeadHooks below) - one implementation for both.
 // ----------------------------------------------------------------
 
 // the scored ballot: live team totals, derived ranks, tie warning
@@ -96,7 +96,7 @@ const PrepClock = {
   destroyed() { clearInterval(this.timer) },
 }
 
-// the allocator: drag reports a drop to the server — place {id, slot}
+// the allocator: drag reports a drop to the server - place {id, slot}
 // or unplace {id}; the server owns the draft and re-renders the table.
 // A placed chip released anywhere but a slot goes back to the tray.
 const Allocator = {
@@ -145,7 +145,7 @@ const Allocator = {
   },
 }
 
-// the room card: a PNG people paste into a messenger — who, when, the
+// the room card: a PNG people paste into a messenger - who, when, the
 // motion once published, the draw, the judge, and the room's short
 // link as a QR code. Drawn from the server's data-card JSON.
 const CARD = {

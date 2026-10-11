@@ -1,6 +1,6 @@
 defmodule CabWeb.SessionFormat do
   @moduledoc """
-  The ONE place sessions, rooms and teams turn into words on a page —
+  The ONE place sessions, rooms and teams turn into words on a page -
   imported into every template, so a status reads the same everywhere.
   No pills: every status is written out.
   """
@@ -23,7 +23,7 @@ defmodule CabWeb.SessionFormat do
   def stage_words(:running), do: gettext("running")
   def stage_words(:done), do: gettext("finished")
 
-  @doc "A room's name inside its session: R1, R2, … (the engine id only as a fallback)."
+  @doc "A room's name inside its session: R1, R2, ... (the engine id only as a fallback)."
   def room_label(%{"no" => no}) when is_integer(no), do: gettext("R%{number}", number: no)
   def room_label(%{"id" => id}), do: gettext("R%{number}", number: id)
 
@@ -101,7 +101,7 @@ defmodule CabWeb.SessionFormat do
     |> Enum.join(" & ")
   end
 
-  @doc "The label of the room a feedback entry is about, R1 or —."
+  @doc "The label of the room a feedback entry is about, R1 or -."
   def feedback_room_label(%{rooms: rooms}, %{room_id: room_id}) do
     case Enum.find(rooms, &(&1["id"] == room_id)) do
       nil -> "—"

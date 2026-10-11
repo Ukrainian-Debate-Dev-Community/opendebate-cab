@@ -38,7 +38,7 @@ req() {
   fi
 }
 
-# reqc <jar> <method> <path> — like req, but WRITES cookies back to
+# reqc <jar> <method> <path> - like req, but WRITES cookies back to
 # the jar (the guest HTML flows are session+csrf browser forms)
 reqc() {
   jar="$1"; method="$2"; path="$3"
@@ -53,7 +53,7 @@ csrf() {
     sed -n 's/.*name="csrf-token" content="\([^"]*\)".*/\1/p' "$BODY"; } | head -1
 }
 
-# html_ok <label> — count a non-JSON step after manual checks passed
+# html_ok <label> - count a non-JSON step after manual checks passed
 html_ok() {
   STEP=$((STEP + 1))
   printf 'ok %2d  %-5s %-55s %s  %s\n' "$STEP" "$2" "$3" "$4" "$1"
@@ -71,7 +71,7 @@ assert() {
 }
 
 command -v jq >/dev/null || { echo "jq is required"; exit 1; }
-curl -sf -o /dev/null --max-time 3 "$BASE/" || { echo "gateway not up — run: make up"; exit 1; }
+curl -sf -o /dev/null --max-time 3 "$BASE/" || { echo "gateway not up; run: make up"; exit 1; }
 
 # ----------------------------------------------------------------
 say "users via /dev/switch-user (cookie jar = identity)"
@@ -99,7 +99,7 @@ assert head GET "/api/v1/clubs/$CLUB" 200 '.name' "BP Walkthrough $RUN"
 # ----------------------------------------------------------------
 say "join requests (a join request IS a pending membership + the two REQUIRED answers)"
 # ----------------------------------------------------------------
-# a bare request (no message/contact) is rejected — never a bare button
+# a bare request (no message/contact) is rejected - never a bare button
 assert j1 POST "/api/v1/clubs/$CLUB/join-requests" 422 '.details.message | length' 1
 REQ_IDS=""
 for u in j1 s1 s2 s3 s4 s5 s6 s7 s8; do
@@ -319,7 +319,7 @@ grep -q 'id="signin-github"' "$BODY" || fail "/signin misses the GitHub provider
 grep -q 'Continue with Google' "$BODY" || fail "/signin misses the Google (soon) button"
 html_ok "P1 provider buttons" GET "/signin" 200
 
-# every anonymous auth wall redirects to /signin — never to the provider
+# every anonymous auth wall redirects to /signin - never to the provider
 WALL=$(curl -s -o /dev/null -w '%{redirect_url}' "$BASE/account")
 case "$WALL" in */signin) : ;; *) fail "anon account wall went to '$WALL', want /signin" ;; esac
 html_ok "anon /account -> /signin" GET "/account" 302
@@ -445,7 +445,7 @@ assert j1 POST "/api/v1/rooms/$IRON_ROOM/ballot" 200 '.status' confirmed \
 assert head POST "/api/v1/sessions/$IRON_SESSION/finish" 200 '.status' completed
 assert head GET "/api/v1/sessions/$IRON_SESSION" 200 '.stage' done
 assert head GET "/api/v1/sessions/$IRON_SESSION" 200 '.winner' "$IRON_WINNER"
-# history lists events in creation order — the iron night is last
+# history lists events in creation order - the iron night is last
 assert head GET "/api/v1/clubs/$CLUB" 200 \
   ".history | map(select(.session_uuid == \"$IRON_SESSION\")) | .[0].winner" "$IRON_WINNER"
 
@@ -489,7 +489,7 @@ reqc g1 GET "/r/$GSESSION"
 grep -q 'id="guest-register-form"' "$BODY" || fail "shared URL misses the registration form"
 html_ok "registration form" GET "/r/$GSESSION" 200
 
-# register_guest <jar> <name> <as> — browser form flow: GET for the
+# register_guest <jar> <name> <as> - browser form flow: GET for the
 # session+csrf, POST, personal /l/<code> link scraped into $PERSONAL
 register_guest() {
   rg_jar="$1"; rg_name="$2"; rg_as="$3"

@@ -15,7 +15,7 @@ defmodule CabWeb.SessionLiveTest do
   defp ok(conn, data), do: Req.Test.json(conn, %{"status" => "success", "data" => data})
 
   # the engine answers from an Agent, so a test can change the world
-  # and broadcast — exactly what a real write does
+  # and broadcast - exactly what a real write does
   defp stub_engine(signups, rooms \\ []) do
     {:ok, agent} = Agent.start_link(fn -> %{signups: signups, rooms: rooms} end)
 
