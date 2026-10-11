@@ -194,7 +194,7 @@ msgstr "Залиште хоча б один спосіб входу."
 #: lib/cab/sessions.ex:1246
 #, elixir-autogen, elixir-format
 msgid "Position must be 1 to 4 (OG, OO, CG, CO)."
-msgstr "Позиція має бути від 1 до 4 (ВУ, ВО, ЗУ, ЗО)."
+msgstr "Позиція має бути від 1 до 4 (ПУ, ПО, ДУ, ДО)."
 
 #: lib/cab/sessions.ex:1172
 #, elixir-autogen, elixir-format
@@ -224,7 +224,7 @@ msgstr "Кімнати створюються після закриття реє
 #: lib/cab/sessions.ex:1065
 #, elixir-autogen, elixir-format
 msgid "Rooms can only be deleted before any ballot is in."
-msgstr "Кімнати можна видалити лише до того, як надійде бодай один бюлетень."
+msgstr "Кімнати можна видалити лише до того, як надійде бодай один белот."
 
 #: lib/cab/sessions.ex:947
 #, elixir-autogen, elixir-format
@@ -332,7 +332,7 @@ msgstr "До цього акаунта вже прив'язано інший в�
 #: lib/cab/sessions.ex:1346
 #, elixir-autogen, elixir-format
 msgid "This ballot doesn't match the room's draw."
-msgstr "Цей бюлетень не відповідає жеребкуванню кімнати."
+msgstr "Цей белот не відповідає сітці кімнати."
 
 #: lib/cab/clubs.ex:239
 #: lib/cab/clubs.ex:244
@@ -373,4 +373,4 @@ msgstr "розкажіть голові клубу про себе і як з в
 #: lib/cab/sessions.ex:1227
 #, elixir-autogen, elixir-format
 msgid "a full ballot is 8 scores: two per team position 1..4 (og, oo, cg, co)"
-msgstr "повний бюлетень: 8 балів, по два на кожну позицію команди 1..4 (ВУ, ВО, ЗУ, ЗО)"
+msgstr "повний белот: 8 балів, по два на кожну позицію команди 1..4 (ПУ, ПО, ДУ, ДО)"

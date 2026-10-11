@@ -481,7 +481,7 @@ msgstr "Профіль клубу збережено."
 #: lib/cab_web/controllers/signin_html/show.html.heex:8
 #, elixir-autogen, elixir-format
 msgid "Club sessions, rooms, ballots and standings — one place for debaters, adjudicators and club heads."
-msgstr "Сесії клубів, кімнати, бюлетені та рейтинг — одне місце для спікерів, суддів і голів клубів."
+msgstr "Сесії клубів, кімнати, белот та рейтинг — одне місце для спікерів, суддів і голів клубів."
 
 #: lib/cab_web/components/ui.ex:140
 #: lib/cab_web/controllers/admin_html/show.html.heex:9
@@ -649,7 +649,7 @@ msgstr "Редагувати"
 #: lib/cab_web/controllers/session_page_html/room.html.heex:36
 #, elixir-autogen, elixir-format
 msgid "Edit ballot"
-msgstr "Редагувати бюлетень"
+msgstr "Редагувати белот"
 
 #: lib/cab_web/controllers/club_public_html/show.html.heex:11
 #, elixir-autogen, elixir-format
@@ -2127,7 +2127,7 @@ msgstr "суддя"
 #: lib/cab_web/controllers/signin_html/show.html.heex:14
 #, elixir-autogen, elixir-format
 msgid "adjudicators fill the ballot right in their room"
-msgstr "судді заповнюють бюлетень просто у своїй кімнаті"
+msgstr "судді заповнюють белот просто у своїй кімнаті"
 
 #: lib/cab_web/controllers/signin_html/show.html.heex:102
 #, elixir-autogen, elixir-format
@@ -2481,7 +2481,7 @@ msgstr "без назви"
 #: lib/cab_web/components/layouts.ex:57
 #, elixir-autogen, elixir-format
 msgid "this room's draw and motion, live"
-msgstr "жеребкування й резолюція цієї кімнати наживо"
+msgstr "сітка й резолюція цієї кімнати наживо"
 
 #: lib/cab_web/controllers/page_html/home.html.heex:31
 #, elixir-autogen, elixir-format
@@ -2633,7 +2633,7 @@ msgstr "Відгуки на ваше суддівство: %{session}"
 #: lib/cab_web/controllers/feedback_html/new.html.heex:100
 #, elixir-autogen, elixir-format
 msgid "Feedback opens once the room's ballot is in."
-msgstr "Відгук можна залишити, щойно бюлетень кімнати подано."
+msgstr "Відгук можна залишити, щойно белот кімнати подано."
 
 #: lib/cab_web/controllers/feedback_controller.ex:31
 #, elixir-autogen, elixir-format
