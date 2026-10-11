@@ -26,7 +26,7 @@ test:
 test-all: test test-e2e
 
 lint:
-	$(NIX) sh -c 'mix format --check-formatted && MIX_ENV=test mix gettext.extract --check-up-to-date && mix hex.audit'
+	$(NIX) sh -c 'mix format --check-formatted && (cd apps/cab && MIX_ENV=test mix gettext.extract --check-up-to-date) && mix hex.audit'
 
 fmt:
 	$(NIX) mix format
