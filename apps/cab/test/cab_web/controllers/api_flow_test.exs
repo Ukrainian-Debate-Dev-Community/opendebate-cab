@@ -232,6 +232,9 @@ defmodule CabWeb.ApiFlowTest do
 
     stub(fn conn, params ->
       case {conn.method, conn.request_path} do
+        {"PATCH", "/api/rooms/71/prep"} ->
+          ok(conn, %{})
+
         {"POST", "/api/rooms/71/motion"} ->
           assert params["motion_text"] == "THW test APIs"
           ok(conn, %{"motion" => %{"id" => 31, "motion_text" => "THW test APIs"}})

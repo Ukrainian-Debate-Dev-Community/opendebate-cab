@@ -18,7 +18,7 @@ defmodule Cab.Sessions do
   alias Cab.Clubs
   alias Cab.Clubs.Club
   alias Cab.{EngineApi, Repo}
-  alias Cab.Sessions.{RoomPrep, Session}
+  alias Cab.Sessions.Session
 
   @teams_per_room 4
   @speakers_per_team 2
@@ -758,36 +758,29 @@ defmodule Cab.Sessions do
     |> Enum.map(fn {room, no} -> Map.put(room, "no", no) end)
   end
 
-  # each room's prep timer, when one runs: "prep_until", the instant prep ends
-  defp attach_preps(rooms, %Session{id: id}) when is_integer(id) do
-    preps =
-      Repo.all(from p in RoomPrep, where: p.session_id == ^id)
-      |> Map.new(&{&1.room_id, &1.ends_at})
+  # each room's prep timer, when one runs: the engine keeps when prep
+  # ends; the pages read it as "prep_until"
+  defp attach_preps(rooms, _session) do
+    Enum.map(rooms, fn
+      %{"prep_ends_at" => ends_at} = room when is_binary(ends_at) ->
+        Map.put(room, "prep_until", ends_at)
 
-    Enum.map(rooms, fn room ->
-      case preps[room["id"]] do
-        nil -> room
-        ends_at -> Map.put(room, "prep_until", DateTime.to_iso8601(ends_at))
-      end
+      room ->
+        room
     end)
   end
 
-  defp attach_preps(rooms, _session), do: rooms
+  @doc "Sets when the room's prep ends in the engine; `nil` removes the timer."
+  def set_prep_until(%Session{} = session, room_id, ends_at) do
+    club = session_club(session)
+    value = ends_at && ends_at |> DateTime.truncate(:second) |> DateTime.to_iso8601()
 
-  @doc "Sets when the room's prep ends; `nil` removes the timer."
-  def set_prep_until(%Session{} = session, room_id, nil) do
-    from(p in RoomPrep, where: p.session_id == ^session.id and p.room_id == ^room_id)
-    |> Repo.delete_all()
+    result =
+      with {:ok, actor} <- Clubs.club_actor(club) do
+        EngineApi.set_room_prep(actor, room_id, value)
+      end
 
-    notify({:ok, nil}, session)
-  end
-
-  def set_prep_until(%Session{} = session, room_id, %DateTime{} = ends_at) do
-    (Repo.get_by(RoomPrep, session_id: session.id, room_id: room_id) ||
-       %RoomPrep{session_id: session.id, room_id: room_id})
-    |> Ecto.Changeset.change(ends_at: DateTime.truncate(ends_at, :second))
-    |> Repo.insert_or_update()
-    |> notify(session)
+    notify(result, session)
   end
 
   # the four engine reads are independent once the round id is known

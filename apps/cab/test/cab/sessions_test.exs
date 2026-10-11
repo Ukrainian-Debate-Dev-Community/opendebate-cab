@@ -947,19 +947,25 @@ defmodule Cab.SessionsTest do
     assert_received {:confirmed, %{"id" => 9}}
   end
 
-  test "set_prep_until moves the end of prep or removes it", %{club: club} do
+  test "set_prep_until moves the end of prep in the engine, or clears it", %{club: club} do
     session = session_fixture(club, engine_event_id: 11)
     ends = DateTime.add(DateTime.utc_now(:second), 900, :second)
+    test_pid = self()
 
-    {:ok, prep} = Sessions.set_prep_until(session, 71, ends)
-    assert prep.ends_at == ends
+    stub(fn conn, params ->
+      case {conn.method, conn.request_path} do
+        {"PATCH", "/api/rooms/71/prep"} ->
+          send(test_pid, {:prep, params["prep_ends_at"]})
+          ok(conn, %{"room_id" => 71, "prep_ends_at" => params["prep_ends_at"]})
+      end
+    end)
 
-    later = DateTime.add(ends, 300, :second)
-    {:ok, moved} = Sessions.set_prep_until(session, 71, later)
-    assert moved.id == prep.id and moved.ends_at == later
+    assert {:ok, _} = Sessions.set_prep_until(session, 71, ends)
+    assert_received {:prep, sent}
+    assert {:ok, ^ends, _} = DateTime.from_iso8601(sent)
 
-    {:ok, nil} = Sessions.set_prep_until(session, 71, nil)
-    refute Repo.get_by(Cab.Sessions.RoomPrep, session_id: session.id, room_id: 71)
+    assert {:ok, _} = Sessions.set_prep_until(session, 71, nil)
+    assert_received {:prep, nil}
   end
 
   test "every room's winner counts, in room order" do

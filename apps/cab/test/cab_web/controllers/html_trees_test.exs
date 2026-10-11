@@ -849,6 +849,10 @@ defmodule CabWeb.HtmlTreesTest do
 
         {"POST", "/api/rooms/71/motion"} ->
           ok(conn, %{})
+
+        {"PATCH", "/api/rooms/71/prep"} ->
+          if test_pid, do: send(test_pid, {:prep, params["prep_ends_at"]})
+          ok(conn, %{})
       end
     end)
   end
@@ -957,6 +961,10 @@ defmodule CabWeb.HtmlTreesTest do
         {"POST", "/api/rooms/71/motion"} ->
           send(test_pid, {:motion, params["motion_text"], params["infoslide"], params["keyword"]})
           ok(conn, %{"motion" => %{"motion_text" => params["motion_text"]}})
+
+        {"PATCH", "/api/rooms/71/prep"} ->
+          send(test_pid, {:prep, params["prep_ends_at"]})
+          ok(conn, %{})
       end
     end)
 
@@ -997,9 +1005,10 @@ defmodule CabWeb.HtmlTreesTest do
     assert redirected_to(set) == "/c/#{club.uuid}/s/#{session.uuid}/rooms/71"
     assert_received {:motion, "THW debate", "Context slide", "economy"}
 
-    # publishing set prep to end 15 minutes from now
-    prep = Cab.Repo.get_by(Cab.Sessions.RoomPrep, session_id: session.id, room_id: 71)
-    assert_in_delta DateTime.diff(prep.ends_at, DateTime.utc_now()), 900, 5
+    # publishing set prep to end 15 minutes from now, in the engine
+    assert_received {:prep, ends_at}
+    {:ok, ends_at, _} = DateTime.from_iso8601(ends_at)
+    assert_in_delta DateTime.diff(ends_at, DateTime.utc_now()), 900, 5
 
     # a plain member is neither chair nor head — no motion for them
     outsider = user_fixture(%{node_user_id: 55})
@@ -1018,31 +1027,34 @@ defmodule CabWeb.HtmlTreesTest do
   test "the prep end: the same time keeps it, a new time moves it, empty means 15 minutes",
        %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
-    stub_running_session(running_room(44))
-
     ends = DateTime.add(DateTime.utc_now(:second), 1800, :second)
-    {:ok, _} = Cab.Sessions.set_prep_until(session, 71, ends)
+    # the engine holds the room's prep end
+    stub_running_session(
+      Map.put(running_room(44), "prep_ends_at", DateTime.to_iso8601(ends)),
+      self()
+    )
+
     path = ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/motion"
 
     post_motion = fn prep ->
       conn |> log_in(head) |> post(path, %{motion_text: "THW x", prep_until: prep})
     end
 
-    prep = fn -> Cab.Repo.get_by(Cab.Sessions.RoomPrep, session_id: session.id, room_id: 71) end
-
     # the time shown, sent back unchanged (seconds dropped by the field): kept
-    same = ends |> Map.put(:second, 0) |> DateTime.to_iso8601()
-    post_motion.(same)
-    assert prep.().ends_at == ends
+    post_motion.(ends |> Map.put(:second, 0) |> DateTime.to_iso8601())
+    refute_received {:prep, _}
 
     # a new time moves it
     later = DateTime.add(ends, 600, :second) |> Map.put(:second, 0)
     post_motion.(DateTime.to_iso8601(later))
-    assert prep.().ends_at == later
+    assert_received {:prep, moved}
+    assert {:ok, ^later, _} = DateTime.from_iso8601(moved)
 
     # left empty (as for a motion from before the timer): 15 minutes from now
     post_motion.("")
-    assert_in_delta DateTime.diff(prep.().ends_at, DateTime.utc_now()), 900, 5
+    assert_received {:prep, fresh}
+    {:ok, fresh, _} = DateTime.from_iso8601(fresh)
+    assert_in_delta DateTime.diff(fresh, DateTime.utc_now()), 900, 5
   end
 
   test "once the ballot is in, the room shows each speaker's points, team points and place",
