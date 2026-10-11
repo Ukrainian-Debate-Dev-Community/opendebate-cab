@@ -2,7 +2,7 @@ RUN_DIR = .run
 PSQL   ?= /opt/homebrew/Cellar/postgresql@16/16.12/bin/psql
 NIX     = nix develop --command
 
-.PHONY: setup dev build test test-all test-e2e lint fmt clean up down restart fresh backfill stress logs status sync-engine
+.PHONY: setup dev build test test-all test-e2e lint fmt clean up down restart fresh backfill stress logs status sync-engine release image
 
 # ---------------------------------------------------------------
 # Standard targets
@@ -111,3 +111,30 @@ sync-engine:
 	git -C engine fetch origin main
 	git -C engine checkout origin/main
 	git -C engine log --oneline -1
+
+# ---------------------------------------------------------------
+# Releases: master moves only here, by fast-forward to nightly
+# ---------------------------------------------------------------
+
+IMAGE = ghcr.io/ukrainian-debate-dev-community/opendebate
+
+# make release VERSION=v0.1.0 - from a clean nightly whose CI is green:
+# fast-forward master, tag, push both; the tag publishes the image
+release:
+	@echo "$(VERSION)" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "usage: make release VERSION=vX.Y.Z"; exit 1; }
+	@[ -z "$$(git status --porcelain --untracked-files=no)" ] || { echo "the working tree has changes"; exit 1; }
+	@[ "$$(git rev-parse --abbrev-ref HEAD)" = "nightly" ] || { echo "switch to nightly first"; exit 1; }
+	@git fetch -q origin
+	@[ "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/nightly)" ] || { echo "nightly differs from origin/nightly: pull or push first"; exit 1; }
+	@[ -z "$$(git tag -l $(VERSION))" ] && [ -z "$$(git ls-remote --tags origin refs/tags/$(VERSION))" ] || { echo "$(VERSION) already exists"; exit 1; }
+	@[ "$$(gh run list --workflow ci.yml --commit $$(git rev-parse HEAD) --json conclusion -q '.[0].conclusion')" = "success" ] || { echo "CI on this commit is not green"; exit 1; }
+	@echo "release $(VERSION): master -> $$(git rev-parse --short HEAD) ($$(git log -1 --format=%s)), tag $(VERSION), image $(IMAGE):$(VERSION)"
+	@printf "type the version again to confirm: "; read answer < /dev/tty; [ "$$answer" = "$(VERSION)" ] || { echo "cancelled"; exit 1; }
+	git push origin nightly:master
+	git tag -a $(VERSION) -m $(VERSION)
+	git push origin $(VERSION)
+	@echo "pushed; the release workflow now builds $(IMAGE):$(VERSION)"
+
+# Build the release image locally (needs docker running)
+image:
+	docker build -t $(IMAGE):local .
