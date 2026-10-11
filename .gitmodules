@@ -1,4 +1,4 @@
 [submodule "engine"]
 	path = engine
-	url = git@github.com:Ukrainian-Debate-Dev-Community/opendebate-dev.git
+	url = git@github.com:Ukrainian-Debate-Dev-Community/opendebate-engine.git
 	branch = main
