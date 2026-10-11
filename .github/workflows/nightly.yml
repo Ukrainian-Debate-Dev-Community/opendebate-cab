@@ -11,6 +11,9 @@ on:
 permissions:
   contents: write
 
+# never two nightly runs at once
+concurrency: nightly
+
 env:
   MIX_ENV: test
   ELIXIR_VERSION: "1.18.5"
