@@ -63,6 +63,21 @@ config :tailwind,
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
+# uadebate.com: its own repo (news, events, roles) and endpoint. It
+# reads cab downward; :cab_url is where its Cabinet links point.
+config :uadebate,
+  ecto_repos: [Uadebate.Repo],
+  generators: [timestamp_type: :utc_datetime]
+
+config :uadebate, UadebateWeb.Gettext, default_locale: "en", locales: ~w(en)
+
+config :uadebate, UadebateWeb.Endpoint,
+  url: [host: "localhost"],
+  adapter: Bandit.PhoenixAdapter,
+  render_errors: [formats: [html: UadebateWeb.ErrorHTML], layout: false]
+
+config :uadebate, :cab_url, "http://localhost:4000"
+
 # Configure Elixir's Logger
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
