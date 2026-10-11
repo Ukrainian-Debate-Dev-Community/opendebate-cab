@@ -1137,7 +1137,7 @@ msgstr "ПО — ПЕРША ОПОЗИЦІЯ"
 #: lib/cab_web/ballot_form.ex:81
 #, elixir-autogen, elixir-format
 msgid "OW"
-msgstr "БО"
+msgstr "АО"
 
 #: lib/cab_web/controllers/owner_html/club.html.heex:80
 #, elixir-autogen, elixir-format
@@ -1427,7 +1427,7 @@ msgstr "Кімната %{room}"
 #: lib/cab_web/controllers/session_page_html/ballot.html.heex:22
 #, elixir-autogen, elixir-format
 msgid "Room %{room} ballot"
-msgstr "Бюлетень кімнати %{room}"
+msgstr "Белот кімнати %{room}"
 
 #: lib/cab_web/controllers/short_link_controller.ex:32
 #, elixir-autogen, elixir-format
@@ -1732,7 +1732,7 @@ msgstr "Статус"
 #: lib/cab_web/controllers/session_page_html/ballot.html.heex:16
 #, elixir-autogen, elixir-format
 msgid "Submit ballot"
-msgstr "Подати бюлетень"
+msgstr "Подати белот"
 
 #: lib/cab_web/components/layouts/app.html.heex:47
 #, elixir-autogen, elixir-format
@@ -1970,7 +1970,7 @@ msgstr "Оновити резолюцію"
 #: lib/cab_web/controllers/signin_html/show.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Use one of the following sign-in methods. We don't use passwords."
-msgstr "Скористайтеся одним зі способів входу нижче. Паролів ми не використовуємо."
+msgstr "Скористайтеся одним зі способів входу нижче. Ми не зберігаємо паролі."
 
 #: lib/cab_web/controllers/account_html/show.html.heex:33
 #, elixir-autogen, elixir-format
@@ -2152,17 +2152,17 @@ msgstr "в архіві"
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:84
 #, elixir-autogen, elixir-format
 msgid "ballot"
-msgstr "бюлетень"
+msgstr "белот"
 
 #: lib/cab_web/session_format.ex:37
 #, elixir-autogen, elixir-format
 msgid "ballot confirmed"
-msgstr "бюлетень підтверджено"
+msgstr "белот підтверджено"
 
 #: lib/cab_web/session_format.ex:36
 #, elixir-autogen, elixir-format
 msgid "ballot submitted"
-msgstr "бюлетень подано"
+msgstr "белот подано"
 
 #: lib/cab_web/components/layouts/app.html.heex:42
 #, elixir-autogen, elixir-format
@@ -2187,7 +2187,7 @@ msgstr "контакт: %{contact}"
 #: lib/cab_web/session_format.ex:35
 #, elixir-autogen, elixir-format
 msgid "debating — waiting for the ballot"
-msgstr "дебатують — чекаємо на бюлетень"
+msgstr "дебатують — чекаємо на белот"
 
 #: lib/cab_web/controllers/me_html/show.html.heex:28
 #: lib/cab_web/controllers/owner_html/members.html.heex:47
@@ -2213,7 +2213,7 @@ msgstr "раніше:"
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:90
 #, elixir-autogen, elixir-format
 msgid "edit ballot"
-msgstr "редагувати бюлетень"
+msgstr "редагувати белот"
 
 #: lib/cab_web/components/ui.ex:803
 #, elixir-autogen, elixir-format
