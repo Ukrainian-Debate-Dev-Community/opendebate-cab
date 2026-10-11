@@ -12,8 +12,9 @@ defmodule CabWeb.AdminController do
 
   use CabWeb, :controller
 
-  alias Cab.{Accounts, Clubs}
-  alias Cab.Clubs.Club
+  alias Cab.{Accounts, Clubs, HeadInvitations}
+  alias Cab.Clubs.{Club, HeadInvitation}
+  alias CabWeb.Emails
 
   plug :require_admin
 
@@ -21,37 +22,111 @@ defmodule CabWeb.AdminController do
     render_admin(conn)
   end
 
-  # POST /admin/clubs {"name", "city", "head_id"}
+  # POST /admin/clubs {"name", "city", "head", "head_name"} - "head" is
+  # an account's exact username or e-mail, or an e-mail no account uses:
+  # then the admin heads the new club until the invitee accepts
   def create_club(conn, params) do
-    with {:ok, head} <- picked_user(params["head_id"]),
-         {:ok, club} <- Clubs.create_club(params["name"] || "", params["city"], head) do
-      conn
-      |> put_flash(
-        :info,
-        gettext("Club %{club} created, headed by %{head}.", club: club.name, head: head.username)
-      )
-      |> redirect(to: ~p"/admin")
+    admin = conn.assigns.current_user
+
+    case resolve_head(params) do
+      {:user, head} ->
+        case Clubs.create_club(params["name"] || "", params["city"], head) do
+          {:ok, club} ->
+            conn
+            |> put_flash(
+              :info,
+              gettext("Club %{club} created, headed by %{head}.",
+                club: club.name,
+                head: head.username
+              )
+            )
+            |> redirect(to: ~p"/admin")
+
+          {:error, %Ecto.Changeset{}} ->
+            bounce(conn, gettext("The club needs a name."))
+
+          {:error, message} ->
+            bounce(conn, message)
+        end
+
+      {:invite, email, name} ->
+        with {:ok, club} <- Clubs.create_club(params["name"] || "", params["city"], admin),
+             {:ok, invitation, token} <- HeadInvitations.invite(club, email, name, admin, admin) do
+          conn |> invited(invitation, token, :created) |> redirect(to: ~p"/admin")
+        else
+          {:error, %Ecto.Changeset{}} -> bounce(conn, gettext("The club needs a name."))
+          {:error, message} -> bounce(conn, message)
+        end
+
+      {:error, message} ->
+        bounce(conn, message)
+    end
+  end
+
+  # POST /admin/head {"uuid", "head", "head_name"} - the club rides in
+  # the body; an invitation leaves the current head in place until it
+  # is accepted
+  def change_head(conn, %{"uuid" => uuid} = params) do
+    with %Club{} = club <- Clubs.get_by_uuid(uuid) do
+      case resolve_head(params) do
+        {:user, head} ->
+          case Clubs.change_head(club, head) do
+            {:ok, _club} ->
+              conn
+              |> put_flash(
+                :info,
+                gettext("%{club} is now headed by %{head}.",
+                  club: club.name,
+                  head: head.username
+                )
+              )
+              |> redirect(to: ~p"/admin")
+
+            {:error, message} ->
+              bounce(conn, message)
+          end
+
+        {:invite, email, name} ->
+          case HeadInvitations.invite(club, email, name, conn.assigns.current_user) do
+            {:ok, invitation, token} ->
+              conn |> invited(invitation, token, :changed) |> redirect(to: ~p"/admin")
+
+            {:error, message} ->
+              bounce(conn, message)
+          end
+
+        {:error, message} ->
+          bounce(conn, message)
+      end
     else
-      {:error, %Ecto.Changeset{}} -> bounce(conn, gettext("The club needs a name."))
+      nil -> conn |> CabWeb.ErrorHTML.respond(404)
+    end
+  end
+
+  # POST /admin/head-invitations/:id/resend - a new link, e-mailed again
+  def resend_head_invitation(conn, %{"id" => id}) do
+    with %HeadInvitation{} = invitation <- HeadInvitations.get(id),
+         {:ok, invitation, token} <- HeadInvitations.resend(invitation) do
+      conn |> invited(invitation, token, :resent) |> redirect(to: ~p"/admin")
+    else
+      nil -> conn |> CabWeb.ErrorHTML.respond(404)
       {:error, message} -> bounce(conn, message)
     end
   end
 
-  # POST /admin/head {"uuid", "head_id"} - the club rides in the body
-  # (one dropdown form serves every club)
-  def change_head(conn, %{"uuid" => uuid} = params) do
-    with %Club{} = club <- Clubs.get_by_uuid(uuid),
-         {:ok, head} <- picked_user(params["head_id"]),
-         {:ok, _club} <- Clubs.change_head(club, head) do
+  # POST /admin/head-invitations/:id/cancel
+  def cancel_head_invitation(conn, %{"id" => id}) do
+    with %HeadInvitation{} = invitation <- HeadInvitations.get(id),
+         {:ok, _} <- HeadInvitations.cancel(invitation) do
       conn
       |> put_flash(
         :info,
-        gettext("%{club} is now headed by %{head}.", club: club.name, head: head.username)
+        gettext("The invitation to head %{club} is cancelled.", club: invitation.club.name)
       )
       |> redirect(to: ~p"/admin")
     else
       nil -> conn |> CabWeb.ErrorHTML.respond(404)
-      {:error, message} -> bounce(conn, message)
+      {:error, _} -> bounce(conn, gettext("Could not cancel the invitation. Try again."))
     end
   end
 
@@ -98,9 +173,87 @@ defmodule CabWeb.AdminController do
       heads: Map.new(clubs, &{&1.id, Clubs.head_of(&1)}),
       member_counts: Clubs.member_counts(Enum.map(clubs, & &1.id)),
       users: Accounts.list_users(),
+      accounts: Accounts.list_accounts(),
+      head_invitations: HeadInvitations.list_pending(),
       page_title: gettext("Admin")
     )
   end
+
+  # an account by exact username or e-mail; else an address to invite
+  defp resolve_head(params) do
+    login = String.trim(params["head"] || "")
+
+    case Accounts.get_user_by_login(login) do
+      %Accounts.User{} = user ->
+        {:user, user}
+
+      nil ->
+        cond do
+          login == "" ->
+            {:error, gettext("Type the head's username or e-mail.")}
+
+          HeadInvitations.email?(login) ->
+            if String.trim(params["head_name"] || "") == "",
+              do: {:error, gettext("Type their name for the invitation.")},
+              else: {:invite, login, params["head_name"]}
+
+          true ->
+            {:error,
+             gettext(
+               "No account has that username or e-mail. Type an e-mail address to invite someone new."
+             )}
+        end
+    end
+  end
+
+  # the invitation e-mail; when it cannot go out the admin gets the
+  # link to pass on themselves
+  defp invited(conn, invitation, token, kind) do
+    club = invitation.club.name
+    name = invitation.name
+
+    case Emails.head_invitation(invitation, token, conn.assigns.current_user) do
+      :ok ->
+        put_flash(conn, :info, invited_words(kind, club, name))
+
+      {:error, _} ->
+        put_flash(
+          conn,
+          :error,
+          gettext("%{done} The e-mail could not be sent: send %{name} this link yourself: %{url}",
+            done: unsent_words(kind, club),
+            name: name,
+            url: Emails.head_invitation_url(token)
+          )
+        )
+    end
+  end
+
+  defp invited_words(:created, club, name),
+    do:
+      gettext(
+        "Club %{club} created. %{name} is invited by e-mail to be its head; you head it until they accept.",
+        club: club,
+        name: name
+      )
+
+  defp invited_words(:changed, club, name),
+    do:
+      gettext(
+        "%{name} is invited by e-mail to head %{club}; the current head stays until they accept.",
+        club: club,
+        name: name
+      )
+
+  defp invited_words(:resent, _club, name),
+    do: gettext("A new link was e-mailed to %{name}.", name: name)
+
+  defp unsent_words(:created, club), do: gettext("Club %{club} created.", club: club)
+
+  defp unsent_words(:changed, club),
+    do: gettext("The invitation to head %{club} is saved.", club: club)
+
+  defp unsent_words(:resent, _club), do: gettext("A new link is ready.")
 
   defp picked_user(id) do
     with id when is_binary(id) <- id,

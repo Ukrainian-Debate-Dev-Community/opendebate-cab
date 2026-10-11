@@ -34,6 +34,9 @@
         </p>
       <% else %>
         <h2>{gettext("Sign in")}</h2>
+        <p :if={@head_club} class="lede" id="head-invitation-prompt">
+          {gettext("Sign in to become the head of %{club}.", club: @head_club.name)}
+        </p>
         <p class="lede">
           {gettext("Use one of the following sign-in methods. We don't use passwords.")}
         </p>

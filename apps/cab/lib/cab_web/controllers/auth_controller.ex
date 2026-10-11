@@ -108,11 +108,15 @@ defmodule CabWeb.AuthController do
     user = Accounts.ensure_node_user(user)
     linked = Phoenix.Flash.get(conn.assigns.flash, :info)
 
-    conn
-    |> configure_session(renew: true)
-    |> put_session(:user_id, user.id)
-    |> put_flash(:info, linked || gettext("Signed in as %{username}.", username: user.username))
-    |> redirect(to: ~p"/")
+    conn =
+      conn
+      |> configure_session(renew: true)
+      |> put_session(:user_id, user.id)
+      |> put_flash(:info, linked || gettext("Signed in as %{username}.", username: user.username))
+
+    # a head invitation opened before signing in finishes here
+    {conn, path} = CabWeb.HeadInvitationController.accept_pending(conn, user)
+    redirect(conn, to: path || ~p"/")
   end
 
   def logout(conn, _params) do

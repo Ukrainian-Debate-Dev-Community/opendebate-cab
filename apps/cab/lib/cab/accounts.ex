@@ -51,6 +51,16 @@ defmodule Cab.Accounts do
 
   def list_users, do: Repo.all(from u in User, order_by: u.username)
 
+  @doc "Every account that can sign in (guests left out), by username."
+  def list_accounts do
+    Repo.all(
+      from u in User,
+        as: :user,
+        where: not exists(from l in Cab.Links.Link, where: l.user_id == parent_as(:user).id),
+        order_by: u.username
+    )
+  end
+
   @doc "The /account profile edit - display name only; identity fields stay provider-fed."
   # the zones offered on /account; "" = the device's own zone
   @time_zones ~w(Europe/Kyiv Europe/Warsaw Europe/Vilnius Europe/Riga Europe/Tallinn

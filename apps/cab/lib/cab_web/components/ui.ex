@@ -432,6 +432,7 @@ defmodule CabWeb.Ui do
     attr :values, :list, doc: "the two values of a :datetime pair"
     attr :options, :list, doc: "choices for :select / :multi, strings or {label, value}"
     attr :placeholder, :string
+    attr :list, :string, doc: "a :text block's <datalist> id, for suggestions while typing"
   end
 
   slot :submit do
@@ -471,7 +472,13 @@ defmodule CabWeb.Ui do
 
     case block[:type] || :text do
       :text ->
-        ~H|<input type="text" name={@name} value={@b[:value]} placeholder={@b[:placeholder]} />|
+        ~H|<input
+  type="text"
+  name={@name}
+  value={@b[:value]}
+  placeholder={@b[:placeholder]}
+  list={@b[:list]}
+/>|
 
       :longtext ->
         ~H|<textarea rows="3" name={@name} placeholder={@b[:placeholder]}>{@b[:value]}</textarea>|
