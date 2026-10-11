@@ -104,7 +104,7 @@ msgstr "%{method} вже було прив'язано."
 #: lib/cab_web/live/owner_session_live.ex:84
 #, elixir-autogen, elixir-format
 msgid "%{name} added as a guest. Copy their personal link from People and send it to %{email}."
-msgstr "%{name} додано як гостя. Скопіюйте персональне посилання в розділі Люди й надішліть його на %{email}."
+msgstr "%{name} додано як гостя. Скопіюйте персональне посилання в розділі «Люди» й надішліть його на %{email}."
 
 #: lib/cab_web/controllers/owner_controller.ex:211
 #, elixir-autogen, elixir-format
@@ -114,7 +114,7 @@ msgstr "%{name} додано як гостя. Персональне посил�
 #: lib/cab_web/controllers/owner_controller.ex:203
 #, elixir-autogen, elixir-format
 msgid "%{name} is in the session. They accept on their My page."
-msgstr "%{name} додано до сесії. Запрошення приймають на Моїй сторінці."
+msgstr "%{name} додано до сесії. Запрошення приймають на «Моїй сторінці»."
 
 #: lib/cab_web/controllers/account_controller.ex:137
 #: lib/cab_web/controllers/guest_link_controller.ex:67
@@ -203,7 +203,7 @@ msgstr[2] "Вас додали до %{count} сесій."
 #: lib/cab_web/controllers/me_html/show.html.heex:35
 #, elixir-autogen, elixir-format
 msgid "A club head added you to these sessions. Accept to see them on My page under your name; decline to have your name removed."
-msgstr "Голова клубу додав вас до цих сесій. Прийміть, щоб бачити їх на Моїй сторінці під своїм ім'ям; відхиліть, щоб ваше ім'я прибрали."
+msgstr "Голова клубу додав вас до цих сесій. Прийміть, щоб бачити їх на «Моїй сторінці» під своїм ім'ям; відхиліть, щоб ваше ім'я прибрали."
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex:3
 #, elixir-autogen, elixir-format
@@ -248,7 +248,7 @@ msgstr "Про людину"
 #: lib/cab_web/controllers/page_html/home.html.heex:18
 #, elixir-autogen, elixir-format
 msgid "Accept or decline on My page."
-msgstr "Прийміть або відхиліть на Моїй сторінці."
+msgstr "Прийміть або відхиліть на «Моїй сторінці»."
 
 #: lib/cab_web/controllers/account_controller.ex:152
 #: lib/cab_web/controllers/account_html/merge.html.heex:2
@@ -659,7 +659,7 @@ msgstr "Редагувати клуб"
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex:71
 #, elixir-autogen, elixir-format
 msgid "Email comes later; send them their personal link from People."
-msgstr "E-mail з'явиться пізніше; надішліть людині персональне посилання з розділу Люди."
+msgstr "E-mail з'явиться пізніше; надішліть людині персональне посилання з розділу «Люди»."
 
 #: lib/cab_web/live/owner_session_live.ex:80
 #, elixir-autogen, elixir-format
@@ -752,7 +752,7 @@ msgstr "Історія"
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex:17
 #, elixir-autogen, elixir-format
 msgid "If that guest was you, add their results to your account. They show on My page under your name, and this link stops working."
-msgstr "Якщо цим гостем були ви, додайте його результати до свого акаунта. Вони з'являться на Моїй сторінці під вашим ім'ям, а це посилання перестане працювати."
+msgstr "Якщо цим гостем були ви, додайте його результати до свого акаунта. Вони з'являться на «Моїй сторінці» під вашим ім'ям, а це посилання перестане працювати."
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:110
 #: lib/cab_web/controllers/session_page_html/room.html.heex:125
@@ -911,7 +911,7 @@ msgstr "Члени клубу (%{count})"
 #: lib/cab_web/controllers/owner_html/club.html.heex:61
 #, elixir-autogen, elixir-format
 msgid "Members only also keeps the club out of the global standings. Everything else stays public."
-msgstr "Режим лише для членів клубу також прибирає клуб із загального рейтингу. Усе інше лишається публічним."
+msgstr "Режим «лише для членів клубу» також прибирає клуб із загального рейтингу. Усе інше лишається публічним."
 
 #: lib/cab_web/controllers/account_controller.ex:70
 #: lib/cab_web/controllers/account_html/merge.html.heex:2
@@ -1512,7 +1512,7 @@ msgstr "Надіслати заявку"
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex:54
 #, elixir-autogen, elixir-format
 msgid "Send them their personal link from People."
-msgstr "Надішліть людині персональне посилання з розділу Люди."
+msgstr "Надішліть людині персональне посилання з розділу «Люди»."
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex:12
 #: lib/cab_web/controllers/me_html/show.html.heex:14
@@ -1820,7 +1820,7 @@ msgstr "Клубу потрібна назва."
 #: lib/cab_web/controllers/owner_html/club.html.heex:75
 #, elixir-autogen, elixir-format
 msgid "The current session lives under Rooms."
-msgstr "Поточна сесія є в розділі Кімнати."
+msgstr "Поточна сесія є в розділі «Кімнати»."
 
 #: lib/cab_web/controllers/error_html.ex:19
 #, elixir-autogen, elixir-format
@@ -1897,7 +1897,7 @@ msgstr "За цією адресою нічого немає."
 #: lib/cab_web/components/layouts.ex:59
 #, elixir-autogen, elixir-format
 msgid "This browser cannot copy images. Use Save image."
-msgstr "Цей браузер не вміє копіювати зображення. Скористайтеся кнопкою Зберегти зображення."
+msgstr "Цей браузер не вміє копіювати зображення. Скористайтеся «Зберегти зображення»."
 
 #: lib/cab_web/controllers/club_public_controller.ex:136
 #, elixir-autogen, elixir-format
@@ -2400,7 +2400,7 @@ msgstr "реєструйтеся на сесію клубу за одним по
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex:47
 #, elixir-autogen, elixir-format
 msgid "registered user, will accept on My page"
-msgstr "зареєстрований користувач, прийме запрошення на Моїй сторінці"
+msgstr "зареєстрований користувач, прийме запрошення на «Моїй сторінці»"
 
 #: lib/cab_web/controllers/me_html.ex:12
 #: lib/cab_web/controllers/page_html/home.html.heex:54
@@ -2746,7 +2746,7 @@ msgstr[2] "%{people} на місці, %{count} кімнат."
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex:51
 #, elixir-autogen, elixir-format
 msgid "Add \"%{name}\" as a guest"
-msgstr "Додати \"%{name}\" як гостя"
+msgstr "Додати «%{name}» як гостя"
 
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex:60
 #, elixir-autogen, elixir-format
