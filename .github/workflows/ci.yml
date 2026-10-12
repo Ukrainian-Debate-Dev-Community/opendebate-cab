@@ -60,11 +60,9 @@ jobs:
           key: mix-${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-${{ hashFiles('mix.lock') }}
       - run: mix deps.get
       - run: mix format --check-formatted
-      # per app: from the umbrella root a clean build extracts every reference twice
+      # from the app: from the umbrella root a clean build extracts every reference twice
       - run: mix gettext.extract --check-up-to-date
         working-directory: apps/cab
-      - run: mix gettext.extract --check-up-to-date
-        working-directory: apps/uadebate
       - run: mix hex.audit
 
   # master moves only on release; every pull request goes to nightly

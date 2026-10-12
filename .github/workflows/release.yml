@@ -1,8 +1,8 @@
 name: release
 
-# A tag vX.Y.Z on master (made by `make release`) publishes the platform
-# image the server deploys, and a GitHub release with the changes since
-# the previous tag.
+# A tag vX.Y.Z on master (made by `make release`) publishes the
+# opendebate-cab image, and a GitHub release with the changes since the
+# previous tag.
 on:
   push:
     tags: ["v*.*.*"]
@@ -27,7 +27,7 @@ jobs:
       - name: Image tags
         id: tags
         run: |
-          image=ghcr.io/ukrainian-debate-dev-community/opendebate
+          image=ghcr.io/ukrainian-debate-dev-community/opendebate-cab
           echo "list=${image}:${GITHUB_REF_NAME},${image}:sha-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
         with:
