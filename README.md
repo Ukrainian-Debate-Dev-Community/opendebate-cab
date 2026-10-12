@@ -79,7 +79,7 @@ bin/full eval "Uadebate.Release.migrate()"
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | yes | sign-in with GitHub |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | yes | sign-in with Google |
 | `SESSION_COOKIE_DOMAIN` | for sharing | e.g. `.uadebate.com`, so uadebate.com/manage sees the cab sign-in |
-| `UADEBATE_UPLOADS_DIR` | yes | folder for news cover images, served at `/uploads`; a persistent volume, kept in the backups |
+| `UADEBATE_UPLOADS_DIR` | yes | folder for news cover images, served at `/uploads`; in the image `/app/uploads`, a persistent volume kept in the backups |
 | `CAB_URL` | no | cab's address as uadebate.com links it; defaults to `https://$PHX_HOST` |
 | `LEGAL_DIR` | yes | folder with `en/policy.md`, `en/terms.md` (and other languages); 404 without |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` | for mail | without `SMTP_HOST` mail is kept in memory and not sent |
