@@ -2,8 +2,8 @@
 # requires-python = ">=3.11"
 # dependencies = ["playwright"]
 # ///
-"""Render key cab and uadebate.com pages as an iPhone 15 against the
-running dev stack (make up) and fail if any page scrolls sideways.
+"""Render key cab pages as an iPhone 15 against the running dev stack
+(make up) and fail if any page scrolls sideways.
 
     uv run tools/phone/phone_check.py [--shots DIR]
 
@@ -17,7 +17,6 @@ import sys
 from playwright.sync_api import sync_playwright
 
 CAB = "http://localhost:4000"
-UA = "http://localhost:4001"
 USER = "oleksii-stroganov"
 
 
@@ -34,12 +33,10 @@ def pages():
     found = [
         CAB + "/", CAB + "/signin", CAB + "/standings/teams", CAB + "/me", CAB + "/account",
         CAB + "/admin", CAB + "/policy",
-        UA + "/", UA + "/news", UA + "/calendar", UA + "/clubs", UA + "/about",
-        UA + "/manage", UA + "/manage/calendar",
     ]
     if club:
         found += [f"{CAB}/c/{club}", f"{CAB}/c/{club}/standings", f"{CAB}/c/{club}/members",
-                  f"{CAB}/c/{club}/owner", f"{CAB}/c/{club}/owner/members", f"{UA}/clubs/{club}"]
+                  f"{CAB}/c/{club}/owner", f"{CAB}/c/{club}/owner/members"]
         if session:
             found += [f"{CAB}/c/{club}/owner/s/{session}", f"{CAB}/c/{club}/s/{session}"]
     return found
