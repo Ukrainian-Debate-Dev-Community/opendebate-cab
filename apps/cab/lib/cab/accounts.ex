@@ -49,8 +49,6 @@ defmodule Cab.Accounts do
 
   def get_user_by_login(_login), do: nil
 
-  def list_users, do: Repo.all(from u in User, order_by: u.username)
-
   @doc "Every account that can sign in (guests left out), by username."
   def list_accounts do
     Repo.all(

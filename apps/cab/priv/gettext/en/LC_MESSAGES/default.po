@@ -297,7 +297,7 @@ msgid "Adjudicators"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex:166
-#: lib/cab_web/controllers/admin_controller.ex:178
+#: lib/cab_web/controllers/admin_controller.ex:177
 #: lib/cab_web/controllers/admin_html/show.html.heex:2
 #, elixir-autogen, elixir-format
 msgid "Admin"
@@ -904,7 +904,7 @@ msgstr ""
 
 #: lib/cab_web/controllers/account_controller.ex:70
 #: lib/cab_web/controllers/account_html/merge.html.heex:2
-#: lib/cab_web/controllers/admin_html/show.html.heex:164
+#: lib/cab_web/controllers/admin_html/show.html.heex:166
 #, elixir-autogen, elixir-format
 msgid "Merge accounts"
 msgstr ""
@@ -1185,11 +1185,6 @@ msgstr ""
 msgid "Pick a member, or type a name, a user's username or email"
 msgstr ""
 
-#: lib/cab_web/controllers/admin_controller.ex:264
-#, elixir-autogen, elixir-format
-msgid "Pick an account."
-msgstr ""
-
 #: lib/cab_web/controllers/session_page_html/room.html.heex:71
 #, elixir-autogen, elixir-format
 msgid "Place"
@@ -1282,7 +1277,7 @@ msgstr ""
 msgid "Ready to submit."
 msgstr ""
 
-#: lib/cab_web/controllers/admin_html/show.html.heex:163
+#: lib/cab_web/controllers/admin_html/show.html.heex:165
 #, elixir-autogen, elixir-format
 msgid "Refused when both took part in the same session."
 msgstr ""
@@ -1467,7 +1462,7 @@ msgstr ""
 msgid "SPK"
 msgstr ""
 
-#: lib/cab_web/controllers/admin_html/show.html.heex:159
+#: lib/cab_web/controllers/admin_html/show.html.heex:160
 #, elixir-autogen, elixir-format
 msgid "Same person's other account"
 msgstr ""
@@ -2916,12 +2911,12 @@ msgstr ""
 msgid "%{club}: you are invited to be its head"
 msgstr ""
 
-#: lib/cab_web/controllers/admin_controller.ex:223
+#: lib/cab_web/controllers/admin_controller.ex:222
 #, elixir-autogen, elixir-format
 msgid "%{done} The e-mail could not be sent: send %{name} this link yourself: %{url}"
 msgstr ""
 
-#: lib/cab_web/controllers/admin_controller.ex:242
+#: lib/cab_web/controllers/admin_controller.ex:241
 #, elixir-autogen, elixir-format
 msgid "%{name} is invited by e-mail to head %{club}; the current head stays until they accept."
 msgstr ""
@@ -2931,12 +2926,12 @@ msgstr ""
 msgid "A guest's personal link cannot head a club. Sign in with GitHub or Google."
 msgstr ""
 
-#: lib/cab_web/controllers/admin_controller.ex:256
+#: lib/cab_web/controllers/admin_controller.ex:255
 #, elixir-autogen, elixir-format
 msgid "A new link is ready."
 msgstr ""
 
-#: lib/cab_web/controllers/admin_controller.ex:249
+#: lib/cab_web/controllers/admin_controller.ex:248
 #, elixir-autogen, elixir-format
 msgid "A new link was e-mailed to %{name}."
 msgstr ""
@@ -2957,12 +2952,12 @@ msgstr ""
 msgid "Ask the admin who invited you to send a new link."
 msgstr ""
 
-#: lib/cab_web/controllers/admin_controller.ex:251
+#: lib/cab_web/controllers/admin_controller.ex:250
 #, elixir-autogen, elixir-format
 msgid "Club %{club} created."
 msgstr ""
 
-#: lib/cab_web/controllers/admin_controller.ex:234
+#: lib/cab_web/controllers/admin_controller.ex:233
 #, elixir-autogen, elixir-format
 msgid "Club %{club} created. %{name} is invited by e-mail to be its head; you head it until they accept."
 msgstr ""
@@ -2993,7 +2988,7 @@ msgstr ""
 msgid "Invited"
 msgstr ""
 
-#: lib/cab_web/controllers/admin_controller.ex:202
+#: lib/cab_web/controllers/admin_controller.ex:201
 #, elixir-autogen, elixir-format
 msgid "No account has that username or e-mail. Type an e-mail address to invite someone new."
 msgstr ""
@@ -3024,7 +3019,7 @@ msgstr ""
 msgid "The invitation to head %{club} is cancelled."
 msgstr ""
 
-#: lib/cab_web/controllers/admin_controller.ex:254
+#: lib/cab_web/controllers/admin_controller.ex:253
 #, elixir-autogen, elixir-format
 msgid "The invitation to head %{club} is saved."
 msgstr ""
@@ -3060,12 +3055,12 @@ msgstr ""
 msgid "This invitation was cancelled."
 msgstr ""
 
-#: lib/cab_web/controllers/admin_controller.ex:193
+#: lib/cab_web/controllers/admin_controller.ex:192
 #, elixir-autogen, elixir-format
 msgid "Type the head's username or e-mail."
 msgstr ""
 
-#: lib/cab_web/controllers/admin_controller.ex:197
+#: lib/cab_web/controllers/admin_controller.ex:196
 #, elixir-autogen, elixir-format
 msgid "Type their name for the invitation."
 msgstr ""
@@ -3087,6 +3082,13 @@ msgstr ""
 
 #: lib/cab_web/controllers/admin_html/show.html.heex:56
 #: lib/cab_web/controllers/admin_html/show.html.heex:91
+#: lib/cab_web/controllers/admin_html/show.html.heex:155
+#: lib/cab_web/controllers/admin_html/show.html.heex:163
 #, elixir-autogen, elixir-format
 msgid "username or e-mail"
+msgstr ""
+
+#: lib/cab_web/controllers/admin_controller.ex:263
+#, elixir-autogen, elixir-format
+msgid "No account has the username or e-mail \"%{login}\"."
 msgstr ""

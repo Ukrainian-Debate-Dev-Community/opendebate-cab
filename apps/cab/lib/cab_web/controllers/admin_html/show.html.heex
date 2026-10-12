@@ -136,7 +136,7 @@
       <option :for={account <- @accounts} value={account.username}>{account.name}</option>
     </datalist>
 
-    <.section title={gettext("Merge two accounts")}>
+    <.section :if={length(@accounts) > 1} title={gettext("Merge two accounts")}>
       <.form_for
         id="merge-accounts-form"
         action={~p"/admin/merge"}
@@ -147,18 +147,20 @@
         }
       >
         <:block
-          name={:first_id}
-          type={:select}
+          name={:first}
+          type={:text}
           label={gettext("Account")}
           required
-          options={user_options(@users)}
+          list="cab-accounts"
+          placeholder={gettext("username or e-mail")}
         />
         <:block
-          name={:second_id}
-          type={:select}
+          name={:second}
+          type={:text}
           label={gettext("Same person's other account")}
           required
-          options={user_options(@users)}
+          list="cab-accounts"
+          placeholder={gettext("username or e-mail")}
         />
         <:submit note={gettext("Refused when both took part in the same session.")} quiet>
           {gettext("Merge accounts")}

@@ -300,7 +300,7 @@ msgid "Adjudicators"
 msgstr "Судді"
 
 #: lib/cab_web/components/ui.ex:166
-#: lib/cab_web/controllers/admin_controller.ex:178
+#: lib/cab_web/controllers/admin_controller.ex:177
 #: lib/cab_web/controllers/admin_html/show.html.heex:2
 #, elixir-autogen, elixir-format
 msgid "Admin"
@@ -907,7 +907,7 @@ msgstr "Режим «лише для членів клубу» також при
 
 #: lib/cab_web/controllers/account_controller.ex:70
 #: lib/cab_web/controllers/account_html/merge.html.heex:2
-#: lib/cab_web/controllers/admin_html/show.html.heex:164
+#: lib/cab_web/controllers/admin_html/show.html.heex:166
 #, elixir-autogen, elixir-format
 msgid "Merge accounts"
 msgstr "Об'єднати акаунти"
@@ -1188,11 +1188,6 @@ msgstr "Персональне посилання"
 msgid "Pick a member, or type a name, a user's username or email"
 msgstr "Оберіть члена клубу або введіть ім'я, ім'я користувача чи e-mail"
 
-#: lib/cab_web/controllers/admin_controller.ex:264
-#, elixir-autogen, elixir-format
-msgid "Pick an account."
-msgstr "Оберіть акаунт."
-
 #: lib/cab_web/controllers/session_page_html/room.html.heex:71
 #, elixir-autogen, elixir-format
 msgid "Place"
@@ -1285,7 +1280,7 @@ msgstr "Оцінені дебати"
 msgid "Ready to submit."
 msgstr "Можна подавати."
 
-#: lib/cab_web/controllers/admin_html/show.html.heex:163
+#: lib/cab_web/controllers/admin_html/show.html.heex:165
 #, elixir-autogen, elixir-format
 msgid "Refused when both took part in the same session."
 msgstr "Неможливо, якщо обидва брали участь в одній сесії."
@@ -1470,7 +1465,7 @@ msgstr "Проєкт ВМГО «Федерація Дебатів України
 msgid "SPK"
 msgstr "СПК"
 
-#: lib/cab_web/controllers/admin_html/show.html.heex:159
+#: lib/cab_web/controllers/admin_html/show.html.heex:160
 #, elixir-autogen, elixir-format
 msgid "Same person's other account"
 msgstr "Інший акаунт тієї ж людини"
@@ -2920,12 +2915,12 @@ msgstr "бета"
 msgid "%{club}: you are invited to be its head"
 msgstr "%{club}: вас запрошують стати головою клубу"
 
-#: lib/cab_web/controllers/admin_controller.ex:223
+#: lib/cab_web/controllers/admin_controller.ex:222
 #, elixir-autogen, elixir-format
 msgid "%{done} The e-mail could not be sent: send %{name} this link yourself: %{url}"
 msgstr "%{done} E-mail не вдалося надіслати: надішліть %{name} це посилання самі: %{url}"
 
-#: lib/cab_web/controllers/admin_controller.ex:242
+#: lib/cab_web/controllers/admin_controller.ex:241
 #, elixir-autogen, elixir-format
 msgid "%{name} is invited by e-mail to head %{club}; the current head stays until they accept."
 msgstr "Запрошення стати головою %{club} надіслано %{name} на e-mail; поточний голова лишається, доки його не приймуть."
@@ -2935,12 +2930,12 @@ msgstr "Запрошення стати головою %{club} надіслан�
 msgid "A guest's personal link cannot head a club. Sign in with GitHub or Google."
 msgstr "Гостьове персональне посилання не може очолювати клуб. Увійдіть через GitHub або Google."
 
-#: lib/cab_web/controllers/admin_controller.ex:256
+#: lib/cab_web/controllers/admin_controller.ex:255
 #, elixir-autogen, elixir-format
 msgid "A new link is ready."
 msgstr "Нове посилання готове."
 
-#: lib/cab_web/controllers/admin_controller.ex:249
+#: lib/cab_web/controllers/admin_controller.ex:248
 #, elixir-autogen, elixir-format
 msgid "A new link was e-mailed to %{name}."
 msgstr "Нове посилання надіслано %{name} на e-mail."
@@ -2961,12 +2956,12 @@ msgstr "Ім'я користувача або e-mail акаунта. Якщо e-
 msgid "Ask the admin who invited you to send a new link."
 msgstr "Попросіть адміністратора, який вас запросив, надіслати нове посилання."
 
-#: lib/cab_web/controllers/admin_controller.ex:251
+#: lib/cab_web/controllers/admin_controller.ex:250
 #, elixir-autogen, elixir-format
 msgid "Club %{club} created."
 msgstr "Клуб %{club} створено."
 
-#: lib/cab_web/controllers/admin_controller.ex:234
+#: lib/cab_web/controllers/admin_controller.ex:233
 #, elixir-autogen, elixir-format
 msgid "Club %{club} created. %{name} is invited by e-mail to be its head; you head it until they accept."
 msgstr "Клуб %{club} створено. %{name} отримує запрошення на e-mail стати його головою; ви очолюєте клуб, доки запрошення не приймуть."
@@ -2997,7 +2992,7 @@ msgstr "Запрошення"
 msgid "Invited"
 msgstr "Запрошено"
 
-#: lib/cab_web/controllers/admin_controller.ex:202
+#: lib/cab_web/controllers/admin_controller.ex:201
 #, elixir-autogen, elixir-format
 msgid "No account has that username or e-mail. Type an e-mail address to invite someone new."
 msgstr "Жоден акаунт не має такого імені користувача чи e-mail. Введіть адресу e-mail, щоб запросити нову людину."
@@ -3028,7 +3023,7 @@ msgstr "Увійдіть, щоб стати головою %{club}."
 msgid "The invitation to head %{club} is cancelled."
 msgstr "Запрошення стати головою %{club} скасовано."
 
-#: lib/cab_web/controllers/admin_controller.ex:254
+#: lib/cab_web/controllers/admin_controller.ex:253
 #, elixir-autogen, elixir-format
 msgid "The invitation to head %{club} is saved."
 msgstr "Запрошення стати головою %{club} збережено."
@@ -3064,12 +3059,12 @@ msgstr "Це запрошення вже прийнято."
 msgid "This invitation was cancelled."
 msgstr "Це запрошення скасовано."
 
-#: lib/cab_web/controllers/admin_controller.ex:193
+#: lib/cab_web/controllers/admin_controller.ex:192
 #, elixir-autogen, elixir-format
 msgid "Type the head's username or e-mail."
 msgstr "Введіть ім'я користувача або e-mail голови."
 
-#: lib/cab_web/controllers/admin_controller.ex:197
+#: lib/cab_web/controllers/admin_controller.ex:196
 #, elixir-autogen, elixir-format
 msgid "Type their name for the invitation."
 msgstr "Введіть ім'я для запрошення."
@@ -3091,6 +3086,13 @@ msgstr "надіслати знову"
 
 #: lib/cab_web/controllers/admin_html/show.html.heex:56
 #: lib/cab_web/controllers/admin_html/show.html.heex:91
+#: lib/cab_web/controllers/admin_html/show.html.heex:155
+#: lib/cab_web/controllers/admin_html/show.html.heex:163
 #, elixir-autogen, elixir-format
 msgid "username or e-mail"
 msgstr "ім'я користувача або e-mail"
+
+#: lib/cab_web/controllers/admin_controller.ex:263
+#, elixir-autogen, elixir-format
+msgid "No account has the username or e-mail \"%{login}\"."
+msgstr "Немає акаунта з іменем користувача або e-mail «%{login}»."

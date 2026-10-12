@@ -2,6 +2,7 @@ defmodule CabWeb.AccountMergeTest do
   use CabWeb.ConnCase, async: true
 
   import Cab.Fixtures
+  import Ecto.Query, only: [from: 2]
 
   alias Cab.Accounts
 
@@ -168,10 +169,40 @@ defmodule CabWeb.AccountMergeTest do
     done =
       conn
       |> signed_in(admin)
-      |> post(~p"/admin/merge", %{first_id: "#{younger.id}", second_id: "#{older.id}"})
+      |> post(~p"/admin/merge", %{first: younger.username, second: "older-acc"})
 
     assert redirected_to(done) == "/admin"
     assert Phoenix.Flash.get(done.assigns.flash, :info) =~ "merged into older-acc"
     assert Cab.Repo.get(Accounts.User, younger.id) == nil
+  end
+
+  test "the merge form names accounts by username or e-mail, and only shows with two or more",
+       %{conn: conn} do
+    admin = user_fixture() |> Ecto.Changeset.change(is_admin: true) |> Cab.Repo.update!()
+    Cab.Repo.delete_all(from u in Accounts.User, where: u.id != ^admin.id)
+
+    alone = conn |> signed_in(admin) |> get(~p"/admin") |> html_response(200)
+    refute alone =~ ~s(id="merge-accounts-form")
+
+    other = user_fixture()
+    page = conn |> signed_in(admin) |> get(~p"/admin") |> html_response(200)
+    assert page =~ ~s(id="merge-accounts-form")
+    assert page =~ ~s(name="first")
+    refute page =~ ~s(name="first_id")
+
+    same =
+      conn
+      |> signed_in(admin)
+      |> post(~p"/admin/merge", %{first: other.username, second: other.username})
+
+    assert Phoenix.Flash.get(same.assigns.flash, :error) =~ "That is this account."
+
+    unknown =
+      conn
+      |> signed_in(admin)
+      |> post(~p"/admin/merge", %{first: other.username, second: "nobody"})
+
+    assert Phoenix.Flash.get(unknown.assigns.flash, :error) =~
+             ~s(No account has the username or e-mail "nobody".)
   end
 end

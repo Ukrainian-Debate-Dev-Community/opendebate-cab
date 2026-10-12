@@ -7,8 +7,6 @@ defmodule CabWeb.AdminHTML do
   defp head_label(nil), do: "—"
   defp head_label(user), do: user.name || user.username
 
-  defp user_options(users), do: Enum.map(users, &{&1.username, &1.id})
-
   defp club_options(clubs), do: Enum.map(clubs, &{&1.name, &1.uuid})
 
   defp day(%DateTime{} = at), do: Calendar.strftime(at, "%Y-%m-%d")

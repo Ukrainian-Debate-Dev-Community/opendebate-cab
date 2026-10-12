@@ -130,11 +130,11 @@ defmodule CabWeb.AdminController do
     end
   end
 
-  # POST /admin/merge {"first_id", "second_id"} - one person's two
+  # POST /admin/merge {"first", "second"} (username or e-mail) - one person's two
   # accounts, for when they cannot sign in to both themselves
   def merge(conn, params) do
-    with {:ok, first} <- picked_user(params["first_id"]),
-         {:ok, second} <- picked_user(params["second_id"]),
+    with {:ok, first} <- typed_account(params["first"]),
+         {:ok, second} <- typed_account(params["second"]),
          {:ok, kept} <- Accounts.merge_accounts(first, second) do
       conn
       |> put_flash(
@@ -172,7 +172,6 @@ defmodule CabWeb.AdminController do
       clubs: clubs,
       heads: Map.new(clubs, &{&1.id, Clubs.head_of(&1)}),
       member_counts: Clubs.member_counts(Enum.map(clubs, & &1.id)),
-      users: Accounts.list_users(),
       accounts: Accounts.list_accounts(),
       head_invitations: HeadInvitations.list_pending(),
       page_title: gettext("Admin")
@@ -255,13 +254,13 @@ defmodule CabWeb.AdminController do
 
   defp unsent_words(:resent, _club), do: gettext("A new link is ready.")
 
-  defp picked_user(id) do
-    with id when is_binary(id) <- id,
-         {id, ""} <- Integer.parse(id),
-         %Accounts.User{} = user <- Accounts.get_user(id) do
-      {:ok, user}
-    else
-      _ -> {:error, gettext("Pick an account.")}
+  # an account by its exact username or e-mail, as typed on the form
+  defp typed_account(login) do
+    login = String.trim(login || "")
+
+    case login != "" && Accounts.get_user_by_login(login) do
+      %Accounts.User{} = user -> {:ok, user}
+      _ -> {:error, gettext("No account has the username or e-mail \"%{login}\".", login: login)}
     end
   end
 
