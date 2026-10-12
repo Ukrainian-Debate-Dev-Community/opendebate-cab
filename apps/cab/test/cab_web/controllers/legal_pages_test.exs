@@ -34,13 +34,23 @@ defmodule CabWeb.LegalPagesTest do
     assert conn |> get("/privacy") |> redirected_to() == "/policy"
   end
 
-  test "the footer links Policy, Terms and Support; sign-in names both documents",
+  defmodule Operator do
+    def info, do: %{support_email: "help@example.org", org_text: "Run by Example."}
+  end
+
+  test "the footer links Policy and Terms, and Support once an operator gives one; sign-in names both documents",
        %{conn: conn} do
     html = conn |> get(~p"/") |> html_response(200)
     assert html =~ ~s(<a href="/policy">Policy</a>)
     assert html =~ ~s(<a href="/terms">Terms</a>)
-    assert html =~ "Support</a>"
+    refute html =~ "Support"
     refute html =~ "Privacy&amp;Policy"
+
+    Application.put_env(:cab, :operator, Operator)
+    on_exit(fn -> Application.delete_env(:cab, :operator) end)
+    html = conn |> get(~p"/") |> html_response(200)
+    assert html =~ ~s(href="mailto:help@example.org")
+    assert html =~ "Run by Example."
 
     signin = conn |> get(~p"/signin") |> html_response(200)
     assert signin =~ ~s(href="/terms")

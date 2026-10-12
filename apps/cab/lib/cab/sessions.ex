@@ -108,7 +108,7 @@ defmodule Cab.Sessions do
     Repo.one(from s in Session, where: s.short_code == ^code, preload: :club)
   end
 
-  @doc "The session's short link, e.g. https://cab.uadebate.com/k7m2q9 (room n appended)."
+  @doc "The session's short link, e.g. https://cab.example.org/k7m2q9 (room n appended)."
   def short_url(%Session{short_code: code}, room_no \\ nil) do
     base = CabWeb.Endpoint.url() <> "/" <> code
     if room_no, do: "#{base}/#{room_no}", else: base

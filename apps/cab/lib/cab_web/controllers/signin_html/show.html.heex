@@ -15,7 +15,9 @@
         <li>{gettext("per-session standings and your own history")}</li>
       </ul>
     </div>
-    <div class="foot">{gettext("Debate Federation of Ukraine")} — uadebate.com</div>
+    <div :if={CabWeb.Operator.get(:signin_foot)} class="foot">
+      {CabWeb.Operator.get(:signin_foot)}
+    </div>
   </aside>
 
   <main class="side-form">

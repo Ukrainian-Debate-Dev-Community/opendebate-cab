@@ -16,24 +16,26 @@
           <div>
             <h6>{gettext("Find your club")}</h6>
             <p>
-              {gettext(
-                "Clubs across Ukraine run weekly practice rounds — pick one and come debate. Free for every Ukrainian club."
-              )}
+              {CabWeb.Operator.get(:about) ||
+                gettext("Clubs run weekly practice rounds: pick one and come debate.")}
             </p>
-            <div class="flinks">
-              <a href="https://uadebate.com">{gettext("Main page")}</a>
+            <div :if={CabWeb.Operator.get(:site_url)} class="flinks">
+              <a href={CabWeb.Operator.get(:site_url)}>{gettext("Main page")}</a>
             </div>
           </div>
-          <div>
+          <div :if={CabWeb.Operator.get(:org_text)}>
             <h6>{gettext("Our organisation")}</h6>
-            <p>
-              {gettext(
-                "Run by the NGO Debate Federation of Ukraine (ВМГО «Федерація Дебатів України»)."
-              )}
-            </p>
+            <p>{CabWeb.Operator.get(:org_text)}</p>
             <div class="flinks">
-              <a href="https://dfu.uadebate.com">{gettext("DFU")}</a>
-              <a href="mailto:ngo.dfu@uadebate.com">{gettext("Contact us")}</a>
+              <a :if={CabWeb.Operator.get(:org_url)} href={CabWeb.Operator.get(:org_url)}>
+                {CabWeb.Operator.get(:org_label)}
+              </a>
+              <a
+                :if={CabWeb.Operator.get(:contact_email)}
+                href={"mailto:" <> CabWeb.Operator.get(:contact_email)}
+              >
+                {gettext("Contact us")}
+              </a>
             </div>
           </div>
           <div>
@@ -44,7 +46,12 @@
             <div class="flinks">
               <a href="/policy">{gettext("Policy")}</a>
               <a href="/terms">{gettext("Terms")}</a>
-              <a href="mailto:support@uadebate.com">{gettext("Support")}</a>
+              <a
+                :if={CabWeb.Operator.get(:support_email)}
+                href={"mailto:" <> CabWeb.Operator.get(:support_email)}
+              >
+                {gettext("Support")}
+              </a>
             </div>
           </div>
         </div>

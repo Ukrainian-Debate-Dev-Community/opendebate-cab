@@ -310,7 +310,7 @@ msgstr ""
 msgid "Allocation — %{count} room(s), count automatic"
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:28
+#: lib/cab_web/controllers/signin_html/show.html.heex:30
 #, elixir-autogen, elixir-format
 msgid "An account with the address %{email} signs in with %{providers}. Continue with it to add %{adding} to that account."
 msgstr ""
@@ -370,7 +370,7 @@ msgstr ""
 msgid "Ballots"
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:103
+#: lib/cab_web/controllers/signin_html/show.html.heex:105
 #, elixir-autogen, elixir-format
 msgid "By continuing you agree to the"
 msgstr ""
@@ -489,17 +489,12 @@ msgstr ""
 msgid "Clubs"
 msgstr ""
 
-#: lib/cab_web/components/layouts/app.html.heex:19
-#, elixir-autogen, elixir-format
-msgid "Clubs across Ukraine run weekly practice rounds — pick one and come debate. Free for every Ukrainian club."
-msgstr ""
-
 #: lib/cab_web/controllers/club_public_html/join.html.heex:33
 #, elixir-autogen, elixir-format
 msgid "Contact"
 msgstr ""
 
-#: lib/cab_web/components/layouts/app.html.heex:36
+#: lib/cab_web/components/layouts/app.html.heex:37
 #, elixir-autogen, elixir-format
 msgid "Contact us"
 msgstr ""
@@ -514,8 +509,8 @@ msgstr ""
 msgid "Contacts:"
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:54
-#: lib/cab_web/controllers/signin_html/show.html.heex:81
+#: lib/cab_web/controllers/signin_html/show.html.heex:56
+#: lib/cab_web/controllers/signin_html/show.html.heex:83
 #, elixir-autogen, elixir-format
 msgid "Continue with %{provider}"
 msgstr ""
@@ -556,7 +551,7 @@ msgstr ""
 msgid "Create a club"
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:88
+#: lib/cab_web/controllers/signin_html/show.html.heex:90
 #, elixir-autogen, elixir-format
 msgid "Create a separate account with %{provider}"
 msgstr ""
@@ -564,11 +559,6 @@ msgstr ""
 #: lib/cab_web/controllers/admin_html/show.html.heex:3
 #, elixir-autogen, elixir-format
 msgid "Create club"
-msgstr ""
-
-#: lib/cab_web/components/layouts/app.html.heex:35
-#, elixir-autogen, elixir-format
-msgid "DFU"
 msgstr ""
 
 #: lib/cab_web/ballot_form.ex:77
@@ -586,7 +576,7 @@ msgstr ""
 msgid "DRAW"
 msgstr ""
 
-#: lib/cab_web/components/layouts/app.html.heex:40
+#: lib/cab_web/components/layouts/app.html.heex:42
 #, elixir-autogen, elixir-format
 msgid "Data & privacy"
 msgstr ""
@@ -599,11 +589,6 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/club.html.heex:124
 #, elixir-autogen, elixir-format
 msgid "Date and start time"
-msgstr ""
-
-#: lib/cab_web/controllers/signin_html/show.html.heex:18
-#, elixir-autogen, elixir-format
-msgid "Debate Federation of Ukraine"
 msgstr ""
 
 #: lib/cab_web/controllers/page_html/home.html.heex:2
@@ -693,7 +678,7 @@ msgstr ""
 msgid "Finish session"
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:94
+#: lib/cab_web/controllers/signin_html/show.html.heex:96
 #, elixir-autogen, elixir-format
 msgid "First sign-in creates your account automatically."
 msgstr ""
@@ -708,7 +693,7 @@ msgstr ""
 msgid "GW"
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:99
+#: lib/cab_web/controllers/signin_html/show.html.heex:101
 #, elixir-autogen, elixir-format
 msgid "Got a personal link from your club? Just open it — no account needed."
 msgstr ""
@@ -854,7 +839,7 @@ msgstr ""
 msgid "MOTION"
 msgstr ""
 
-#: lib/cab_web/components/layouts/app.html.heex:24
+#: lib/cab_web/components/layouts/app.html.heex:23
 #, elixir-autogen, elixir-format
 msgid "Main page"
 msgstr ""
@@ -1163,7 +1148,7 @@ msgstr ""
 msgid "Optional — when the session is planned to start, in your time zone."
 msgstr ""
 
-#: lib/cab_web/components/layouts/app.html.heex:28
+#: lib/cab_web/components/layouts/app.html.heex:27
 #, elixir-autogen, elixir-format
 msgid "Our organisation"
 msgstr ""
@@ -1217,9 +1202,9 @@ msgstr ""
 msgid "Points"
 msgstr ""
 
-#: lib/cab_web/components/layouts/app.html.heex:45
+#: lib/cab_web/components/layouts/app.html.heex:47
 #: lib/cab_web/controllers/page_controller.ex:33
-#: lib/cab_web/controllers/signin_html/show.html.heex:105
+#: lib/cab_web/controllers/signin_html/show.html.heex:107
 #, elixir-autogen, elixir-format
 msgid "Policy"
 msgstr ""
@@ -1457,11 +1442,6 @@ msgstr ""
 msgid "Rooms deleted. Registration is open again."
 msgstr ""
 
-#: lib/cab_web/components/layouts/app.html.heex:30
-#, elixir-autogen, elixir-format
-msgid "Run by the NGO Debate Federation of Ukraine (ВМГО «Федерація Дебатів України»)."
-msgstr ""
-
 #: lib/cab_web/components/ui.ex:845
 #, elixir-autogen, elixir-format
 msgid "SPK"
@@ -1593,12 +1573,12 @@ msgstr ""
 #: lib/cab_web/controllers/page_html/home.html.heex:30
 #: lib/cab_web/controllers/signin_controller.ex:26
 #: lib/cab_web/controllers/signin_controller.ex:34
-#: lib/cab_web/controllers/signin_html/show.html.heex:36
+#: lib/cab_web/controllers/signin_html/show.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Sign in"
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:91
+#: lib/cab_web/controllers/signin_html/show.html.heex:93
 #, elixir-autogen, elixir-format
 msgid "Sign in another way"
 msgstr ""
@@ -1723,7 +1703,7 @@ msgstr ""
 msgid "Submit ballot"
 msgstr ""
 
-#: lib/cab_web/components/layouts/app.html.heex:47
+#: lib/cab_web/components/layouts/app.html.heex:53
 #, elixir-autogen, elixir-format
 msgid "Support"
 msgstr ""
@@ -1752,9 +1732,9 @@ msgstr ""
 msgid "Telegram, phone or email the head can reach you at."
 msgstr ""
 
-#: lib/cab_web/components/layouts/app.html.heex:46
+#: lib/cab_web/components/layouts/app.html.heex:48
 #: lib/cab_web/controllers/page_controller.ex:36
-#: lib/cab_web/controllers/signin_html/show.html.heex:104
+#: lib/cab_web/controllers/signin_html/show.html.heex:106
 #, elixir-autogen, elixir-format
 msgid "Terms"
 msgstr ""
@@ -1952,7 +1932,7 @@ msgstr ""
 msgid "Update motion"
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:41
+#: lib/cab_web/controllers/signin_html/show.html.heex:43
 #, elixir-autogen, elixir-format
 msgid "Use one of the following sign-in methods. We don't use passwords."
 msgstr ""
@@ -2063,7 +2043,7 @@ msgstr ""
 msgid "You can keep the two accounts apart, or merge them into one."
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:26
+#: lib/cab_web/controllers/signin_html/show.html.heex:28
 #, elixir-autogen, elixir-format
 msgid "You may already have an account"
 msgstr ""
@@ -2115,7 +2095,7 @@ msgstr ""
 msgid "adjudicators fill the ballot right in their room"
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:105
+#: lib/cab_web/controllers/signin_html/show.html.heex:107
 #, elixir-autogen, elixir-format
 msgid "and"
 msgstr ""
@@ -2150,7 +2130,7 @@ msgstr ""
 msgid "ballot submitted"
 msgstr ""
 
-#: lib/cab_web/components/layouts/app.html.heex:42
+#: lib/cab_web/components/layouts/app.html.heex:44
 #, elixir-autogen, elixir-format
 msgid "cab is in beta testing."
 msgstr ""
@@ -2322,7 +2302,7 @@ msgstr ""
 msgid "open"
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:31
+#: lib/cab_web/controllers/signin_html/show.html.heex:33
 #, elixir-autogen, elixir-format
 msgid "or"
 msgstr ""
@@ -3010,7 +2990,7 @@ msgstr ""
 msgid "Sent"
 msgstr ""
 
-#: lib/cab_web/controllers/signin_html/show.html.heex:38
+#: lib/cab_web/controllers/signin_html/show.html.heex:40
 #, elixir-autogen, elixir-format
 msgid "Sign in to become the head of %{club}."
 msgstr ""
@@ -3129,4 +3109,9 @@ msgstr ""
 #: lib/cab_web/controllers/api_docs_html/show.html.heex:17
 #, elixir-autogen, elixir-format
 msgid "The engine's own API, version 2, served as is at /api/engine/v2. Not open to the public yet."
+msgstr ""
+
+#: lib/cab_web/components/layouts/app.html.heex:20
+#, elixir-autogen, elixir-format
+msgid "Clubs run weekly practice rounds: pick one and come debate."
 msgstr ""

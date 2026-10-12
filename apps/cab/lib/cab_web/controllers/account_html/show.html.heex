@@ -81,9 +81,12 @@
       </div>
     </.section>
 
-    <.section title={gettext("Your data")} pad>
+    <.section :if={CabWeb.Operator.get(:support_email)} title={gettext("Your data")} pad>
       <p>
-        {gettext("Data requests or deletion:")} <a href="mailto:support@uadebate.com">support@uadebate.com</a>.
+        {gettext("Data requests or deletion:")}
+        <a href={"mailto:" <> CabWeb.Operator.get(:support_email)}>
+          {CabWeb.Operator.get(:support_email)}
+        </a>.
       </p>
     </.section>
   </div>

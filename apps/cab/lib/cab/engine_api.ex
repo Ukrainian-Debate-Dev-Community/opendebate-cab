@@ -176,7 +176,7 @@ defmodule Cab.EngineApi do
   # Public
   # ---------------------------------------------------------------
 
-  @doc "The engine's public event list (the uadebate portal's tournament feed)."
+  @doc "The engine's public event list (for a public tournament feed)."
   def list_public_events(params \\ []) do
     Engine.public_get("/api/events", params: params) |> unwrap()
   end

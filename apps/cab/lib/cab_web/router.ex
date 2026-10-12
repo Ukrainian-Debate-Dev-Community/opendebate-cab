@@ -264,7 +264,7 @@ defmodule CabWeb.Router do
     end
   end
 
-  # short links (cab.uadebate.com/<code>[/<room>]) come LAST: every
+  # short links (<host>/<code>[/<room>]) come LAST: every
   # named route above wins, and a code always holds a digit
   scope "/", CabWeb do
     pipe_through :browser

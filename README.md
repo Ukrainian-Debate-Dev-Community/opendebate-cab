@@ -25,7 +25,7 @@ make status  # what is running
 make down
 make test    # unit tests
 make test-all
-make test-phone  # every key page as an iPhone 15, against the running stack (make up)
+make test-phone DEV_USER=<username>  # every key page as an iPhone 15, against the running stack (make up)
 ```
 
 The dev stack reads `.env` at the repo root (OAuth keys, engine secret,
@@ -73,6 +73,14 @@ bin/cab eval "Cab.Release.migrate()"
 | `POOL_SIZE` | no | the database pool, 10 by default |
 | `ECTO_IPV6` | no | `true` to reach the database over IPv6 |
 | `DNS_CLUSTER_QUERY` | no | only for clustering several nodes |
+
+## Who runs it
+
+cab shows no organisation of its own. To put yours in the footer, on
+the sign-in page and on the account page (name, links, contact and
+support addresses, in every language you translate), set
+`config :cab, :operator, YourApp.CabOperator` to a module whose `info/0`
+returns them; see `CabWeb.Operator`.
 
 ## License
 
