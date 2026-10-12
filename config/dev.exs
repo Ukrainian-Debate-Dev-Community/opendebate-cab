@@ -71,6 +71,9 @@ config :uadebate, UadebateWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "Wq3oV0bKq8fD2n7mS5yH1cR4tL9xE6jA0pZ3uG8vN2kT7wB5sY1dF4hJ6mQ9rX2c"
 
+# news cover images (gitignored)
+config :uadebate, :uploads_dir, Path.expand("../uploads", __DIR__)
+
 # Enable dev routes for dashboard and mailbox
 config :cab, dev_routes: true
 

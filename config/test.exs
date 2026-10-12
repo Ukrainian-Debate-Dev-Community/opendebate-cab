@@ -27,6 +27,8 @@ config :uadebate, Uadebate.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
+config :uadebate, :uploads_dir, Path.join(System.tmp_dir!(), "uadebate-uploads-test")
+
 config :uadebate, UadebateWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4003],
   secret_key_base: "Tz8mK2vQ5nB1xR7cL4wH9dF3jS6pA0gE2uY5kN8tM1qV4zC7bX0rD3fG6hJ9wP2s",

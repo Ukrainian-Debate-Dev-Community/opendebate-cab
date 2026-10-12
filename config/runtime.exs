@@ -190,6 +190,12 @@ if config_env() == :prod do
 
   config :uadebate, :cab_url, System.get_env("CAB_URL") || "https://#{host}"
 
+  # news cover images: a persistent volume, kept in the backups
+  config :uadebate,
+         :uploads_dir,
+         System.get_env("UADEBATE_UPLOADS_DIR") ||
+           raise("environment variable UADEBATE_UPLOADS_DIR is missing")
+
   config :cab, CabWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
     http: [
