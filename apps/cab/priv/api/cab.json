@@ -163,7 +163,10 @@
                     "description": "Members only standings and roster"
                   },
                   "formats": {
-                    "type": "array",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
                     "items": {
                       "type": "string",
                       "enum": [
@@ -171,7 +174,9 @@
                         "apf",
                         "other"
                       ]
-                    }
+                    },
+                    "maxItems": 1,
+                    "description": "One at most; null or [] means none"
                   },
                   "format_other": {
                     "type": [
@@ -182,7 +187,10 @@
                     "description": "Kept only when formats holds \"other\"; trimmed, blank becomes null"
                   },
                   "languages": {
-                    "type": "array",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
                     "items": {
                       "type": "string",
                       "enum": [
@@ -190,7 +198,9 @@
                         "en",
                         "other"
                       ]
-                    }
+                    },
+                    "maxItems": 1,
+                    "description": "One at most; null or [] means none"
                   },
                   "language_other": {
                     "type": [
@@ -201,7 +211,10 @@
                     "description": "Kept only when languages holds \"other\"; trimmed, blank becomes null"
                   },
                   "audiences": {
-                    "type": "array",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
                     "items": {
                       "type": "string",
                       "enum": [
@@ -209,7 +222,9 @@
                         "university",
                         "open"
                       ]
-                    }
+                    },
+                    "maxItems": 1,
+                    "description": "One at most; null or [] means none"
                   }
                 }
               }
@@ -2169,7 +2184,8 @@
                 "apf",
                 "other"
               ]
-            }
+            },
+            "maxItems": 1
           },
           "format_other": {
             "type": [
@@ -2187,7 +2203,8 @@
                 "en",
                 "other"
               ]
-            }
+            },
+            "maxItems": 1
           },
           "language_other": {
             "type": [
@@ -2205,7 +2222,8 @@
                 "university",
                 "open"
               ]
-            }
+            },
+            "maxItems": 1
           }
         },
         "required": [

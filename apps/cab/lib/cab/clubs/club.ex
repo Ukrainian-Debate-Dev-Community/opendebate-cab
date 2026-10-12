@@ -10,7 +10,8 @@ defmodule Cab.Clubs.Club do
     field :meeting_info, :string
     field :description, :string
     field :contacts, :string
-    # what the club plays, in which languages and for whom; any of each
+    # what the club plays, in which language and for whom; one of each
+    # at most, kept as lists
     field :formats, {:array, :string}, default: []
     field :languages, {:array, :string}, default: []
     field :audiences, {:array, :string}, default: []
@@ -54,6 +55,7 @@ defmodule Cab.Clubs.Club do
       :language_other
     ])
     |> validate_required([:name])
+    |> one_at_most([:formats, :languages, :audiences])
     |> validate_subset(:formats, @formats)
     |> validate_subset(:languages, @languages)
     |> validate_subset(:audiences, @audiences)
@@ -61,6 +63,15 @@ defmodule Cab.Clubs.Club do
     |> other_text(:languages, :language_other)
     |> put_uuid()
     |> unique_constraint(:uuid)
+  end
+
+  # null means none chosen; more than one is refused, as on the club page
+  defp one_at_most(changeset, fields) do
+    Enum.reduce(fields, changeset, fn field, acc ->
+      acc
+      |> update_change(field, &(&1 || []))
+      |> validate_length(field, max: 1, message: "pick one at most")
+    end)
   end
 
   # the typed text belongs to "other": trimmed, at most 60 characters,

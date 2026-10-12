@@ -27,14 +27,14 @@ defmodule CabWeb.ClubProfileTest do
     |> post(~p"/c/#{club.uuid}/owner/club", %{
       name: club.name,
       formats: ["bp"],
-      languages: ["uk", "en"],
-      audiences: ["university", "open"]
+      languages: ["en"],
+      audiences: ["open"]
     })
 
     club = Cab.Clubs.get_by_uuid(club.uuid)
     assert club.formats == ["bp"]
-    assert club.languages == ["uk", "en"]
-    assert club.audiences == ["university", "open"]
+    assert club.languages == ["en"]
+    assert club.audiences == ["open"]
 
     conn |> log_in(head) |> post(~p"/c/#{club.uuid}/owner/club", %{name: club.name})
 
@@ -80,16 +80,16 @@ defmodule CabWeb.ClubProfileTest do
   test "the club's own words stand in for other", %{conn: conn, club: club} do
     {:ok, _} =
       Cab.Clubs.update_club(club, %{
-        formats: ["bp", "other"],
+        formats: ["other"],
         format_other: "Karl Popper",
-        languages: ["uk", "other"],
+        languages: ["other"],
         language_other: "Polish"
       })
 
     page = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
-    assert page =~ "Format: BP, Karl Popper"
-    assert page =~ "Language: Ukrainian, Polish"
-    assert conn |> get(~p"/") |> html_response(200) =~ "BP, Karl Popper"
+    assert page =~ "Format: Karl Popper"
+    assert page =~ "Language: Polish"
+    assert conn |> get(~p"/") |> html_response(200) =~ "Karl Popper"
 
     %{"clubs" => [api]} = conn |> get(~p"/api/cab/v1/clubs") |> json_response(200)
     assert api["format_other"] == "Karl Popper"
@@ -106,21 +106,30 @@ defmodule CabWeb.ClubProfileTest do
     assert changeset.errors[:format_other]
   end
 
+  test "one of each at most; null means none", %{club: club} do
+    assert {:error, changeset} = Cab.Clubs.update_club(club, %{formats: ["bp", "apf"]})
+    assert changeset.errors[:formats]
+
+    {:ok, club} = Cab.Clubs.update_club(club, %{formats: ["bp"]})
+    {:ok, club} = Cab.Clubs.update_club(club, %{formats: nil, languages: nil, audiences: nil})
+    assert {club.formats, club.languages, club.audiences} == {[], [], []}
+  end
+
   test "the club page and the directory show them", %{conn: conn, club: club} do
     {:ok, _} =
       Cab.Clubs.update_club(club, %{
-        formats: ["bp", "apf"],
-        languages: ["uk", "en"],
-        audiences: ["university", "open"]
+        formats: ["apf"],
+        languages: ["en"],
+        audiences: ["university"]
       })
 
     page = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
-    assert page =~ "Format: BP, APF"
-    assert page =~ "Language: Ukrainian, English"
-    assert page =~ "Audience: university students, open to all"
+    assert page =~ "Format: APF"
+    assert page =~ "Language: English"
+    assert page =~ "Audience: university students"
 
     directory = conn |> get(~p"/") |> html_response(200)
-    assert directory =~ "BP, APF"
+    assert directory =~ "APF"
   end
 
   test "GET /api/cab/v1/clubs lists every club that is not archived, public profile only",
