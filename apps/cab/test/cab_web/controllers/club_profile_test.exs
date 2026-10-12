@@ -91,7 +91,7 @@ defmodule CabWeb.ClubProfileTest do
     assert page =~ "Language: Ukrainian, Polish"
     assert conn |> get(~p"/") |> html_response(200) =~ "BP, Karl Popper"
 
-    %{"clubs" => [api]} = conn |> get(~p"/api/v1/clubs") |> json_response(200)
+    %{"clubs" => [api]} = conn |> get(~p"/api/cab/v1/clubs") |> json_response(200)
     assert api["format_other"] == "Karl Popper"
     assert api["language_other"] == "Polish"
   end
@@ -123,13 +123,13 @@ defmodule CabWeb.ClubProfileTest do
     assert directory =~ "BP, APF"
   end
 
-  test "GET /api/v1/clubs lists every club that is not archived, public profile only",
+  test "GET /api/cab/v1/clubs lists every club that is not archived, public profile only",
        %{conn: conn, head: head, club: club} do
     {:ok, _} = Cab.Clubs.update_club(club, %{formats: ["bp"], is_private: true})
     archived = club_fixture(head, %{name: "Gone"})
     {:ok, _} = Cab.Clubs.archive_club(archived)
 
-    %{"clubs" => clubs} = conn |> get(~p"/api/v1/clubs") |> json_response(200)
+    %{"clubs" => clubs} = conn |> get(~p"/api/cab/v1/clubs") |> json_response(200)
 
     assert [listed] = Enum.filter(clubs, &(&1["uuid"] == club.uuid))
     assert listed["formats"] == ["bp"]
@@ -145,7 +145,7 @@ defmodule CabWeb.ClubProfileTest do
     body =
       conn
       |> log_in(head)
-      |> patch(~p"/api/v1/clubs/#{club.uuid}", %{formats: ["apf"]})
+      |> patch(~p"/api/cab/v1/clubs/#{club.uuid}", %{formats: ["apf"]})
       |> json_response(200)
 
     assert body["formats"] == ["apf"]
@@ -153,7 +153,7 @@ defmodule CabWeb.ClubProfileTest do
 
     assert conn
            |> log_in(head)
-           |> patch(~p"/api/v1/clubs/#{club.uuid}", %{formats: ["chess"]})
+           |> patch(~p"/api/cab/v1/clubs/#{club.uuid}", %{formats: ["chess"]})
            |> json_response(422)
   end
 end

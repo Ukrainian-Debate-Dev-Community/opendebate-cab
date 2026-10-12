@@ -63,3 +63,7 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+# no API rate limit while developing or testing (the walkthrough and the
+# stress test run far faster on purpose); tests turn it on where needed
+config :cab, CabWeb.RateLimit, enabled: false

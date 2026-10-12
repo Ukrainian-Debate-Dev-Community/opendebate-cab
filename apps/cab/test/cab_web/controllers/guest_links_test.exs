@@ -2,7 +2,7 @@ defmodule CabWeb.GuestLinksTest do
   @moduledoc """
   M6 guest access: the shared /r/:session_uuid registration URL, the
   personal /l/:code link (identity + scope), the owner Registration
-  surface and the /api/v1 links twins.
+  surface and the /api/cab/v1 links twins.
   """
 
   use CabWeb.ConnCase, async: true
@@ -395,7 +395,7 @@ defmodule CabWeb.GuestLinksTest do
       assert conn |> get(~p"/c/#{club.uuid}/owner") |> response(403)
       assert_error_sent 403, fn -> get(conn, ~p"/c/#{club.uuid}/owner/s/#{session.uuid}") end
 
-      denied = get(conn, ~p"/api/v1/sessions/#{session.uuid}/links")
+      denied = get(conn, ~p"/api/cab/v1/sessions/#{session.uuid}/links")
       assert json_response(denied, 403)["error"] == "forbidden"
     end
 
@@ -759,7 +759,7 @@ defmodule CabWeb.GuestLinksTest do
       stub_stage([guest_signup(41, nil)])
 
       assert conn
-             |> get(~p"/api/v1/sessions/#{session.uuid}/links")
+             |> get(~p"/api/cab/v1/sessions/#{session.uuid}/links")
              |> json_response(401)
 
       member = user_fixture()
@@ -767,13 +767,13 @@ defmodule CabWeb.GuestLinksTest do
 
       assert conn
              |> log_in(member)
-             |> get(~p"/api/v1/sessions/#{session.uuid}/links")
+             |> get(~p"/api/cab/v1/sessions/#{session.uuid}/links")
              |> json_response(403)
 
       body =
         conn
         |> log_in(head)
-        |> get(~p"/api/v1/sessions/#{session.uuid}/links")
+        |> get(~p"/api/cab/v1/sessions/#{session.uuid}/links")
         |> json_response(200)
 
       assert [entry] = body["links"]
@@ -802,13 +802,13 @@ defmodule CabWeb.GuestLinksTest do
 
       assert conn
              |> log_in(member)
-             |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: "X"})
+             |> post(~p"/api/cab/v1/sessions/#{session.uuid}/links", %{name: "X"})
              |> json_response(403)
 
       body =
         conn
         |> log_in(head)
-        |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: "Api Anna"})
+        |> post(~p"/api/cab/v1/sessions/#{session.uuid}/links", %{name: "Api Anna"})
         |> json_response(201)
 
       assert body["name"] == "Api Anna"
@@ -823,13 +823,13 @@ defmodule CabWeb.GuestLinksTest do
 
       assert conn
              |> log_in(head)
-             |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: ""})
+             |> post(~p"/api/cab/v1/sessions/#{session.uuid}/links", %{name: ""})
              |> json_response(422)
 
       conflict =
         conn
         |> log_in(head)
-        |> post(~p"/api/v1/sessions/#{session.uuid}/links", %{name: "Late"})
+        |> post(~p"/api/cab/v1/sessions/#{session.uuid}/links", %{name: "Late"})
         |> json_response(409)
 
       assert conflict["error"] =~ "Registration is not open"
@@ -857,7 +857,7 @@ defmodule CabWeb.GuestLinksTest do
       body =
         conn
         |> log_in(head)
-        |> delete(~p"/api/v1/sessions/#{session.uuid}/signups/41")
+        |> delete(~p"/api/cab/v1/sessions/#{session.uuid}/signups/41")
         |> json_response(200)
 
       assert body["status"] == "removed"

@@ -17,6 +17,14 @@ config :swoosh, :api_client, false
 config :core, Core.Mailer, adapter: Swoosh.Adapters.Local
 config :cab, :mail_from, {"cab", "noreply@localhost"}
 
+# cab's JSON API: requests per minute and burst, per signed-in account
+# or per anonymous IP (runtime.exs reads RATE_LIMIT_* in production)
+config :cab, CabWeb.RateLimit,
+  enabled: true,
+  signed_in: {60, 20},
+  anonymous: {20, 20},
+  trust_cf_ip: false
+
 # Policy and Terms are the deployment's own documents, one folder per
 # language (en/policy.md, en/terms.md, ...); cab only serves them
 # (in development: the opendebate-server checkout next to this repo)

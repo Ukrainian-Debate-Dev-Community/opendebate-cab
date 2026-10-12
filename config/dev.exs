@@ -94,3 +94,7 @@ config :phoenix_live_view,
   debug_attributes: true,
   # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true
+
+# no API rate limit while developing or testing (the walkthrough and the
+# stress test run far faster on purpose); tests turn it on where needed
+config :cab, CabWeb.RateLimit, enabled: false

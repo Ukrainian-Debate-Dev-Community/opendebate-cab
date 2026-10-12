@@ -2906,6 +2906,7 @@ msgid "their e-mail address"
 msgstr "їхня адреса e-mail"
 
 #: lib/cab_web/components/ui.ex:89
+#: lib/cab_web/controllers/api_docs_html/show.html.heex:11
 #, elixir-autogen, elixir-format
 msgid "beta"
 msgstr "бета"
@@ -3116,3 +3117,20 @@ msgstr "Який формат, напр. Карл Поппер"
 #, elixir-autogen, elixir-format
 msgid "Which language, e.g. Polish"
 msgstr "Яка мова, напр. польська"
+
+#: lib/cab_web/controllers/api_docs_controller.ex:17
+#: lib/cab_web/controllers/api_docs_html/show.html.heex:14
+#, elixir-autogen, elixir-format
+msgid "Engine API"
+msgstr "API двіжка"
+
+#: lib/cab_web/controllers/api_docs_controller.ex:11
+#: lib/cab_web/controllers/api_docs_html/show.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "cab API"
+msgstr "API cab"
+
+#: lib/cab_web/controllers/api_docs_html/show.html.heex:17
+#, elixir-autogen, elixir-format
+msgid "The engine's own API, version 2, served as is at /api/engine/v2. Not open to the public yet."
+msgstr "Власний API двіжка, версія 2, доступний без змін за адресою /api/engine/v2. Поки що закритий для публіки."

@@ -2902,6 +2902,7 @@ msgid "their e-mail address"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex:89
+#: lib/cab_web/controllers/api_docs_html/show.html.heex:11
 #, elixir-autogen, elixir-format
 msgid "beta"
 msgstr ""
@@ -3111,4 +3112,21 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/club.html.heex:74
 #, elixir-autogen, elixir-format
 msgid "Which language, e.g. Polish"
+msgstr ""
+
+#: lib/cab_web/controllers/api_docs_controller.ex:17
+#: lib/cab_web/controllers/api_docs_html/show.html.heex:14
+#, elixir-autogen, elixir-format
+msgid "Engine API"
+msgstr ""
+
+#: lib/cab_web/controllers/api_docs_controller.ex:11
+#: lib/cab_web/controllers/api_docs_html/show.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "cab API"
+msgstr ""
+
+#: lib/cab_web/controllers/api_docs_html/show.html.heex:17
+#, elixir-autogen, elixir-format
+msgid "The engine's own API, version 2, served as is at /api/engine/v2. Not open to the public yet."
 msgstr ""

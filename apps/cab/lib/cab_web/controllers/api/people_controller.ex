@@ -14,7 +14,7 @@ defmodule CabWeb.Api.PeopleController do
 
   plug ClubScope, source: :session, require: :owner
 
-  # GET /api/v1/sessions/:uuid/people?q= - names and usernames only;
+  # GET /api/cab/v1/sessions/:uuid/people?q= - names and usernames only;
   # emails never leave the server
   def search(conn, params) do
     with {:ok, state} <- Sessions.state(conn.assigns.session) do
@@ -29,7 +29,7 @@ defmodule CabWeb.Api.PeopleController do
     end
   end
 
-  # POST /api/v1/sessions/:uuid/invitations {"user": exact username or email}
+  # POST /api/cab/v1/sessions/:uuid/invitations {"user": exact username or email}
   def invite(conn, params) do
     session = conn.assigns.session
 

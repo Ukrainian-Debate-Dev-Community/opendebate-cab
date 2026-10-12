@@ -28,7 +28,7 @@ defmodule CabWeb.OwnerController do
   @profile_fields ~w(name city meeting_info description contacts is_private formats languages audiences format_other language_other)
 
   # POST /c/:club_uuid/owner/club - the in-place save; twin of
-  # PATCH /api/v1/clubs/:uuid
+  # PATCH /api/cab/v1/clubs/:uuid
   def update_club(conn, params) do
     # an unticked group sends nothing, so the form means "none of them"
     attrs =

@@ -423,7 +423,7 @@ defmodule CabWeb.FeedbackTest do
       sent =
         conn
         |> log_in(anna)
-        |> post(~p"/api/v1/rooms/71/feedback", %{
+        |> post(~p"/api/cab/v1/rooms/71/feedback", %{
           session_uuid: session.uuid,
           accuracy: 8,
           reasoning: 7,
@@ -436,7 +436,7 @@ defmodule CabWeb.FeedbackTest do
       again =
         conn
         |> log_in(anna)
-        |> post(~p"/api/v1/rooms/71/feedback", %{
+        |> post(~p"/api/cab/v1/rooms/71/feedback", %{
           session_uuid: session.uuid,
           accuracy: 8,
           reasoning: 7,
@@ -446,7 +446,7 @@ defmodule CabWeb.FeedbackTest do
 
       assert again["error"] =~ "already sent"
 
-      path = ~p"/api/v1/sessions/#{session.uuid}/feedback"
+      path = ~p"/api/cab/v1/sessions/#{session.uuid}/feedback"
       as_head = conn |> log_in(head) |> get(path) |> json_response(200)
       assert [%{"team" => "Team 1", "accuracy" => 8, "room" => "R1"}] = as_head["feedback"]
       assert [%{"room" => "R1", "sent" => 1, "teams" => 4}] = as_head["progress"]

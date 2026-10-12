@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang={Gettext.get_locale(CabWeb.Gettext)}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{@page_title}</title>
+    <link rel="stylesheet" href={~p"/apidocs/theme.css"} />
+  </head>
+  <body>
+    <header class="cab-api-top">
+      <a class="cab-api-mark" href={~p"/"}>cab<span class="cab-api-beta">{gettext("beta")}</span></a>
+      <nav class="cab-api-tabs">
+        <a class={@doc == :cab && "on"} href={~p"/api/cab/docs"}>{gettext("cab API")}</a>
+        <a class={@doc == :engine && "on"} href={~p"/api/engine/docs"}>{gettext("Engine API")}</a>
+      </nav>
+      <span :if={@doc == :engine} class="cab-api-note">
+        {gettext(
+          "The engine's own API, version 2, served as is at /api/engine/v2. Not open to the public yet."
+        )}
+      </span>
+    </header>
+    <div
+      id="api-docs"
+      data-doc={@doc}
+      data-spec={
+        if @doc == :cab,
+          do: ~p"/api/cab/docs/openapi.json",
+          else: ~p"/api/engine/docs/openapi.yml"
+      }
+    >
+    </div>
+    <script src={~p"/vendor/scalar/standalone.js"}>
+    </script>
+    <script src={~p"/apidocs/boot.js"}>
+    </script>
+  </body>
+</html>

@@ -84,23 +84,23 @@ defmodule CabWeb.ClubScopeTest do
   describe "JSON role derivation" do
     test "members endpoint of a public club is public", %{conn: conn, club: club} do
       assert %{"members" => [_]} =
-               conn |> get(~p"/api/v1/clubs/#{club.uuid}/members") |> json_response(200)
+               conn |> get(~p"/api/cab/v1/clubs/#{club.uuid}/members") |> json_response(200)
     end
 
     test "members endpoint of a private club: 401 anonymous, 403 stranger, 200 member",
          %{conn: conn, club: club} do
       {:ok, club} = Cab.Clubs.update_club(club, %{"is_private" => "true"})
 
-      conn0 = get(conn, ~p"/api/v1/clubs/#{club.uuid}/members")
+      conn0 = get(conn, ~p"/api/cab/v1/clubs/#{club.uuid}/members")
       assert json_response(conn0, 401)["error"] == "unauthenticated"
 
       stranger = user_fixture()
-      conn1 = conn |> log_in(stranger) |> get(~p"/api/v1/clubs/#{club.uuid}/members")
+      conn1 = conn |> log_in(stranger) |> get(~p"/api/cab/v1/clubs/#{club.uuid}/members")
       assert json_response(conn1, 403)["error"] == "forbidden"
 
       member = user_fixture()
       membership_fixture(member, club)
-      conn2 = conn |> log_in(member) |> get(~p"/api/v1/clubs/#{club.uuid}/members")
+      conn2 = conn |> log_in(member) |> get(~p"/api/cab/v1/clubs/#{club.uuid}/members")
       assert %{"members" => [_, _]} = json_response(conn2, 200)
     end
 
@@ -108,12 +108,12 @@ defmodule CabWeb.ClubScopeTest do
       member = user_fixture()
       membership_fixture(member, club)
 
-      conn = conn |> log_in(member) |> post(~p"/api/v1/clubs/#{club.uuid}/sessions", %{})
+      conn = conn |> log_in(member) |> post(~p"/api/cab/v1/clubs/#{club.uuid}/sessions", %{})
       assert json_response(conn, 403)["error"] == "forbidden"
     end
 
     test "unknown club uuid is 404 JSON", %{conn: conn} do
-      conn = get(conn, ~p"/api/v1/clubs/#{Ecto.UUID.generate()}")
+      conn = get(conn, ~p"/api/cab/v1/clubs/#{Ecto.UUID.generate()}")
       assert json_response(conn, 404)["error"] == "not found"
     end
 
@@ -124,7 +124,9 @@ defmodule CabWeb.ClubScopeTest do
       session = session_fixture(club)
 
       # missing session_uuid -> cannot resolve a club -> 404
-      conn0 = conn |> log_in(member) |> post(~p"/api/v1/rooms/71/motion", %{motion_text: "THW"})
+      conn0 =
+        conn |> log_in(member) |> post(~p"/api/cab/v1/rooms/71/motion", %{motion_text: "THW"})
+
       assert json_response(conn0, 404)["error"] == "not found"
 
       # stranger with a valid session_uuid -> 403
@@ -133,7 +135,7 @@ defmodule CabWeb.ClubScopeTest do
       conn1 =
         conn
         |> log_in(stranger)
-        |> post(~p"/api/v1/rooms/71/motion", %{
+        |> post(~p"/api/cab/v1/rooms/71/motion", %{
           session_uuid: session.uuid,
           motion_text: "THW"
         })

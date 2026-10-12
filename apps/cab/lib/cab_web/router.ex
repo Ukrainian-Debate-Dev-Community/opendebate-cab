@@ -14,10 +14,28 @@ defmodule CabWeb.Router do
     plug CabWeb.Locale
   end
 
+  # the API reference: no session, the same for everyone
+  pipeline :docs do
+    plug :accepts, ["html", "json"]
+    plug :put_secure_browser_headers
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
     plug :fetch_session
     plug :fetch_current_user
+    plug CabWeb.RateLimit
+  end
+
+  # the API references: /api/<name>/docs beside each API's /api/<name>/v1
+  scope "/api", CabWeb do
+    pipe_through :docs
+
+    get "/cab/docs", ApiDocsController, :show
+    get "/cab/docs/openapi.json", ApiDocsController, :cab_spec
+    get "/engine/docs", ApiDocsController, :show_engine
+    get "/engine/docs/openapi.yml", ApiDocsController, :engine_spec
+    get "/docs", ApiDocsController, :to_cab_docs
   end
 
   # the container health check: no pipeline, so no session or cookie
@@ -177,7 +195,7 @@ defmodule CabWeb.Router do
 
   # JSON API over the same contexts (club creation is admin-only:
   # the /admin HTML form or the `mix cab.seed_club` task)
-  scope "/api/v1", CabWeb.Api do
+  scope "/api/cab/v1", CabWeb.Api do
     pipe_through :api
 
     get "/clubs", ClubController, :index

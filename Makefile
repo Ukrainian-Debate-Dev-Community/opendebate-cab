@@ -2,7 +2,7 @@ RUN_DIR = .run
 PSQL   ?= /opt/homebrew/Cellar/postgresql@16/16.12/bin/psql
 NIX     = nix develop --command
 
-.PHONY: setup dev build test test-all test-e2e test-phone lint fmt clean up down restart fresh backfill stress logs status sync-engine release image
+.PHONY: setup dev build test test-all test-e2e test-phone api-docs lint fmt clean up down restart fresh backfill stress logs status sync-engine release image
 
 # ---------------------------------------------------------------
 # Standard targets
@@ -97,6 +97,11 @@ test-e2e:
 # fails when a page scrolls sideways. Not part of CI.
 test-phone:
 	PATH="$(dir $(PSQL)):$$PATH" uv run tools/phone/phone_check.py
+
+# Refresh the engine's API description served at /api/docs from the
+# pinned engine (after the engine pin moves)
+api-docs:
+	cp engine/docs/openapi.yml apps/cab/priv/api/engine.yml
 
 # Load test against the running local stack (make up first)
 stress:

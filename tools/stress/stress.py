@@ -187,17 +187,17 @@ async def main(args):
 
     async def join_club(c, i):
         async with sem:
-            r = await c.post(f"/api/v1/clubs/{club}/join-requests", json={"message": f"m{i}", "contact": f"@m{i}"})
+            r = await c.post(f"/api/cab/v1/clubs/{club}/join-requests", json={"message": f"m{i}", "contact": f"@m{i}"})
             return r.json()["id"]
 
     ids = await asyncio.gather(*[join_club(c, i) for i, c in enumerate(members)])
 
     async def approve(i):
         async with sem:
-            await head.patch(f"/api/v1/join-requests/{i}", json={"action": "approve"})
+            await head.patch(f"/api/cab/v1/join-requests/{i}", json={"action": "approve"})
 
     await asyncio.gather(*[approve(i) for i in ids])
-    r = await head.post(f"/api/v1/clubs/{club}/sessions", json={"name": f"Stress night {RUN}"})
+    r = await head.post(f"/api/cab/v1/clubs/{club}/sessions", json={"name": f"Stress night {RUN}"})
     sess = r.json()["uuid"]
     page = f"/c/{club}/s/{sess}"
     results = []
@@ -228,7 +228,7 @@ async def main(args):
         for c in members[: args.signups]:
             before = [len(v.diffs) for v in viewers]
             t0 = time.perf_counter()
-            r = await c.post(f"/api/v1/sessions/{sess}/signups", json={})
+            r = await c.post(f"/api/cab/v1/sessions/{sess}/signups", json={})
             calls.append(time.perf_counter() - t0)
             if r.status_code != 201:
                 errors += 1
@@ -246,8 +246,8 @@ async def main(args):
                           f"  (signup call p95 {pct(calls, 95)*1000:.0f}ms)"))
 
     # the rest sign up unmeasured, so the rooms can fill
-    await asyncio.gather(*[c.post(f"/api/v1/sessions/{sess}/signups", json={}) for c in members[args.signups:]])
-    state = (await head.get(f"/api/v1/sessions/{sess}")).json()
+    await asyncio.gather(*[c.post(f"/api/cab/v1/sessions/{sess}/signups", json={}) for c in members[args.signups:]])
+    state = (await head.get(f"/api/cab/v1/sessions/{sess}")).json()
     pids = sorted(p["id"] for p in state["signups"])
 
     # C: owner tabs place everyone at once, then Start
@@ -287,19 +287,19 @@ async def main(args):
         await t.close()
 
     # D: motions, then all ballots at once
-    state = (await head.get(f"/api/v1/sessions/{sess}")).json()
+    state = (await head.get(f"/api/cab/v1/sessions/{sess}")).json()
     room_list = state["rooms"]
     print(f"D: {len(room_list)} motions, then {len(room_list)} ballots at once", flush=True)
     with LogWindow() as log:
         errors, latencies = 0, []
 
         async def motion(room):
-            r = await head.post(f"/api/v1/rooms/{room['id']}/motion", json={"session_uuid": sess, "motion_text": f"THW stress {room['id']}"})
+            r = await head.post(f"/api/cab/v1/rooms/{room['id']}/motion", json={"session_uuid": sess, "motion_text": f"THW stress {room['id']}"})
             return r.status_code
 
         codes = await asyncio.gather(*[motion(r) for r in room_list])
         errors += sum(1 for c in codes if c != 200)
-        state = (await head.get(f"/api/v1/sessions/{sess}")).json()
+        state = (await head.get(f"/api/cab/v1/sessions/{sess}")).json()
 
         def scores(room):
             out = []
@@ -313,7 +313,7 @@ async def main(args):
         async def ballot(room):
             nonlocal errors
             t0 = time.perf_counter()
-            r = await head.post(f"/api/v1/rooms/{room['id']}/ballot", json={"session_uuid": sess, "scores": scores(room)})
+            r = await head.post(f"/api/cab/v1/rooms/{room['id']}/ballot", json={"session_uuid": sess, "scores": scores(room)})
             latencies.append(time.perf_counter() - t0)
             if r.status_code != 200:
                 errors += 1
@@ -327,7 +327,7 @@ async def main(args):
                           f"  (viewers that missed the update: {missed})"))
 
     # E: short links
-    link = (await head.get(f"/api/v1/sessions/{sess}")).json()["short_link"]
+    link = (await head.get(f"/api/cab/v1/sessions/{sess}")).json()["short_link"]
     short = link.rstrip("/").rsplit("/", 1)[-1]
     paths = [f"/{short}", f"/{short}/1", f"/{short}/{rooms}"] * (args.links // 3)
     print(f"E: {len(paths)} short-link opens, 50 at a time", flush=True)

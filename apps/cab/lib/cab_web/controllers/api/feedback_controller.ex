@@ -17,7 +17,7 @@ defmodule CabWeb.Api.FeedbackController do
   plug ClubScope, [source: :room_session, require: :authenticated] when action == :create
   plug ClubScope, [source: :session, require: :authenticated] when action == :index
 
-  # POST /api/v1/rooms/:id/feedback {"session_uuid", "accuracy",
+  # POST /api/cab/v1/rooms/:id/feedback {"session_uuid", "accuracy",
   # "reasoning", "discussion"}
   def create(conn, %{"id" => id} = params) do
     attrs = Map.take(params, ["accuracy", "reasoning", "discussion"])
@@ -32,7 +32,7 @@ defmodule CabWeb.Api.FeedbackController do
     end
   end
 
-  # GET /api/v1/sessions/:uuid/feedback
+  # GET /api/cab/v1/sessions/:uuid/feedback
   def index(conn, _params) do
     %{session: session, club: club, current_user: user} = conn.assigns
     session = %{session | club: club}

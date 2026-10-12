@@ -10,14 +10,14 @@ defmodule CabWeb.Api.ClubController do
   plug ClubScope, [source: :club, require: :roster] when action == :members
   plug ClubScope, [source: :club, require: :owner] when action in [:update, :remove_member]
 
-  # GET /api/v1/clubs - every club that is not archived, public profile
+  # GET /api/cab/v1/clubs - every club that is not archived, public profile
   # only: what other services read to list clubs (members-only clubs
   # too, since only their standings and roster are private)
   def index(conn, _params) do
     json(conn, %{clubs: Enum.map(Clubs.list_clubs(), &profile/1)})
   end
 
-  # GET /api/v1/clubs/:uuid - public profile + history (with winners)
+  # GET /api/cab/v1/clubs/:uuid - public profile + history (with winners)
   def show(conn, _params) do
     club = conn.assigns.club
 
@@ -35,7 +35,7 @@ defmodule CabWeb.Api.ClubController do
     end
   end
 
-  # PATCH /api/v1/clubs/:uuid {"name", "city", "meeting_info",
+  # PATCH /api/cab/v1/clubs/:uuid {"name", "city", "meeting_info",
   # "description", "contacts", "is_private", "formats", "languages",
   # "audiences", "format_other", "language_other"} - head edits the
   # profile; fields left out stay
@@ -67,7 +67,7 @@ defmodule CabWeb.Api.ClubController do
     }
   end
 
-  # GET /api/v1/clubs/:uuid/members - roster, members only
+  # GET /api/cab/v1/clubs/:uuid/members - roster, members only
   def members(conn, _params) do
     members =
       Enum.map(Clubs.list_members(conn.assigns.club), fn membership ->
@@ -82,7 +82,7 @@ defmodule CabWeb.Api.ClubController do
     json(conn, %{members: members})
   end
 
-  # DELETE /api/v1/clubs/:uuid/members/:user_id - head removes a
+  # DELETE /api/cab/v1/clubs/:uuid/members/:user_id - head removes a
   # member (gateway membership row only; the engine stays untouched)
   def remove_member(conn, %{"user_id" => user_id}) do
     with {:ok, user_id} <- parse_id(user_id),

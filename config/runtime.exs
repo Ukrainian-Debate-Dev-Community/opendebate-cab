@@ -96,6 +96,16 @@ if config_env() == :dev do
 end
 
 if config_env() == :prod do
+  # the JSON API's rate limit: behind Cloudflare the visitor's address is
+  # CF-Connecting-IP (the firewall admits only Cloudflare)
+  per_minute = fn name, default -> String.to_integer(System.get_env(name, default)) end
+
+  config :cab, CabWeb.RateLimit,
+    enabled: System.get_env("RATE_LIMIT_ENABLED", "true") == "true",
+    signed_in: {per_minute.("RATE_LIMIT_SIGNED_IN", "60"), 20},
+    anonymous: {per_minute.("RATE_LIMIT_ANONYMOUS", "20"), 20},
+    trust_cf_ip: true
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """

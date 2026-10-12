@@ -1,0 +1,99 @@
+/* the API reference in cab's colours, light and dark, with cab's system
+   fonts (Scalar's own fonts are off so nothing loads from elsewhere) */
+@font-face {
+  font-family: "Cedarville Cursive";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/cedarville-cursive.woff2") format("woff2");
+}
+
+:root {
+  --scalar-custom-header-height: 52px;
+  --scalar-font: -apple-system, "Inter", "Segoe UI", system-ui, sans-serif;
+  --scalar-font-code: ui-monospace, Menlo, Consolas, monospace;
+  --scalar-radius: 8px;
+  --scalar-radius-lg: 10px;
+}
+
+.light-mode {
+  --scalar-background-1: #FCFBFD;
+  --scalar-background-2: #FFFFFF;
+  --scalar-background-3: #F4F1F7;
+  --scalar-background-accent: #F2EAF6;
+  --scalar-color-1: #1C1722;
+  --scalar-color-2: #716779;
+  --scalar-color-3: #9A90A2;
+  --scalar-color-accent: #66347E;
+  --scalar-border-color: #ECE7F0;
+  --scalar-button-1: #66347E;
+  --scalar-button-1-color: #FFFFFF;
+  --scalar-button-1-hover: #522966;
+  --scalar-sidebar-background-1: #FFFFFF;
+  --scalar-sidebar-color-1: #1C1722;
+  --scalar-sidebar-color-2: #716779;
+  --scalar-sidebar-color-active: #66347E;
+  --scalar-sidebar-item-active-background: #F2EAF6;
+  --scalar-sidebar-border-color: #ECE7F0;
+  --scalar-sidebar-search-background: #FCFBFD;
+  --scalar-sidebar-search-border-color: #ECE7F0;
+  --cab-top-bg: #FFFFFF;
+  --cab-top-ink: #1C1722;
+  --cab-top-muted: #716779;
+  --cab-top-brand: #66347E;
+  --cab-top-line: #ECE7F0;
+}
+
+.dark-mode {
+  --scalar-background-1: #141017;
+  --scalar-background-2: #1C1720;
+  --scalar-background-3: #211B26;
+  --scalar-background-accent: #2B2232;
+  --scalar-color-1: #EEE8F2;
+  --scalar-color-2: #A99FB2;
+  --scalar-color-3: #7E7487;
+  --scalar-color-accent: #C9A2DD;
+  --scalar-border-color: #352D3C;
+  --scalar-button-1: #C9A2DD;
+  --scalar-button-1-color: #141017;
+  --scalar-button-1-hover: #E2CBEE;
+  --scalar-sidebar-background-1: #1C1720;
+  --scalar-sidebar-color-1: #EEE8F2;
+  --scalar-sidebar-color-2: #A99FB2;
+  --scalar-sidebar-color-active: #C9A2DD;
+  --scalar-sidebar-item-active-background: #2B2232;
+  --scalar-sidebar-border-color: #352D3C;
+  --scalar-sidebar-search-background: #141017;
+  --scalar-sidebar-search-border-color: #352D3C;
+  --cab-top-bg: #1C1720;
+  --cab-top-ink: #EEE8F2;
+  --cab-top-muted: #A99FB2;
+  --cab-top-brand: #C9A2DD;
+  --cab-top-line: #352D3C;
+}
+
+body { margin: 0; background: var(--scalar-background-1); font-family: var(--scalar-font); }
+
+.cab-api-top {
+  position: sticky; top: 0; z-index: 1000; box-sizing: border-box;
+  height: var(--scalar-custom-header-height); display: flex; align-items: center; gap: 12px;
+  padding: 0 18px; background: var(--cab-top-bg); color: var(--cab-top-ink);
+  border-bottom: 1px solid var(--cab-top-line); white-space: nowrap; overflow: hidden;
+}
+.cab-api-mark {
+  font-family: "Cedarville Cursive", cursive; font-size: 1.6rem; line-height: 1;
+  color: var(--cab-top-brand); text-decoration: none;
+}
+.cab-api-beta {
+  display: inline-block; vertical-align: top; margin: .35em 0 0 .45em; font-family: var(--scalar-font);
+  font-size: 10px; font-weight: 700; line-height: 1.3; letter-spacing: .08em; text-transform: uppercase;
+  border: 1px solid currentColor; border-radius: 4px; padding: 0 .45em;
+}
+.cab-api-note { color: var(--cab-top-muted); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 760px) { .cab-api-note { display: none; } }
+
+/* the cab API | Engine API tabs in the header */
+.cab-api-tabs { display: flex; gap: 2px; }
+.cab-api-tabs a { padding: 5px 10px; border-radius: 7px; font-size: .85rem; font-weight: 600;
+                  color: var(--cab-top-muted); text-decoration: none; }
+.cab-api-tabs a.on { color: inherit; background: var(--cab-top-tint, rgba(127, 127, 127, .14)); font-weight: 700; }

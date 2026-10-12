@@ -16,6 +16,8 @@ defmodule Cab.Application do
       Cab.Repo,
       {DNSCluster, query: Application.get_env(:cab, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Cab.PubSub},
+      # the JSON API's rate limit buckets
+      CabWeb.RateLimit.Buckets,
       # Start a worker by calling: Cab.Worker.start_link(arg)
       # {Cab.Worker, arg},
       # Start to serve requests, typically the last entry

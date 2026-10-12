@@ -1,0 +1,2792 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "cab API",
+    "version": "1",
+    "description": "The JSON API of cab, debate clubs and their sessions. Every page action has an API twin with the same access rules. Signed-in calls use the cab session cookie: sign in on cab in the same browser. Public calls need nothing. Errors are JSON with an `error` text (and `details` per field on validation failures). Rate limits: 60 requests a minute per signed-in account (bursts of up to 20) and 20 a minute per anonymous IP; over the limit the answer is 429 with Retry-After, and every answer carries RateLimit-Limit, RateLimit-Remaining and RateLimit-Reset.",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api/cab/v1"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Clubs"
+    },
+    {
+      "name": "Sessions"
+    },
+    {
+      "name": "Registration"
+    },
+    {
+      "name": "Rooms"
+    },
+    {
+      "name": "Feedback"
+    },
+    {
+      "name": "People"
+    }
+  ],
+  "paths": {
+    "/clubs": {
+      "get": {
+        "tags": [
+          "Clubs"
+        ],
+        "summary": "List clubs",
+        "description": "Every club that is not archived, public profile only. Members-only clubs are listed too: only their standings and roster are private.",
+        "responses": {
+          "200": {
+            "description": "The clubs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "clubs": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ClubProfile"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": []
+      }
+    },
+    "/clubs/{uuid}": {
+      "get": {
+        "tags": [
+          "Clubs"
+        ],
+        "summary": "A club",
+        "description": "The public profile and the club's finished sessions with their winners.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The club's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The club",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClubDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": []
+      },
+      "patch": {
+        "tags": [
+          "Clubs"
+        ],
+        "summary": "Edit the club profile",
+        "description": "The club head edits the profile; fields left out stay as they are.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The club's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "meeting_info": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "contacts": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "is_private": {
+                    "type": "boolean",
+                    "description": "Members only standings and roster"
+                  },
+                  "formats": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "bp",
+                        "apf",
+                        "other"
+                      ]
+                    }
+                  },
+                  "format_other": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 60,
+                    "description": "Kept only when formats holds \"other\"; trimmed, blank becomes null"
+                  },
+                  "languages": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "uk",
+                        "en",
+                        "other"
+                      ]
+                    }
+                  },
+                  "language_other": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 60,
+                    "description": "Kept only when languages holds \"other\"; trimmed, blank becomes null"
+                  },
+                  "audiences": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "school",
+                        "university",
+                        "open"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClubProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/clubs/{uuid}/members": {
+      "get": {
+        "tags": [
+          "Clubs"
+        ],
+        "summary": "The roster",
+        "description": "Members of the club. Public clubs: anyone, signed in or not; members-only clubs: members.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The club's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The roster",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Member"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {},
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "signed in (members for a members-only club)"
+      }
+    },
+    "/clubs/{uuid}/members/{user_id}": {
+      "delete": {
+        "tags": [
+          "Clubs"
+        ],
+        "summary": "Remove a member",
+        "description": "The head removes a member from the club.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The club's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user_id": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "removed"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/clubs/{uuid}/join-requests": {
+      "post": {
+        "tags": [
+          "Clubs"
+        ],
+        "summary": "Ask to join",
+        "description": "A join request is a pending membership. Both answers are required; the head reads them.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The club's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "description": "About you"
+                  },
+                  "contact": {
+                    "type": "string",
+                    "description": "How the head can reach you"
+                  }
+                },
+                "required": [
+                  "message",
+                  "contact"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JoinRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "signed in"
+      }
+    },
+    "/join-requests/{id}": {
+      "patch": {
+        "tags": [
+          "Clubs"
+        ],
+        "summary": "Approve or decline a join request",
+        "description": "The club head decides.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "approve",
+                      "decline"
+                    ]
+                  }
+                },
+                "required": [
+                  "action"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The decision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "approved",
+                        "declined"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/clubs/{uuid}/sessions": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Open a session",
+        "description": "The head opens a club session; registration starts open.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The club's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "date": {
+                    "type": "string",
+                    "description": "YYYY-MM-DD",
+                    "format": "date"
+                  },
+                  "time": {
+                    "type": "string",
+                    "description": "HH:MM"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "scheduled_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/sessions/{uuid}": {
+      "get": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "A session",
+        "description": "The session as anyone may read it. The head also gets every room's and person's id; a room's chair gets them for the room they chair; everyone gets the id of their own registration.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": []
+      },
+      "delete": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Cancel a session",
+        "description": "The head cancels: the session is removed. A finished session cannot be cancelled (409).",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "cancelled"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/sessions/{uuid}/start": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Start the session",
+        "description": "Closes registration and creates the rooms from the head's composition. The spec is required; nobody is placed automatically.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rooms": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/RoomSpec"
+                    }
+                  }
+                },
+                "required": [
+                  "rooms"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "stage": {
+                      "type": "string",
+                      "enum": [
+                        "running"
+                      ]
+                    },
+                    "rooms_created": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/sessions/{uuid}/close-signups": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Close registration",
+        "description": "409 unless registration is open.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Closed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "stage": {
+                      "type": "string",
+                      "enum": [
+                        "closed"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/sessions/{uuid}/reopen-signups": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Reopen registration",
+        "description": "409 unless registration is closed.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reopened",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "stage": {
+                      "type": "string",
+                      "enum": [
+                        "signup"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/sessions/{uuid}/reopen-registration": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Reopen registration after rooms were made",
+        "description": "Pending rooms are removed and registration opens again.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reopened",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "stage": {
+                      "type": "string",
+                      "enum": [
+                        "signup"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/sessions/{uuid}/finish": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Finish the session",
+        "description": "Ends the session; feedback on adjudicators becomes visible to them.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Finished",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "completed"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/sessions/{uuid}/signups": {
+      "post": {
+        "tags": [
+          "Registration"
+        ],
+        "summary": "Register",
+        "description": "A member registers themselves. The head may pass a username to register any approved member.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "Head only: the member to register"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "participant_id": {
+                      "type": "integer"
+                    },
+                    "username": {
+                      "type": "string",
+                      "description": "Only when the head registered someone by username"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club member"
+      }
+    },
+    "/sessions/{uuid}/signups/{participant_id}": {
+      "delete": {
+        "tags": [
+          "Registration"
+        ],
+        "summary": "Leave or remove a registration",
+        "description": "The head removes anyone; a member removes their own registration, until seated in a room.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "participant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "participant_id": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "removed"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club member"
+      }
+    },
+    "/sessions/{uuid}/rooms": {
+      "post": {
+        "tags": [
+          "Rooms"
+        ],
+        "summary": "Make the rooms",
+        "description": "The head's composition while registration is closed. The spec is required; nobody is paired automatically.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rooms": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/RoomSpec"
+                    }
+                  }
+                },
+                "required": [
+                  "rooms"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Rooms made",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rooms_created": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      },
+      "delete": {
+        "tags": [
+          "Rooms"
+        ],
+        "summary": "Remove the pending rooms",
+        "description": "So the head can recompose them.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rooms_deleted": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/rooms/{id}/motion": {
+      "post": {
+        "tags": [
+          "Rooms"
+        ],
+        "summary": "Publish the motion",
+        "description": "The room's chair (or the head) publishes or updates the motion; prep runs 15 minutes from publishing.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The room's id (from GET /sessions/{uuid}, given to the head and the room's chair)",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "session_uuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "motion_text": {
+                    "type": "string"
+                  },
+                  "infoslide": {
+                    "type": "string"
+                  },
+                  "keyword": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "session_uuid",
+                  "motion_text"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Published",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "room_id": {
+                      "type": "integer"
+                    },
+                    "motion": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string"
+                        },
+                        "infoslide": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "keyword": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "the room's chair or the club head"
+      }
+    },
+    "/rooms/{id}/ballot": {
+      "post": {
+        "tags": [
+          "Rooms"
+        ],
+        "summary": "Submit the ballot",
+        "description": "Eight scores, two per team position. Ranks derive from team totals; the room ends confirmed. A confirmed ballot is edited by the head only.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The room's id (from GET /sessions/{uuid}, given to the head and the room's chair)",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "session_uuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "scores": {
+                    "type": "array",
+                    "minItems": 8,
+                    "maxItems": 8,
+                    "items": {
+                      "$ref": "#/components/schemas/BallotScore"
+                    }
+                  }
+                },
+                "required": [
+                  "session_uuid",
+                  "scores"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Confirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "room_id": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "confirmed"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "the room's chair or the club head"
+      }
+    },
+    "/rooms/{id}/feedback": {
+      "post": {
+        "tags": [
+          "Feedback"
+        ],
+        "summary": "Send feedback on the adjudicator",
+        "description": "One per team, from any of its members, once the room's ballot is in; the first one sent stays.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The room's id (from GET /sessions/{uuid}, given to the head and the room's chair)",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "session_uuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "accuracy": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10
+                  },
+                  "reasoning": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10
+                  },
+                  "discussion": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "session_uuid",
+                  "accuracy",
+                  "reasoning",
+                  "discussion"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "room_id": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "sent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "a member of one of the room's teams"
+      }
+    },
+    "/sessions/{uuid}/feedback": {
+      "get": {
+        "tags": [
+          "Feedback"
+        ],
+        "summary": "Feedback you may see",
+        "description": "The head gets every entry with the team and the progress per room; a team gets its own; an adjudicator gets theirs without the team, once the session is finished.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feedback",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "feedback": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FeedbackEntry"
+                      }
+                    },
+                    "progress": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "room": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "sent": {
+                            "type": "integer"
+                          },
+                          "teams": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "on_your_adjudication": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FeedbackEntry"
+                      }
+                    },
+                    "your_average": {
+                      "type": [
+                        "number",
+                        "boolean",
+                        "null"
+                      ]
+                    }
+                  },
+                  "description": "progress only for the head; on_your_adjudication and your_average only for others"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "signed in"
+      }
+    },
+    "/sessions/{uuid}/people": {
+      "get": {
+        "tags": [
+          "People"
+        ],
+        "summary": "Search people to add",
+        "description": "What a typed value matches: members not yet in the session, registered users, or a guest name. Names and usernames only; e-mails never leave the server.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Person"
+                      }
+                    },
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Person"
+                      }
+                    },
+                    "guest": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/sessions/{uuid}/invitations": {
+      "post": {
+        "tags": [
+          "People"
+        ],
+        "summary": "Invite a registered user",
+        "description": "By exact username or e-mail; they accept on their My page.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user": {
+                    "type": "string",
+                    "description": "Exact username or e-mail"
+                  }
+                },
+                "required": [
+                  "user"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Invited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "participant_id": {
+                      "type": "integer"
+                    },
+                    "username": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
+    "/sessions/{uuid}/links": {
+      "get": {
+        "tags": [
+          "People"
+        ],
+        "summary": "Guest links",
+        "description": "The session's guest links with each guest's name and role.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "links": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Link"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      },
+      "post": {
+        "tags": [
+          "People"
+        ],
+        "summary": "Add a guest",
+        "description": "Registers a guest by name and issues their personal link.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The guest's link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Link"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "cabSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "_cab_key",
+        "description": "The cab session cookie, set when you sign in on cab"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "What went wrong, in words"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "string",
+                "array"
+              ]
+            },
+            "description": "Per field, on validation failures"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "ClubProfile": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meeting_info": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contacts": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "formats": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "bp",
+                "apf",
+                "other"
+              ]
+            }
+          },
+          "format_other": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The typed format when formats holds \"other\" (trimmed, at most 60 characters); null otherwise"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "uk",
+                "en",
+                "other"
+              ]
+            }
+          },
+          "language_other": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The typed language when languages holds \"other\" (trimmed, at most 60 characters); null otherwise"
+          },
+          "audiences": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "school",
+                "university",
+                "open"
+              ]
+            }
+          }
+        },
+        "required": [
+          "uuid",
+          "name",
+          "formats",
+          "languages",
+          "audiences",
+          "format_other",
+          "language_other"
+        ],
+        "description": "A club's public profile"
+      },
+      "ClubDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClubProfile"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "history": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "session_uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "winner": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Member": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "integer"
+          },
+          "username": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "head",
+              "member"
+            ]
+          }
+        }
+      },
+      "JoinRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "declined"
+            ]
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contact": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "Motion": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "infoslide": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "keyword": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "prep_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Speaker": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "score": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "iron": {
+            "type": "boolean",
+            "description": "Spoke twice for an absent teammate"
+          },
+          "id": {
+            "type": "integer",
+            "description": "The participant id; only for the head and the room's chair"
+          }
+        }
+      },
+      "Team": {
+        "type": "object",
+        "properties": {
+          "side": {
+            "type": "string",
+            "enum": [
+              "OG",
+              "OO",
+              "CG",
+              "CO"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rank": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "points": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "speakers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Speaker"
+            }
+          }
+        }
+      },
+      "Room": {
+        "type": "object",
+        "properties": {
+          "no": {
+            "type": "integer",
+            "description": "The room's number in the session (R1, R2...)"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "live",
+              "judging",
+              "completed",
+              "confirmed",
+              "void"
+            ],
+            "description": "The ballot's state: completed once the ballot is submitted, confirmed once the head locks it"
+          },
+          "motion": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Motion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "adjudicator": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "teams": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Team"
+            }
+          },
+          "id": {
+            "type": "integer",
+            "description": "The room id; only for the head and the room's chair"
+          }
+        }
+      },
+      "Signup": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "speaker",
+              "adjudicator"
+            ]
+          },
+          "id": {
+            "type": "integer",
+            "description": "The participant id; for the head, and for your own registration"
+          }
+        }
+      },
+      "Session": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "club_uuid": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "signup",
+              "closed",
+              "running",
+              "done"
+            ]
+          },
+          "scheduled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "signups_closed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "short_link": {
+            "type": "string",
+            "format": "uri"
+          },
+          "signups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Signup"
+            }
+          },
+          "rooms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Room"
+            }
+          },
+          "winner": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "winners": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "room": {
+                  "type": "string",
+                  "examples": [
+                    "R1"
+                  ]
+                },
+                "team": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "description": "The session as anyone may read it: names, stage, rooms, motions and results; no engine ids or accounts except the ids a caller's own actions need"
+      },
+      "RoomSpec": {
+        "type": "object",
+        "properties": {
+          "adjudicator_participant_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "teams": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            },
+            "description": "Four teams in order OG, OO, CG, CO, each one or two participant ids (one makes an iron)"
+          }
+        },
+        "required": [
+          "teams"
+        ],
+        "description": "One room as the head composes it; nobody is placed automatically"
+      },
+      "BallotScore": {
+        "type": "object",
+        "properties": {
+          "position": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+          },
+          "speaker_participant_id": {
+            "type": "integer"
+          },
+          "iron": {
+            "type": "boolean"
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 50,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "position",
+          "speaker_participant_id",
+          "score"
+        ]
+      },
+      "FeedbackEntry": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "accuracy": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "reasoning": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "score": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "discussion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "team": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "adjudicator": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "team and adjudicator are present only where the caller may see them"
+      },
+      "Person": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "Link": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "username": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Only in the list"
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unauthenticated": {
+        "description": "Not signed in",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Signed in, but not allowed here",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "No such club, session, room or request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Not in this stage of the session",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unprocessable": {
+        "description": "Invalid input or a rule refused it",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Too many requests: the caller's bucket is empty. Wait Retry-After seconds.",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds until the next request is allowed.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "RateLimit-Limit": {
+            "description": "Requests per minute for this caller.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "RateLimit-Remaining": {
+            "description": "Requests left in the bucket.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "RateLimit-Reset": {
+            "description": "Seconds until the bucket is full again.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "too many requests"
+                },
+                "retry_after": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "error",
+                "retry_after"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
