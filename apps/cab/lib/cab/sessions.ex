@@ -1089,13 +1089,20 @@ defmodule Cab.Sessions do
   """
   def cancel(%User{} = head, %Session{} = session) do
     result =
-      with {:ok, actor} <- owner_actor(head, session_club(session)),
+      with :ok <- require_unfinished(session),
+           {:ok, actor} <- owner_actor(head, session_club(session)),
            {:ok, _} <- EngineApi.delete_event(actor, session.engine_event_id) do
         Repo.delete(session)
       end
 
     notify(result, session)
   end
+
+  # a finished session is the club's history: it stays
+  defp require_unfinished(%Session{finished_at: %DateTime{}}),
+    do: {:error, :conflict, dgettext("errors", "A finished session cannot be cancelled.")}
+
+  defp require_unfinished(_session), do: :ok
 
   @doc """
   The room's judge sets that room's motion (per-room motions - rooms
@@ -1716,19 +1723,27 @@ defmodule Cab.Sessions do
     if Cab.Links.guest?(user.id), do: Clubs.club_actor(club), else: actor_for(user)
   end
 
-  # the motion: a guest must chair the room (the engine would only see
-  # the head), everyone else is chair-checked by the engine itself
+  # the motion: the room's chair, or the head; a guest chair acts as the
+  # club head (the engine would only see the head)
   defp acting_for(%User{} = user, %Session{} = session, room_id) do
     club = session_club(session)
+    guest? = Cab.Links.guest?(user.id)
 
-    if Cab.Links.guest?(user.id) do
-      with {:ok, state} <- state(%{session | club: club}),
-           %{} = room <- Enum.find(state.rooms, &(&1["id"] == room_id)) || {:error, :forbidden},
-           true <- room_chair?(room, user) || {:error, :forbidden} do
-        Clubs.club_actor(club)
+    with {:ok, state} <- state(%{session | club: club}),
+         %{} = room <- Enum.find(state.rooms, &(&1["id"] == room_id)) || {:error, :forbidden} do
+      cond do
+        room_chair?(room, user) and guest? ->
+          Clubs.club_actor(club)
+
+        room_chair?(room, user) ->
+          actor_for(user)
+
+        not guest? and Clubs.covers?(Clubs.role_for(club, user), :owner) ->
+          owner_actor(user, club)
+
+        true ->
+          {:error, :forbidden}
       end
-    else
-      actor_for(user)
     end
   end
 

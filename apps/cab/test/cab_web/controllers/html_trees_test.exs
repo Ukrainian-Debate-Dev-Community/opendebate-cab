@@ -1329,9 +1329,10 @@ defmodule CabWeb.HtmlTreesTest do
     assert ballot_html =~ ~s(value="78")
   end
 
-  test "session cancel lands on the archive; finish lands on the session page",
+  test "session cancel lands on the archive; finish lands on the session page; a finished session stays",
        %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
+    spare = session_fixture(club, engine_event_id: 12)
     test_pid = self()
 
     stub(fn conn, _params ->
@@ -1358,7 +1359,7 @@ defmodule CabWeb.HtmlTreesTest do
           send(test_pid, :event_completed)
           Req.Test.json(conn, %{"status" => "success", "data" => %{}})
 
-        {"DELETE", "/api/events/11"} ->
+        {"DELETE", "/api/events/12"} ->
           send(test_pid, :event_deleted)
           Req.Test.json(conn, %{"status" => "success", "message" => "Event archived."})
       end
@@ -1372,14 +1373,22 @@ defmodule CabWeb.HtmlTreesTest do
     assert redirected_to(finished) == "/c/#{club.uuid}/s/#{session.uuid}"
     assert_received :event_completed
 
-    cancelled =
+    refused =
       conn
       |> log_in(head)
       |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/cancel")
 
+    assert redirected_to(refused) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
+    assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "cannot be cancelled"
+
+    cancelled =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/sessions/#{spare.uuid}/cancel")
+
     assert redirected_to(cancelled) == "/c/#{club.uuid}/owner"
     assert_received :event_deleted
-    assert Cab.Sessions.list_for_club(club) == []
+    assert Enum.map(Cab.Sessions.list_for_club(club), & &1.uuid) == [session.uuid]
   end
 
   test "acting on another club's session through this club's URL is 404", %{

@@ -339,6 +339,11 @@ defmodule CabWeb.OwnerController do
             |> put_flash(:info, gettext("Session cancelled."))
             |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
 
+          {:error, :conflict, message} ->
+            conn
+            |> put_flash(:error, message)
+            |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}")
+
           {:error, message} ->
             conn
             |> put_flash(:error, error_message(message))
@@ -360,6 +365,11 @@ defmodule CabWeb.OwnerController do
             conn
             |> put_flash(:info, gettext("Session finished."))
             |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}")
+
+          {:error, :conflict, message} ->
+            conn
+            |> put_flash(:error, message)
+            |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}")
 
           {:error, message} ->
             conn
