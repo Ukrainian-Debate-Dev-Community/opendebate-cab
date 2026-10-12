@@ -16,8 +16,9 @@
 @source "../css";
 @source "../js";
 @source "../../lib/cab_web";
-/* Required for Tailwind to automatically pick up changes in colocated CSS files in dev */
-@source "../../_build/dev/phoenix-colocated/cab/*/";
+/* Colocated CSS in dev: the _build of this umbrella, or of the project that holds cab as a submodule */
+@source "../../../../_build/dev/phoenix-colocated/cab/*/";
+@source "../../../../../_build/dev/phoenix-colocated/cab/*/";
 
 /* Add variants based on LiveView classes */
 @custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);

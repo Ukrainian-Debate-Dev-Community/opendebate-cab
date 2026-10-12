@@ -18,7 +18,9 @@
 
 set -u
 BASE="${BASE:-http://localhost:4000}"
-ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+# where `mix` runs; a project that holds cab as a submodule sets
+# MIX_ROOT to itself so its own build is used
+ROOT="${MIX_ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}"
 RUN="$(date +%s)"
 JARS="$(mktemp -d)"
 BODY="$JARS/body.json"
