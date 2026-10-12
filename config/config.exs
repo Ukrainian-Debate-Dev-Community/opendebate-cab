@@ -26,8 +26,10 @@ config :cab, CabWeb.RateLimit,
   trust_cf_ip: false
 
 # Policy and Terms are the deployment's own documents, one folder per
-# language (en/policy.md, en/terms.md, ...); cab only serves them
-# (in development: the opendebate-server checkout next to this repo)
+# language (en/policy.md, en/terms.md, ...); cab only serves them.
+# LEGAL_DIR (runtime.exs, also read from .env) points at them; without it
+# development looks in an opendebate-server checkout next to this repo,
+# and without the documents the pages answer 404
 config :cab, :legal_dir, Path.expand("../../opendebate-server/legal", __DIR__)
 
 # Configure the endpoint
@@ -70,21 +72,6 @@ config :tailwind,
     cd: Path.expand("../apps/cab", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
-
-# uadebate.com: its own repo (news, events, roles) and endpoint. It
-# reads cab downward; :cab_url is where its Cabinet links point.
-config :uadebate,
-  ecto_repos: [Uadebate.Repo],
-  generators: [timestamp_type: :utc_datetime]
-
-config :uadebate, UadebateWeb.Gettext, default_locale: "en", locales: ~w(en uk)
-
-config :uadebate, UadebateWeb.Endpoint,
-  url: [host: "localhost"],
-  adapter: Bandit.PhoenixAdapter,
-  render_errors: [formats: [html: UadebateWeb.ErrorHTML], layout: false]
-
-config :uadebate, :cab_url, "http://localhost:4000"
 
 # Configure Elixir's Logger
 config :logger, :default_formatter,

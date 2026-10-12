@@ -73,7 +73,6 @@ end
 # script that automatically sets the env var above.
 if System.get_env("PHX_SERVER") do
   config :cab, CabWeb.Endpoint, server: true
-  config :uadebate, UadebateWeb.Endpoint, server: true
 end
 
 config :cab, CabWeb.Endpoint, http: [port: String.to_integer(System.get_env("PORT", "4000"))]
@@ -178,33 +177,6 @@ if config_env() == :prod do
   end
 
   config :cab, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
-
-  # uadebate.com: its own database, host and port; it signs its own
-  # cookie with the same SECRET_KEY_BASE and links to cab at CAB_URL
-  uadebate_database_url =
-    System.get_env("UADEBATE_DATABASE_URL") ||
-      raise "environment variable UADEBATE_DATABASE_URL is missing"
-
-  config :uadebate, Uadebate.Repo,
-    url: uadebate_database_url,
-    pool_size: String.to_integer(System.get_env("UADEBATE_POOL_SIZE") || "5"),
-    socket_options: maybe_ipv6
-
-  config :uadebate, UadebateWeb.Endpoint,
-    url: [host: System.get_env("UADEBATE_HOST") || "example.org", port: 443, scheme: "https"],
-    http: [
-      ip: {0, 0, 0, 0, 0, 0, 0, 0},
-      port: String.to_integer(System.get_env("UADEBATE_PORT") || "4001")
-    ],
-    secret_key_base: secret_key_base
-
-  config :uadebate, :cab_url, System.get_env("CAB_URL") || "https://#{host}"
-
-  # news cover images: a persistent volume, kept in the backups
-  config :uadebate,
-         :uploads_dir,
-         System.get_env("UADEBATE_UPLOADS_DIR") ||
-           raise("environment variable UADEBATE_UPLOADS_DIR is missing")
 
   config :cab, CabWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],

@@ -1,14 +1,13 @@
-defmodule Platform.MixProject do
+defmodule OpendebateCab.MixProject do
   use Mix.Project
 
-  # Umbrella of the uadebate platform. Layering (deps point down only):
+  # opendebate-cab: the club cabinet and its engine client. Layering
+  # (deps point down only):
   #
-  #   engine (Node, engine/) <- core <- cab <- dfu <- uadebate
+  #   engine (Node, engine/) <- core <- cab
   #
-  # uadebate is the public facade at the top: it aggregates data from
-  # cab (tournaments, clubs, motions) and dfu (public org documents).
-  # Releases pick the scope: a deployment that wants only cab ships
-  # `cab_only` and never compiles-in dfu/uadebate.
+  # Apps built on top of cab pull this repo in and depend on apps/cab
+  # and apps/core; cab and core know nothing above them.
   def project do
     [
       apps_path: "apps",
@@ -22,11 +21,8 @@ defmodule Platform.MixProject do
 
   defp releases do
     [
-      cab_only: [
+      cab: [
         applications: [cab: :permanent]
-      ],
-      full: [
-        applications: [cab: :permanent, dfu: :permanent, uadebate: :permanent]
       ]
     ]
   end
