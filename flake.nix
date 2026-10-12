@@ -1,5 +1,5 @@
 {
-  description = "uadebate: DFU platform (uadebate.com / cab / dfu)";
+  description = "opendebate-cab: the club cabinet and the engine client";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
@@ -8,7 +8,7 @@
   outputs = { self, nixpkgs }:
     let
       system = "aarch64-darwin";
-      project_name = "uadebate";
+      project_name = "opendebate-cab";
       pkgs = import nixpkgs { inherit system; };
       erlang = pkgs.beam.packages.erlang_27.erlang;
       elixir = pkgs.beam.packages.erlang_27.elixir;
@@ -46,8 +46,8 @@
           alias tree='tree -C'
           # pg_setup bootstraps the shared local cluster only; each app's
           # database is owned by its Ecto config (mix ecto.setup creates,
-          # migrates and seeds it). legacy/SPEC.md phase 0: one instance,
-          # separate database per service.
+          # migrates and seeds it). One instance, a separate database
+          # per service.
           alias pg_setup="initdb -D $PGDATA && \
             echo \"unix_socket_directories = '$PGDATA'\" >> $PGDATA/postgresql.conf && \
             pg_start && \

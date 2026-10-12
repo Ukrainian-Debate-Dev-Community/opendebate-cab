@@ -26,7 +26,7 @@ test:
 test-all: test test-e2e
 
 lint:
-	$(NIX) sh -c 'mix format --check-formatted && (cd apps/cab && MIX_ENV=test mix gettext.extract --check-up-to-date) && (cd apps/uadebate && MIX_ENV=test mix gettext.extract --check-up-to-date) && mix hex.audit'
+	$(NIX) sh -c 'mix format --check-formatted && (cd apps/cab && MIX_ENV=test mix gettext.extract --check-up-to-date) && mix hex.audit'
 
 fmt:
 	$(NIX) mix format
@@ -35,8 +35,7 @@ clean:
 	rm -rf _build $(RUN_DIR)
 
 # ---------------------------------------------------------------
-# Local dev stack: engine (node, :3100) + cab (phoenix, :4000) and
-# uadebate.com (:4001), both endpoints in the one phoenix server
+# Local dev stack: engine (node, :3100) + cab (phoenix, :4000)
 # ---------------------------------------------------------------
 
 # Start both services in the background. Logs go to .run/*.log.
@@ -57,16 +56,15 @@ up:
 	@printf "waiting for cab"
 	@for i in $$(seq 1 60); do \
 		if curl -s -o /dev/null --max-time 2 http://localhost:4000/ 2>/dev/null; then \
-			echo " ready"; echo "open http://localhost:4000/ (cab) and http://localhost:4001/ (uadebate.com)"; exit 0; \
+			echo " ready"; echo "open http://localhost:4000/"; exit 0; \
 		fi; printf "."; sleep 2; \
 	done; echo " not up after 2 min - check: make logs"
 
-# Stop the services (kills whatever listens on :3100 / :4000 / :4001).
+# Stop the services (kills whatever listens on :3100 / :4000).
 down:
 	@-lsof -ti :4000 2>/dev/null | xargs kill 2>/dev/null; true
-	@-lsof -ti :4001 2>/dev/null | xargs kill 2>/dev/null; true
 	@-lsof -ti :3100 2>/dev/null | xargs kill 2>/dev/null; true
-	@echo "stopped (ports 3100, 4000 and 4001 freed)"
+	@echo "stopped (ports 3100 and 4000 freed)"
 
 restart: down up
 
@@ -114,7 +112,6 @@ logs:
 status:
 	@if lsof -ti :3100 >/dev/null 2>&1; then echo "engine   up   :3100"; else echo "engine   down :3100"; fi
 	@if lsof -ti :4000 >/dev/null 2>&1; then echo "cab      up   :4000"; else echo "cab      down :4000"; fi
-	@if lsof -ti :4001 >/dev/null 2>&1; then echo "uadebate up   :4001"; else echo "uadebate down :4001"; fi
 
 # Move the engine pin to the org's latest main (what nightly does)
 sync-engine:
@@ -126,7 +123,7 @@ sync-engine:
 # Releases: master moves only here, by fast-forward to nightly
 # ---------------------------------------------------------------
 
-IMAGE = ghcr.io/ukrainian-debate-dev-community/opendebate
+IMAGE = ghcr.io/ukrainian-debate-dev-community/opendebate-cab
 
 # make release VERSION=v0.1.0 - from a clean nightly whose CI is green:
 # fast-forward master, tag, push both; the tag publishes the image
