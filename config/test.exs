@@ -32,8 +32,6 @@ config :core, Core.Engine,
   jwt_secret: "test-engine-secret",
   req_options: [plug: {Req.Test, Core.Engine}]
 
-config :cab, :portal_api_token, "portal-test-token"
-
 # Print only warnings and errors during test
 config :logger, level: :warning
 

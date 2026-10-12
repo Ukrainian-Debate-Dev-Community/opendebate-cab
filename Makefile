@@ -69,8 +69,11 @@ down:
 restart: down up
 
 # Wipe BOTH databases, reseed the engine, migrate cab, restart
-# the stack and load fresh demo data.
-fresh: down
+# the stack and load fresh demo data around your own account:
+#   make fresh DEV_USER=<your cab username>
+fresh:
+	@test -n "$(DEV_USER)" || { echo "usage: make fresh DEV_USER=<your cab username>"; exit 1; }
+	@$(MAKE) down
 	@echo "== wiping engine db (cab_dev) =="
 	$(PSQL) -d postgres -c 'DROP DATABASE IF EXISTS cab_dev;' -c 'CREATE DATABASE cab_dev OWNER postgres;'
 	cd engine && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
@@ -78,7 +81,7 @@ fresh: down
 	$(NIX) sh -c 'mix ecto.drop --force && mix ecto.create && mix ecto.migrate'
 	@$(MAKE) up
 	@echo "== loading demo data =="
-	apps/cab/priv/prime_demo.sh merv1n34k
+	apps/cab/priv/prime_demo.sh $(DEV_USER)
 	@echo "fresh demo ready: http://localhost:4000/"
 
 # Record lifecycle facts on cab session rows that predate them.
@@ -93,8 +96,10 @@ test-e2e:
 
 # Every key page as an iPhone 15 against the running stack (make up):
 # fails when a page scrolls sideways. Not part of CI.
+# Signs in as DEV_USER: make test-phone DEV_USER=<a cab username>
 test-phone:
-	PATH="$(dir $(PSQL)):$$PATH" uv run tools/phone/phone_check.py
+	@test -n "$(DEV_USER)" || { echo "usage: make test-phone DEV_USER=<a cab username>"; exit 1; }
+	DEV_USER=$(DEV_USER) PATH="$(dir $(PSQL)):$$PATH" uv run tools/phone/phone_check.py
 
 # Refresh the engine's API description served at /api/docs from the
 # pinned engine (after the engine pin moves)

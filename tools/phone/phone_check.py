@@ -7,17 +7,18 @@
 
     uv run tools/phone/phone_check.py [--shots DIR]
 
-Signs in through cab's dev-only /dev/switch-user. The first run may
+Signs in as $DEV_USER through cab's dev-only /dev/switch-user. The first run may
 need the browser: uv run --with playwright playwright install chromium
 """
 import argparse
+import os
 import subprocess
 import sys
 
 from playwright.sync_api import sync_playwright
 
 CAB = "http://localhost:4000"
-USER = "oleksii-stroganov"
+USER = os.environ["DEV_USER"]
 
 
 def first(sql):

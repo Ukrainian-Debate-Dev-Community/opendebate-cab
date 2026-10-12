@@ -48,8 +48,6 @@ if config_env() != :test do
     base_url: System.get_env("ENGINE_URL", "http://localhost:3100"),
     jwt_secret: engine_secret
 
-  config :cab, :portal_api_token, System.get_env("PORTAL_API_TOKEN")
-
   if legal_dir = System.get_env("LEGAL_DIR") do
     config :cab, :legal_dir, legal_dir
   end
