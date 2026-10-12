@@ -53,24 +53,31 @@
         />
         <:block
           name={:formats}
-          type={:multi}
+          type={:select}
           label={gettext("Format")}
-          value={@club.formats}
+          value={List.first(@club.formats)}
           options={CabWeb.ClubProfile.format_options()}
-          hint={gettext("Tick all that apply.")}
+          other="other"
+          other_name={:format_other}
+          other_value={@club.format_other}
+          other_placeholder={gettext("Which format, e.g. Karl Popper")}
         />
         <:block
           name={:languages}
-          type={:multi}
+          type={:select}
           label={gettext("Language")}
-          value={@club.languages}
+          value={List.first(@club.languages)}
           options={CabWeb.ClubProfile.language_options()}
+          other="other"
+          other_name={:language_other}
+          other_value={@club.language_other}
+          other_placeholder={gettext("Which language, e.g. Polish")}
         />
         <:block
           name={:audiences}
-          type={:multi}
+          type={:select}
           label={gettext("Audience")}
-          value={@club.audiences}
+          value={List.first(@club.audiences)}
           options={CabWeb.ClubProfile.audience_options()}
         />
         <:block

@@ -15,12 +15,12 @@ defmodule CabWeb.ClubProfileTest do
     %{head: head, club: club_fixture(head, %{name: "Kyiv Debate Club", city: "Kyiv"})}
   end
 
-  test "the head ticks format, language and audience; unticking all clears them",
+  test "the head picks format, language and audience; sending none clears them",
        %{conn: conn, head: head, club: club} do
     html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
-    assert html =~ ~s(name="formats[]")
-    assert html =~ ~s(name="languages[]")
-    assert html =~ ~s(name="audiences[]")
+    assert html =~ ~s(name="formats")
+    assert html =~ ~s(name="languages")
+    assert html =~ ~s(name="audiences")
 
     conn
     |> log_in(head)
@@ -40,6 +40,70 @@ defmodule CabWeb.ClubProfileTest do
 
     club = Cab.Clubs.get_by_uuid(club.uuid)
     assert {club.formats, club.languages, club.audiences} == {[], [], []}
+  end
+
+  test "each choice is one of the pills control, and other opens a text field that is kept only while ticked",
+       %{conn: conn, head: head, club: club} do
+    html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
+    assert html =~ ~s(class="pills-field")
+    assert html =~ ~s(type="radio" name="formats")
+    assert html =~ ~s(name="format_other")
+    assert html =~ ~s(name="language_other")
+    refute html =~ ~s(name="audience_other")
+
+    conn
+    |> log_in(head)
+    |> post(~p"/c/#{club.uuid}/owner/club", %{
+      name: club.name,
+      formats: "other",
+      format_other: "  Karl Popper  ",
+      languages: "other",
+      language_other: ""
+    })
+
+    club = Cab.Clubs.get_by_uuid(club.uuid)
+    assert club.formats == ["other"]
+    assert club.format_other == "Karl Popper"
+    assert club.language_other == nil
+
+    conn
+    |> log_in(head)
+    |> post(~p"/c/#{club.uuid}/owner/club", %{
+      name: club.name,
+      formats: "bp",
+      format_other: "Karl Popper"
+    })
+
+    assert Cab.Clubs.get_by_uuid(club.uuid).format_other == nil
+  end
+
+  test "the club's own words stand in for other", %{conn: conn, club: club} do
+    {:ok, _} =
+      Cab.Clubs.update_club(club, %{
+        formats: ["bp", "other"],
+        format_other: "Karl Popper",
+        languages: ["uk", "other"],
+        language_other: "Polish"
+      })
+
+    page = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
+    assert page =~ "Format: BP, Karl Popper"
+    assert page =~ "Language: Ukrainian, Polish"
+    assert conn |> get(~p"/") |> html_response(200) =~ "BP, Karl Popper"
+
+    %{"clubs" => [api]} = conn |> get(~p"/api/v1/clubs") |> json_response(200)
+    assert api["format_other"] == "Karl Popper"
+    assert api["language_other"] == "Polish"
+  end
+
+  test "other text is at most 60 characters", %{club: club} do
+    assert {:error, changeset} =
+             Cab.Clubs.update_club(club, %{
+               formats: ["other"],
+               format_other: String.duplicate("x", 61)
+             })
+
+    assert changeset.errors[:format_other]
   end
 
   test "the club page and the directory show them", %{conn: conn, club: club} do

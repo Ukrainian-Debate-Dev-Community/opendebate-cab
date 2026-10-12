@@ -25,7 +25,7 @@ defmodule CabWeb.OwnerController do
     )
   end
 
-  @profile_fields ~w(name city meeting_info description contacts is_private formats languages audiences)
+  @profile_fields ~w(name city meeting_info description contacts is_private formats languages audiences format_other language_other)
 
   # POST /c/:club_uuid/owner/club - the in-place save; twin of
   # PATCH /api/v1/clubs/:uuid
@@ -34,6 +34,7 @@ defmodule CabWeb.OwnerController do
     attrs =
       %{"formats" => [], "languages" => [], "audiences" => []}
       |> Map.merge(Map.take(params, @profile_fields))
+      |> one_choice(~w(formats languages audiences))
 
     case Clubs.update_club(conn.assigns.club, attrs) do
       {:ok, _club} ->
@@ -424,4 +425,15 @@ defmodule CabWeb.OwnerController do
   defp error_message(%{rooms: message}), do: message
   defp error_message(%{name: message}), do: message
   defp error_message(other), do: inspect(other)
+
+  # the form picks one of each; the club keeps them as lists
+  defp one_choice(attrs, keys) do
+    Enum.reduce(keys, attrs, fn key, acc ->
+      case acc[key] do
+        value when is_binary(value) and value != "" -> Map.put(acc, key, [value])
+        value when is_list(value) -> acc
+        _ -> Map.put(acc, key, [])
+      end
+    end)
+  end
 end

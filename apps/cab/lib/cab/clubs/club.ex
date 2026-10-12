@@ -14,6 +14,9 @@ defmodule Cab.Clubs.Club do
     field :formats, {:array, :string}, default: []
     field :languages, {:array, :string}, default: []
     field :audiences, {:array, :string}, default: []
+    # the club's own words when "other" is ticked, e.g. "Karl Popper"
+    field :format_other, :string
+    field :language_other, :string
     # private = standings only (excluded from global standings, own
     # standings members-only); everything else stays public
     field :is_private, :boolean, default: false
@@ -46,14 +49,31 @@ defmodule Cab.Clubs.Club do
       :is_private,
       :formats,
       :languages,
-      :audiences
+      :audiences,
+      :format_other,
+      :language_other
     ])
     |> validate_required([:name])
     |> validate_subset(:formats, @formats)
     |> validate_subset(:languages, @languages)
     |> validate_subset(:audiences, @audiences)
+    |> other_text(:formats, :format_other)
+    |> other_text(:languages, :language_other)
     |> put_uuid()
     |> unique_constraint(:uuid)
+  end
+
+  # the typed text belongs to "other": trimmed, at most 60 characters,
+  # and gone when "other" is not ticked
+  defp other_text(changeset, list, field) do
+    if "other" in (get_field(changeset, list) || []) do
+      changeset
+      |> update_change(field, &(&1 && String.trim(&1)))
+      |> then(&if(get_field(&1, field) == "", do: put_change(&1, field, nil), else: &1))
+      |> validate_length(field, max: 60)
+    else
+      put_change(changeset, field, nil)
+    end
   end
 
   defp put_uuid(changeset) do

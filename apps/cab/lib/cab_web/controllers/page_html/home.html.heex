@@ -39,7 +39,7 @@
         </:col>
         <:col :let={club} label={gettext("City")}>{club.city}</:col>
         <:col :let={club} label={gettext("Format")}>
-          {CabWeb.ClubProfile.formats(club.formats)}
+          {CabWeb.ClubProfile.formats(club.formats, club.format_other)}
         </:col>
         <:col :let={club} label={gettext("Members")} num>{@member_counts[club.id] || 0}</:col>
         <:col :let={club} label={gettext("Next session")} class="st">

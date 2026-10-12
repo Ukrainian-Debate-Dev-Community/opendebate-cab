@@ -281,6 +281,10 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .pills label:last-child { border-right:none; }
 .pills input { display:none; }
 .pills label:has(input:checked) { background:var(--brand-fill); color:var(--on-brand); }
+/* a pills choice can open a text field for its own words while chosen */
+.pills-field { display:flex; flex-direction:column; gap:8px; }
+.pills-other { display:none; max-width:22rem; }
+.pills-field:has(.pills input[value=other]:checked) .pills-other { display:block; }
 .opts { display:flex; flex-direction:column; gap:7px; }
 .opts label { display:flex; align-items:center; gap:9px; font-size:.84rem;
               cursor:pointer; margin:0; }

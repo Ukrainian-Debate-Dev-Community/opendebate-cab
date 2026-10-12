@@ -37,12 +37,13 @@ defmodule CabWeb.Api.ClubController do
 
   # PATCH /api/v1/clubs/:uuid {"name", "city", "meeting_info",
   # "description", "contacts", "is_private", "formats", "languages",
-  # "audiences"} - head edits the profile; fields left out stay
+  # "audiences", "format_other", "language_other"} - head edits the
+  # profile; fields left out stay
   def update(conn, params) do
     attrs =
       Map.take(
         params,
-        ~w(name city meeting_info description contacts is_private formats languages audiences)
+        ~w(name city meeting_info description contacts is_private formats languages audiences format_other language_other)
       )
 
     with {:ok, club} <- Clubs.update_club(conn.assigns.club, attrs) do
@@ -59,7 +60,9 @@ defmodule CabWeb.Api.ClubController do
       description: club.description,
       contacts: club.contacts,
       formats: club.formats,
+      format_other: club.format_other,
       languages: club.languages,
+      language_other: club.language_other,
       audiences: club.audiences
     }
   end

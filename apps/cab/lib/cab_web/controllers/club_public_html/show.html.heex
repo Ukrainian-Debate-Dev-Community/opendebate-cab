@@ -44,11 +44,14 @@
       <p :if={@club.description}>{@club.description}</p>
       <p :if={@club.meeting_info}>{gettext("Meetings:")} {@club.meeting_info}</p>
       <p :if={@club.contacts}>{gettext("Contacts:")} {@club.contacts}</p>
-      <p :if={CabWeb.ClubProfile.formats(@club.formats)}>
-        {gettext("Format:")} {CabWeb.ClubProfile.formats(@club.formats)}
+      <p :if={CabWeb.ClubProfile.formats(@club.formats, @club.format_other)}>
+        {gettext("Format:")} {CabWeb.ClubProfile.formats(@club.formats, @club.format_other)}
       </p>
-      <p :if={CabWeb.ClubProfile.languages(@club.languages)}>
-        {gettext("Language:")} {CabWeb.ClubProfile.languages(@club.languages)}
+      <p :if={CabWeb.ClubProfile.languages(@club.languages, @club.language_other)}>
+        {gettext("Language:")} {CabWeb.ClubProfile.languages(
+          @club.languages,
+          @club.language_other
+        )}
       </p>
       <p :if={CabWeb.ClubProfile.audiences(@club.audiences)}>
         {gettext("Audience:")} {CabWeb.ClubProfile.audiences(@club.audiences)}

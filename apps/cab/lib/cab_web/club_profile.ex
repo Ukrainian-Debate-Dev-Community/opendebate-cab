@@ -8,12 +8,21 @@ defmodule CabWeb.ClubProfile do
   def language_options, do: Enum.map(Club.languages(), &{language(&1), &1})
   def audience_options, do: Enum.map(Club.audiences(), &{audience(&1), &1})
 
-  def formats(values), do: words(values, &format/1)
-  def languages(values), do: words(values, &language/1)
-  def audiences(values), do: words(values, &audience/1)
+  @doc "A club's formats in words; `other` is the club's own text when it typed one."
+  def formats(values, other \\ nil), do: words(values, &format/1, other)
+  def languages(values, other \\ nil), do: words(values, &language/1, other)
+  def audiences(values), do: words(values, &audience/1, nil)
 
-  defp words([], _label), do: nil
-  defp words(values, label), do: values |> Enum.map(label) |> Enum.join(", ")
+  defp words([], _label, _other), do: nil
+
+  defp words(values, label, other) do
+    values
+    |> Enum.map(fn
+      "other" when is_binary(other) and other != "" -> other
+      value -> label.(value)
+    end)
+    |> Enum.join(", ")
+  end
 
   defp format("bp"), do: gettext("BP")
   defp format("apf"), do: gettext("APF")

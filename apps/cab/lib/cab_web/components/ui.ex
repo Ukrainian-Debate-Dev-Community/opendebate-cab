@@ -450,6 +450,10 @@ defmodule CabWeb.Ui do
     attr :options, :list, doc: "choices for :select / :multi, strings or {label, value}"
     attr :placeholder, :string
     attr :list, :string, doc: "a :text block's <datalist> id, for suggestions while typing"
+    attr :other, :string, doc: "a :select pills value that opens a free-text field when chosen"
+    attr :other_name, :any, doc: "that free-text field's name"
+    attr :other_value, :string, doc: "that free-text field's current text"
+    attr :other_placeholder, :string
   end
 
   slot :submit do
@@ -546,11 +550,23 @@ defmodule CabWeb.Ui do
 
         if length(options) <= 4 do
           ~H"""
-          <div class="pills">
-            <label :for={{label, value} <- @options}>
-              <input type="radio" name={@name} value={value} checked={same?(@b[:value], value)} />
-              <span>{label}</span>
-            </label>
+          <div class="pills-field">
+            <div class="pills">
+              <label :for={{label, value} <- @options}>
+                <input type="radio" name={@name} value={value} checked={same?(@b[:value], value)} />
+                <span>{label}</span>
+              </label>
+            </div>
+            <input
+              :if={@b[:other]}
+              type="text"
+              class="pills-other"
+              name={to_string(@b[:other_name])}
+              value={@b[:other_value]}
+              placeholder={@b[:other_placeholder]}
+              maxlength="60"
+              aria-label={@b[:other_placeholder]}
+            />
           </div>
           """
         else
