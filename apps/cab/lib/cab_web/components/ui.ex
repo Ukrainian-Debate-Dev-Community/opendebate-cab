@@ -449,6 +449,7 @@ defmodule CabWeb.Ui do
     attr :values, :list, doc: "the two values of a :datetime pair"
     attr :options, :list, doc: "choices for :select / :multi, strings or {label, value}"
     attr :placeholder, :string
+    attr :maxlength, :integer
     attr :list, :string, doc: "a :text block's <datalist> id, for suggestions while typing"
     attr :other, :string, doc: "a :select pills value that opens a free-text field when chosen"
     attr :other_name, :any, doc: "that free-text field's name"
@@ -498,6 +499,7 @@ defmodule CabWeb.Ui do
   name={@name}
   value={@b[:value]}
   placeholder={@b[:placeholder]}
+  maxlength={@b[:maxlength]}
   list={@b[:list]}
 />|
 

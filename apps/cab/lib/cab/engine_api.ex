@@ -47,11 +47,10 @@ defmodule Cab.EngineApi do
     default, `?hard=true` is admin-only. Archived events drop out of
     all paranoid listings.
 
-  ### Organizers (event roles)
+  ### Organizers
   - `GET /events/:eventId/organizers`
-  - `POST /events/:eventId/organizers` {targetUserId, role} - role in
-    organiser|tab|adjcore (default organiser) - owner/organiser
-  - `PATCH /events/:eventId/organizers/:targetUserId` {role}
+  - `POST /events/:eventId/organizers` {targetUserId} - owner/organiser;
+    a `role` field is accepted and ignored (no event roles)
   - `DELETE /events/:eventId/organizers/:targetUserId`
 
   ### Participants

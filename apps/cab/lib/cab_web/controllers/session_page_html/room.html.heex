@@ -131,6 +131,7 @@
           type={:text}
           label={gettext("Keyword")}
           hint={gettext("Optional tag for finding the motion later.")}
+          maxlength={32}
           value={get_in(@room, ["Motion", "keyword"])}
         />
         <:block

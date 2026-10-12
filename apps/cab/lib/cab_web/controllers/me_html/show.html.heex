@@ -128,13 +128,13 @@
             {s["overview"]["total_debates_ranked"]}
           </:col>
           <:col :let={s} label={gettext("Avg score")}>
-            {s["overview"]["average_speaker_score"]}
+            {fixed(s["overview"]["average_speaker_score"], 2)}
           </:col>
           <:col :let={s} label={gettext("Highest")}>{s["overview"]["highest_score"]}</:col>
           <:col :let={s} label={gettext("Lowest")}>{s["overview"]["lowest_score"]}</:col>
           <:col :let={s} label={gettext("1st places")}>{s["placements"]["first_places"]}</:col>
           <:col :let={s} label={gettext("Win rate")}>
-            {s["placements"]["win_rate_percentage"]}%
+            {fixed(s["placements"]["win_rate_percentage"], 1)}%
           </:col>
         </.table>
       </.section>

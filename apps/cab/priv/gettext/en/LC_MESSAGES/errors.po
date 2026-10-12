@@ -261,8 +261,8 @@ msgstr ""
 #: lib/cab/accounts.ex:406
 #: lib/cab/clubs.ex:208
 #: lib/cab/clubs.ex:321
-#: lib/cab/engine_api.ex:476
-#: lib/cab/engine_api.ex:484
+#: lib/cab/engine_api.ex:475
+#: lib/cab/engine_api.ex:483
 #: lib/cab/invitations.ex:212
 #: lib/cab/links.ex:109
 #: lib/cab/links.ex:261

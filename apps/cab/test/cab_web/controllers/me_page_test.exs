@@ -37,11 +37,11 @@ defmodule CabWeb.MePageTest do
               "overview" => %{
                 "total_ballots_received" => 22,
                 "total_debates_ranked" => 22,
-                "average_speaker_score" => "77.40",
+                "average_speaker_score" => 77.4,
                 "highest_score" => 84,
                 "lowest_score" => 71
               },
-              "placements" => %{"first_places" => 6, "win_rate_percentage" => "27.3"}
+              "placements" => %{"first_places" => 6, "win_rate_percentage" => 27.3}
             }
           })
       end

@@ -215,7 +215,7 @@ msgstr "Персональне посилання"
 msgid "A room seats nine (eight speakers and an adjudicator), so the room count follows the sign-ups;"
 msgstr "У кімнаті дев'ять місць (вісім спікерів і суддя), тож кількість кімнат залежить від реєстрацій;"
 
-#: lib/cab_web/components/ui.ex:844
+#: lib/cab_web/components/ui.ex:846
 #, elixir-autogen, elixir-format
 msgid "ADJ"
 msgstr "СУД"
@@ -274,8 +274,8 @@ msgstr "Додати до мого акаунта"
 msgid "Added by"
 msgstr "Хто додав"
 
-#: lib/cab_web/components/ui.ex:786
-#: lib/cab_web/components/ui.ex:804
+#: lib/cab_web/components/ui.ex:788
+#: lib/cab_web/components/ui.ex:806
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex:5
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:67
 #: lib/cab_web/controllers/session_page_html/show.html.heex:112
@@ -378,8 +378,8 @@ msgstr "Белоти"
 msgid "By continuing you agree to the"
 msgstr "Продовжуючи, ви погоджуєтеся з документами:"
 
-#: lib/cab_web/components/ui.ex:732
-#: lib/cab_web/components/ui.ex:784
+#: lib/cab_web/components/ui.ex:734
+#: lib/cab_web/components/ui.ex:786
 #: lib/cab_web/controllers/owner_html.ex:40
 #: lib/cab_web/session_format.ex:15
 #: lib/cab_web/session_format.ex:90
@@ -387,13 +387,13 @@ msgstr "Продовжуючи, ви погоджуєтеся з докумен�
 msgid "CG"
 msgstr "ДУ"
 
-#: lib/cab_web/components/ui.ex:720
+#: lib/cab_web/components/ui.ex:722
 #, elixir-autogen, elixir-format
 msgid "CG — CLOSING GOV"
 msgstr "ДУ — ДРУГИЙ УРЯД"
 
-#: lib/cab_web/components/ui.ex:733
-#: lib/cab_web/components/ui.ex:785
+#: lib/cab_web/components/ui.ex:735
+#: lib/cab_web/components/ui.ex:787
 #: lib/cab_web/controllers/owner_html.ex:41
 #: lib/cab_web/session_format.ex:16
 #: lib/cab_web/session_format.ex:91
@@ -401,7 +401,7 @@ msgstr "ДУ — ДРУГИЙ УРЯД"
 msgid "CO"
 msgstr "ДО"
 
-#: lib/cab_web/components/ui.ex:721
+#: lib/cab_web/components/ui.ex:723
 #, elixir-autogen, elixir-format
 msgid "CO — CLOSING OPP"
 msgstr "ДО — ДРУГА ОПОЗИЦІЯ"
@@ -421,7 +421,7 @@ msgstr "Змінити голову клубу"
 msgid "Change head"
 msgstr "Змінити голову"
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex:144
+#: lib/cab_web/controllers/session_page_html/room.html.heex:145
 #, elixir-autogen, elixir-format
 msgid "Change the time to move the end of prep; left empty, it is 15 minutes from now."
 msgstr "Змініть час, щоб перенести кінець підготовки; якщо лишити порожнім, це 15 хвилин від цього моменту."
@@ -534,12 +534,12 @@ msgid "Copied. Paste it into the chat."
 msgstr "Скопійовано. Вставте в чат."
 
 #: lib/cab_web/components/layouts.ex:60
-#: lib/cab_web/components/ui.ex:923
+#: lib/cab_web/components/ui.ex:925
 #, elixir-autogen, elixir-format
 msgid "Copy"
 msgstr "Копіювати"
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex:167
+#: lib/cab_web/controllers/session_page_html/room.html.heex:168
 #, elixir-autogen, elixir-format
 msgid "Copy image"
 msgstr "Копіювати зображення"
@@ -624,7 +624,7 @@ msgstr "Видалити кімнати"
 msgid "Display name"
 msgstr "Ім'я для показу"
 
-#: lib/cab_web/components/ui.ex:817
+#: lib/cab_web/components/ui.ex:819
 #, elixir-autogen, elixir-format
 msgid "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team with one speaker becomes an iron."
 msgstr "Перетягуйте учасників у слоти; кинете на зайнятий слот, і вони поміняються місцями; витягніть учасника за межі таблиці, щоб зняти його з місця. Команда з одного спікера стає айроном."
@@ -660,7 +660,7 @@ msgstr "Редагувати клуб"
 msgid "Enter a name."
 msgstr "Введіть ім'я."
 
-#: lib/cab_web/components/ui.ex:711
+#: lib/cab_web/components/ui.ex:713
 #, elixir-autogen, elixir-format
 msgid "Enter all eight scores — ranks derive from team totals."
 msgstr "Введіть усі вісім балів — місця визначаються сумами команд."
@@ -721,8 +721,8 @@ msgstr "Отримали персональне посилання від клу
 msgid "Guest history"
 msgstr "Гостьова історія"
 
-#: lib/cab_web/components/ui.ex:619
-#: lib/cab_web/controllers/session_page_html/room.html.heex:140
+#: lib/cab_web/components/ui.ex:621
+#: lib/cab_web/controllers/session_page_html/room.html.heex:141
 #, elixir-autogen, elixir-format
 msgid "HH:MM"
 msgstr "ГГ:ХХ"
@@ -930,7 +930,7 @@ msgstr "Об'єднати два акаунти"
 msgid "Method"
 msgstr "Спосіб"
 
-#: lib/cab_web/components/ui.ex:665
+#: lib/cab_web/components/ui.ex:667
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:103
 #: lib/cab_web/controllers/session_page_html/room.html.heex:80
 #: lib/cab_web/controllers/session_page_html/room.html.heex:94
@@ -950,7 +950,7 @@ msgstr "Резолюцію опубліковано."
 msgid "Motion updated."
 msgstr "Резолюцію оновлено."
 
-#: lib/cab_web/components/ui.ex:665
+#: lib/cab_web/components/ui.ex:667
 #, elixir-autogen, elixir-format
 msgid "Motion — %{room}"
 msgstr "Резолюція — %{room}"
@@ -1005,7 +1005,7 @@ msgstr "Новий голова"
 msgid "Next session"
 msgstr "Наступна сесія"
 
-#: lib/cab_web/components/ui.ex:542
+#: lib/cab_web/components/ui.ex:544
 #, elixir-autogen, elixir-format
 msgid "No"
 msgstr "Ні"
@@ -1103,8 +1103,8 @@ msgstr "Ще не задано — суддя задає його, коли по
 msgid "Nothing here yet."
 msgstr "Тут поки нічого немає."
 
-#: lib/cab_web/components/ui.ex:730
-#: lib/cab_web/components/ui.ex:782
+#: lib/cab_web/components/ui.ex:732
+#: lib/cab_web/components/ui.ex:784
 #: lib/cab_web/controllers/owner_html.ex:38
 #: lib/cab_web/session_format.ex:13
 #: lib/cab_web/session_format.ex:88
@@ -1112,13 +1112,13 @@ msgstr "Тут поки нічого немає."
 msgid "OG"
 msgstr "ПУ"
 
-#: lib/cab_web/components/ui.ex:718
+#: lib/cab_web/components/ui.ex:720
 #, elixir-autogen, elixir-format
 msgid "OG — OPENING GOV"
 msgstr "ПУ — ПЕРШИЙ УРЯД"
 
-#: lib/cab_web/components/ui.ex:731
-#: lib/cab_web/components/ui.ex:783
+#: lib/cab_web/components/ui.ex:733
+#: lib/cab_web/components/ui.ex:785
 #: lib/cab_web/controllers/owner_html.ex:39
 #: lib/cab_web/session_format.ex:14
 #: lib/cab_web/session_format.ex:89
@@ -1126,7 +1126,7 @@ msgstr "ПУ — ПЕРШИЙ УРЯД"
 msgid "OO"
 msgstr "ПО"
 
-#: lib/cab_web/components/ui.ex:719
+#: lib/cab_web/components/ui.ex:721
 #, elixir-autogen, elixir-format
 msgid "OO — OPENING OPP"
 msgstr "ПО — ПЕРША ОПОЗИЦІЯ"
@@ -1227,7 +1227,7 @@ msgstr "Бали"
 msgid "Policy"
 msgstr "Політика"
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex:139
+#: lib/cab_web/controllers/session_page_html/room.html.heex:140
 #, elixir-autogen, elixir-format
 msgid "Prep ends at"
 msgstr "Підготовка до"
@@ -1268,7 +1268,7 @@ msgstr "Спершу опублікуйте резолюцію кімнати."
 msgid "Publishing shows it to the room and starts 15 minutes of prep."
 msgstr "Публікація показує її кімнаті й запускає 15 хвилин підготовки."
 
-#: lib/cab_web/components/ui.ex:792
+#: lib/cab_web/components/ui.ex:794
 #: lib/cab_web/session_format.ex:27
 #: lib/cab_web/session_format.ex:28
 #, elixir-autogen, elixir-format
@@ -1436,7 +1436,7 @@ msgstr "Резолюція кімнати %{room}:"
 msgid "Room %{room} — %{status}"
 msgstr "Кімната %{room} — %{status}"
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex:164
+#: lib/cab_web/controllers/session_page_html/room.html.heex:165
 #, elixir-autogen, elixir-format
 msgid "Room card preview"
 msgstr "Попередній перегляд картки кімнати"
@@ -1465,7 +1465,7 @@ msgstr "Кімнати видалено. Реєстрація знову від�
 msgid "Run by the NGO Debate Federation of Ukraine (ВМГО «Федерація Дебатів України»)."
 msgstr "Проєкт ВМГО «Федерація Дебатів України»."
 
-#: lib/cab_web/components/ui.ex:843
+#: lib/cab_web/components/ui.ex:845
 #, elixir-autogen, elixir-format
 msgid "SPK"
 msgstr "СПК"
@@ -1481,7 +1481,7 @@ msgstr "Інший акаунт тієї ж людини"
 msgid "Save"
 msgstr "Зберегти"
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex:168
+#: lib/cab_web/controllers/session_page_html/room.html.heex:169
 #, elixir-autogen, elixir-format
 msgid "Save image"
 msgstr "Зберегти зображення"
@@ -1556,12 +1556,12 @@ msgstr "Час сесій показано в цьому поясі. cab збе�
 msgid "Sessions"
 msgstr "Сесії"
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex:147
+#: lib/cab_web/controllers/session_page_html/room.html.heex:148
 #, elixir-autogen, elixir-format
 msgid "Set to 15 minutes from publishing, or type a time."
 msgstr "15 хвилин від публікації, або введіть час."
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex:154
+#: lib/cab_web/controllers/session_page_html/room.html.heex:155
 #, elixir-autogen, elixir-format
 msgid "Share this room"
 msgstr "Поділитися кімнатою"
@@ -1970,7 +1970,7 @@ msgstr "Ім'я користувача:"
 msgid "View as public"
 msgstr "Переглянути як відвідувач"
 
-#: lib/cab_web/components/ui.ex:769
+#: lib/cab_web/components/ui.ex:771
 #, elixir-autogen, elixir-format
 msgid "Waiting (%{count})"
 msgstr "Чекають (%{count})"
@@ -2015,12 +2015,12 @@ msgstr "Переможець:"
 msgid "Winners:"
 msgstr "Переможці:"
 
-#: lib/cab_web/components/ui.ex:617
+#: lib/cab_web/components/ui.ex:619
 #, elixir-autogen, elixir-format
 msgid "YYYY-MM-DD"
 msgstr "РРРР-ММ-ДД"
 
-#: lib/cab_web/components/ui.ex:538
+#: lib/cab_web/components/ui.ex:540
 #, elixir-autogen, elixir-format
 msgid "Yes"
 msgstr "Так"
@@ -2108,7 +2108,7 @@ msgstr "прийняти"
 msgid "adjudicated"
 msgstr "судив"
 
-#: lib/cab_web/controllers/me_html.ex:20
+#: lib/cab_web/controllers/me_html.ex:26
 #, elixir-autogen, elixir-format
 msgid "adjudicator"
 msgstr "суддя"
@@ -2204,7 +2204,7 @@ msgstr "раніше:"
 msgid "edit ballot"
 msgstr "редагувати белот"
 
-#: lib/cab_web/components/ui.ex:860
+#: lib/cab_web/components/ui.ex:862
 #, elixir-autogen, elixir-format
 msgid "empty"
 msgstr "порожня"
@@ -2219,7 +2219,7 @@ msgstr "завершена"
 msgid "guest"
 msgstr "гість"
 
-#: lib/cab_web/controllers/me_html.ex:17
+#: lib/cab_web/controllers/me_html.ex:23
 #: lib/cab_web/controllers/member_html.ex:14
 #: lib/cab_web/controllers/owner_html.ex:34
 #, elixir-autogen, elixir-format
@@ -2231,7 +2231,7 @@ msgstr "голова"
 msgid "head: %{name}"
 msgstr "голова: %{name}"
 
-#: lib/cab_web/components/ui.ex:869
+#: lib/cab_web/components/ui.ex:871
 #, elixir-autogen, elixir-format
 msgid "incomplete"
 msgstr "неповна"
@@ -2241,7 +2241,7 @@ msgstr "неповна"
 msgid "invited, not accepted yet"
 msgstr "запрошено, ще не прийняв"
 
-#: lib/cab_web/components/ui.ex:691
+#: lib/cab_web/components/ui.ex:693
 #, elixir-autogen, elixir-format
 msgid "iron"
 msgstr "айрон"
@@ -2271,7 +2271,7 @@ msgstr "прив'язано"
 msgid "live"
 msgstr "активний"
 
-#: lib/cab_web/controllers/me_html.ex:18
+#: lib/cab_web/controllers/me_html.ex:24
 #: lib/cab_web/controllers/member_html.ex:15
 #: lib/cab_web/controllers/owner_html.ex:28
 #: lib/cab_web/controllers/owner_html.ex:35
@@ -2366,12 +2366,12 @@ msgstr "публічний"
 msgid "quiet"
 msgstr "тихо"
 
-#: lib/cab_web/components/ui.ex:866
+#: lib/cab_web/components/ui.ex:868
 #, elixir-autogen, elixir-format
 msgid "ready"
 msgstr "готова"
 
-#: lib/cab_web/components/ui.ex:863
+#: lib/cab_web/components/ui.ex:865
 #, elixir-autogen, elixir-format
 msgid "ready, %{count} iron"
 msgstr "готова, айронів: %{count}"
@@ -2447,12 +2447,12 @@ msgstr "сесія:"
 msgid "signed-in user"
 msgstr "користувач з акаунтом"
 
-#: lib/cab_web/controllers/me_html.ex:19
+#: lib/cab_web/controllers/me_html.ex:25
 #, elixir-autogen, elixir-format
 msgid "speaker"
 msgstr "спікер"
 
-#: lib/cab_web/components/ui.ex:703
+#: lib/cab_web/components/ui.ex:705
 #, elixir-autogen, elixir-format
 msgid "team total"
 msgstr "сума команди"
@@ -3102,7 +3102,7 @@ msgstr "Немає акаунта з іменем користувача або 
 msgid "Menu"
 msgstr "Меню"
 
-#: lib/cab_web/components/ui.ex:821
+#: lib/cab_web/components/ui.ex:823
 #, elixir-autogen, elixir-format
 msgid "On a touch screen, hold a person and drag them to a slot, or tap a person, then a slot."
 msgstr "На сенсорному екрані утримуйте учасника й перетягніть його у слот або торкніться учасника, а потім слоту."

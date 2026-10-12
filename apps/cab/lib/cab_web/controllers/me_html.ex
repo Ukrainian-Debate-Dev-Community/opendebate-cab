@@ -13,6 +13,12 @@ defmodule CabWeb.MeHTML do
 
   defp tonight_words({_session, :running, _rooms}), do: gettext("running")
 
+  # engine numbers shown with fixed decimals, as the engine once sent them
+  defp fixed(value, decimals) when is_number(value),
+    do: :erlang.float_to_binary(value / 1, decimals: decimals)
+
+  defp fixed(value, _decimals), do: value
+
   # a role as people read it: club roles and session roles
   defp role_word("head"), do: gettext("head")
   defp role_word("member"), do: gettext("member")
