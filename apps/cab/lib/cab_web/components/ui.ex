@@ -108,119 +108,133 @@ defmodule CabWeb.Ui do
   def sidenav(assigns) do
     ~H"""
     <nav class="sidenav" id="sidenav">
-      <.link href={~p"/"} class="cap">cab<.beta /></.link>
-      <%= if @club do %>
-        <div class="sec">{@club.name}</div>
-        <.nav_item
-          active={@active}
-          key="club"
-          href={club_href(@club, @club_role)}
-          label={gettext("Club")}
-        />
-        <.nav_item
-          active={@active}
-          key="rooms"
-          href={rooms_href(@club, @club_role, @nav_session)}
-          label={gettext("Rooms")}
-        />
-        <.nav_item
-          active={@active}
-          key="standings"
-          href={~p"/c/#{@club.uuid}/standings/teams"}
-          label={gettext("Standings")}
-        />
-        <.nav_item
-          :if={not @club.is_private or Cab.Clubs.covers?(@club_role, :member)}
-          active={@active}
-          key="members"
-          href={members_href(@club, @club_role)}
-          label={gettext("Members")}
-        />
-        <.nav_item
-          :if={@nav_session}
-          active={@active}
-          key="register"
-          href={~p"/r/#{@nav_session.uuid}"}
-          label={gettext("Register")}
-        />
-      <% else %>
-        <.nav_item active={@active} key="clubs" href={~p"/"} label={gettext("Clubs")} />
-        <.nav_item
-          active={@active}
-          key="standings"
-          href={~p"/standings/teams"}
-          label={gettext("Standings")}
-        />
-        <.nav_item
-          :if={@current_user && !guest?(@current_user)}
-          active={@active}
-          key="me"
-          href={~p"/me"}
-          label={gettext("My page")}
-        />
-        <.nav_item
-          :if={@current_user && @current_user.is_admin}
-          active={@active}
-          key="admin"
-          href={~p"/admin"}
-          label={gettext("Admin")}
-        />
-      <% end %>
-      <div class="profile" id="sidenav-profile">
-        <div class="me">
-          <%= if @current_user do %>
-            <div class="who">
-              <span class="av">{initials(@current_user)}</span>
-              <%= if guest?(@current_user) do %>
-                <span>{@current_user.name || @current_user.username}</span>
-              <% else %>
-                <.link href={~p"/account"}>{@current_user.username}</.link>
-              <% end %>
-            </div>
-            <.link :if={guest?(@current_user)} href={~p"/signin"}>
-              {gettext("Sign in with an account")}
-            </.link>
-            <.link class="out" href={~p"/auth/logout"}>{gettext("Sign out")}</.link>
-          <% else %>
-            <.link href={~p"/signin"}>{gettext("Sign in")}</.link>
-          <% end %>
-        </div>
-        <div class="switches" id="sidenav-switches" phx-update="ignore">
-          <button
-            type="button"
-            class="cycle"
-            data-cycle="theme"
-            data-state="auto"
-            aria-label={gettext("Theme: auto")}
-            title={gettext("Theme: light, auto or dark")}
-          >
-            <svg class="i-light" viewBox="0 0 16 16" aria-hidden="true">
-              <circle cx="8" cy="8" r="2.6" />
-              <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3" />
-            </svg>
-            <svg class="i-auto" viewBox="0 0 16 16" aria-hidden="true">
-              <circle cx="8" cy="8" r="5.5" /><path d="M8 2.5v11a5.5 5.5 0 0 0 0-11Z" class="fill" />
-            </svg>
-            <svg class="i-dark" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M13 9.6A5.2 5.2 0 0 1 6.4 3a5.2 5.2 0 1 0 6.6 6.6Z" />
-            </svg>
-          </button>
-          <details class="langs" data-langs>
-            <summary class="cycle" aria-label={gettext("Language")} title={gettext("Language")}>
-              {CabWeb.Locale.short(Gettext.get_locale(CabWeb.Gettext))}
-            </summary>
-            <div class="menu" role="menu">
-              <a
-                :for={{code, label, name} <- CabWeb.Locale.names()}
-                href={"/locale/#{code}"}
-                lang={code}
-                role="menuitem"
-                aria-current={Gettext.get_locale(CabWeb.Gettext) == code && "true"}
-              >
-                <span class="code">{label}</span>{name}
-              </a>
-            </div>
-          </details>
+      <div class="bar">
+        <.link href={~p"/"} class="cap">cab<.beta /></.link>
+        <span :if={@club} class="where">{@club.name}</span>
+        <button
+          type="button"
+          class="menu-btn"
+          data-nav-toggle
+          aria-controls="sidenav-menu"
+          aria-expanded="false"
+        >
+          {gettext("Menu")}
+        </button>
+      </div>
+      <div class="navbody" id="sidenav-menu">
+        <%= if @club do %>
+          <div class="sec">{@club.name}</div>
+          <.nav_item
+            active={@active}
+            key="club"
+            href={club_href(@club, @club_role)}
+            label={gettext("Club")}
+          />
+          <.nav_item
+            active={@active}
+            key="rooms"
+            href={rooms_href(@club, @club_role, @nav_session)}
+            label={gettext("Rooms")}
+          />
+          <.nav_item
+            active={@active}
+            key="standings"
+            href={~p"/c/#{@club.uuid}/standings/teams"}
+            label={gettext("Standings")}
+          />
+          <.nav_item
+            :if={not @club.is_private or Cab.Clubs.covers?(@club_role, :member)}
+            active={@active}
+            key="members"
+            href={members_href(@club, @club_role)}
+            label={gettext("Members")}
+          />
+          <.nav_item
+            :if={@nav_session}
+            active={@active}
+            key="register"
+            href={~p"/r/#{@nav_session.uuid}"}
+            label={gettext("Register")}
+          />
+        <% else %>
+          <.nav_item active={@active} key="clubs" href={~p"/"} label={gettext("Clubs")} />
+          <.nav_item
+            active={@active}
+            key="standings"
+            href={~p"/standings/teams"}
+            label={gettext("Standings")}
+          />
+          <.nav_item
+            :if={@current_user && !guest?(@current_user)}
+            active={@active}
+            key="me"
+            href={~p"/me"}
+            label={gettext("My page")}
+          />
+          <.nav_item
+            :if={@current_user && @current_user.is_admin}
+            active={@active}
+            key="admin"
+            href={~p"/admin"}
+            label={gettext("Admin")}
+          />
+        <% end %>
+        <div class="profile" id="sidenav-profile">
+          <div class="me">
+            <%= if @current_user do %>
+              <div class="who">
+                <span class="av">{initials(@current_user)}</span>
+                <%= if guest?(@current_user) do %>
+                  <span>{@current_user.name || @current_user.username}</span>
+                <% else %>
+                  <.link href={~p"/account"}>{@current_user.username}</.link>
+                <% end %>
+              </div>
+              <.link :if={guest?(@current_user)} href={~p"/signin"}>
+                {gettext("Sign in with an account")}
+              </.link>
+              <.link class="out" href={~p"/auth/logout"}>{gettext("Sign out")}</.link>
+            <% else %>
+              <.link href={~p"/signin"}>{gettext("Sign in")}</.link>
+            <% end %>
+          </div>
+          <div class="switches" id="sidenav-switches" phx-update="ignore">
+            <button
+              type="button"
+              class="cycle"
+              data-cycle="theme"
+              data-state="auto"
+              aria-label={gettext("Theme: auto")}
+              title={gettext("Theme: light, auto or dark")}
+            >
+              <svg class="i-light" viewBox="0 0 16 16" aria-hidden="true">
+                <circle cx="8" cy="8" r="2.6" />
+                <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3" />
+              </svg>
+              <svg class="i-auto" viewBox="0 0 16 16" aria-hidden="true">
+                <circle cx="8" cy="8" r="5.5" /><path d="M8 2.5v11a5.5 5.5 0 0 0 0-11Z" class="fill" />
+              </svg>
+              <svg class="i-dark" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M13 9.6A5.2 5.2 0 0 1 6.4 3a5.2 5.2 0 1 0 6.6 6.6Z" />
+              </svg>
+            </button>
+            <details class="langs" data-langs>
+              <summary class="cycle" aria-label={gettext("Language")} title={gettext("Language")}>
+                {CabWeb.Locale.short(Gettext.get_locale(CabWeb.Gettext))}
+              </summary>
+              <div class="menu" role="menu">
+                <a
+                  :for={{code, label, name} <- CabWeb.Locale.names()}
+                  href={"/locale/#{code}"}
+                  lang={code}
+                  role="menuitem"
+                  aria-current={Gettext.get_locale(CabWeb.Gettext) == code && "true"}
+                >
+                  <span class="code">{label}</span>{name}
+                </a>
+              </div>
+            </details>
+          </div>
         </div>
       </div>
     </nav>
@@ -326,11 +340,12 @@ defmodule CabWeb.Ui do
     attr :code, :boolean
     attr :center, :boolean
     attr :class, :string, doc: "extra td class (the draw table's side color bands)"
+    attr :wide_only, :boolean, doc: "hidden when the table folds into cards on a phone"
   end
 
   def table(assigns) do
     ~H"""
-    <table class="t" id={@id}>
+    <table class="t t-rows" id={@id}>
       <thead>
         <tr>
           <th :if={@rank} style="width:40px">#</th>
@@ -360,11 +375,13 @@ defmodule CabWeb.Ui do
           <td :if={@rank} class="rank">{index}</td>
           <td
             :for={col <- @col}
+            data-label={col[:label]}
             class={[
               col[:code] && "code",
               (col[:num] || col[:float]) && "num",
               col[:center] && "c",
-              col[:class]
+              col[:class],
+              col[:wide_only] && "wide-only"
             ]}
           >
             {render_slot(col, row)}
@@ -694,6 +711,11 @@ defmodule CabWeb.Ui do
 
   @alloc_sides ~w(og oo cg co)
 
+  defp side_short("og"), do: gettext("OG")
+  defp side_short("oo"), do: gettext("OO")
+  defp side_short("cg"), do: gettext("CG")
+  defp side_short("co"), do: gettext("CO")
+
   @doc """
   The allocation surface (tabbycat's drag-and-drop model), rendered
   from the SERVER-HELD draft: a tray of everyone not placed yet over
@@ -752,7 +774,7 @@ defmodule CabWeb.Ui do
         <tbody>
           <tr :for={room <- 1..@rooms}>
             <td class="room">{gettext("R%{number}", number: room)}</td>
-            <td :for={side <- @sides} class={"team t-#{side}"}>
+            <td :for={side <- @sides} class={"team t-#{side}"} data-side={side_short(side)}>
               <div
                 :for={n <- 1..2}
                 class="slot"
@@ -763,7 +785,7 @@ defmodule CabWeb.Ui do
                 <% end %>
               </div>
             </td>
-            <td class="judge">
+            <td class="judge" data-side={gettext("Adjudicator")}>
               <div class="slot" data-slot={"#{room}:judge"}>
                 <%= if person = placed(@people, @draft, "#{room}:judge") do %>
                   <.chip person={person} tag={:adj} />
@@ -779,6 +801,11 @@ defmodule CabWeb.Ui do
         {gettext(
           "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team with one speaker becomes an iron."
         )}
+        <span class="touch-hint">
+          {gettext(
+            "On a touch screen, hold a person and drag them to a slot, or tap a person, then a slot."
+          )}
+        </span>
       </div>
     </div>
     """

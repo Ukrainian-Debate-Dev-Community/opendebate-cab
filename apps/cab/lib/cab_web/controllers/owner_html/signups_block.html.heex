@@ -24,7 +24,7 @@
     <:col :let={participant} label={gettext("Seat")}>
       {seat_words(participant, @state, @draft)}
     </:col>
-    <:col :let={participant} label={gettext("Personal link")} code>
+    <:col :let={participant} label={gettext("Personal link")} code wide_only>
       {if link = guest_link(participant, @links), do: url(~p"/l/#{link.code}"), else: "—"}
     </:col>
     <:col :let={participant}>

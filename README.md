@@ -23,6 +23,7 @@ make setup   # engine checkout and packages, Elixir deps, databases
 make up      # engine on :3100, cab on :4000, uadebate.com on :4001
 make test    # unit tests
 make test-all
+make test-phone  # every key page as an iPhone 15, against the running stack (make up)
 ```
 
 The dev stack reads `.env` at the repo root (OAuth keys, engine secret)

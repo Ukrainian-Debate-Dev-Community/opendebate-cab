@@ -2,7 +2,7 @@ RUN_DIR = .run
 PSQL   ?= /opt/homebrew/Cellar/postgresql@16/16.12/bin/psql
 NIX     = nix develop --command
 
-.PHONY: setup dev build test test-all test-e2e lint fmt clean up down restart fresh backfill stress logs status sync-engine release image
+.PHONY: setup dev build test test-all test-e2e test-phone lint fmt clean up down restart fresh backfill stress logs status sync-engine release image
 
 # ---------------------------------------------------------------
 # Standard targets
@@ -92,6 +92,11 @@ backfill:
 # make fresh first for a clean database). Re-runnable.
 test-e2e:
 	apps/cab/priv/walkthrough_rest.sh
+
+# Every key page as an iPhone 15 against the running stack (make up):
+# fails when a page scrolls sideways. Not part of CI.
+test-phone:
+	PATH="$(dir $(PSQL)):$$PATH" uv run tools/phone/phone_check.py
 
 # Load test against the running local stack (make up first)
 stress:

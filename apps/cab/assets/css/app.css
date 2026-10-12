@@ -153,6 +153,9 @@ main.page-main { width:100%; flex:1 0 auto; }
 .sidenav a.item.on { background:var(--brand-50); color:var(--brand-700);
                      font-weight:700; border-left:3px solid var(--brand);
                      padding-left:13px; }
+/* desktop: the phone bar's wrappers add nothing to the layout */
+.sidenav .bar, .sidenav .navbody { display:contents; }
+.sidenav .menu-btn, .sidenav .where { display:none; }
 .sidenav .profile { margin-top:auto; border-top:1px solid var(--line);
                     padding:10px 16px; font-size:.76rem; }
 .sidenav .profile a { text-decoration:none; color:var(--ink);
@@ -358,6 +361,11 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
            color:var(--brand); margin-left:auto; }
 .chip.adj .k { color:var(--oo); }
 .chip.dragging { opacity:.35; }
+/* the copy that follows a finger drag; it ignores touches so the slot
+   under the finger is found */
+.chip.ghost { position:fixed; left:0; top:0; z-index:1000; pointer-events:none; margin:0;
+              box-shadow:0 6px 18px rgba(0,0,0,.25); background:var(--surface); opacity:.95; }
+.dnd .chip { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
 .chip .n { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .chip .k { flex:none; }
 /* a chip inside a slot loses its own border and fills the whole slot */
@@ -383,6 +391,10 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .slot:has(.chip) { border:1px solid var(--line); border-radius:4px;
                    background:var(--surface); }
 .dnd td.status { font-size:.72rem; color:var(--muted); font-weight:650; }
+/* tap to place: the picked person stands out until it lands */
+.chip.picked { outline:2px solid var(--brand); outline-offset:1px; background:var(--brand-50); }
+.dnd .touch-hint { display:none; }
+@media (pointer:coarse) { .dnd .touch-hint { display:block; margin-top:4px; } }
 
 /* ================================================================
    Rest of the kit: banner + section/card (tag is above, with table)
@@ -590,3 +602,123 @@ table.t tr.linked:hover td { background:var(--brand-50); }
 /* a speaker and their points on one line in the room's draw */
 .speech { display:flex; justify-content:space-between; gap:12px; max-width:22rem; }
 .speech .pts { font-variant-numeric:tabular-nums; }
+
+/* ================================================================
+   PHONES - the sidenav folds into a top bar with a Menu button,
+   content takes the full width, controls are thumb-sized
+   ================================================================ */
+@media (max-width:760px) {
+  .shell { flex-direction:column; }
+  .sidenav { width:auto; height:auto; position:sticky; top:0; z-index:30; padding:0;
+             border-right:none; border-bottom:1px solid var(--line); overflow:visible; }
+  .sidenav .bar { display:flex; align-items:center; gap:10px; min-height:52px; padding:4px 8px 4px 14px; }
+  .sidenav .bar .cap { padding:0; font-size:1.45rem; flex:none; }
+  .sidenav .where { display:block; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+                    color:var(--muted); font-weight:650; font-size:.82rem; }
+  .sidenav .menu-btn { display:inline-flex; align-items:center; margin-left:auto; min-height:44px;
+                       padding:0 14px; border:1px solid var(--line); border-radius:8px;
+                       background:var(--surface); color:var(--ink); font:inherit; font-weight:700;
+                       font-size:.86rem; cursor:pointer; }
+  html.nav-open .sidenav .menu-btn { background:var(--brand-50); color:var(--brand-700); }
+  .sidenav .navbody { display:none; }
+  html.nav-open .sidenav .navbody { display:flex; flex-direction:column; border-top:1px solid var(--line);
+                                     max-height:calc(100vh - 52px); overflow-y:auto; padding-bottom:6px; }
+  .sidenav a.item { padding:12px 18px; font-size:.95rem; }
+  .sidenav a.item.on { padding-left:15px; }
+  .sidenav .sec { padding:12px 18px 2px; }
+  .sidenav .profile { margin-top:6px; padding:12px 18px; font-size:.9rem; }
+  .sidenav .profile a { padding:6px 0; }
+  .sidenav .profile .av { width:28px; height:28px; font-size:.7rem; }
+  .sidenav .switches .cycle, .sidenav .langs summary { min-width:44px; min-height:44px; }
+
+  .pbody { padding:14px 12px 22px; gap:14px; }
+  .footer .in { padding:18px 14px 32px; }
+  .footer .flinks { flex-wrap:wrap; gap:6px 18px; }
+  .footer .flinks a { padding:8px 0; }
+
+  /* the command bar wraps: the place on one row, the commands on the next,
+     the gold one first */
+  .chrome { height:auto; flex-wrap:wrap; }
+  .chrome .crumb { flex:1 1 100%; min-height:44px; padding:6px 14px; overflow:hidden; white-space:nowrap; }
+  .chrome .crumb a, .chrome .crumb .here { overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .chrome .seg { flex:1 1 100%; margin-left:0; border-left:none; border-top:1px solid var(--line); flex-wrap:wrap; }
+  .chrome .seg > * { flex:1 1 auto; justify-content:center; min-height:46px; padding:0 12px; text-align:center; }
+  .chrome .seg .go { order:-1; }
+
+  /* tables turn sideways: every row is a card, its first column the
+     title (with the rank beside it), the other columns label: value
+     lines; a column without a label (an action) sits on its own line */
+  table.t-rows, table.t-rows tbody { display:block; width:100%; }
+  table.t-rows thead { display:none; }
+  table.t-rows tr { display:grid; grid-template-columns:auto 1fr auto auto; column-gap:10px;
+                    padding:10px var(--px); border-bottom:1px solid var(--line); }
+  table.t-rows tr:last-child { border-bottom:none; }
+  table.t-rows td { grid-column:1 / -1; display:flex; align-items:baseline; justify-content:space-between;
+                    gap:12px; padding:3px 0; border:none; text-align:right; min-width:0;
+                    overflow-wrap:anywhere; }
+  table.t-rows td::before { content:attr(data-label); flex:none; text-align:left; color:var(--muted);
+                            font-size:.62rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+  table.t-rows td:not([data-label])::before, table.t-rows td[data-label=""]::before { content:none; }
+  table.t-rows td.rank { grid-column:1; width:auto; padding-right:0; }
+  table.t-rows td:first-child, table.t-rows td.rank + td { display:block; text-align:left; font-size:.95rem;
+                                                          font-weight:650; padding-bottom:5px; }
+  table.t-rows td.rank + td { grid-column:2 / 3; }
+  table.t-rows td:first-child:not(.rank) { grid-column:1 / 3; }
+  table.t-rows td:where([data-label]:not([data-label=""]):not(:first-child)) { grid-column:1 / -1; }
+  /* columns without a label (copy, remove) sit at the right of the title */
+  table.t-rows td:first-child, table.t-rows td.rank, table.t-rows td.rank + td { grid-row:1; }
+  table.t-rows td:not(:first-child):not(.rank):not([data-label]),
+  table.t-rows td:not(:first-child):not(.rank)[data-label=""] { grid-row:1; grid-column:3; justify-self:end;
+                                                               align-self:start; padding-top:2px; }
+  table.t-rows td:not(:first-child):not(.rank):not([data-label]) ~ td:not(:first-child):not(.rank):not([data-label]),
+  table.t-rows td:not(:first-child):not(.rank)[data-label=""] ~ td:not(:first-child):not(.rank)[data-label=""] { grid-column:4; }
+  table.t-rows td.wide-only { display:none; }
+  /* last word: with a rank, the title sits beside it, not across it */
+  table.t-rows td.rank { grid-column:1; }
+  table.t-rows td.rank + td { grid-column:2 / -1; }
+  table.t-rows td:first-child::before, table.t-rows td.rank + td::before { content:none; }
+  table.t-rows td.empty { display:block; text-align:left; }
+  table.t-rows td.empty::before { content:none; }
+  table.t-rows td.side { border-left:3px solid; padding-left:8px; }
+
+  /* the allocator: one block per room, the four teams two by two,
+     the adjudicator under them, slots and chips thumb-sized */
+  .dnd table, .dnd tbody, .dnd tr, .dnd td { display:block; }
+  .dnd table { table-layout:auto; }
+  .dnd thead, .dnd colgroup { display:none; }
+  .dnd tr { display:grid; grid-template-columns:1fr 1fr; gap:10px 10px;
+            padding:12px var(--px) 14px; border-bottom:1px solid var(--line); }
+  .dnd td { border:none; padding:0; min-width:0; }
+  .dnd td.room { grid-row:1; grid-column:1; font-size:.95rem; }
+  .dnd td.status { grid-row:1; grid-column:2; justify-self:end; align-self:center; }
+  .dnd td.team { border-left:3px solid; padding-left:8px; }
+  .dnd td.judge { grid-column:1 / -1; }
+  .dnd td[data-side]::before { content:attr(data-side); display:block; margin-bottom:4px;
+                               font-size:.62rem; letter-spacing:.08em; text-transform:uppercase;
+                               font-weight:700; color:var(--muted); }
+  .slot { height:44px; }
+  .chip { min-height:40px; padding:6px 11px; font-size:.86rem; }
+  .slot .chip { min-height:0; }
+
+  /* a shared link: the label above, the link on one line with its Copy */
+  .banner:has(code.url) { flex-wrap:wrap; gap:6px 10px; }
+  .banner:has(code.url) > span { flex:1 1 100%; }
+  .banner code.url { flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+                     word-break:normal; }
+  .banner .copy { min-height:40px; }
+  .dnd .touch-hint { display:block; margin-top:4px; }
+
+  /* the ballot: one team per row, so every score field is in reach */
+  .bgrid { grid-template-columns:1fr; }
+  .bteam:nth-child(odd) { border-right:none; }
+  .brow { flex-wrap:wrap; }
+  .brow select.who { min-height:44px; }
+  .brow input[type=number] { min-height:44px; }
+  .brow .iron { min-height:44px; align-items:center; }
+
+  /* fields never trigger the iPhone's zoom-on-focus */
+  input, select, textarea, .form input[type=text], .form input[type=email],
+  .form input[type=number], .form textarea, .form select,
+  .addp input[type=search], .brow input[type=number] { font-size:16px; }
+}
+

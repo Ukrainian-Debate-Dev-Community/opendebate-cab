@@ -193,7 +193,7 @@ defmodule CabWeb.UiTest do
       </.table>
       """)
 
-    assert html =~ ~s(class="t" id="standings")
+    assert html =~ ~s(class="t t-rows" id="standings")
     assert html =~ ~s(<td class="rank">1</td>)
     assert html =~ ~s(class="sub">Kyiv Debate Club</span>)
     assert html =~ ~s(class="code")
