@@ -245,6 +245,91 @@ defmodule Cab.SessionsTest do
       {:ok, session} = Sessions.place(session, 1, "1:og:1")
       assert Sessions.draft(session, [%{"id" => 2, "role" => "speaker"}]) == %{}
     end
+
+    test "the head sets the room count by hand and back to automatic",
+         %{session: session, signups: signups} do
+      # nine people: one room automatically
+      assert Sessions.rooms_for(session, signups) == 1
+      assert {:error, "That seat doesn't exist."} = Sessions.place(session, 1, "3:og:1")
+
+      # three rooms by hand (digits from a form work too); room 3 exists now
+      assert {:ok, session} = Sessions.set_draft_rooms(session, "3")
+      assert session.draft_rooms == 3
+      assert Sessions.rooms_for(session, signups) == 3
+      {:ok, _} = Sessions.place(session, 1, "1:og:1")
+      {:ok, session} = Sessions.place(session, 2, "3:og:1")
+      assert Sessions.draft(session, signups) == %{"1:og:1" => 1, "3:og:1" => 2}
+
+      # the choice survives a reload
+      assert Sessions.get_by_uuid(session.uuid).draft_rooms == 3
+
+      # fewer rooms: whoever sat past the new count goes back to the tray
+      assert {:ok, session} = Sessions.set_draft_rooms(session, 2)
+      assert session.draft_allocation == %{"1:og:1" => 1}
+
+      # automatic again: the count follows the sign-ups
+      assert {:ok, session} = Sessions.set_draft_rooms(session, "automatic")
+      assert session.draft_rooms == nil
+      assert Sessions.rooms_for(session, signups) == 1
+      assert Sessions.draft(session, signups) == %{"1:og:1" => 1}
+
+      # sensible bounds: 1 to 20
+      for bad <- [0, 21, -1, "x", "2.5", 1.5] do
+        assert {:error, %{rooms: "The number of rooms is 1 to 20, or automatic."}} =
+                 Sessions.set_draft_rooms(session, bad)
+      end
+
+      assert {:ok, %{draft_rooms: 20}} = Sessions.set_draft_rooms(session, 20)
+      assert {:ok, %{draft_rooms: 1}} = Sessions.set_draft_rooms(session, 1)
+    end
+
+    test "start makes exactly the rooms of a count set by hand",
+         %{head: head, session: session, signups: signups} do
+      test_pid = self()
+
+      stub(fn conn, params ->
+        state_stub(conn, signups) ||
+          case {conn.method, conn.request_path} do
+            {"PUT", "/api/events/11/participants/" <> _pid} ->
+              ok(conn, %{})
+
+            {"POST", "/api/rounds/21/rooms"} ->
+              send(test_pid, {:room, params})
+              ok(conn, %{"id" => 71})
+          end
+      end)
+
+      # nine people would be one room anyway; the head says one, and
+      # a second automatic room never appears
+      {:ok, session} = Sessions.set_draft_rooms(session, 1)
+      slots = ["1:judge" | for(side <- ~w(og oo cg co), n <- [1, 2], do: "1:#{side}:#{n}")]
+
+      for {pid, slot} <- Enum.zip([90 | Enum.to_list(1..8)], slots),
+          do: {:ok, _} = Sessions.place(session, pid, slot)
+
+      {:ok, session} = Sessions.set_draft_rooms(session, 2)
+
+      # an empty second room is refused, nothing is created
+      assert {:error, %{rooms: "Every room needs an adjudicator."}} =
+               Sessions.start_from_draft(head, session)
+
+      refute_received {:room, _}
+      # the refused start leaves registration open
+      assert Sessions.get_by_uuid(session.uuid).signups_closed_at == nil
+
+      {:ok, session} = Sessions.set_draft_rooms(session, 1)
+      assert {:ok, 1} = Sessions.start_from_draft(head, session)
+      assert_received {:room, %{"teams" => [_, _, _, _]}}
+      refute_received {:room, _}
+    end
+
+    test "the room count is fixed once the rooms are made", %{club: club} do
+      session = session_fixture(club, engine_event_id: 11)
+      stub(fn conn, _params -> state_stub(conn, [], [%{"id" => 71, "status" => "pending"}]) end)
+
+      assert {:error, :conflict, "The rooms are fixed once the session runs."} =
+               Sessions.set_draft_rooms(session, 2)
+    end
   end
 
   test "room_count is the only automatic part: ceil(people / 9), at least one" do

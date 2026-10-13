@@ -23,6 +23,9 @@ defmodule Cab.Sessions do
   @teams_per_room 4
   @speakers_per_team 2
   @room_seats 9
+  # the most rooms the head may set by hand: well past any club night,
+  # and an empty room is refused at Start anyway
+  @max_rooms 20
   # the engine needs a role on every participant; signups enter as
   # speakers and Start re-roles whoever the head dragged into a chair
   @signup_role "speaker"
@@ -295,7 +298,8 @@ defmodule Cab.Sessions do
   @doc """
   START SESSION (M9): one gold action - closes public registration
   and creates the rooms FROM THE ALLOCATOR STATE. Only the room
-  COUNT is ever automatic; people are placed by the head's drag,
+  COUNT is ever automatic (unless the head sets it, see
+  `set_draft_rooms/2`); people are placed by the head's drag,
   never by cab. If room creation fails the window reopens, so the
   session stays at :signup with the error on the page.
   """
@@ -330,9 +334,10 @@ defmodule Cab.Sessions do
       with {:ok, state} <- state(session),
            :ok <- require_draftable(state),
            {:ok, _person} <- find_participant(state.signups, participant_id),
-           {:ok, _room, _side} <- parse_slot(slot, room_count(state.signups)) do
+           rooms = rooms_for(session, state.signups),
+           {:ok, _room, _side} <- parse_slot(slot, rooms) do
         edit_draft(session, fn current ->
-          draft = clean_draft(current, state.signups)
+          draft = clean_draft(current, state.signups, rooms)
           from = Enum.find_value(draft, fn {key, pid} -> pid == participant_id && key end)
           occupant = draft[slot]
 
@@ -379,9 +384,71 @@ defmodule Cab.Sessions do
 
   @doc """
   The draft as the allocator renders it: only people still signed
-  up, only slots inside today's automatic room count.
+  up, only slots inside today's room count (`rooms_for/2`).
   """
-  def draft(%Session{} = session, signups), do: clean_draft(session.draft_allocation, signups)
+  def draft(%Session{} = session, signups),
+    do: clean_draft(session.draft_allocation, signups, rooms_for(session, signups))
+
+  @doc """
+  The head sets the allocator's ROOM COUNT by hand: 1 to #{@max_rooms}
+  rooms (a whole number, or its digits), or `nil` / "automatic" to let
+  it follow the sign-ups again (`room_count/1`). People placed in rooms
+  past the new count go back to the tray. Editable while the session
+  is :signup or :closed, like the draft itself. Returns
+  `{:ok, session}`, `{:error, :conflict, message}` or a changeset-style
+  `{:error, %{rooms: message}}`.
+  """
+  def set_draft_rooms(%Session{} = session, rooms) do
+    session = get_by_uuid(session.uuid)
+
+    result =
+      with {:ok, rooms} <- parse_draft_rooms(rooms),
+           {:ok, state} <- state(session),
+           :ok <- require_draftable(state) do
+        Repo.transaction(fn ->
+          locked = Repo.one!(from s in Session, where: s.id == ^session.id, lock: "FOR UPDATE")
+          count = rooms_for(%{locked | draft_rooms: rooms}, state.signups)
+
+          locked
+          |> Ecto.Changeset.change(
+            draft_rooms: rooms,
+            draft_allocation: clean_draft(locked.draft_allocation, state.signups, count)
+          )
+          |> Repo.update()
+          |> case do
+            {:ok, saved} -> saved
+            {:error, changeset} -> Repo.rollback(changeset)
+          end
+        end)
+      end
+
+    notify(result, session)
+  end
+
+  defp parse_draft_rooms(rooms) when rooms in [nil, "automatic"], do: {:ok, nil}
+
+  defp parse_draft_rooms(rooms) when is_integer(rooms) and rooms in 1..@max_rooms,
+    do: {:ok, rooms}
+
+  defp parse_draft_rooms(rooms) when is_binary(rooms) do
+    case Integer.parse(String.trim(rooms)) do
+      {count, ""} -> parse_draft_rooms(count)
+      _ -> parse_draft_rooms(:invalid)
+    end
+  end
+
+  defp parse_draft_rooms(_rooms),
+    do:
+      {:error,
+       %{
+         rooms:
+           dgettext("errors", "The number of rooms is 1 to %{max}, or automatic.",
+             max: @max_rooms
+           )
+       }}
+
+  @doc "The most rooms the head may set by hand."
+  def max_rooms, do: @max_rooms
 
   @doc """
   START SESSION from the server-held draft: the draft becomes the
@@ -403,15 +470,16 @@ defmodule Cab.Sessions do
     session = get_by_uuid(session.uuid)
 
     with {:ok, state} <- state(session),
-         spec = draft_spec(clean_draft(session.draft_allocation, state.signups), state.signups),
+         rooms = rooms_for(session, state.signups),
+         spec = draft_spec(clean_draft(session.draft_allocation, state.signups, rooms), rooms),
          {:ok, count} <- create.(session, spec) do
       record(session, draft_allocation: %{})
       {:ok, count}
     end
   end
 
-  defp draft_spec(draft, signups) do
-    for room <- 1..room_count(signups) do
+  defp draft_spec(draft, rooms) do
+    for room <- 1..rooms do
       %{
         "adjudicator_participant_id" => draft["#{room}:judge"],
         "teams" =>
@@ -446,9 +514,8 @@ defmodule Cab.Sessions do
 
   defp parse_slot(_slot, _rooms), do: {:error, dgettext("errors", "That seat doesn't exist.")}
 
-  defp clean_draft(draft, signups) do
+  defp clean_draft(draft, signups, rooms) do
     signed = MapSet.new(signups, & &1["id"])
-    rooms = room_count(signups)
 
     for {key, pid} <- draft || %{},
         MapSet.member?(signed, pid),
@@ -475,6 +542,14 @@ defmodule Cab.Sessions do
   def room_count(signups) do
     max(div(length(signups) + @room_seats - 1, @room_seats), 1)
   end
+
+  @doc """
+  The allocator's room count for this session: the head's own number
+  when they set one (`set_draft_rooms/2`), else the automatic
+  `room_count/1`.
+  """
+  def rooms_for(%Session{draft_rooms: rooms}, _signups) when is_integer(rooms), do: rooms
+  def rooms_for(%Session{}, signups), do: room_count(signups)
 
   @doc """
   The head reopens sign-ups: only possible while `:closed` (no rooms

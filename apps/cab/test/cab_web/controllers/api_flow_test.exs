@@ -619,6 +619,46 @@ defmodule CabWeb.ApiFlowTest do
            |> json_response(200) == %{"rooms_deleted" => 1}
   end
 
+  test "PUT room-count: the head sets the number of rooms or goes back to automatic",
+       %{conn: conn, club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11)
+    member = user_fixture()
+    membership_fixture(member, club)
+    {:ok, rooms} = Agent.start_link(fn -> [] end)
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} -> ok(conn, %{"id" => 11, "status" => "scheduled"})
+        {"GET", "/api/events/11/rounds"} -> ok(conn, [%{"id" => 21, "sequence" => 1}])
+        {"GET", "/api/events/11/participants"} -> ok(conn, [])
+        {"GET", "/api/rounds/21/rooms"} -> ok(conn, Agent.get(rooms, & &1))
+      end
+    end)
+
+    path = ~p"/api/cab/v1/sessions/#{session.uuid}/room-count"
+
+    assert conn |> put(path, %{"rooms" => 3}) |> json_response(401)
+    assert conn |> log_in(member) |> put(path, %{"rooms" => 3}) |> json_response(403)
+
+    assert conn |> log_in(head) |> put(path, %{"rooms" => 3}) |> json_response(200) ==
+             %{"uuid" => session.uuid, "rooms" => 3, "automatic" => false}
+
+    assert conn |> log_in(head) |> put(path, %{"rooms" => "automatic"}) |> json_response(200) ==
+             %{"uuid" => session.uuid, "rooms" => 1, "automatic" => true}
+
+    for bad <- [%{"rooms" => 0}, %{"rooms" => 21}, %{}] do
+      assert conn
+             |> log_in(head)
+             |> put(path, bad)
+             |> json_response(422)
+             |> get_in(["details", "rooms"]) =~
+               "1 to 20"
+    end
+
+    Agent.update(rooms, fn _ -> [%{"id" => 71, "status" => "pending"}] end)
+    assert conn |> log_in(head) |> put(path, %{"rooms" => 2}) |> json_response(409)
+  end
+
   test "session cancel removes the gateway row", %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
 
