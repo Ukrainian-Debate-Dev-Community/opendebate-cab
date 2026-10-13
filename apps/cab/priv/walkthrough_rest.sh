@@ -704,6 +704,13 @@ assert inv GET "/api/cab/v1/sessions/$ISESSION" 200 '.signups | map(select(.id))
 req inv GET "/c/$CLUB/s/$ISESSION"
 grep -q "registered for this session" "$BODY" || fail "the accepted place is not theirs on the session page"
 html_ok "accepted place is theirs" GET "/c/.../s/<invite-night>" 200
+# only a session nobody signed up for can be deleted: the head removes
+# the accepted place first
+assert head DELETE "/api/cab/v1/sessions/$ISESSION" 409 \
+  '.error | contains("People signed up")' true
+assert head GET "/api/cab/v1/sessions/$ISESSION" 200 '.signups | length' 1
+INV_PID=$(jq -r '.signups[0].id' "$BODY")
+assert head DELETE "/api/cab/v1/sessions/$ISESSION/signups/$INV_PID" 200 '.status' removed
 assert head DELETE "/api/cab/v1/sessions/$ISESSION" 200 '.status' cancelled
 
 # ----------------------------------------------------------------
@@ -735,7 +742,7 @@ assert head DELETE "/api/cab/v1/clubs/$CLUB/members/$HEAD_UID" 422 \
   '.error | contains("head cannot be removed")' true
 
 # ----------------------------------------------------------------
-say "session cancel on a throwaway second session"
+say "session delete on a throwaway second session (nobody signed up)"
 # ----------------------------------------------------------------
 assert head POST "/api/cab/v1/clubs/$CLUB/sessions" 201 '.uuid | length' 36 \
   "{\"name\":\"Throwaway $RUN\"}"

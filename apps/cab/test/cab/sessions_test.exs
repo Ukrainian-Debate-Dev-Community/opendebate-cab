@@ -797,16 +797,54 @@ defmodule Cab.SessionsTest do
     test_pid = self()
 
     stub(fn conn, _params ->
-      case {conn.method, conn.request_path} do
-        {"DELETE", "/api/events/11"} ->
-          send(test_pid, :event_deleted)
-          Req.Test.json(conn, %{"status" => "success", "message" => "Event archived."})
-      end
+      state_stub(conn, []) ||
+        case {conn.method, conn.request_path} do
+          {"DELETE", "/api/events/11"} ->
+            send(test_pid, :event_deleted)
+            Req.Test.json(conn, %{"status" => "success", "message" => "Event archived."})
+        end
     end)
 
     assert {:ok, _deleted} = Sessions.cancel(head, session)
     assert_received :event_deleted
     assert Sessions.get_by_uuid(session.uuid) == nil
+  end
+
+  test "only a session nobody signed up for can be deleted", %{head: head, club: club} do
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+    {:ok, world} = Agent.start_link(fn -> {[], []} end)
+
+    stub(fn conn, _params ->
+      {signups, rooms} = Agent.get(world, & &1)
+
+      state_stub(conn, signups, rooms) ||
+        case {conn.method, conn.request_path} do
+          {"DELETE", "/api/events/11"} ->
+            send(test_pid, :event_deleted)
+            Req.Test.json(conn, %{"status" => "success", "message" => "Event archived."})
+        end
+    end)
+
+    signup = %{"id" => 41, "role" => "speaker", "display_name" => "Ann"}
+
+    # one sign-up is enough to keep it
+    Agent.update(world, fn _ -> {[signup], []} end)
+    assert {:error, :conflict, message} = Sessions.cancel(head, session)
+    assert message =~ "People signed up for this session"
+
+    # rooms (and with them any ballot) keep it too
+    Agent.update(world, fn _ -> {[signup], [%{"id" => 71, "status" => "confirmed"}]} end)
+    assert {:error, :conflict, message} = Sessions.cancel(head, session)
+    assert message =~ "This session has rooms"
+
+    refute_received :event_deleted
+    assert Sessions.get_by_uuid(session.uuid)
+
+    # once everyone is gone again, it can go
+    Agent.update(world, fn _ -> {[], []} end)
+    assert {:ok, _deleted} = Sessions.cancel(head, session)
+    assert_received :event_deleted
   end
 
   # Engine room: chair user 77, 4 teams at positions 1..4; team at

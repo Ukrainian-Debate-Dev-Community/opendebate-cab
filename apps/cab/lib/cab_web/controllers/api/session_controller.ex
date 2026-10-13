@@ -191,8 +191,9 @@ defmodule CabWeb.Api.SessionController do
     end
   end
 
-  # DELETE /api/cab/v1/sessions/:uuid - head cancels: engine event
-  # archived, gateway row removed, club back to "no session"
+  # DELETE /api/cab/v1/sessions/:uuid - head deletes a session nobody
+  # signed up for: engine event archived, gateway row removed; 409 once
+  # it has sign-ups, rooms or ballots, or finished
   def delete(conn, _params) do
     with {:ok, _session} <- Sessions.cancel(conn.assigns.current_user, conn.assigns.session) do
       json(conn, %{uuid: conn.assigns.session.uuid, status: "cancelled"})

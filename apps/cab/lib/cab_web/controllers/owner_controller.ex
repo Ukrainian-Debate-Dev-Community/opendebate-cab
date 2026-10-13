@@ -420,14 +420,47 @@ defmodule CabWeb.OwnerController do
     end)
   end
 
-  # POST .../owner/sessions/:session_uuid/cancel
+  # GET .../owner/sessions/:session_uuid/delete - the confirm step
+  # before deleting a session nobody signed up for (no sign-ups, rooms
+  # or ballots); any other session goes back to its page with the reason
+  def confirm_delete(conn, %{"session_uuid" => session_uuid}) do
+    case Sessions.get_for_club(conn.assigns.club, session_uuid) do
+      %Session{} = session ->
+        back = ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}"
+
+        case Sessions.state(%{session | club: conn.assigns.club}) do
+          {:ok, state} ->
+            case Sessions.deletion_refusal(state) do
+              nil ->
+                render(conn, :delete_session,
+                  current: session,
+                  name: session.name || state.event["name"],
+                  page_title: gettext("%{club} - Delete session", club: conn.assigns.club.name)
+                )
+
+              message ->
+                flash_error(conn, back, message)
+            end
+
+          {:error, message} ->
+            flash_error(conn, back, message)
+        end
+
+      nil ->
+        conn |> CabWeb.ErrorHTML.respond(404)
+    end
+  end
+
+  # POST .../owner/sessions/:session_uuid/cancel - deletes the session
+  # (twin of DELETE /api/cab/v1/sessions/:uuid); refused with the
+  # reason once anyone signed up, rooms exist or it finished
   def cancel_session(conn, %{"session_uuid" => session_uuid}) do
     case Sessions.get_for_club(conn.assigns.club, session_uuid) do
       %Session{} = session ->
         case Sessions.cancel(conn.assigns.current_user, session) do
           {:ok, _session} ->
             conn
-            |> put_flash(:info, gettext("Session cancelled."))
+            |> put_flash(:info, gettext("Session deleted."))
             |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
 
           {:error, :conflict, message} ->

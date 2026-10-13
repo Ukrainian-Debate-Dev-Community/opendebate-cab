@@ -1359,6 +1359,18 @@ defmodule CabWeb.HtmlTreesTest do
           send(test_pid, :event_completed)
           Req.Test.json(conn, %{"status" => "success", "data" => %{}})
 
+        {"GET", "/api/events/12"} ->
+          ok(conn, %{"id" => 12, "name" => "Spare", "status" => "scheduled"})
+
+        {"GET", "/api/events/12/rounds"} ->
+          ok(conn, [%{"id" => 22, "sequence" => 1}])
+
+        {"GET", "/api/events/12/participants"} ->
+          ok(conn, [])
+
+        {"GET", "/api/rounds/22/rooms"} ->
+          ok(conn, [])
+
         {"DELETE", "/api/events/12"} ->
           send(test_pid, :event_deleted)
           Req.Test.json(conn, %{"status" => "success", "message" => "Event archived."})
@@ -1381,14 +1393,82 @@ defmodule CabWeb.HtmlTreesTest do
     assert redirected_to(refused) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
     assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "cannot be cancelled"
 
+    # the empty spare: the page offers Delete (quiet), the confirm
+    # step asks, the delete goes through
+    page =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner/s/#{spare.uuid}")
+      |> html_response(200)
+
+    delete_path = "/c/#{club.uuid}/owner/sessions/#{spare.uuid}/delete"
+    assert [tag] = Regex.run(~r/<a[^>]*href="#{delete_path}"[^>]*>/, page)
+    assert tag =~ ~s(class="quiet")
+
+    confirm = conn |> log_in(head) |> get(delete_path) |> html_response(200)
+    assert confirm =~ "Delete Spare?"
+    assert confirm =~ ~s(action="/c/#{club.uuid}/owner/sessions/#{spare.uuid}/cancel")
+    assert confirm =~ ~s(class="btn-quiet")
+    refute confirm =~ ~s(class="btn-go")
+
     cancelled =
       conn
       |> log_in(head)
       |> post(~p"/c/#{club.uuid}/owner/sessions/#{spare.uuid}/cancel")
 
     assert redirected_to(cancelled) == "/c/#{club.uuid}/owner"
+    assert Phoenix.Flash.get(cancelled.assigns.flash, :info) == "Session deleted."
     assert_received :event_deleted
     assert Enum.map(Cab.Sessions.list_for_club(club), & &1.uuid) == [session.uuid]
+  end
+
+  test "a session somebody signed up for offers no delete and refuses it",
+       %{conn: conn, club: club, head: head} do
+    session = session_fixture(club, engine_event_id: 11, name: "Night")
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "name" => "Night", "status" => "scheduled"})
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [%{"id" => 41, "role" => "speaker", "display_name" => "Ann"}])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [])
+
+        {"GET", "/api/events/organisation/3"} ->
+          ok(conn, [])
+      end
+    end)
+
+    page =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+      |> html_response(200)
+
+    refute page =~ "/owner/sessions/#{session.uuid}/delete"
+
+    back = "/c/#{club.uuid}/owner/s/#{session.uuid}"
+
+    confirm =
+      conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/delete")
+
+    assert redirected_to(confirm) == back
+    assert Phoenix.Flash.get(confirm.assigns.flash, :error) =~ "People signed up"
+
+    refused =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/cancel")
+
+    assert redirected_to(refused) == back
+    assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "People signed up"
+    assert Cab.Sessions.get_by_uuid(session.uuid)
   end
 
   test "acting on another club's session through this club's URL is 404", %{

@@ -1157,14 +1157,18 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Cancels the session: the engine event is archived (soft delete -
-  owner-only) and the gateway row removed, so the club is back to
-  "no session". Works at any stage; finished sessions should be left
-  for history instead.
+  Deletes (cancels) a session nobody signed up for: the engine event
+  is archived (soft delete - owner-only) and the gateway row removed,
+  so the club is back to "no session". Only while the session has no
+  sign-ups, no rooms and so no ballots (`deletable?/1`); otherwise, and
+  for a finished session (the club's history), `{:error, :conflict,
+  message}`.
   """
   def cancel(%User{} = head, %Session{} = session) do
     result =
       with :ok <- require_unfinished(session),
+           {:ok, state} <- state(session),
+           :ok <- require_deletable(state),
            {:ok, actor} <- owner_actor(head, session_club(session)),
            {:ok, _} <- EngineApi.delete_event(actor, session.engine_event_id) do
         Repo.delete(session)
@@ -1178,6 +1182,40 @@ defmodule Cab.Sessions do
     do: {:error, :conflict, dgettext("errors", "A finished session cannot be cancelled.")}
 
   defp require_unfinished(_session), do: :ok
+
+  @doc "Can the head delete this session - nobody signed up, no rooms, not finished?"
+  def deletable?(state), do: deletion_refusal(state) == nil
+
+  @doc """
+  Why the head cannot delete the session (`state/1`), in words, or nil
+  when they can: a finished session stays as the club's history, and
+  a session with rooms (so maybe ballots) or sign-ups stays too.
+  """
+  def deletion_refusal(%{stage: :done}),
+    do: dgettext("errors", "A finished session cannot be cancelled.")
+
+  def deletion_refusal(%{rooms: [_ | _]}),
+    do:
+      dgettext(
+        "errors",
+        "This session has rooms, so it cannot be deleted. Only a session nobody signed up for can be."
+      )
+
+  def deletion_refusal(%{signups: [_ | _]}),
+    do:
+      dgettext(
+        "errors",
+        "People signed up for this session, so it cannot be deleted. Only a session nobody signed up for can be."
+      )
+
+  def deletion_refusal(_state), do: nil
+
+  defp require_deletable(state) do
+    case deletion_refusal(state) do
+      nil -> :ok
+      message -> {:error, :conflict, message}
+    end
+  end
 
   @doc """
   The room's judge sets that room's motion (per-room motions - rooms

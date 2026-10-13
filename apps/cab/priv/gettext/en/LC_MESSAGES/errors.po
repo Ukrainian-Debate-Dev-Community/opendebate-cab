@@ -172,12 +172,12 @@ msgstr ""
 msgid "Every room needs an adjudicator."
 msgstr ""
 
-#: lib/cab/sessions.ex:1348
+#: lib/cab/sessions.ex:1386
 #, elixir-autogen, elixir-format
 msgid "Every score must be an object."
 msgstr ""
 
-#: lib/cab/sessions.ex:1331
+#: lib/cab/sessions.ex:1369
 #, elixir-autogen, elixir-format
 msgid "Every score needs a speaker_participant_id."
 msgstr ""
@@ -192,12 +192,12 @@ msgstr ""
 msgid "Keep at least one way to sign in."
 msgstr ""
 
-#: lib/cab/sessions.ex:1328
+#: lib/cab/sessions.ex:1366
 #, elixir-autogen, elixir-format
 msgid "Position must be 1 to 4 (OG, OO, CG, CO)."
 msgstr ""
 
-#: lib/cab/sessions.ex:1254
+#: lib/cab/sessions.ex:1292
 #, elixir-autogen, elixir-format
 msgid "Publish the room's motion first."
 msgstr ""
@@ -232,12 +232,12 @@ msgstr ""
 msgid "Rooms must be a non-empty list of room objects."
 msgstr ""
 
-#: lib/cab/sessions.ex:1334
+#: lib/cab/sessions.ex:1372
 #, elixir-autogen, elixir-format
 msgid "Scores are whole points from 50 to 100."
 msgstr ""
 
-#: lib/cab/sessions.ex:1319
+#: lib/cab/sessions.ex:1357
 #, elixir-autogen, elixir-format
 msgid "Scores must be a list of 8 entries."
 msgstr ""
@@ -266,8 +266,8 @@ msgstr ""
 #: lib/cab/invitations.ex:212
 #: lib/cab/links.ex:143
 #: lib/cab/links.ex:326
-#: lib/cab/sessions.ex:1612
-#: lib/cab/sessions.ex:1828
+#: lib/cab/sessions.ex:1650
+#: lib/cab/sessions.ex:1866
 #: lib/cab_web/components/form_components.ex:57
 #: lib/cab_web/components/form_components.ex:81
 #, elixir-autogen, elixir-format
@@ -299,7 +299,7 @@ msgstr ""
 msgid "That person isn't in this session."
 msgstr ""
 
-#: lib/cab/sessions.ex:1283
+#: lib/cab/sessions.ex:1321
 #, elixir-autogen, elixir-format
 msgid "That room is not part of this session."
 msgstr ""
@@ -330,9 +330,9 @@ msgstr ""
 msgid "This account already has a different %{provider} sign-in linked."
 msgstr ""
 
-#: lib/cab/sessions.ex:1403
-#: lib/cab/sessions.ex:1423
-#: lib/cab/sessions.ex:1428
+#: lib/cab/sessions.ex:1441
+#: lib/cab/sessions.ex:1461
+#: lib/cab/sessions.ex:1466
 #, elixir-autogen, elixir-format
 msgid "This ballot doesn't match the room's draw."
 msgstr ""
@@ -358,7 +358,7 @@ msgstr ""
 msgid "This session is finished, so its people stay on record."
 msgstr ""
 
-#: lib/cab/sessions.ex:1390
+#: lib/cab/sessions.ex:1428
 #, elixir-autogen, elixir-format
 msgid "Two teams share the total %{totals}. BP allows no ties, so adjust the scores."
 msgstr ""
@@ -373,7 +373,7 @@ msgstr ""
 msgid "tell the head about yourself and how to reach you"
 msgstr ""
 
-#: lib/cab/sessions.ex:1309
+#: lib/cab/sessions.ex:1347
 #, elixir-autogen, elixir-format
 msgid "a full ballot is 8 scores: two per team position 1..4 (og, oo, cg, co)"
 msgstr ""
@@ -398,7 +398,8 @@ msgstr ""
 msgid "Type their name for the invitation."
 msgstr ""
 
-#: lib/cab/sessions.ex:1178
+#: lib/cab/sessions.ex:1182
+#: lib/cab/sessions.ex:1195
 #, elixir-autogen, elixir-format
 msgid "A finished session cannot be cancelled."
 msgstr ""
@@ -492,4 +493,14 @@ msgstr ""
 #: lib/cab/sessions.ex:445
 #, elixir-autogen, elixir-format
 msgid "The number of rooms is 1 to %{max}, or automatic."
+msgstr ""
+
+#: lib/cab/sessions.ex:1206
+#, elixir-autogen, elixir-format
+msgid "People signed up for this session, so it cannot be deleted. Only a session nobody signed up for can be."
+msgstr ""
+
+#: lib/cab/sessions.ex:1199
+#, elixir-autogen, elixir-format
+msgid "This session has rooms, so it cannot be deleted. Only a session nobody signed up for can be."
 msgstr ""

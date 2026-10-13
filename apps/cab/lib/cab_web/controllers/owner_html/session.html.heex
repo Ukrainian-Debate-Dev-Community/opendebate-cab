@@ -37,6 +37,13 @@
       {gettext("Fill ballot — %{room}", room: room_label(@my_ballot_room))}
     </:seg>
     <:seg
+      :if={Cab.Sessions.deletable?(@state)}
+      href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/delete"}
+      quiet
+    >
+      {gettext("Delete session")}
+    </:seg>
+    <:seg
       :if={@state.stage == :running && deletable_rooms?(@state)}
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-registration"}
       method="post"
