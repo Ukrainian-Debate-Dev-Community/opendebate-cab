@@ -13,6 +13,9 @@ defmodule Cab.Links.Link do
     # the engine's one-time token that hands it to a real account
     field :engine_participant_id, :integer
     field :claim_token, :string, redact: true
+    # the guest's answers to the club's registration form (Core.Forms
+    # answers: label and type copied in); seen by the club head only
+    field :answers, {:array, :map}, default: []
 
     belongs_to :user, Cab.Accounts.User
     belongs_to :club, Cab.Clubs.Club

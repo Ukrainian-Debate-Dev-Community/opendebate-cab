@@ -50,6 +50,19 @@
         errors={@errors}
       >
         <:block name={:name} type={:text} label={gettext("Your name")} required value={@name} />
+        <:block
+          :for={field <- @fields}
+          name={answer_name(field)}
+          type={block_type(field)}
+          label={field["label"]}
+          required={field["required"]}
+          hint={field["hint"]}
+          options={field["options"]}
+          value={@answers[field["id"]]}
+          input={input_type(field)}
+          placeholder={placeholder(field)}
+          prompt={prompt(field)}
+        />
         <:submit note={
           gettext(
             "You appear in this session's list right away; the club head seats you as a speaker or the adjudicator."

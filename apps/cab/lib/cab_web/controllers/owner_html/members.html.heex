@@ -6,7 +6,9 @@
   nav_session={@nav_session}
   active="members"
 >
-  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here={gettext("Members")}></.chrome>
+  <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here={gettext("Members")}>
+    <:seg href={~p"/c/#{@club.uuid}/owner/form"}>{gettext("Registration form")}</:seg>
+  </.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />

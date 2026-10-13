@@ -21,6 +21,10 @@ defmodule Cab.Clubs.Club do
     # private = standings only (excluded from global standings, own
     # standings members-only); everything else stays public
     field :is_private, :boolean, default: false
+    # the guest registration form: a Core.Forms definition guests
+    # answer after their name; the head edits it on its own page
+    # (Cab.Clubs.edit_registration_form/2) - never cast here
+    field :guest_form, {:array, :map}, default: []
     # admin archive flag - set server-side, never cast
     field :archived_at, :utc_datetime
     field :engine_organisation_id, :integer

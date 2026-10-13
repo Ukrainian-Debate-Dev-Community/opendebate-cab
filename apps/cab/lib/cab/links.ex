@@ -159,17 +159,23 @@ defmodule Cab.Links do
   username, the form's name as display name, NO oauth identity), an
   engine participant with no engine account (`Cab.Sessions.add_guest/2`,
   which enforces the `:signup` stage gate), and the personal link row
-  keeping the participant and its claim token. Returns `{:ok, link}`
-  with the user preloaded, `{:error, :conflict, message}` once sign-ups
-  closed, `{:error, %{name: message}}` for a blank name, or
+  keeping the participant and its claim token. `answer_params` are
+  the shared URL's answers to the club's registration form (keyed by
+  field id, `Core.Forms.validate_answers/2` against the club's
+  `guest_form`), checked with the name and kept
+  on the link; nil (the head adding a guest by hand) asks nothing.
+  Returns `{:ok, link}` with the user preloaded,
+  `{:error, :conflict, message}` once sign-ups closed,
+  `{:error, %{name: message}}` for a blank name (plus
+  `{:answer, field_id} => message` for each refused answer), or
   `{:error, message}`.
   """
-  def register_guest(%Session{} = session, name) do
-    with {:ok, name} <- validate_name(name),
+  def register_guest(%Session{} = session, name, answer_params \\ nil) do
+    with {:ok, name, answers} <- validate_guest(session, name, answer_params),
          {:ok, guest} <- create_guest_user(name) do
       case Sessions.add_guest(session, name) do
         {:ok, participant} ->
-          issue(guest, session, participant)
+          issue(guest, session, participant, answers)
 
         error ->
           # no orphan gateway rows for refused registrations
@@ -227,13 +233,14 @@ defmodule Cab.Links do
 
   def purge_guest(_participant_id), do: :ok
 
-  defp issue(%User{} = guest, %Session{} = session, participant) do
+  defp issue(%User{} = guest, %Session{} = session, participant, answers) do
     %Link{
       user_id: guest.id,
       club_id: session_club(session).id,
       session_id: session.id,
       engine_participant_id: participant["id"],
-      claim_token: participant["raw_claim_token"]
+      claim_token: participant["raw_claim_token"],
+      answers: answers
     }
     |> Link.changeset()
     |> Repo.insert()
@@ -243,6 +250,27 @@ defmodule Cab.Links do
 
       {:error, _changeset} ->
         {:error, dgettext("errors", "Could not create the personal link. Try again.")}
+    end
+  end
+
+  # the name and every answer are checked together, so one re-render
+  # shows all that is wrong
+  defp validate_guest(_session, name, nil) do
+    with {:ok, name} <- validate_name(name), do: {:ok, name, []}
+  end
+
+  defp validate_guest(session, name, answer_params) do
+    answers =
+      case Core.Forms.validate_answers(session_club(session).guest_form, answer_params) do
+        {:ok, answers} -> {:ok, answers}
+        {:error, errors} -> {:error, Map.new(errors, fn {id, msg} -> {{:answer, id}, msg} end)}
+      end
+
+    case {validate_name(name), answers} do
+      {{:ok, name}, {:ok, answers}} -> {:ok, name, answers}
+      {{:ok, _name}, {:error, errors}} -> {:error, errors}
+      {{:error, errors}, {:ok, _answers}} -> {:error, errors}
+      {{:error, name_errors}, {:error, errors}} -> {:error, Map.merge(errors, name_errors)}
     end
   end
 

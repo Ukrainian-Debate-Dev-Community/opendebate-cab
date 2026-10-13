@@ -250,7 +250,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
                          margin-bottom:8px; }
 .form .f-block label.q .req { color:var(--warn); }
 .form input[type=text], .form input[type=email], .form input[type=number],
-.form textarea {
+.form input[type=tel], .form textarea {
   width:100%; font:inherit; font-size:.86rem; color:var(--ink);
   padding:7px 10px; border:1px solid var(--line); border-radius:7px;
   background:var(--surface); outline:none; transition:border-color .12s; }
@@ -258,7 +258,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .form .half { display:flex; gap:10px; }
 .form .half > * { flex:1; }
 .form .hint { font-size:.72rem; color:var(--muted); margin-top:5px; }
-.form .f-block.err input { border-color:var(--warn); background:var(--warn-surface); }
+.form .f-block.err input, .form .f-block.err textarea { border-color:var(--warn); background:var(--warn-surface); }
 .form .f-block.err .error { font-size:.72rem; color:var(--warn);
                             margin-top:5px; font-weight:650; }
 .form select { font:inherit; font-size:.86rem; color:var(--ink);
@@ -608,6 +608,9 @@ table.t tr.linked:hover td { background:var(--brand-50); }
 .speech { display:flex; justify-content:space-between; gap:12px; max-width:22rem; }
 .speech .pts { font-variant-numeric:tabular-nums; }
 
+/* configurable forms (CabWeb.FormComponents): the editor's row actions */
+.field-actions { display:inline-flex; flex-wrap:wrap; gap:4px 12px; }
+
 /* ================================================================
    PHONES - the sidenav folds into a top bar with a Menu button,
    content takes the full width, controls are thumb-sized
@@ -721,9 +724,12 @@ table.t tr.linked:hover td { background:var(--brand-50); }
   .brow input[type=number] { min-height:44px; }
   .brow .iron { min-height:44px; align-items:center; }
 
+  .field-actions a { display:inline-block; padding:8px 0; }
+
   /* fields never trigger the iPhone's zoom-on-focus */
   input, select, textarea, .form input[type=text], .form input[type=email],
   .form input[type=number], .form textarea, .form select,
+  .form input[type=tel],
   .addp input[type=search], .brow input[type=number] { font-size:16px; }
 }
 

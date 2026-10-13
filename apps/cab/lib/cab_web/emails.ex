@@ -1,7 +1,8 @@
 defmodule CabWeb.Emails do
   @moduledoc """
   cab's e-mails, plain text, delivered through Core.Mailer. An address
-  typed by a club head is used once to send and never stored.
+  typed by a club head is used once to send and never stored; one a
+  guest gives on the club's registration form stays with their answers.
   """
   use CabWeb, :verified_routes
   use Gettext, backend: CabWeb.Gettext
@@ -35,6 +36,45 @@ defmodule CabWeb.Emails do
       )
     )
   end
+
+  @doc """
+  A guest who registered on the shared URL gets their personal link at
+  the address they gave on the club's form (kept on their link, seen
+  by the club head only). In the request's language.
+  """
+  def guest_registered(address, %Link{} = link, %Session{club: %Club{} = club} = session, event) do
+    name = presence(event) || session_name(session, club)
+
+    deliver(
+      address,
+      gettext("Your link to %{session}", session: name),
+      gettext(
+        """
+        Hello %{name},
+
+        You are registered for %{session} at %{club}.%{date} This personal link is your way in: it shows the session, your seat and your room.
+
+        %{url}
+
+        Anyone with this link acts as you, so keep it to yourself. If you sign in to cab later, you can move your results into your account from this link.
+        """,
+        name: link.user.name,
+        club: club.name,
+        session: name,
+        date: on_date(session.scheduled_at),
+        url: url(~p"/l/#{link.code}")
+      )
+    )
+  end
+
+  # the date sentence, when the session has one
+  defp on_date(%DateTime{} = at),
+    do: " " <> gettext("The session is on %{date}.", date: Calendar.strftime(at, "%Y-%m-%d"))
+
+  defp on_date(_at), do: ""
+
+  defp presence(text) when is_binary(text) and text != "", do: text
+  defp presence(_text), do: nil
 
   @doc "Tells a registered user that a club head added them to a session."
   def invitation(%User{email: address} = user, %Session{} = session, %Club{} = club)

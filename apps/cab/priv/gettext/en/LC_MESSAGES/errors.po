@@ -131,7 +131,7 @@ msgstr ""
 msgid "Both accounts took part in the same session. Ask the club head to remove one of them from it first."
 msgstr ""
 
-#: lib/cab/links.ex:245
+#: lib/cab/links.ex:252
 #, elixir-autogen, elixir-format
 msgid "Could not create the personal link. Try again."
 msgstr ""
@@ -141,8 +141,8 @@ msgstr ""
 msgid "Could not link that sign-in. Try again."
 msgstr ""
 
-#: lib/cab/links.ex:251
-#: lib/cab/links.ex:256
+#: lib/cab/links.ex:279
+#: lib/cab/links.ex:284
 #, elixir-autogen, elixir-format
 msgid "Enter a name."
 msgstr ""
@@ -259,15 +259,17 @@ msgstr ""
 
 #: lib/cab/accounts.ex:349
 #: lib/cab/accounts.ex:406
-#: lib/cab/clubs.ex:208
-#: lib/cab/clubs.ex:321
+#: lib/cab/clubs.ex:219
+#: lib/cab/clubs.ex:332
 #: lib/cab/engine_api.ex:475
 #: lib/cab/engine_api.ex:483
 #: lib/cab/invitations.ex:212
 #: lib/cab/links.ex:109
-#: lib/cab/links.ex:261
+#: lib/cab/links.ex:289
 #: lib/cab/sessions.ex:1537
 #: lib/cab/sessions.ex:1753
+#: lib/cab_web/components/form_components.ex:52
+#: lib/cab_web/components/form_components.ex:76
 #, elixir-autogen, elixir-format
 msgid "Something went wrong, try again."
 msgstr ""
@@ -287,7 +289,7 @@ msgstr ""
 msgid "That person"
 msgstr ""
 
-#: lib/cab/clubs.ex:255
+#: lib/cab/clubs.ex:266
 #, elixir-autogen, elixir-format
 msgid "That person is not a member of this club."
 msgstr ""
@@ -313,7 +315,7 @@ msgstr ""
 msgid "That sign-in is not linked."
 msgstr ""
 
-#: lib/cab/clubs.ex:258
+#: lib/cab/clubs.ex:269
 #, elixir-autogen, elixir-format
 msgid "The club head cannot be removed."
 msgstr ""
@@ -335,8 +337,8 @@ msgstr ""
 msgid "This ballot doesn't match the room's draw."
 msgstr ""
 
-#: lib/cab/clubs.ex:239
-#: lib/cab/clubs.ex:244
+#: lib/cab/clubs.ex:250
+#: lib/cab/clubs.ex:255
 #, elixir-autogen, elixir-format
 msgid "This join request was already answered."
 msgstr ""
@@ -399,4 +401,85 @@ msgstr ""
 #: lib/cab/sessions.ex:1103
 #, elixir-autogen, elixir-format
 msgid "A finished session cannot be cancelled."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:37
+#: lib/cab_web/components/form_components.ex:73
+#, elixir-autogen, elixir-format
+msgid "%{count} characters at most."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:50
+#, elixir-autogen, elixir-format
+msgid "A form holds %{count} fields at most."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:45
+#, elixir-autogen, elixir-format
+msgid "An option is %{count} characters at most."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:39
+#, elixir-autogen, elixir-format
+msgid "Choose a type."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:56
+#, elixir-autogen, elixir-format
+msgid "Choose at least one."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:75
+#, elixir-autogen, elixir-format
+msgid "Choose from the options."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:55
+#, elixir-autogen, elixir-format
+msgid "Choose one."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:47
+#, elixir-autogen, elixir-format
+msgid "Each option must be different."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:67
+#, elixir-autogen, elixir-format
+msgid "Enter a Telegram username: 5 to 32 letters, digits or _, like @name."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:34
+#, elixir-autogen, elixir-format
+msgid "Enter a label."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:70
+#, elixir-autogen, elixir-format
+msgid "Enter a number, like 12 or 3.5."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:64
+#, elixir-autogen, elixir-format
+msgid "Enter a phone number: 7 to 20 digits, + in front if needed."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:61
+#, elixir-autogen, elixir-format
+msgid "Enter an e-mail address like name@example.com."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:58
+#, elixir-autogen, elixir-format
+msgid "Fill this in."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:42
+#, elixir-autogen, elixir-format
+msgid "Give %{min} to %{max} options, one per line."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex:57
+#, elixir-autogen, elixir-format
+msgid "Tick this box."
 msgstr ""

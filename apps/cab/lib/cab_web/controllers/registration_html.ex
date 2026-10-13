@@ -5,5 +5,8 @@ defmodule CabWeb.RegistrationHTML do
   """
   use CabWeb, :html
 
+  import CabWeb.FormComponents,
+    only: [answer_name: 1, block_type: 1, input_type: 1, placeholder: 1, prompt: 1]
+
   embed_templates "registration_html/*"
 end

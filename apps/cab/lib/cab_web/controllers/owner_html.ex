@@ -1,7 +1,8 @@
 defmodule CabWeb.OwnerHTML do
   @moduledoc """
-  The owner tree's pages: the club edit page, the members page and the
-  owner session page (registration, signups, the allocator / rooms).
+  The owner tree's pages: the club edit page, the members page, the
+  guest registration form editor and the owner session page
+  (registration, signups, the allocator / rooms).
   """
   use CabWeb, :html
 
@@ -20,6 +21,13 @@ defmodule CabWeb.OwnerHTML do
 
   defp guest_link(%{"id" => participant_id}, links),
     do: Enum.find(links, &(&1.engine_participant_id == participant_id))
+
+  defp guest_answers(participant, links) do
+    case guest_link(participant, links) do
+      %{answers: answers} when is_list(answers) -> answers
+      _none -> []
+    end
+  end
 
   defp person_kind(participant, links, members, invitations) do
     cond do

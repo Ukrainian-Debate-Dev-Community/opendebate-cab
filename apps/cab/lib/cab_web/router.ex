@@ -146,6 +146,11 @@ defmodule CabWeb.Router do
     # carries requests and removal; /owner/s/:sess runs a session.
     get "/owner", OwnerController, :club
     post "/owner/club", OwnerController, :update_club
+    get "/owner/form", OwnerController, :guest_form
+    post "/owner/form/fields", OwnerController, :add_field
+    post "/owner/form/fields/:field_id", OwnerController, :update_field
+    post "/owner/form/fields/:field_id/remove", OwnerController, :remove_field
+    post "/owner/form/fields/:field_id/move/:direction", OwnerController, :move_field
     post "/owner/sessions", OwnerController, :open_session
     get "/owner/members", OwnerController, :members
     post "/owner/join-requests/:id/approve", OwnerController, :approve
@@ -202,6 +207,8 @@ defmodule CabWeb.Router do
     get "/clubs/:uuid", ClubController, :show
     patch "/clubs/:uuid", ClubController, :update
     get "/clubs/:uuid/members", ClubController, :members
+    get "/clubs/:uuid/registration-form", ClubController, :registration_form
+    put "/clubs/:uuid/registration-form", ClubController, :replace_registration_form
     delete "/clubs/:uuid/members/:user_id", ClubController, :remove_member
     post "/clubs/:uuid/join-requests", JoinRequestController, :create
     patch "/join-requests/:id", JoinRequestController, :update

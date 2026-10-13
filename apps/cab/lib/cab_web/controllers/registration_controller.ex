@@ -3,7 +3,8 @@ defmodule CabWeb.RegistrationController do
   THE one registration URL (v3.1): `/r/:session_uuid` is what the
   head gives out - it serves everyone. A guest fills name + role and
   gets a permanent personal `/l/:code` URL; a signed-in user gets the
-  form prefilled (role pills only) and signs up as themselves. Any
+  form prefilled (role pills only) and signs up as themselves; only
+  guests answer the club's own registration form fields. Any
   other stage serves the "registration closed" notice.
   """
 
@@ -63,14 +64,17 @@ defmodule CabWeb.RegistrationController do
     end)
   end
 
+  # the club's own form fields come after the name; an e-mail answer
+  # gets the personal link sent there too
   defp create_guest(conn, session, state, params) do
-    case Links.register_guest(session, params["name"]) do
+    case Links.register_guest(session, params["name"], answer_params(params)) do
       {:ok, link} ->
         render(conn, :created,
           club: session.club,
           session: session,
           link: link,
           personal_url: url(~p"/l/#{link.code}"),
+          mail: mail_link(link, session, state),
           page_title: gettext("%{club} — Registered", club: session.club.name)
         )
 
@@ -87,15 +91,41 @@ defmodule CabWeb.RegistrationController do
     end
   end
 
+  defp answer_params(%{"answers" => %{} = answers}), do: answers
+  defp answer_params(_params), do: %{}
+
+  # {:sent, address} | {:failed, address} | nil (no e-mail given)
+  defp mail_link(link, session, state) do
+    case Core.Forms.first_value(link.answers, "email") do
+      nil ->
+        nil
+
+      address ->
+        case CabWeb.Emails.guest_registered(address, link, session, state.event["name"]) do
+          :ok -> {:sent, address}
+          {:error, _reason} -> {:failed, address}
+        end
+    end
+  end
+
   defp render_form(conn, session, state, params, errors) do
     render(conn, :new,
       club: session.club,
       session: session,
       state: state,
       name: params["name"],
-      errors: errors,
+      fields: session.club.guest_form,
+      answers: answer_params(params),
+      errors: form_errors(session.club.guest_form, errors),
       page_title: gettext("%{club} — Register", club: session.club.name)
     )
+  end
+
+  # the name's message as is; the answers' codes worded per field
+  defp form_errors(definition, errors) do
+    {answers, rest} = Map.split_with(errors, &match?({{:answer, _id}, _code}, &1))
+    codes = Map.new(answers, fn {{:answer, id}, code} -> {id, code} end)
+    Map.merge(rest, CabWeb.FormComponents.answer_errors(definition, codes))
   end
 
   defp render_closed(conn, session, state) do

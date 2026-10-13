@@ -13,6 +13,7 @@
     ]}
     here={"#{@state.event["name"]} — #{stage_words(@state.stage)}"}
   >
+    <:seg href={~p"/c/#{@club.uuid}/owner/form"}>{gettext("Registration form")}</:seg>
     <:seg :if={@state.stage == :signup} form="allocator-form" primary>
       {gettext("Start session")}
     </:seg>
