@@ -1,0 +1,59 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="club"
+>
+  <.chrome
+    crumbs={[
+      {@club.name, ~p"/c/#{@club.uuid}"},
+      {gettext("Club"), ~p"/c/#{@club.uuid}/owner"}
+    ]}
+    here={gettext("Registration form")}
+  >
+    <:seg href={~p"/c/#{@club.uuid}/owner/form/preview"}>{gettext("Preview")}</:seg>
+    <:seg :if={@editing} href={~p"/c/#{@club.uuid}/owner/form"} quiet>{gettext("Cancel")}</:seg>
+    <:seg
+      :if={@editing && !@editing["locked"]}
+      href={~p"/c/#{@club.uuid}/owner/form/fields/#{@editing["id"]}/remove"}
+      method="post"
+      quiet
+    >
+      {gettext("Remove field")}
+    </:seg>
+    <:seg form="field-form" primary>
+      {if @editing, do: gettext("Save field"), else: gettext("Add field")}
+    </:seg>
+  </.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <.section title={gettext("Guest registration form")}>
+      <div class="pad">
+        <p>
+          {gettext(
+            "Guests answer these fields when they register for any session of the club without an account. Members who sign in are not asked."
+          )}
+        </p>
+        <p>
+          {gettext(
+            "Only you see the answers, on each session's People list. If a guest gives an e-mail address, we send them their personal link there."
+          )}
+        </p>
+      </div>
+      <CabWeb.FormComponents.form_editor
+        id="guest-form-editor"
+        definition={@definition}
+        page={~p"/c/#{@club.uuid}/owner/form"}
+        fields={~p"/c/#{@club.uuid}/owner/form/fields"}
+        editing={@editing}
+        values={@values}
+        errors={@errors}
+        fixed={[gettext("Your name")]}
+      />
+    </.section>
+  </div>
+</Layouts.app>

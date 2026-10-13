@@ -120,7 +120,11 @@ defmodule CabWeb.GuestLinksTest do
       html =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{name: "Greta Guest", as: "speak"})
+        |> post(~p"/r/#{session.uuid}", %{
+          name: "Greta Guest",
+          as: "speak",
+          answers: %{"email" => "greta@example.com"}
+        })
         |> html_response(200)
 
       # an engine participant with no engine account behind it

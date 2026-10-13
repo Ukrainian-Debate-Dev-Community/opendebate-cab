@@ -326,6 +326,147 @@
         "x-access": "signed in (members for a members-only club)"
       }
     },
+    "/clubs/{uuid}/registration-form": {
+      "get": {
+        "tags": [
+          "Clubs"
+        ],
+        "summary": "The guest registration form",
+        "description": "The fields guests answer after their name when they register for any session of the club on the shared registration URL (the /r page; it has no API twin), in form order. Every club's form starts with the locked built-in e-mail field (id \"email\", label \"Your e-mail\", required by default), the address the guest's personal link is sent to; the guest's name is asked before the form and is not part of it. Signed-in members are never asked. Club head and cab admins only.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The club's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The form",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FormField"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head (cab admins as head)"
+      },
+      "put": {
+        "tags": [
+          "Clubs"
+        ],
+        "summary": "Replace the guest registration form",
+        "description": "Replaces the whole definition, the twin of the head's Registration form page. Fields keep the id they are sent with; fields without one get a new id. The locked built-in e-mail field must come first with its id \"email\": only its required flag and hint are taken from the request, its label and type stay. Guests' earlier answers keep their own copy of each field's label and type, so editing or removing fields never changes them. On 422, details hold stable error codes: details.form is one of locked_removed, locked_moved, too_many_fields, duplicate_id, not_a_list; details.fields maps the field's index to {param: code} with codes required, too_long, invalid_type, options_count, option_too_long, duplicate_options.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The club's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "array",
+                    "maxItems": 30,
+                    "items": {
+                      "$ref": "#/components/schemas/FormFieldInput"
+                    }
+                  }
+                },
+                "required": [
+                  "fields"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The stored form",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FormField"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head (cab admins as head)"
+      }
+    },
     "/clubs/{uuid}/members/{user_id}": {
       "delete": {
         "tags": [
@@ -1982,7 +2123,7 @@
           "People"
         ],
         "summary": "Guest links",
-        "description": "The session's guest links with each guest's name and role.",
+        "description": "The session's guest links with each guest's name, role and answers to the club's registration form. The answers are for the club head only and appear in no other response.",
         "parameters": [
           {
             "name": "uuid",
@@ -2701,6 +2842,158 @@
               "null"
             ],
             "description": "Only in the list"
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Answer"
+            },
+            "description": "The guest's answers to the club's registration form, in form order; optional fields left empty are left out. Club head only"
+          }
+        }
+      },
+      "FormField": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable across edits; answers refer to it"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "hint": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text",
+              "longtext",
+              "number",
+              "email",
+              "phone",
+              "telegram",
+              "yesno",
+              "choice",
+              "multi"
+            ],
+            "description": "text = short text, longtext = long text, yesno = one checkbox, choice = single choice, multi = multiple choice"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "description": "2 to 20 for choice and multi, empty otherwise"
+          },
+          "locked": {
+            "type": "boolean",
+            "description": "A built-in field (the e-mail): it cannot be removed or moved, and only required and hint can change"
+          }
+        }
+      },
+      "FormFieldInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Kept when given; a new field leaves it out. The built-in e-mail is \"email\""
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "hint": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text",
+              "longtext",
+              "number",
+              "email",
+              "phone",
+              "telegram",
+              "yesno",
+              "choice",
+              "multi"
+            ],
+            "description": "text = short text, longtext = long text, yesno = one checkbox, choice = single choice, multi = multiple choice"
+          },
+          "options": {
+            "type": [
+              "array",
+              "string"
+            ],
+            "items": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "description": "2 to 20 different options for choice and multi (a list, or one per line); ignored for other types"
+          }
+        },
+        "required": [
+          "label",
+          "type"
+        ],
+        "description": "A field as sent; for the locked e-mail only id, required and hint are read"
+      },
+      "Answer": {
+        "type": "object",
+        "description": "A guest's answer to one registration form field; label and type are copied at answer time, so later form edits never change it",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The form field's id"
+          },
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text",
+              "longtext",
+              "number",
+              "email",
+              "phone",
+              "telegram",
+              "yesno",
+              "choice",
+              "multi"
+            ]
+          },
+          "value": {
+            "description": "A string for the text-like types, number and choice (telegram without the @), a list of strings for multi, true or false for yesno",
+            "type": [
+              "string",
+              "array",
+              "boolean"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       }

@@ -9,7 +9,8 @@ defmodule CabWeb.Api.LinkController do
   plug ClubScope, source: :session, require: :owner
 
   # GET /api/cab/v1/sessions/:uuid/links - head only: the session's
-  # active guest links with each guest's name and signed-up role
+  # active guest links with each guest's name, signed-up role and
+  # answers to the club's registration form
   def index(conn, _params) do
     session = conn.assigns.session
 
@@ -38,7 +39,10 @@ defmodule CabWeb.Api.LinkController do
       name: link.user.name,
       username: link.user.username,
       code: link.code,
-      url: url(~p"/l/#{link.code}")
+      url: url(~p"/l/#{link.code}"),
+      # the guest's answers to the club's registration form (head only,
+      # as this whole controller is)
+      answers: Enum.map(link.answers || [], &Map.take(&1, ~w(id label type value)))
     }
   end
 end

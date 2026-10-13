@@ -1,0 +1,36 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="club"
+>
+  <.chrome
+    crumbs={[
+      {@club.name, ~p"/c/#{@club.uuid}"},
+      {gettext("Club"), ~p"/c/#{@club.uuid}/owner"},
+      {gettext("Registration form"), ~p"/c/#{@club.uuid}/owner/form"}
+    ]}
+    here={gettext("Preview")}
+  >
+    <:seg href={~p"/c/#{@club.uuid}/owner/form"} primary>{gettext("Back to editing")}</:seg>
+  </.chrome>
+
+  <div class="pbody">
+    <.banner kind={:info}>
+      {gettext(
+        "Preview: this is what a guest sees on a session's registration link. Nothing can be sent from here."
+      )}
+    </.banner>
+
+    <.section title={gettext("Registration")}>
+      <CabWeb.RegistrationHTML.guest_form
+        action={~p"/c/#{@club.uuid}/owner/form/preview"}
+        title={gettext("Register for %{session}", session: gettext("the next session"))}
+        fields={@fields}
+        preview
+      />
+    </.section>
+  </div>
+</Layouts.app>

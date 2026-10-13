@@ -285,6 +285,29 @@ defmodule CabWeb.UiTest do
     assert html =~ "Members get the sign-up right away."
   end
 
+  test "form_for: a :text block's input type, a dropdown prompt and the one-box :check" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form_for action="/x">
+        <:block name="answers[a]" type={:text} input="tel" label="Phone" />
+        <:block
+          name="answers[b]"
+          type={:select}
+          label="Level"
+          prompt="choose one"
+          options={~w(a b c d e)}
+        />
+        <:block name="answers[c]" type={:check} label="Rules" value="yes" />
+      </.form_for>
+      """)
+
+    assert html =~ ~s(type="tel" name="answers[a]")
+    assert html =~ ~s(<option value="">choose one</option>)
+    assert html =~ ~r/type="checkbox" name="answers\[c\]" value="yes" checked/
+  end
+
   test "form_for renders the server error on the failing block only" do
     assigns = %{errors: %{email: "Enter a full email address."}}
 

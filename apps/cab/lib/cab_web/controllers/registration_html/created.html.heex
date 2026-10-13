@@ -22,6 +22,12 @@
         <.copy_banner id="personal-link" url={@personal_url}>
           {gettext("Personal link")}
         </.copy_banner>
+        <p :if={match?({:sent, _}, @mail)}>
+          {gettext("We also sent it to %{email}.", email: elem(@mail, 1))}
+        </p>
+        <p :if={match?({:failed, _}, @mail)}>
+          {gettext("We could not send it to %{email}. Copy it now.", email: elem(@mail, 1))}
+        </p>
         <p>
           {gettext(
             "Keep this link — it IS your access: anyone with it acts as you. It opens your view of this session: your registration, the rooms, and (if you adjudicate) the ballot."

@@ -77,6 +77,21 @@ defmodule Cab.Clubs do
     end
   end
 
+  @doc "The club's guest registration form, its locked fields (Club.guest_form_locked/0) first."
+  def guest_form(%Club{} = club),
+    do: Core.Forms.with_locked(club.guest_form, Club.guest_form_locked())
+
+  @doc """
+  The head edits the club's guest registration form: `edit` gets the
+  current `Core.Forms` definition and returns `{:ok, definition}` (then
+  saved) or an error, passed through. Gateway row only.
+  """
+  def edit_registration_form(%Club{} = club, edit) when is_function(edit, 1) do
+    with {:ok, definition} <- edit.(guest_form(club)) do
+      club |> Ecto.Changeset.change(guest_form: definition) |> Repo.update()
+    end
+  end
+
   defp rename_in_engine(_club, nil), do: {:ok, :unchanged}
   defp rename_in_engine(%Club{engine_organisation_id: nil}, _name), do: {:ok, :no_engine}
 

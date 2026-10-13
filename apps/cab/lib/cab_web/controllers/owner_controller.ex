@@ -3,6 +3,7 @@ defmodule CabWeb.OwnerController do
 
   alias Cab.{Clubs, Links, Sessions}
   alias Cab.Clubs.Membership
+  alias Core.Forms
   alias Cab.Sessions.Session
 
   plug CabWeb.ClubScope, source: :club, require: :owner
@@ -47,6 +48,96 @@ defmodule CabWeb.OwnerController do
         |> put_flash(:error, gettext("The club needs a name."))
         |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
     end
+  end
+
+  # ---------------------------------------------------------------
+  # The guest registration form: the club's own fields after the
+  # built-in name on /r/:sess. Core.Forms edits the definition and
+  # its editor component renders the page; the club keeps it.
+  # ---------------------------------------------------------------
+
+  # GET /c/:club_uuid/owner/form[?edit=<field id>] - the fields in
+  # order, then the add form (or the one field being edited)
+  def guest_form(conn, params) do
+    editing = params["edit"] && Forms.field(Clubs.guest_form(conn.assigns.club), params["edit"])
+    render_guest_form(conn, editing, %{}, %{})
+  end
+
+  # GET /c/:club_uuid/owner/form/preview - what a guest sees on /r for
+  # this club, with nothing to send
+  def preview_form(conn, _params) do
+    render(conn, :guest_form_preview,
+      fields: Clubs.guest_form(conn.assigns.club),
+      page_title: gettext("%{club} - Registration form", club: conn.assigns.club.name)
+    )
+  end
+
+  # POST /c/:club_uuid/owner/form/fields
+  def add_field(conn, params) do
+    conn
+    |> edit_form(&Forms.add_field(&1, params), gettext("Field added."))
+    |> on_field_error(nil, params)
+  end
+
+  # POST /c/:club_uuid/owner/form/fields/:field_id
+  def update_field(conn, %{"field_id" => id} = params) do
+    conn
+    |> edit_form(&Forms.update_field(&1, id, params), gettext("Field saved."))
+    |> on_field_error(Forms.field(Clubs.guest_form(conn.assigns.club), id), params)
+  end
+
+  # POST /c/:club_uuid/owner/form/fields/:field_id/remove
+  def remove_field(conn, %{"field_id" => id}) do
+    conn
+    |> edit_form(&Forms.remove_field(&1, id), gettext("Field removed."))
+    |> on_field_error(nil, %{})
+  end
+
+  # POST /c/:club_uuid/owner/form/fields/:field_id/move/(up|down)
+  def move_field(conn, %{"field_id" => id, "direction" => direction})
+      when direction in ["up", "down"] do
+    conn
+    |> edit_form(&Forms.move_field(&1, id, String.to_existing_atom(direction)), nil)
+    |> on_field_error(nil, %{})
+  end
+
+  def move_field(conn, _params), do: CabWeb.ErrorHTML.respond(conn, 404)
+
+  # a saved edit goes back to the editor; an error comes back as-is
+  defp edit_form(conn, edit, info) do
+    case Clubs.edit_registration_form(conn.assigns.club, edit) do
+      {:ok, _club} ->
+        conn = if info, do: put_flash(conn, :info, info), else: conn
+        redirect(conn, to: ~p"/c/#{conn.assigns.club.uuid}/owner/form")
+
+      error ->
+        {conn, error}
+    end
+  end
+
+  defp on_field_error(%Plug.Conn{} = conn, _editing, _params), do: conn
+
+  defp on_field_error({conn, {:error, :not_found}}, _editing, _params),
+    do: CabWeb.ErrorHTML.respond(conn, 404)
+
+  # the always-asked fields keep their place
+  defp on_field_error({conn, {:error, :locked}}, _editing, _params) do
+    conn
+    |> put_flash(:error, CabWeb.FormComponents.editor_error(:locked))
+    |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/form")
+  end
+
+  defp on_field_error({conn, {:error, %{} = errors}}, editing, params),
+    do: conn |> put_status(422) |> render_guest_form(editing, params, errors)
+
+  defp render_guest_form(conn, editing, values, errors) do
+    render(conn, :guest_form,
+      definition: Clubs.guest_form(conn.assigns.club),
+      editing: editing,
+      values: Map.take(values, ~w(label hint type required options)),
+      errors: errors,
+      page_title: gettext("%{club} - Registration form", club: conn.assigns.club.name)
+    )
   end
 
   # ---------------------------------------------------------------

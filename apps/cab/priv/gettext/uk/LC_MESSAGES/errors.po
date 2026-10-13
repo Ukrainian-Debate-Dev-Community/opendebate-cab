@@ -130,7 +130,7 @@ msgstr "%{name} вже сидить у кімнаті. Видалити можн
 msgid "Both accounts took part in the same session. Ask the club head to remove one of them from it first."
 msgstr "Обидва акаунти брали участь в одній сесії. Попросіть голову клубу спершу прибрати з неї один із них."
 
-#: lib/cab/links.ex:245
+#: lib/cab/links.ex:252
 #, elixir-autogen, elixir-format
 msgid "Could not create the personal link. Try again."
 msgstr "Не вдалося створити персональне посилання. Спробуйте ще раз."
@@ -140,8 +140,8 @@ msgstr "Не вдалося створити персональне посила
 msgid "Could not link that sign-in. Try again."
 msgstr "Не вдалося прив'язати цей спосіб входу. Спробуйте ще раз."
 
-#: lib/cab/links.ex:251
-#: lib/cab/links.ex:256
+#: lib/cab/links.ex:282
+#: lib/cab/links.ex:287
 #, elixir-autogen, elixir-format
 msgid "Enter a name."
 msgstr "Введіть ім'я."
@@ -258,15 +258,17 @@ msgstr "Хтось із розміщених у кімнаті не бере у�
 
 #: lib/cab/accounts.ex:349
 #: lib/cab/accounts.ex:406
-#: lib/cab/clubs.ex:208
-#: lib/cab/clubs.ex:321
+#: lib/cab/clubs.ex:223
+#: lib/cab/clubs.ex:336
 #: lib/cab/engine_api.ex:475
 #: lib/cab/engine_api.ex:483
 #: lib/cab/invitations.ex:212
 #: lib/cab/links.ex:109
-#: lib/cab/links.ex:261
+#: lib/cab/links.ex:292
 #: lib/cab/sessions.ex:1537
 #: lib/cab/sessions.ex:1753
+#: lib/cab_web/components/form_components.ex:57
+#: lib/cab_web/components/form_components.ex:81
 #, elixir-autogen, elixir-format
 msgid "Something went wrong, try again."
 msgstr "Щось пішло не так, спробуйте ще раз."
@@ -286,7 +288,7 @@ msgstr "Це і є цей акаунт."
 msgid "That person"
 msgstr "Ця людина"
 
-#: lib/cab/clubs.ex:255
+#: lib/cab/clubs.ex:270
 #, elixir-autogen, elixir-format
 msgid "That person is not a member of this club."
 msgstr "Ця людина не є членом цього клубу."
@@ -312,7 +314,7 @@ msgstr "Такого місця немає."
 msgid "That sign-in is not linked."
 msgstr "Цей спосіб входу не прив'язано."
 
-#: lib/cab/clubs.ex:258
+#: lib/cab/clubs.ex:273
 #, elixir-autogen, elixir-format
 msgid "The club head cannot be removed."
 msgstr "Голову клубу не можна видалити."
@@ -334,8 +336,8 @@ msgstr "До цього акаунта вже прив'язано інший в�
 msgid "This ballot doesn't match the room's draw."
 msgstr "Цей белот не відповідає сітці кімнати."
 
-#: lib/cab/clubs.ex:239
-#: lib/cab/clubs.ex:244
+#: lib/cab/clubs.ex:254
+#: lib/cab/clubs.ex:259
 #, elixir-autogen, elixir-format
 msgid "This join request was already answered."
 msgstr "На цей запит на вступ уже відповіли."
@@ -399,3 +401,89 @@ msgstr "Введіть ім'я для запрошення."
 #, elixir-autogen, elixir-format
 msgid "A finished session cannot be cancelled."
 msgstr "Завершену сесію не можна скасувати."
+
+#: lib/cab_web/components/form_components.ex:37
+#: lib/cab_web/components/form_components.ex:78
+#, elixir-autogen, elixir-format
+msgid "%{count} characters at most."
+msgstr "Не більше ніж %{count} символів."
+
+#: lib/cab_web/components/form_components.ex:50
+#, elixir-autogen, elixir-format
+msgid "A form holds %{count} fields at most."
+msgstr "У формі може бути не більше ніж %{count} полів."
+
+#: lib/cab_web/components/form_components.ex:45
+#, elixir-autogen, elixir-format
+msgid "An option is %{count} characters at most."
+msgstr "Варіант може мати не більше ніж %{count} символів."
+
+#: lib/cab_web/components/form_components.ex:39
+#, elixir-autogen, elixir-format
+msgid "Choose a type."
+msgstr "Оберіть тип."
+
+#: lib/cab_web/components/form_components.ex:61
+#, elixir-autogen, elixir-format
+msgid "Choose at least one."
+msgstr "Оберіть хоча б один."
+
+#: lib/cab_web/components/form_components.ex:80
+#, elixir-autogen, elixir-format
+msgid "Choose from the options."
+msgstr "Оберіть із запропонованих варіантів."
+
+#: lib/cab_web/components/form_components.ex:60
+#, elixir-autogen, elixir-format
+msgid "Choose one."
+msgstr "Оберіть один."
+
+#: lib/cab_web/components/form_components.ex:47
+#, elixir-autogen, elixir-format
+msgid "Each option must be different."
+msgstr "Варіанти мають бути різними."
+
+#: lib/cab_web/components/form_components.ex:72
+#, elixir-autogen, elixir-format
+msgid "Enter a Telegram username: 5 to 32 letters, digits or _, like @name."
+msgstr "Введіть ім'я користувача в Telegram: від 5 до 32 латинських літер, цифр або _, наприклад @name."
+
+#: lib/cab_web/components/form_components.ex:34
+#, elixir-autogen, elixir-format
+msgid "Enter a label."
+msgstr "Введіть назву."
+
+#: lib/cab_web/components/form_components.ex:75
+#, elixir-autogen, elixir-format
+msgid "Enter a number, like 12 or 3.5."
+msgstr "Введіть число, наприклад 12 або 3.5."
+
+#: lib/cab_web/components/form_components.ex:69
+#, elixir-autogen, elixir-format
+msgid "Enter a phone number: 7 to 20 digits, + in front if needed."
+msgstr "Введіть номер телефону: від 7 до 20 цифр, за потреби з + на початку."
+
+#: lib/cab_web/components/form_components.ex:66
+#, elixir-autogen, elixir-format
+msgid "Enter an e-mail address like name@example.com."
+msgstr "Введіть e-mail, наприклад name@example.com."
+
+#: lib/cab_web/components/form_components.ex:63
+#, elixir-autogen, elixir-format
+msgid "Fill this in."
+msgstr "Заповніть це поле."
+
+#: lib/cab_web/components/form_components.ex:42
+#, elixir-autogen, elixir-format
+msgid "Give %{min} to %{max} options, one per line."
+msgstr "Вкажіть від %{min} до %{max} варіантів, по одному в рядку."
+
+#: lib/cab_web/components/form_components.ex:62
+#, elixir-autogen, elixir-format
+msgid "Tick this box."
+msgstr "Позначте це поле."
+
+#: lib/cab_web/components/form_components.ex:53
+#, elixir-autogen, elixir-format
+msgid "This field is always asked: it cannot be moved or removed."
+msgstr "Це поле питаємо завжди: його не можна перемістити чи видалити."

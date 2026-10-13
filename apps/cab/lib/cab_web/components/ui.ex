@@ -414,7 +414,9 @@ defmodule CabWeb.Ui do
   Block types (the complete inventory): `:text`, `:longtext`, `:int`,
   `:float`, `:scale` (flush integer segments), `:yesno` (two pills),
   `:select` (pills at 2-4 options, dropdown at 5+), `:multi` (stacked
-  checks), `:datetime` (half-split pair, pass `names`).
+  checks), `:check` (one yes box), `:datetime` (half-split pair, pass
+  `names`). A `:text` block may name its input type (`input`: email,
+  tel); a `:select` dropdown may lead with an empty `prompt` option.
 
   Server errors render per block: pass `errors` as a map of
   block-name => message; the failing block gets the amber border +
@@ -449,6 +451,8 @@ defmodule CabWeb.Ui do
     attr :values, :list, doc: "the two values of a :datetime pair"
     attr :options, :list, doc: "choices for :select / :multi, strings or {label, value}"
     attr :placeholder, :string
+    attr :input, :string, doc: "a :text block's input type: email, tel (default text)"
+    attr :prompt, :string, doc: "a :select dropdown's empty first option"
     attr :maxlength, :integer
     attr :list, :string, doc: "a :text block's <datalist> id, for suggestions while typing"
     attr :other, :string, doc: "a :select pills value that opens a free-text field when chosen"
@@ -460,6 +464,7 @@ defmodule CabWeb.Ui do
   slot :submit do
     attr :note, :string
     attr :quiet, :boolean, doc: "a plain button when the page's gold action is elsewhere"
+    attr :disabled, :boolean, doc: "shown but not usable (a preview)"
   end
 
   def form_for(assigns) do
@@ -480,7 +485,11 @@ defmodule CabWeb.Ui do
         <div :if={block[:hint] && !@errors[block[:name]]} class="hint">{block[:hint]}</div>
       </div>
       <div :for={submit <- @submit} class="f-submit">
-        <button type="submit" class={if submit[:quiet], do: "btn-quiet", else: "btn-go"}>
+        <button
+          type="submit"
+          class={if submit[:quiet], do: "btn-quiet", else: "btn-go"}
+          disabled={submit[:disabled]}
+        >
           {render_slot(submit)}
         </button>
         <span :if={submit[:note]} class="note">{submit[:note]}</span>
@@ -494,14 +503,16 @@ defmodule CabWeb.Ui do
 
     case block[:type] || :text do
       :text ->
-        ~H|<input
-  type="text"
-  name={@name}
-  value={@b[:value]}
-  placeholder={@b[:placeholder]}
-  maxlength={@b[:maxlength]}
-  list={@b[:list]}
-/>|
+        ~H"""
+        <input
+          type={@b[:input] || "text"}
+          name={@name}
+          value={@b[:value]}
+          placeholder={@b[:placeholder]}
+          maxlength={@b[:maxlength]}
+          list={@b[:list]}
+        />
+        """
 
       :longtext ->
         ~H|<textarea rows="3" name={@name} placeholder={@b[:placeholder]}>{@b[:value]}</textarea>|
@@ -574,6 +585,7 @@ defmodule CabWeb.Ui do
         else
           ~H"""
           <select name={@name}>
+            <option :if={@b[:prompt]} value="">{@b[:prompt]}</option>
             <option :for={{label, value} <- @options} value={value} selected={same?(@b[:value], value)}>
               {label}
             </option>
@@ -594,6 +606,16 @@ defmodule CabWeb.Ui do
               checked={value in List.wrap(@b[:value])}
             />
             {label}
+          </label>
+        </div>
+        """
+
+      :check ->
+        ~H"""
+        <div class="opts">
+          <label>
+            <input type="checkbox" name={@name} value="yes" checked={@b[:value] in [true, "yes"]} />
+            {gettext("Yes")}
           </label>
         </div>
         """

@@ -8,6 +8,7 @@
 >
   <.chrome crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]} here={gettext("Edit")}>
     <:seg href={~p"/c/#{@club.uuid}"} quiet>{gettext("View as public")}</:seg>
+    <:seg href={~p"/c/#{@club.uuid}/owner/form"}>{gettext("Registration form")}</:seg>
     <:seg form="open-session-form" primary={is_nil(@live)}>
       {gettext("Open new session")}
     </:seg>

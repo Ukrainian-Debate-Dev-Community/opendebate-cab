@@ -20,6 +20,8 @@
     <:col :let={participant} label={gettext("Name")}>
       {participant["display_name"]}
       <.sub>{person_kind(participant, @links, @members, @invitations)}</.sub>
+      <%!-- the guest's answers to the club's registration form: head only --%>
+      <CabWeb.FormComponents.form_answers answers={guest_answers(participant, @links)} />
     </:col>
     <:col :let={participant} label={gettext("Seat")}>
       {seat_words(participant, @state, @draft)}

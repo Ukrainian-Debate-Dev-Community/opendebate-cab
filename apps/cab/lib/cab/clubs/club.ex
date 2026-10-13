@@ -21,6 +21,10 @@ defmodule Cab.Clubs.Club do
     # private = standings only (excluded from global standings, own
     # standings members-only); everything else stays public
     field :is_private, :boolean, default: false
+    # the guest registration form: a Core.Forms definition guests
+    # answer after their name; the head edits it on its own page
+    # (Cab.Clubs.edit_registration_form/2) - never cast here
+    field :guest_form, {:array, :map}, default: []
     # admin archive flag - set server-side, never cast
     field :archived_at, :utc_datetime
     field :engine_organisation_id, :integer
@@ -38,6 +42,25 @@ defmodule Cab.Clubs.Club do
   def formats, do: @formats
   def languages, do: @languages
   def audiences, do: @audiences
+
+  @doc """
+  The guest registration form's locked fields, always asked after the
+  built-in name (Core.Forms.with_locked/2 puts them in front when the
+  form is read, so every club has them): the e-mail the personal link
+  goes to. The head may only make it optional and give it a hint.
+  """
+  def guest_form_locked do
+    [
+      %{
+        "id" => "email",
+        "type" => "email",
+        "label" => "Your e-mail",
+        "hint" => nil,
+        "required" => true,
+        "options" => []
+      }
+    ]
+  end
 
   def changeset(club, attrs) do
     club
