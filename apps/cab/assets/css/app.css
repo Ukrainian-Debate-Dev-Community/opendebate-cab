@@ -672,6 +672,7 @@ table.t tr.linked:hover td { background:var(--brand-50); }
                                                           font-weight:650; padding-bottom:5px; }
   table.t-rows td.rank + td { grid-column:2 / 3; }
   table.t-rows td:first-child:not(.rank) { grid-column:1 / 3; }
+  table.t-rows td .sub { font-weight:400; }
   table.t-rows td:where([data-label]:not([data-label=""]):not(:first-child)) { grid-column:1 / -1; }
   /* columns without a label (copy, remove) sit at the right of the title */
   table.t-rows td:first-child, table.t-rows td.rank, table.t-rows td.rank + td { grid-row:1; }
