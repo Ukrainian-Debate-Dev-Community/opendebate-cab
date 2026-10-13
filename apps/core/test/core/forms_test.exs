@@ -131,6 +131,82 @@ defmodule Core.FormsTest do
     end
   end
 
+  describe "locked fields" do
+    @email %{
+      "id" => "email",
+      "type" => "email",
+      "label" => "Your e-mail",
+      "hint" => nil,
+      "required" => true,
+      "options" => []
+    }
+
+    setup do
+      form =
+        Forms.with_locked([], [@email])
+        |> add!(%{"label" => "Phone", "type" => "phone"})
+        |> add!(%{"label" => "Level", "type" => "choice", "options" => "a\nb"})
+
+      %{form: form}
+    end
+
+    test "with_locked puts them first and keeps only their required flag and hint" do
+      assert [%{"id" => "email", "locked" => true, "required" => true}] =
+               Forms.with_locked([], [@email])
+
+      stored = [
+        %{"id" => "x1", "label" => "Phone", "type" => "phone", "required" => false},
+        %{"id" => "email", "label" => "Hacked", "type" => "text", "required" => false, "hint" => "h"}
+      ]
+
+      assert [email, phone] = Forms.with_locked(stored, [@email])
+      assert email == Map.merge(@email, %{"required" => false, "hint" => "h", "locked" => true})
+      assert phone["locked"] == false
+      assert Forms.with_locked(nil, [@email]) == Forms.with_locked([], [@email])
+    end
+
+    test "they cannot be removed or moved, nor can others pass them", %{form: form} do
+      [_email, phone, _level] = form
+      assert {:error, :locked} = Forms.remove_field(form, "email")
+      assert {:error, :locked} = Forms.move_field(form, "email", :down)
+      assert {:error, :locked} = Forms.move_field(form, phone["id"], :up)
+      assert {:ok, [%{"id" => "email"}, %{"label" => "Level"}, _]} =
+               Forms.move_field(form, phone["id"], :down)
+    end
+
+    test "an edit changes only required and hint", %{form: form} do
+      {:ok, [email | _]} =
+        Forms.update_field(form, "email", %{
+          "label" => "Other",
+          "type" => "text",
+          "required" => "no",
+          "hint" => "for the link"
+        })
+
+      assert email == Map.merge(@email, %{"required" => false, "hint" => "for the link", "locked" => true})
+
+      assert {:error, %{hint: {:too_long, 200}}} =
+               Forms.update_field(form, "email", %{"hint" => String.duplicate("x", 201)})
+    end
+
+    test "normalize keeps them in place", %{form: [_email, phone, level] = form} do
+      sent = [%{"id" => "email", "label" => "X", "type" => "text", "required" => false}, level, phone]
+      assert {:ok, [email, ^level, ^phone]} = Forms.normalize(sent, [@email])
+      assert email == Map.merge(@email, %{"required" => false, "locked" => true})
+
+      assert {:error, %{form: :locked_removed}} = Forms.normalize([phone], [@email])
+      assert {:error, %{form: :locked_moved}} = Forms.normalize([phone, hd(form)], [@email])
+      assert {:error, %{form: :locked_removed}} = Forms.normalize([], [@email])
+    end
+
+    test "answers treat them like other fields", %{form: form} do
+      assert {:error, %{"email" => :required}} = Forms.validate_answers(form, %{})
+
+      assert {:ok, [%{"id" => "email", "label" => "Your e-mail", "value" => "a@b.co"}]} =
+               Forms.validate_answers(form, %{"email" => "a@b.co"})
+    end
+  end
+
   describe "answers" do
     setup do
       form =

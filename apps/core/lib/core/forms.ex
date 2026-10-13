@@ -9,9 +9,13 @@ defmodule Core.Forms do
   A definition is a list of fields, in form order:
 
       %{"id" => "k3J9xQ2a", "type" => "phone", "label" => "Phone",
-        "hint" => nil, "required" => true, "options" => []}
+        "hint" => nil, "required" => true, "options" => [],
+        "locked" => false}
 
-  The id is stable across edits. Answers are a list in form order:
+  The id is stable across edits. A locked field is one the app always
+  asks (`with_locked/2` puts the app's locked fields in front when it
+  reads a definition): it cannot be removed or moved, and only its
+  required flag and hint can change. Answers are a list in form order:
 
       %{"id" => "k3J9xQ2a", "label" => "Phone", "type" => "phone",
         "value" => "+380 44 123 45 67"}
@@ -32,7 +36,9 @@ defmodule Core.Forms do
     * `:unknown_type` - type
     * `{:options_count, min, max}`, `{:option_too_long, max}`,
       `:duplicate_options` - options of the choice types
-    * `{:too_many_fields, max}`, `:duplicate_id`, `:not_a_list` - form
+    * `{:too_many_fields, max}`, `:duplicate_id`, `:not_a_list`,
+      `:locked_removed`, `:locked_moved` - form
+    * `{:error, :locked}` - removing or moving a locked field
 
   Answer codes: `:required`, `{:invalid, :email | :phone | :telegram
   | :number}`, `{:too_long, max}`, `:not_an_option`, `:unknown_type`.
@@ -74,23 +80,44 @@ defmodule Core.Forms do
     end
   end
 
-  @doc "Replaces a field's settings, keeping its id and place."
+  @doc """
+  Replaces a field's settings, keeping its id and place. A locked
+  field takes only "required" and "hint"; its label and type stay.
+  """
   def update_field(definition, id, params) when is_list(definition) do
-    with %{} <- field(definition, id) || {:error, :not_found},
-         {:ok, field} <- build_field(params, id) do
+    with %{} = old <- field(definition, id) || {:error, :not_found},
+         {:ok, field} <- rebuild(old, params) do
       {:ok, Enum.map(definition, &if(&1["id"] == id, do: field, else: &1))}
     end
   end
 
-  @doc "Removes a field; answers already given keep their copy of it."
+  defp rebuild(%{"locked" => true} = old, params) do
+    old
+    |> field_params()
+    |> Map.merge(Map.take(params, ~w(required hint)))
+    |> build_field(old["id"])
+    |> lock()
+  end
+
+  defp rebuild(old, params), do: build_field(params, old["id"])
+
+  defp lock({:ok, field}), do: {:ok, Map.put(field, "locked", true)}
+  defp lock(error), do: error
+
+  @doc "Removes a field; answers already given keep their copy of it. Locked fields stay."
   def remove_field(definition, id) when is_list(definition) do
     case field(definition, id) do
       nil -> {:error, :not_found}
+      %{"locked" => true} -> {:error, :locked}
       _field -> {:ok, Enum.reject(definition, &(&1["id"] == id))}
     end
   end
 
-  @doc "Moves a field one place :up or :down; at the edge nothing moves."
+  @doc """
+  Moves a field one place :up or :down; at the edge nothing moves.
+  Locked fields keep their place: moving one, or past one, is
+  `{:error, :locked}`.
+  """
   def move_field(definition, id, direction)
       when is_list(definition) and direction in [:up, :down] do
     case Enum.find_index(definition, &(&1["id"] == id)) do
@@ -100,24 +127,90 @@ defmodule Core.Forms do
       index ->
         other = if direction == :up, do: index - 1, else: index + 1
 
-        if other < 0 or other >= length(definition) do
-          {:ok, definition}
-        else
-          {:ok,
-           definition
-           |> List.replace_at(index, Enum.at(definition, other))
-           |> List.replace_at(other, Enum.at(definition, index))}
+        cond do
+          locked?(Enum.at(definition, index)) ->
+            {:error, :locked}
+
+          other < 0 or other >= length(definition) ->
+            {:ok, definition}
+
+          locked?(Enum.at(definition, other)) ->
+            {:error, :locked}
+
+          true ->
+            {:ok,
+             definition
+             |> List.replace_at(index, Enum.at(definition, other))
+             |> List.replace_at(other, Enum.at(definition, index))}
         end
     end
+  end
+
+  @doc "Is this a locked field (one the app always asks)?"
+  def locked?(%{"locked" => true}), do: true
+  def locked?(_field), do: false
+
+  @doc """
+  The definition with the app's locked fields in front, in the given
+  order - for reading a stored definition (even an empty one). Each
+  locked field keeps its stored "required" and "hint"; its id, type,
+  label and options are the app's. The other stored fields follow,
+  unlocked.
+  """
+  def with_locked(definition, locked) when is_list(locked) do
+    definition = if is_list(definition), do: definition, else: []
+    locked_ids = Enum.map(locked, & &1["id"])
+
+    fixed =
+      for default <- locked do
+        stored = field(definition, default["id"]) || %{}
+
+        default
+        |> Map.merge(Map.take(stored, ~w(required hint)))
+        |> Map.put("locked", true)
+      end
+
+    rest =
+      for field <- definition, field["id"] not in locked_ids, do: Map.put(field, "locked", false)
+
+    fixed ++ rest
   end
 
   @doc """
   Checks a whole definition (one read back from storage or sent over
   an API): `{:ok, definition}` with every field normalised, or
   `{:error, %{field_index => errors}}` / `{:error, %{form: code}}`.
-  Fields without an id get one; duplicate ids are refused.
+  Fields without an id get one; duplicate ids are refused. `locked`
+  are the app's locked fields (as for `with_locked/2`): each must come
+  at its own place, first (`:locked_removed` / `:locked_moved`), and
+  takes only "required" and "hint" from what was sent.
   """
-  def normalize(definition) when is_list(definition) do
+  def normalize(definition, locked \\ [])
+
+  def normalize(definition, locked) when is_list(definition) do
+    case locked_place(definition, locked) do
+      :ok -> normalize_fields(definition, locked)
+      code -> {:error, %{form: code}}
+    end
+  end
+
+  def normalize(_definition, _locked), do: {:error, %{form: :not_a_list}}
+
+  defp locked_place(definition, locked) do
+    ids = Enum.map(definition, &(is_map(&1) && &1["id"]))
+
+    locked
+    |> Enum.with_index()
+    |> Enum.find_value(:ok, fn {default, index} ->
+      cond do
+        Enum.at(ids, index) == default["id"] -> nil
+        default["id"] in ids -> :locked_moved
+        true -> :locked_removed
+      end
+    end)
+  end
+
+  defp normalize_fields(definition, locked) do
     {fields, errors} =
       definition
       |> Enum.with_index()
@@ -125,7 +218,13 @@ defmodule Core.Forms do
         raw = if is_map(raw), do: raw, else: %{}
         id = if is_binary(raw["id"]) and raw["id"] != "", do: raw["id"], else: new_id()
 
-        case build_field(field_params(raw), id) do
+        built =
+          case field(locked, id) do
+            nil -> build_field(field_params(raw), id)
+            default -> rebuild(Map.put(default, "locked", true), field_params(raw))
+          end
+
+        case built do
           {:ok, field} -> {[field | ok], bad}
           {:error, field_errors} -> {ok, Map.put(bad, index, field_errors)}
         end
@@ -147,8 +246,6 @@ defmodule Core.Forms do
         {:ok, Enum.reverse(fields)}
     end
   end
-
-  def normalize(_definition), do: {:error, %{form: :not_a_list}}
 
   @doc "A field as the editor's params (the edit form's starting values)."
   def field_params(nil), do: %{"type" => "text", "required" => "no"}
@@ -194,7 +291,8 @@ defmodule Core.Forms do
          "label" => label,
          "hint" => hint,
          "required" => params["required"] in ["yes", "true", true],
-         "options" => options
+         "options" => options,
+         "locked" => false
        }}
     else
       {:error, errors}
