@@ -261,7 +261,10 @@ defmodule Cab.Links do
 
   defp validate_guest(session, name, answer_params) do
     answers =
-      case Core.Forms.validate_answers(session_club(session).guest_form, answer_params) do
+      case Core.Forms.validate_answers(
+             Cab.Clubs.guest_form(session_club(session)),
+             answer_params
+           ) do
         {:ok, answers} -> {:ok, answers}
         {:error, errors} -> {:error, Map.new(errors, fn {id, msg} -> {{:answer, id}, msg} end)}
       end

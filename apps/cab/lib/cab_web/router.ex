@@ -147,6 +147,7 @@ defmodule CabWeb.Router do
     get "/owner", OwnerController, :club
     post "/owner/club", OwnerController, :update_club
     get "/owner/form", OwnerController, :guest_form
+    get "/owner/form/preview", OwnerController, :preview_form
     post "/owner/form/fields", OwnerController, :add_field
     post "/owner/form/fields/:field_id", OwnerController, :update_field
     post "/owner/form/fields/:field_id/remove", OwnerController, :remove_field

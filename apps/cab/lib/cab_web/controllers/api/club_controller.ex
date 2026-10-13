@@ -74,18 +74,19 @@ defmodule CabWeb.Api.ClubController do
   # fields guests answer after their name on /r/:sess (edited on the
   # head's HTML page)
   def registration_form(conn, _params) do
-    json(conn, %{fields: conn.assigns.club.guest_form})
+    json(conn, %{fields: Clubs.guest_form(conn.assigns.club)})
   end
 
   # PUT /api/cab/v1/clubs/:uuid/registration-form {"fields": [...]} -
   # head only: replaces the whole definition (Core.Forms' shape; ids
-  # kept when given, new ones for new fields), twin of the editor page
+  # kept when given, new ones for new fields; the locked e-mail field
+  # stays first and takes only required and hint), twin of the editor
   def replace_registration_form(conn, params) do
-    case Core.Forms.normalize(params["fields"]) do
+    case Core.Forms.normalize(params["fields"], Cab.Clubs.Club.guest_form_locked()) do
       {:ok, definition} ->
         with {:ok, club} <-
                Clubs.edit_registration_form(conn.assigns.club, fn _old -> {:ok, definition} end) do
-          json(conn, %{fields: club.guest_form})
+          json(conn, %{fields: Clubs.guest_form(club)})
         end
 
       {:error, errors} ->

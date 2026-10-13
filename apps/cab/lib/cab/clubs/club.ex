@@ -43,6 +43,25 @@ defmodule Cab.Clubs.Club do
   def languages, do: @languages
   def audiences, do: @audiences
 
+  @doc """
+  The guest registration form's locked fields, always asked after the
+  built-in name (Core.Forms.with_locked/2 puts them in front when the
+  form is read, so every club has them): the e-mail the personal link
+  goes to. The head may only make it optional and give it a hint.
+  """
+  def guest_form_locked do
+    [
+      %{
+        "id" => "email",
+        "type" => "email",
+        "label" => "Your e-mail",
+        "hint" => nil,
+        "required" => true,
+        "options" => []
+      }
+    ]
+  end
+
   def changeset(club, attrs) do
     club
     |> cast(attrs, [

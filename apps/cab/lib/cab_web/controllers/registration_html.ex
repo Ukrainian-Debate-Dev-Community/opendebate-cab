@@ -6,7 +6,66 @@ defmodule CabWeb.RegistrationHTML do
   use CabWeb, :html
 
   import CabWeb.FormComponents,
-    only: [answer_name: 1, block_type: 1, input_type: 1, placeholder: 1, prompt: 1]
+    only: [
+      answer_name: 1,
+      block_type: 1,
+      field_label: 1,
+      input_type: 1,
+      placeholder: 1,
+      prompt: 1
+    ]
 
   embed_templates "registration_html/*"
+
+  @doc """
+  The guest's registration form: the built-in name, then the club's
+  form fields (Cab.Clubs.guest_form/1). Also the head's preview of it,
+  `preview` keeping its button from sending anything.
+  """
+  attr :action, :string, required: true
+  attr :title, :string, required: true
+  attr :fields, :list, required: true
+  attr :name, :string, default: nil
+  attr :answers, :map, default: %{}
+  attr :errors, :map, default: %{}
+  attr :preview, :boolean, default: false
+
+  def guest_form(assigns) do
+    ~H"""
+    <.form_for
+      id="guest-register-form"
+      action={@action}
+      title={@title}
+      description={
+        gettext("No account needed — you'll get a personal link that is your access to this session.")
+      }
+      errors={@errors}
+    >
+      <:block name={:name} type={:text} label={gettext("Your name")} required value={@name} />
+      <:block
+        :for={field <- @fields}
+        name={answer_name(field)}
+        type={block_type(field)}
+        label={field_label(field)}
+        required={field["required"]}
+        hint={field["hint"]}
+        options={field["options"]}
+        value={@answers[field["id"]]}
+        input={input_type(field)}
+        placeholder={placeholder(field)}
+        prompt={prompt(field)}
+      />
+      <:submit
+        disabled={@preview}
+        note={
+          gettext(
+            "You appear in this session's list right away; the club head seats you as a speaker or the adjudicator."
+          )
+        }
+      >
+        {gettext("Register")}
+      </:submit>
+    </.form_for>
+    """
+  end
 end

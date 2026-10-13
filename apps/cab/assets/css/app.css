@@ -297,6 +297,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
           font-weight:700; padding:8px 20px; border-radius:7px;
           background:var(--gold); color:var(--gold-ink); }
 .btn-go:hover { background:var(--gold-hover); }
+.btn-go:disabled { cursor:not-allowed; opacity:.55; }
 .btn-quiet { cursor:pointer; font:inherit; font-size:.8rem; font-weight:700; padding:7px 19px;
              border-radius:7px; border:1px solid var(--line); background:var(--surface);
              color:var(--ink); }

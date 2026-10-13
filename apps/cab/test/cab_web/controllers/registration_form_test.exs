@@ -56,17 +56,12 @@ defmodule CabWeb.RegistrationFormTest do
     end)
   end
 
-  # e-mail (required), phone, a yes/no and a multiple choice
+  # the built-in e-mail (required), then phone, a yes/no and a
+  # multiple choice
   defp with_form(club) do
     {:ok, club} =
       Cab.Clubs.edit_registration_form(club, fn form ->
-        with {:ok, form} <-
-               Core.Forms.add_field(form, %{
-                 "label" => "E-mail",
-                 "type" => "email",
-                 "required" => "yes"
-               }),
-             {:ok, form} <- Core.Forms.add_field(form, %{"label" => "Phone", "type" => "phone"}),
+        with {:ok, form} <- Core.Forms.add_field(form, %{"label" => "Phone", "type" => "phone"}),
              {:ok, form} <-
                Core.Forms.add_field(form, %{"label" => "First time?", "type" => "yesno"}) do
           Core.Forms.add_field(form, %{
@@ -77,7 +72,7 @@ defmodule CabWeb.RegistrationFormTest do
         end
       end)
 
-    ids = Map.new(club.guest_form, &{&1["label"], &1["id"]})
+    ids = Map.new(Cab.Clubs.guest_form(club), &{&1["label"], &1["id"]})
     {club, ids}
   end
 
@@ -94,9 +89,19 @@ defmodule CabWeb.RegistrationFormTest do
 
       html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner/form") |> html_response(200)
       assert html =~ ~s(id="guest-form-editor")
+      # the built-in name and e-mail lead the list; the e-mail only edits
+      assert html =~ ~s(id="field-fixed")
       assert html =~ "Your name"
-      assert html =~ "No fields yet."
+      assert html =~ ~s(id="field-email")
+      assert html =~ "Your e-mail"
+      assert html =~ ~s(href="/c/#{club.uuid}/owner/form?edit=email")
+      refute html =~ "/owner/form/fields/email/remove"
+      refute html =~ "/owner/form/fields/email/move"
       assert html =~ ~s(action="/c/#{club.uuid}/owner/form/fields")
+      # one gold action, in the top bar; preview beside it; no button in the form
+      assert html =~ ~s(form="field-form" class="go")
+      assert html =~ ~s(href="/c/#{club.uuid}/owner/form/preview")
+      refute html =~ ~s(class="f-submit")
 
       assert conn |> log_in(member) |> get(~p"/c/#{club.uuid}/owner/form") |> response(403)
 
@@ -123,8 +128,11 @@ defmodule CabWeb.RegistrationFormTest do
       |> log_in(head)
       |> post(fields, %{label: "Level", type: "choice", required: "no", options: "novice\nopen"})
 
-      assert [%{"id" => phone_id, "label" => "Phone", "required" => true}, %{"id" => level_id}] =
-               Repo.reload!(club).guest_form
+      assert [
+               %{"id" => "email", "locked" => true},
+               %{"id" => phone_id, "label" => "Phone", "required" => true},
+               %{"id" => level_id}
+             ] = Cab.Clubs.guest_form(Repo.reload!(club))
 
       # a refused field re-renders the editor with the message and the values
       refused =
@@ -135,7 +143,7 @@ defmodule CabWeb.RegistrationFormTest do
 
       assert refused =~ "Give 2 to 20 options, one per line."
       assert refused =~ "only one"
-      assert length(Repo.reload!(club).guest_form) == 2
+      assert length(Cab.Clubs.guest_form(Repo.reload!(club))) == 3
 
       edit_page =
         conn
@@ -153,16 +161,82 @@ defmodule CabWeb.RegistrationFormTest do
       conn |> log_in(head) |> post("#{fields}/#{level_id}/move/up")
 
       assert [
+               %{"id" => "email"},
                %{"id" => ^level_id},
                %{"id" => ^phone_id, "label" => "Mobile", "required" => false}
-             ] =
-               Repo.reload!(club).guest_form
+             ] = Cab.Clubs.guest_form(Repo.reload!(club))
+
+      # nothing moves above the built-in e-mail
+      blocked = conn |> log_in(head) |> post("#{fields}/#{level_id}/move/up")
+      assert Phoenix.Flash.get(blocked.assigns.flash, :error) =~ "always asked"
 
       conn |> log_in(head) |> post("#{fields}/#{level_id}/remove")
-      assert [%{"id" => ^phone_id}] = Repo.reload!(club).guest_form
+      assert [%{"id" => "email"}, %{"id" => ^phone_id}] = Cab.Clubs.guest_form(Repo.reload!(club))
 
       assert conn |> log_in(head) |> post("#{fields}/nope/remove") |> response(404)
       assert conn |> log_in(head) |> post("#{fields}/#{phone_id}/move/sideways") |> response(404)
+    end
+
+    test "the built-in e-mail: only required and hint change; never removed or moved",
+         %{conn: conn, club: club, head: head} do
+      fields = ~p"/c/#{club.uuid}/owner/form/fields"
+
+      edit =
+        conn
+        |> log_in(head)
+        |> get(~p"/c/#{club.uuid}/owner/form?edit=email")
+        |> html_response(200)
+
+      assert edit =~ ~s(action="/c/#{club.uuid}/owner/form/fields/email")
+      assert edit =~ ~s(name="required")
+      refute edit =~ ~s(name="label")
+      refute edit =~ ~s(name="type")
+      refute edit =~ "Remove field"
+
+      conn
+      |> log_in(head)
+      |> post("#{fields}/email", %{
+        required: "no",
+        hint: "for your link",
+        label: "X",
+        type: "text"
+      })
+
+      assert [email] = Cab.Clubs.guest_form(Repo.reload!(club))
+
+      assert %{
+               "label" => "Your e-mail",
+               "type" => "email",
+               "required" => false,
+               "hint" => "for your link",
+               "locked" => true
+             } = email
+
+      for path <- ["#{fields}/email/remove", "#{fields}/email/move/down"] do
+        refused = conn |> log_in(head) |> post(path)
+        assert redirected_to(refused) == "/c/#{club.uuid}/owner/form"
+        assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "always asked"
+      end
+
+      assert [%{"id" => "email"}] = Cab.Clubs.guest_form(Repo.reload!(club))
+    end
+
+    test "preview shows the guest form for the head only, with nothing to send",
+         %{conn: conn, club: club, head: head, member: member} do
+      {club, ids} = with_form(club)
+      path = ~p"/c/#{club.uuid}/owner/form/preview"
+
+      html = conn |> log_in(head) |> get(path) |> html_response(200)
+      assert html =~ "Preview: this is what a guest sees"
+      assert html =~ ~s(id="guest-register-form")
+      assert html =~ ~s(name="name")
+      assert html =~ ~s(name="answers[email]")
+      assert html =~ ~s(name="answers[#{ids["Days"]}][]")
+      assert html =~ ~r/class="btn-go"\s+disabled/
+      assert html =~ ~s(href="/c/#{club.uuid}/owner/form")
+
+      assert conn |> log_in(member) |> get(path) |> response(403)
+      assert redirected_to(get(conn, path)) =~ "/signin"
     end
   end
 
@@ -179,7 +253,7 @@ defmodule CabWeb.RegistrationFormTest do
 
       html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
       assert html =~ ~s(name="name")
-      assert html =~ ~s(name="answers[#{ids["E-mail"]}]")
+      assert html =~ ~s(name="answers[#{"email"}]")
       assert html =~ ~s(type="email")
       assert html =~ ~s(name="answers[#{ids["Phone"]}]")
       assert html =~ ~s(name="answers[#{ids["Days"]}][]")
@@ -237,7 +311,7 @@ defmodule CabWeb.RegistrationFormTest do
         |> post(~p"/r/#{session.uuid}", %{
           name: "Greta Guest",
           answers: %{
-            ids["E-mail"] => " greta@example.com ",
+            "email" => " greta@example.com ",
             ids["Phone"] => "+380 44 123 45 67",
             ids["Days"] => ["Thursday", "Monday"]
           }
@@ -247,7 +321,7 @@ defmodule CabWeb.RegistrationFormTest do
       assert [%Link{} = link] = Repo.all(Link)
 
       assert Enum.map(link.answers, &{&1["label"], &1["type"], &1["value"]}) == [
-               {"E-mail", "email", "greta@example.com"},
+               {"Your e-mail", "email", "greta@example.com"},
                {"Phone", "phone", "+380 44 123 45 67"},
                {"First time?", "yesno", false},
                {"Days", "multi", ["Monday", "Thursday"]}
@@ -275,7 +349,7 @@ defmodule CabWeb.RegistrationFormTest do
     end
 
     test "the e-mail speaks the request's language", %{conn: conn, club: club} do
-      {club, ids} = with_form(club)
+      {club, _ids} = with_form(club)
       session = session_fixture(club, engine_event_id: 11)
       stub_stage([])
 
@@ -284,7 +358,7 @@ defmodule CabWeb.RegistrationFormTest do
       |> put_req_header("accept-language", "uk-UA,uk;q=0.9")
       |> post(~p"/r/#{session.uuid}", %{
         name: "Greta",
-        answers: %{ids["E-mail"] => "g@example.com"}
+        answers: %{"email" => "g@example.com"}
       })
       |> html_response(200)
 
@@ -295,9 +369,22 @@ defmodule CabWeb.RegistrationFormTest do
       end)
     end
 
-    test "no e-mail field, no e-mail", %{conn: conn, club: club} do
+    test "every club asks the e-mail; made optional and left empty, no e-mail",
+         %{conn: conn, club: club} do
       session = session_fixture(club, engine_event_id: 11)
       stub_stage([])
+
+      refused =
+        conn |> anon() |> post(~p"/r/#{session.uuid}", %{name: "Greta"}) |> html_response(422)
+
+      assert refused =~ "Your e-mail"
+      assert refused =~ "Fill this in."
+
+      {:ok, _club} =
+        Cab.Clubs.edit_registration_form(
+          club,
+          &Core.Forms.update_field(&1, "email", %{"required" => "no"})
+        )
 
       html =
         conn |> anon() |> post(~p"/r/#{session.uuid}", %{name: "Greta"}) |> html_response(200)
@@ -320,8 +407,8 @@ defmodule CabWeb.RegistrationFormTest do
       link = link_fixture(guest, session, participant_id: 41)
 
       {:ok, answers} =
-        Core.Forms.validate_answers(club.guest_form, %{
-          ids["E-mail"] => "greta@example.com",
+        Core.Forms.validate_answers(Cab.Clubs.guest_form(club), %{
+          "email" => "greta@example.com",
           ids["Phone"] => "+380 50 765 43 21"
         })
 
@@ -355,7 +442,7 @@ defmodule CabWeb.RegistrationFormTest do
 
       assert email == %{
                "id" => email["id"],
-               "label" => "E-mail",
+               "label" => "Your e-mail",
                "type" => "email",
                "value" => "greta@example.com"
              }
@@ -369,7 +456,12 @@ defmodule CabWeb.RegistrationFormTest do
         |> get(~p"/api/cab/v1/clubs/#{club.uuid}/registration-form")
         |> json_response(200)
 
-      assert Enum.map(form["fields"], & &1["label"]) == ["E-mail", "Phone", "First time?", "Days"]
+      assert Enum.map(form["fields"], & &1["label"]) == [
+               "Your e-mail",
+               "Phone",
+               "First time?",
+               "Days"
+             ]
     end
 
     test "members, the public and the guest never see them",
@@ -426,7 +518,7 @@ defmodule CabWeb.RegistrationFormTest do
     defp api(conn, user), do: if(user, do: log_in(conn, user), else: conn)
 
     test "GET and PUT: 401 anonymous, 403 member, 404 unknown club",
-         %{conn: conn, club: club, member: member} do
+         %{conn: conn, club: club, head: head, member: member} do
       path = ~p"/api/cab/v1/clubs/#{club.uuid}/registration-form"
       body = %{fields: [%{label: "Phone", type: "phone"}]}
 
@@ -438,6 +530,12 @@ defmodule CabWeb.RegistrationFormTest do
       unknown = ~p"/api/cab/v1/clubs/#{Ecto.UUID.generate()}/registration-form"
       assert conn |> api(member) |> get(unknown) |> response(404)
       assert Repo.reload!(club).guest_form == []
+
+      # every club reads with its built-in e-mail, even before any edit
+      head_body = conn |> api(head) |> get(path) |> json_response(200)
+
+      assert [%{"id" => "email", "type" => "email", "locked" => true, "required" => true}] =
+               head_body["fields"]
     end
 
     test "PUT replaces the definition, keeping given ids; head and admin",
@@ -450,28 +548,41 @@ defmodule CabWeb.RegistrationFormTest do
         |> api(head)
         |> put(path, %{
           fields: [
+            %{
+              id: "email",
+              label: "ignored",
+              type: "text",
+              required: false,
+              hint: "for your link"
+            },
             %{id: ids["Days"], label: "Days", type: "multi", options: ["Mon", "Thu"]},
             %{label: "Level", type: "choice", options: "novice\nopen", required: true}
           ]
         })
         |> json_response(200)
 
-      assert [days, level] = stored["fields"]
+      assert [email, days, level] = stored["fields"]
+
+      assert %{"label" => "Your e-mail", "type" => "email", "required" => false} = email
+      assert email["hint"] == "for your link"
       assert days["id"] == ids["Days"]
       assert days["options"] == ["Mon", "Thu"]
       assert is_binary(level["id"]) and level["id"] not in Map.values(ids)
       assert level["required"] == true
-      assert Repo.reload!(club).guest_form == stored["fields"]
+      assert Cab.Clubs.guest_form(Repo.reload!(club)) == stored["fields"]
 
       admin =
         user_fixture(%{node_user_id: 88})
         |> Ecto.Changeset.change(is_admin: true)
         |> Repo.update!()
 
-      assert %{"fields" => [_, _]} = conn |> api(admin) |> get(path) |> json_response(200)
+      assert %{"fields" => [_, _, _]} = conn |> api(admin) |> get(path) |> json_response(200)
 
-      assert %{"fields" => []} =
-               conn |> api(admin) |> put(path, %{fields: []}) |> json_response(200)
+      assert %{"fields" => [%{"id" => "email"}]} =
+               conn
+               |> api(admin)
+               |> put(path, %{fields: [%{id: "email", required: true}]})
+               |> json_response(200)
     end
 
     test "PUT refuses an invalid definition with stable codes; nothing changes",
@@ -484,6 +595,7 @@ defmodule CabWeb.RegistrationFormTest do
         |> api(head)
         |> put(path, %{
           fields: [
+            %{id: "email", required: true},
             %{label: "", type: "text"},
             %{label: "Colour", type: "colour"},
             %{label: "Level", type: "choice", options: ["only"]}
@@ -492,23 +604,39 @@ defmodule CabWeb.RegistrationFormTest do
         |> json_response(422)
 
       assert body["details"]["fields"] == %{
-               "0" => %{"label" => "required"},
-               "1" => %{"type" => "invalid_type"},
-               "2" => %{"options" => "options_count"}
+               "1" => %{"label" => "required"},
+               "2" => %{"type" => "invalid_type"},
+               "3" => %{"options" => "options_count"}
              }
 
       dup =
         conn
         |> api(head)
         |> put(path, %{
-          fields: [%{id: "a", label: "A", type: "text"}, %{id: "a", label: "B", type: "text"}]
+          fields: [
+            %{id: "email"},
+            %{id: "a", label: "A", type: "text"},
+            %{id: "a", label: "B", type: "text"}
+          ]
         })
         |> json_response(422)
 
       assert dup["details"]["form"] == "duplicate_id"
 
+      # the built-in e-mail is never removed nor moved
+      removed = conn |> api(head) |> put(path, %{fields: []}) |> json_response(422)
+      assert removed["details"]["form"] == "locked_removed"
+
+      moved =
+        conn
+        |> api(head)
+        |> put(path, %{fields: [%{label: "A", type: "text"}, %{id: "email"}]})
+        |> json_response(422)
+
+      assert moved["details"]["form"] == "locked_moved"
+
       assert conn |> api(head) |> put(path, %{fields: "x"}) |> json_response(422)
-      assert length(Repo.reload!(club).guest_form) == 4
+      assert length(Cab.Clubs.guest_form(Repo.reload!(club))) == 4
     end
   end
 end

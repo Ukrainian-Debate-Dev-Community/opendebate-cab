@@ -59,6 +59,8 @@ defmodule CabWeb.RegistrationController do
     with_session(conn, session_uuid, fn conn, session, state ->
       case conn.assigns[:current_user] do
         %Cab.Accounts.User{} = user -> create_signed_in(conn, user, session)
+        # a closed registration says so before checking any answer
+        nil when state.stage != :signup -> render_closed(conn, session, state)
         nil -> create_guest(conn, session, state, params)
       end
     end)
@@ -114,9 +116,9 @@ defmodule CabWeb.RegistrationController do
       session: session,
       state: state,
       name: params["name"],
-      fields: session.club.guest_form,
+      fields: Cab.Clubs.guest_form(session.club),
       answers: answer_params(params),
-      errors: form_errors(session.club.guest_form, errors),
+      errors: form_errors(Cab.Clubs.guest_form(session.club), errors),
       page_title: gettext("%{club} — Register", club: session.club.name)
     )
   end

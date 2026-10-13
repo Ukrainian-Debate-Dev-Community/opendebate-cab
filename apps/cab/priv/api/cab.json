@@ -332,7 +332,7 @@
           "Clubs"
         ],
         "summary": "The guest registration form",
-        "description": "The fields guests answer after their name when they register for any session of the club on the shared registration URL (the /r page; it has no API twin), in form order. Signed-in members are never asked. An empty list means guests give only their name. Club head and cab admins only.",
+        "description": "The fields guests answer after their name when they register for any session of the club on the shared registration URL (the /r page; it has no API twin), in form order. Every club's form starts with the locked built-in e-mail field (id \"email\", label \"Your e-mail\", required by default), the address the guest's personal link is sent to; the guest's name is asked before the form and is not part of it. Signed-in members are never asked. Club head and cab admins only.",
         "parameters": [
           {
             "name": "uuid",
@@ -389,7 +389,7 @@
           "Clubs"
         ],
         "summary": "Replace the guest registration form",
-        "description": "Replaces the whole definition, the twin of the head's Registration form page. Fields keep the id they are sent with; fields without one get a new id. Guests' earlier answers keep their own copy of each field's label and type, so editing or removing fields never changes them. On 422, details hold stable error codes: details.form is one of too_many_fields, duplicate_id, not_a_list; details.fields maps the field's index to {param: code} with codes required, too_long, invalid_type, options_count, option_too_long, duplicate_options.",
+        "description": "Replaces the whole definition, the twin of the head's Registration form page. Fields keep the id they are sent with; fields without one get a new id. The locked built-in e-mail field must come first with its id \"email\": only its required flag and hint are taken from the request, its label and type stay. Guests' earlier answers keep their own copy of each field's label and type, so editing or removing fields never changes them. On 422, details hold stable error codes: details.form is one of locked_removed, locked_moved, too_many_fields, duplicate_id, not_a_list; details.fields maps the field's index to {param: code} with codes required, too_long, invalid_type, options_count, option_too_long, duplicate_options.",
         "parameters": [
           {
             "name": "uuid",
@@ -2895,6 +2895,10 @@
               "maxLength": 80
             },
             "description": "2 to 20 for choice and multi, empty otherwise"
+          },
+          "locked": {
+            "type": "boolean",
+            "description": "A built-in field (the e-mail): it cannot be removed or moved, and only required and hint can change"
           }
         }
       },
@@ -2906,7 +2910,7 @@
               "string",
               "null"
             ],
-            "description": "Kept when given; a new field leaves it out"
+            "description": "Kept when given; a new field leaves it out. The built-in e-mail is \"email\""
           },
           "label": {
             "type": "string",
@@ -2952,7 +2956,8 @@
         "required": [
           "label",
           "type"
-        ]
+        ],
+        "description": "A field as sent; for the locked e-mail only id, required and hint are read"
       },
       "Answer": {
         "type": "object",

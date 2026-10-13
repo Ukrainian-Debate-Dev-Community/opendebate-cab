@@ -49,6 +49,11 @@ defmodule CabWeb.FormComponents do
   def editor_error({:too_many_fields, max}),
     do: dgettext("errors", "A form holds %{count} fields at most.", count: max)
 
+  def editor_error(:locked),
+    do: dgettext("errors", "This field is always asked: it cannot be moved or removed.")
+
+  def editor_error(:locked_removed), do: editor_error(:locked)
+  def editor_error(:locked_moved), do: editor_error(:locked)
   def editor_error(_code), do: dgettext("errors", "Something went wrong, try again.")
 
   @doc "A `Core.Forms` answer error code as a message, worded for the field's type."
@@ -81,9 +86,11 @@ defmodule CabWeb.FormComponents do
 
   @doc """
   The field list (a kit table: up / down / edit / remove) and one
-  field form: a new field's, or the one in `editing`. `values` are the
-  field form's posted params, `errors` the `Core.Forms` codes by param.
-  `fixed` lists the labels the app always asks first (shown, locked).
+  field form: a new field's, or the one in `editing`; its submit is
+  the page's own (a chrome segment with `form={form_id}`). `values`
+  are the field form's posted params, `errors` the `Core.Forms` codes
+  by param. `fixed` lists the labels the app asks before the form
+  (shown first, not editable); locked fields can only be edited.
   """
   attr :id, :string, default: "form-editor"
   attr :definition, :list, required: true
@@ -96,6 +103,16 @@ defmodule CabWeb.FormComponents do
   attr :form_id, :string, default: "field-form"
 
   def form_editor(assigns) do
+    definition = assigns.definition
+
+    rows =
+      Enum.map(assigns.fixed, &{:fixed, %{"id" => "fixed", "label" => &1}, nil}) ++
+        for {field, index} <- Enum.with_index(definition) do
+          up? = index > 0 and not Forms.locked?(Enum.at(definition, index - 1))
+          down? = index < length(definition) - 1
+          {:field, field, %{up: up?, down: down?}}
+        end
+
     assigns =
       assigns
       |> assign(:values, Map.merge(Forms.field_params(assigns.editing), assigns.values))
@@ -103,42 +120,49 @@ defmodule CabWeb.FormComponents do
         :messages,
         Map.new(assigns.errors, fn {key, code} -> {key, editor_error(code)} end)
       )
-      |> assign(:last, length(assigns.definition) - 1)
+      |> assign(:rows, rows)
+      |> assign(:locked, Forms.locked?(assigns.editing))
 
     ~H"""
     <div id={@id}>
-      <div :if={@fixed != []} class="pad">
-        <p :for={label <- @fixed}>
-          <b>{label}</b> - {gettext("always asked first, required")}
-        </p>
-      </div>
       <.table
         id={"#{@id}-fields"}
-        rows={Enum.with_index(@definition)}
-        row_id={fn {field, _index} -> "field-#{field["id"]}" end}
+        rows={@rows}
+        row_id={fn {_kind, field, _moves} -> "field-#{field["id"]}" end}
         empty={gettext("No fields yet.")}
       >
-        <:col :let={{field, _index}} label={gettext("Field")}>
-          {field["label"]}
+        <:col :let={{kind, field, _moves}} label={gettext("Field")}>
+          {field_label(field)}
+          <.sub :if={kind == :fixed or Forms.locked?(field)}>{gettext("always asked")}</.sub>
           <.sub :if={field["hint"]}>{field["hint"]}</.sub>
         </:col>
-        <:col :let={{field, _index}} label={gettext("Type")}>
-          {type_name(field["type"])}
-          <.sub :if={field["options"] != []}>{Enum.join(field["options"], ", ")}</.sub>
+        <:col :let={{kind, field, _moves}} label={gettext("Type")}>
+          {if kind == :fixed, do: type_name("text"), else: type_name(field["type"])}
+          <.sub :if={field["options"] not in [nil, []]}>{Enum.join(field["options"], ", ")}</.sub>
         </:col>
-        <:col :let={{field, _index}} label={gettext("Answer")}>
-          {if field["required"], do: gettext("required"), else: gettext("optional")}
+        <:col :let={{kind, field, _moves}} label={gettext("Answer")}>
+          {if kind == :fixed or field["required"],
+            do: gettext("required"),
+            else: gettext("optional")}
         </:col>
-        <:col :let={{field, index}}>
-          <span class="field-actions">
-            <.link :if={index > 0} href={"#{@fields}/#{field["id"]}/move/up"} method="post">
+        <:col :let={{kind, field, moves}}>
+          <span :if={kind == :field} class="field-actions">
+            <.link :if={moves.up} href={"#{@fields}/#{field["id"]}/move/up"} method="post">
               {gettext("up")}
             </.link>
-            <.link :if={index < @last} href={"#{@fields}/#{field["id"]}/move/down"} method="post">
+            <.link
+              :if={moves.down and not Forms.locked?(field)}
+              href={"#{@fields}/#{field["id"]}/move/down"}
+              method="post"
+            >
               {gettext("down")}
             </.link>
             <.link href={"#{@page}?edit=#{field["id"]}"}>{gettext("edit")}</.link>
-            <.link href={"#{@fields}/#{field["id"]}/remove"} method="post">
+            <.link
+              :if={not Forms.locked?(field)}
+              href={"#{@fields}/#{field["id"]}/remove"}
+              method="post"
+            >
               {gettext("remove")}
             </.link>
           </span>
@@ -150,13 +174,18 @@ defmodule CabWeb.FormComponents do
         action={if @editing, do: "#{@fields}/#{@editing["id"]}", else: @fields}
         title={
           if @editing,
-            do: gettext("Edit field: %{label}", label: @editing["label"]),
+            do: gettext("Edit field: %{label}", label: field_label(@editing)),
             else: gettext("Add a field")
         }
-        description={gettext("Guests see the label as the question and the hint below it.")}
+        description={
+          if @locked,
+            do: gettext("Always asked. You can choose whether it is required and give it a hint."),
+            else: gettext("Guests see the label as the question and the hint below it.")
+        }
         errors={@messages}
       >
         <:block
+          :if={not @locked}
           name={:label}
           type={:text}
           label={gettext("Label")}
@@ -165,6 +194,7 @@ defmodule CabWeb.FormComponents do
           value={@values["label"]}
         />
         <:block
+          :if={not @locked}
           name={:type}
           type={:select}
           label={gettext("Type")}
@@ -172,6 +202,7 @@ defmodule CabWeb.FormComponents do
           options={Enum.map(Forms.types(), &{type_name(&1), &1})}
         />
         <:block
+          :if={not @locked}
           name={:options}
           type={:longtext}
           label={gettext("Options")}
@@ -192,13 +223,17 @@ defmodule CabWeb.FormComponents do
           value={@values["hint"]}
           hint={gettext("Optional: a line under the question.")}
         />
-        <:submit quiet>
-          {if @editing, do: gettext("Save field"), else: gettext("Add field")}
-        </:submit>
       </.form_for>
     </div>
     """
   end
+
+  @doc """
+  A field's or an answer's label as shown: cab's locked e-mail field
+  in the viewer's language, every other label as the head wrote it.
+  """
+  def field_label(%{"id" => "email", "label" => "Your e-mail"}), do: gettext("Your e-mail")
+  def field_label(field), do: field["label"]
 
   # ---------------------------------------------------------------
   # The inputs: a definition's fields as the kit's form_for blocks
@@ -266,7 +301,7 @@ defmodule CabWeb.FormComponents do
   def form_answers(assigns) do
     ~H"""
     <span :for={answer <- @answers} class="sub answer">
-      {answer["label"]}: <.answer_value answer={answer} />
+      {field_label(answer)}: <.answer_value answer={answer} />
     </span>
     """
   end

@@ -13,9 +13,10 @@
     ]}
     here={gettext("Registration form")}
   >
+    <:seg href={~p"/c/#{@club.uuid}/owner/form/preview"}>{gettext("Preview")}</:seg>
     <:seg :if={@editing} href={~p"/c/#{@club.uuid}/owner/form"} quiet>{gettext("Cancel")}</:seg>
     <:seg
-      :if={@editing}
+      :if={@editing && !@editing["locked"]}
       href={~p"/c/#{@club.uuid}/owner/form/fields/#{@editing["id"]}/remove"}
       method="post"
       quiet
@@ -45,7 +46,7 @@
       </div>
       <CabWeb.FormComponents.form_editor
         id="guest-form-editor"
-        definition={@club.guest_form}
+        definition={@definition}
         page={~p"/c/#{@club.uuid}/owner/form"}
         fields={~p"/c/#{@club.uuid}/owner/form/fields"}
         editing={@editing}

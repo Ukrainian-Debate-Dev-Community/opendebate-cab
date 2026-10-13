@@ -59,8 +59,17 @@ defmodule CabWeb.OwnerController do
   # GET /c/:club_uuid/owner/form[?edit=<field id>] - the fields in
   # order, then the add form (or the one field being edited)
   def guest_form(conn, params) do
-    editing = params["edit"] && Forms.field(conn.assigns.club.guest_form, params["edit"])
+    editing = params["edit"] && Forms.field(Clubs.guest_form(conn.assigns.club), params["edit"])
     render_guest_form(conn, editing, %{}, %{})
+  end
+
+  # GET /c/:club_uuid/owner/form/preview - what a guest sees on /r for
+  # this club, with nothing to send
+  def preview_form(conn, _params) do
+    render(conn, :guest_form_preview,
+      fields: Clubs.guest_form(conn.assigns.club),
+      page_title: gettext("%{club} - Registration form", club: conn.assigns.club.name)
+    )
   end
 
   # POST /c/:club_uuid/owner/form/fields
@@ -74,7 +83,7 @@ defmodule CabWeb.OwnerController do
   def update_field(conn, %{"field_id" => id} = params) do
     conn
     |> edit_form(&Forms.update_field(&1, id, params), gettext("Field saved."))
-    |> on_field_error(Forms.field(conn.assigns.club.guest_form, id), params)
+    |> on_field_error(Forms.field(Clubs.guest_form(conn.assigns.club), id), params)
   end
 
   # POST /c/:club_uuid/owner/form/fields/:field_id/remove
@@ -111,11 +120,19 @@ defmodule CabWeb.OwnerController do
   defp on_field_error({conn, {:error, :not_found}}, _editing, _params),
     do: CabWeb.ErrorHTML.respond(conn, 404)
 
+  # the always-asked fields keep their place
+  defp on_field_error({conn, {:error, :locked}}, _editing, _params) do
+    conn
+    |> put_flash(:error, CabWeb.FormComponents.editor_error(:locked))
+    |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/form")
+  end
+
   defp on_field_error({conn, {:error, %{} = errors}}, editing, params),
     do: conn |> put_status(422) |> render_guest_form(editing, params, errors)
 
   defp render_guest_form(conn, editing, values, errors) do
     render(conn, :guest_form,
+      definition: Clubs.guest_form(conn.assigns.club),
       editing: editing,
       values: Map.take(values, ~w(label hint type required options)),
       errors: errors,
