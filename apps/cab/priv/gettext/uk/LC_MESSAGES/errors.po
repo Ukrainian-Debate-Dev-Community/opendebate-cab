@@ -130,7 +130,7 @@ msgstr "%{name} вже сидить у кімнаті. Видалити можн
 msgid "Both accounts took part in the same session. Ask the club head to remove one of them from it first."
 msgstr "Обидва акаунти брали участь в одній сесії. Попросіть голову клубу спершу прибрати з неї один із них."
 
-#: lib/cab/links.ex:252
+#: lib/cab/links.ex:286
 #, elixir-autogen, elixir-format
 msgid "Could not create the personal link. Try again."
 msgstr "Не вдалося створити персональне посилання. Спробуйте ще раз."
@@ -140,8 +140,8 @@ msgstr "Не вдалося створити персональне посила
 msgid "Could not link that sign-in. Try again."
 msgstr "Не вдалося прив'язати цей спосіб входу. Спробуйте ще раз."
 
-#: lib/cab/links.ex:282
-#: lib/cab/links.ex:287
+#: lib/cab/links.ex:316
+#: lib/cab/links.ex:321
 #, elixir-autogen, elixir-format
 msgid "Enter a name."
 msgstr "Введіть ім'я."
@@ -241,7 +241,7 @@ msgstr "Бали є цілими числами від 50 до 100."
 msgid "Scores must be a list of 8 entries."
 msgstr "Бали мають бути списком із 8 записів."
 
-#: lib/cab/links.ex:89
+#: lib/cab/links.ex:123
 #, elixir-autogen, elixir-format
 msgid "Sign in with your own account to claim a guest history."
 msgstr "Щоб забрати історію гостя, увійдіть у власний акаунт."
@@ -263,8 +263,8 @@ msgstr "Хтось із розміщених у кімнаті не бере у�
 #: lib/cab/engine_api.ex:475
 #: lib/cab/engine_api.ex:483
 #: lib/cab/invitations.ex:212
-#: lib/cab/links.ex:109
-#: lib/cab/links.ex:292
+#: lib/cab/links.ex:143
+#: lib/cab/links.ex:326
 #: lib/cab/sessions.ex:1612
 #: lib/cab/sessions.ex:1828
 #: lib/cab_web/components/form_components.ex:57
@@ -342,7 +342,7 @@ msgstr "Цей белот не відповідає сітці кімнати."
 msgid "This join request was already answered."
 msgstr "На цей запит на вступ уже відповіли."
 
-#: lib/cab/links.ex:92
+#: lib/cab/links.ex:126
 #, elixir-autogen, elixir-format
 msgid "This personal link cannot be claimed."
 msgstr "Це персональне посилання не можна забрати."

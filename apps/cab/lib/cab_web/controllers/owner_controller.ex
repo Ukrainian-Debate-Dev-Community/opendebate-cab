@@ -446,6 +446,48 @@ defmodule CabWeb.OwnerController do
     end
   end
 
+  # GET .../owner/sessions/:session_uuid/responses - the guests'
+  # answers to the club's registration form, one row per guest; twin of
+  # GET /api/cab/v1/sessions/:uuid/responses. cab's own rows only.
+  def responses(conn, %{"session_uuid" => session_uuid}) do
+    case Sessions.get_for_club(conn.assigns.club, session_uuid) do
+      %Session{} = session ->
+        %{columns: columns, rows: rows} = Links.responses(session)
+
+        render(conn, :responses,
+          current: session,
+          columns: columns,
+          rows: rows,
+          page_title:
+            gettext("%{club} - Responses - %{session}",
+              club: conn.assigns.club.name,
+              session: session.name
+            )
+        )
+
+      nil ->
+        conn |> CabWeb.ErrorHTML.respond(404)
+    end
+  end
+
+  # GET .../owner/sessions/:session_uuid/responses/csv - the same rows
+  # as a spreadsheet file
+  def responses_csv(conn, %{"session_uuid" => session_uuid}) do
+    case Sessions.get_for_club(conn.assigns.club, session_uuid) do
+      %Session{} = session ->
+        filename = CabWeb.ResponsesCsv.filename(conn.assigns.club, session)
+
+        conn
+        |> put_resp_content_type("text/csv")
+        |> put_resp_header("content-disposition", CabWeb.ResponsesCsv.disposition(filename))
+        |> CabWeb.Caching.no_store()
+        |> send_resp(200, CabWeb.ResponsesCsv.encode(Links.responses(session)))
+
+      nil ->
+        conn |> CabWeb.ErrorHTML.respond(404)
+    end
+  end
+
   # POST .../owner/sessions/:session_uuid/finish - results live on
   # the public session page
   def finish(conn, %{"session_uuid" => session_uuid}) do

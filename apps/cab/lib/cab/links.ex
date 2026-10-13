@@ -67,6 +67,40 @@ defmodule Cab.Links do
   end
 
   @doc """
+  The session's form responses, for the head: one row per guest with
+  an active personal link, oldest first, as
+  `%{columns: [field], rows: [%{name, registered_at, answers}]}`.
+  Columns go by the label each answer was given under (answers keep
+  a copy), so answers stay readable after the form changed: the
+  club's form fields in form order, then labels only old answers
+  carry. A column is `%{"id", "label"}`; `answers` maps a column's
+  label to the answer (`Core.Forms` shape). Gateway rows only.
+  """
+  def responses(%Session{} = session) do
+    links = list_for_session(session)
+    answers = Enum.flat_map(links, &(&1.answers || []))
+
+    columns =
+      (Cab.Clubs.guest_form(session_club(session)) ++ answers)
+      |> Enum.map(&Map.take(&1, ["id", "label"]))
+      |> Enum.uniq_by(& &1["label"])
+
+    rows =
+      for link <- links do
+        %{
+          name: link.user.name,
+          registered_at: link.inserted_at,
+          answers:
+            (link.answers || [])
+            |> Enum.reverse()
+            |> Map.new(&{&1["label"], &1})
+        }
+      end
+
+    %{columns: columns, rows: rows}
+  end
+
+  @doc """
   Is this user a link guest (holds any personal link)? A guest
   identity may be swapped for another guest's link on the same
   device; a real account never is.

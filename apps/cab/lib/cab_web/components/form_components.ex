@@ -306,24 +306,25 @@ defmodule CabWeb.FormComponents do
     """
   end
 
+  @doc "One answer's value; e-mail, phone and Telegram link out."
   attr :answer, :map, required: true
 
-  defp answer_value(%{answer: %{"type" => "email", "value" => value}} = assigns)
-       when is_binary(value) do
+  def answer_value(%{answer: %{"type" => "email", "value" => value}} = assigns)
+      when is_binary(value) do
     ~H|<a href={"mailto:#{@answer["value"]}"}>{@answer["value"]}</a>|
   end
 
-  defp answer_value(%{answer: %{"type" => "phone", "value" => value}} = assigns)
-       when is_binary(value) do
+  def answer_value(%{answer: %{"type" => "phone", "value" => value}} = assigns)
+      when is_binary(value) do
     ~H|<a href={"tel:#{String.replace(@answer["value"], ~r/[^0-9+]/, "")}"}>{@answer["value"]}</a>|
   end
 
-  defp answer_value(%{answer: %{"type" => "telegram", "value" => value}} = assigns)
-       when is_binary(value) do
+  def answer_value(%{answer: %{"type" => "telegram", "value" => value}} = assigns)
+      when is_binary(value) do
     ~H|<a href={"https://t.me/#{@answer["value"]}"} rel="noopener">@{@answer["value"]}</a>|
   end
 
-  defp answer_value(assigns), do: ~H"{answer_text(@answer)}"
+  def answer_value(assigns), do: ~H"{answer_text(@answer)}"
 
   @doc "An answer's value as plain text."
   def answer_text(%{"value" => true}), do: gettext("yes")

@@ -437,6 +437,7 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/show.html.heex:44
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex:12
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex:12
+#: lib/cab_web/controllers/owner_html/responses.html.heex:12
 #: lib/cab_web/controllers/owner_html/session.html.heex:12
 #: lib/cab_web/controllers/page_html/home.html.heex:37
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex:4
@@ -597,7 +598,7 @@ msgstr ""
 msgid "Debate clubs of Ukraine"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:42
+#: lib/cab_web/controllers/owner_html/session.html.heex:45
 #, elixir-autogen, elixir-format
 msgid "Delete rooms"
 msgstr ""
@@ -663,7 +664,7 @@ msgstr ""
 msgid "Fill ballot"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:34
+#: lib/cab_web/controllers/owner_html/session.html.heex:37
 #: lib/cab_web/controllers/session_page_html/show.html.heex:33
 #, elixir-autogen, elixir-format
 msgid "Fill ballot — %{room}"
@@ -674,7 +675,7 @@ msgstr ""
 msgid "Find your club"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:50
+#: lib/cab_web/controllers/owner_html/session.html.heex:53
 #, elixir-autogen, elixir-format
 msgid "Finish session"
 msgstr ""
@@ -971,8 +972,10 @@ msgstr ""
 msgid "My schedule"
 msgstr ""
 
+#: lib/cab_web/controllers/owner_html/responses.html.heex:31
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex:20
 #: lib/cab_web/controllers/session_page_html/show.html.heex:84
+#: lib/cab_web/responses_csv.ex:20
 #, elixir-autogen, elixir-format
 msgid "Name"
 msgstr ""
@@ -1220,7 +1223,7 @@ msgstr ""
 msgid "Prep until {time}"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:62
+#: lib/cab_web/controllers/owner_html/session.html.heex:65
 #, elixir-autogen, elixir-format
 msgid "Previous sessions live on the"
 msgstr ""
@@ -1298,6 +1301,7 @@ msgstr ""
 msgid "Register — registration open"
 msgstr ""
 
+#: lib/cab_web/controllers/owner_html/responses.html.heex:32
 #: lib/cab_web/controllers/registration_html/created.html.heex:9
 #, elixir-autogen, elixir-format
 msgid "Registered"
@@ -1362,7 +1366,7 @@ msgstr ""
 msgid "Registration reopened."
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:28
+#: lib/cab_web/controllers/owner_html/session.html.heex:31
 #, elixir-autogen, elixir-format
 msgid "Reopen registration"
 msgstr ""
@@ -1494,7 +1498,8 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/show.html.heex:83
 #: lib/cab_web/controllers/me_html/show.html.heex:149
 #: lib/cab_web/controllers/member_html/archive_section.html.heex:3
-#: lib/cab_web/controllers/owner_html/session.html.heex:58
+#: lib/cab_web/controllers/owner_html/responses.html.heex:13
+#: lib/cab_web/controllers/owner_html/session.html.heex:61
 #: lib/cab_web/controllers/session_page_html/ballot.html.heex:12
 #: lib/cab_web/controllers/session_page_html/show.html.heex:54
 #, elixir-autogen, elixir-format
@@ -1506,7 +1511,7 @@ msgstr ""
 msgid "Session cancelled."
 msgstr ""
 
-#: lib/cab_web/controllers/owner_controller.ex:457
+#: lib/cab_web/controllers/owner_controller.ex:499
 #, elixir-autogen, elixir-format
 msgid "Session finished."
 msgstr ""
@@ -1673,8 +1678,8 @@ msgid "Standings show the latest finished session."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:17
-#: lib/cab_web/controllers/owner_html/session.html.heex:18
 #: lib/cab_web/controllers/owner_html/session.html.heex:21
+#: lib/cab_web/controllers/owner_html/session.html.heex:24
 #, elixir-autogen, elixir-format
 msgid "Start session"
 msgstr ""
@@ -1898,7 +1903,7 @@ msgstr ""
 msgid "This session finished without rooms."
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:59
+#: lib/cab_web/controllers/owner_html/session.html.heex:62
 #, elixir-autogen, elixir-format
 msgid "This session is finished — results live on the"
 msgstr ""
@@ -2146,7 +2151,7 @@ msgstr ""
 msgid "closes registration and opens these rooms."
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:63
+#: lib/cab_web/controllers/owner_html/session.html.heex:66
 #, elixir-autogen, elixir-format
 msgid "club page"
 msgstr ""
@@ -2416,7 +2421,7 @@ msgstr ""
 msgid "running"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:60
+#: lib/cab_web/controllers/owner_html/session.html.heex:63
 #, elixir-autogen, elixir-format
 msgid "session page"
 msgstr ""
@@ -3295,7 +3300,7 @@ msgstr ""
 msgid "multiple choice"
 msgstr ""
 
-#: lib/cab_web/components/form_components.ex:330
+#: lib/cab_web/components/form_components.ex:331
 #, elixir-autogen, elixir-format
 msgid "no"
 msgstr ""
@@ -3335,7 +3340,7 @@ msgstr ""
 msgid "up"
 msgstr ""
 
-#: lib/cab_web/components/form_components.ex:329
+#: lib/cab_web/components/form_components.ex:330
 #, elixir-autogen, elixir-format
 msgid "yes"
 msgstr ""
@@ -3419,4 +3424,42 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:7
 #, elixir-autogen, elixir-format
 msgid "You set the number of rooms by hand; Automatic makes it follow the sign-ups again;"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_controller.ex:462
+#, elixir-autogen, elixir-format
+msgid "%{club} - Responses - %{session}"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/responses.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "Download CSV"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/responses.html.heex:29
+#, elixir-autogen, elixir-format
+msgid "No guest has registered through the form yet."
+msgstr ""
+
+#: lib/cab_web/responses_csv.ex:20
+#, elixir-autogen, elixir-format
+msgid "Registered (UTC)"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/responses.html.heex:15
+#: lib/cab_web/controllers/owner_html/session.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "Responses"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/responses.html.heex:24
+#, elixir-autogen, elixir-format
+msgid "Responses — %{count} guest"
+msgid_plural "Responses — %{count} guests"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/cab_web/responses_csv.ex:40
+#, elixir-autogen, elixir-format
+msgid "responses"
 msgstr ""

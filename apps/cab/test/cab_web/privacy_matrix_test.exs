@@ -41,13 +41,19 @@ defmodule CabWeb.PrivacyMatrixTest do
      [:signin, 403, 403, 403, 403, 200, 200], nil},
     {"Owner: live session", "/c/:club/owner/s/:live", [:signin, 403, 403, 403, 403, 200, 200],
      nil},
+    {"Owner: form responses", "/c/:club/owner/sessions/:live/responses",
+     [:signin, 403, 403, 403, 403, 200, 200], nil},
+    {"Owner: form responses CSV", "/c/:club/owner/sessions/:live/responses/csv",
+     [:signin, 403, 403, 403, 403, 200, 200], nil},
     {"Admin", "/admin", [404, 404, 404, 404, 404, 404, 200], nil},
     {"API: club profile", "/api/cab/v1/clubs/:club", List.duplicate(200, 7), nil},
     {"API: club roster", "/api/cab/v1/clubs/:club/members", List.duplicate(200, 7),
      [401, 403, 403, 403, 200, 200, 200]},
     {"API: session state", "/api/cab/v1/sessions/:live", List.duplicate(200, 7), nil},
     {"API: guest links", "/api/cab/v1/sessions/:live/links", [401, 403, 403, 403, 403, 200, 200],
-     nil}
+     nil},
+    {"API: form responses", "/api/cab/v1/sessions/:live/responses",
+     [401, 403, 403, 403, 403, 200, 200], nil}
   ]
 
   defp ok(conn, data), do: Req.Test.json(conn, %{"status" => "success", "data" => data})

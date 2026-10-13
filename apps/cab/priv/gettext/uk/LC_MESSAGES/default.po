@@ -440,6 +440,7 @@ msgstr "Місто"
 #: lib/cab_web/controllers/me_html/show.html.heex:44
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex:12
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex:12
+#: lib/cab_web/controllers/owner_html/responses.html.heex:12
 #: lib/cab_web/controllers/owner_html/session.html.heex:12
 #: lib/cab_web/controllers/page_html/home.html.heex:37
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex:4
@@ -600,7 +601,7 @@ msgstr "Дата й час початку"
 msgid "Debate clubs of Ukraine"
 msgstr "Дебатні клуби України"
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:42
+#: lib/cab_web/controllers/owner_html/session.html.heex:45
 #, elixir-autogen, elixir-format
 msgid "Delete rooms"
 msgstr "Видалити кімнати"
@@ -666,7 +667,7 @@ msgstr "Саме те, що відвідувачі читають на стор�
 msgid "Fill ballot"
 msgstr "Заповнити белот"
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:34
+#: lib/cab_web/controllers/owner_html/session.html.heex:37
 #: lib/cab_web/controllers/session_page_html/show.html.heex:33
 #, elixir-autogen, elixir-format
 msgid "Fill ballot — %{room}"
@@ -677,7 +678,7 @@ msgstr "Заповнити белот — %{room}"
 msgid "Find your club"
 msgstr "Знайдіть свій клуб"
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:50
+#: lib/cab_web/controllers/owner_html/session.html.heex:53
 #, elixir-autogen, elixir-format
 msgid "Finish session"
 msgstr "Завершити сесію"
@@ -974,8 +975,10 @@ msgstr "Моя сторінка"
 msgid "My schedule"
 msgstr "Мій розклад"
 
+#: lib/cab_web/controllers/owner_html/responses.html.heex:31
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex:20
 #: lib/cab_web/controllers/session_page_html/show.html.heex:84
+#: lib/cab_web/responses_csv.ex:20
 #, elixir-autogen, elixir-format
 msgid "Name"
 msgstr "Ім'я"
@@ -1223,7 +1226,7 @@ msgstr "Підготовка до"
 msgid "Prep until {time}"
 msgstr "Підготовка до {time}"
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:62
+#: lib/cab_web/controllers/owner_html/session.html.heex:65
 #, elixir-autogen, elixir-format
 msgid "Previous sessions live on the"
 msgstr "Попередні сесії є на"
@@ -1301,6 +1304,7 @@ msgstr "Реєстрація — %{stage}"
 msgid "Register — registration open"
 msgstr "Реєстрація — реєстрація відкрита"
 
+#: lib/cab_web/controllers/owner_html/responses.html.heex:32
 #: lib/cab_web/controllers/registration_html/created.html.heex:9
 #, elixir-autogen, elixir-format
 msgid "Registered"
@@ -1365,7 +1369,7 @@ msgstr "Реєстрацію видалено."
 msgid "Registration reopened."
 msgstr "Реєстрацію знову відкрито."
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:28
+#: lib/cab_web/controllers/owner_html/session.html.heex:31
 #, elixir-autogen, elixir-format
 msgid "Reopen registration"
 msgstr "Знову відкрити реєстрацію"
@@ -1497,7 +1501,8 @@ msgstr "Надішліть людині персональне посиланн�
 #: lib/cab_web/controllers/me_html/show.html.heex:83
 #: lib/cab_web/controllers/me_html/show.html.heex:149
 #: lib/cab_web/controllers/member_html/archive_section.html.heex:3
-#: lib/cab_web/controllers/owner_html/session.html.heex:58
+#: lib/cab_web/controllers/owner_html/responses.html.heex:13
+#: lib/cab_web/controllers/owner_html/session.html.heex:61
 #: lib/cab_web/controllers/session_page_html/ballot.html.heex:12
 #: lib/cab_web/controllers/session_page_html/show.html.heex:54
 #, elixir-autogen, elixir-format
@@ -1509,7 +1514,7 @@ msgstr "Сесія"
 msgid "Session cancelled."
 msgstr "Сесію скасовано."
 
-#: lib/cab_web/controllers/owner_controller.ex:457
+#: lib/cab_web/controllers/owner_controller.ex:499
 #, elixir-autogen, elixir-format
 msgid "Session finished."
 msgstr "Сесію завершено."
@@ -1676,8 +1681,8 @@ msgid "Standings show the latest finished session."
 msgstr "Рейтинг показує останню завершену сесію."
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex:17
-#: lib/cab_web/controllers/owner_html/session.html.heex:18
 #: lib/cab_web/controllers/owner_html/session.html.heex:21
+#: lib/cab_web/controllers/owner_html/session.html.heex:24
 #, elixir-autogen, elixir-format
 msgid "Start session"
 msgstr "Почати сесію"
@@ -1901,7 +1906,7 @@ msgstr "Це персональне посилання належить"
 msgid "This session finished without rooms."
 msgstr "Ця сесія завершилася без кімнат."
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:59
+#: lib/cab_web/controllers/owner_html/session.html.heex:62
 #, elixir-autogen, elixir-format
 msgid "This session is finished — results live on the"
 msgstr "Цю сесію завершено — результати на"
@@ -2149,7 +2154,7 @@ msgstr "cab на етапі бета-тестування."
 msgid "closes registration and opens these rooms."
 msgstr "закриває реєстрацію й відкриває ці кімнати."
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:63
+#: lib/cab_web/controllers/owner_html/session.html.heex:66
 #, elixir-autogen, elixir-format
 msgid "club page"
 msgstr "сторінці клубу"
@@ -2419,7 +2424,7 @@ msgstr "заявка на розгляді"
 msgid "running"
 msgstr "триває"
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:60
+#: lib/cab_web/controllers/owner_html/session.html.heex:63
 #, elixir-autogen, elixir-format
 msgid "session page"
 msgstr "сторінці сесії"
@@ -3299,7 +3304,7 @@ msgstr "довгий текст"
 msgid "multiple choice"
 msgstr "кілька варіантів"
 
-#: lib/cab_web/components/form_components.ex:330
+#: lib/cab_web/components/form_components.ex:331
 #, elixir-autogen, elixir-format
 msgid "no"
 msgstr "ні"
@@ -3339,7 +3344,7 @@ msgstr "один варіант"
 msgid "up"
 msgstr "вище"
 
-#: lib/cab_web/components/form_components.ex:329
+#: lib/cab_web/components/form_components.ex:330
 #, elixir-autogen, elixir-format
 msgid "yes"
 msgstr "так"
@@ -3424,3 +3429,42 @@ msgstr "На одну кімнату більше"
 #, elixir-autogen, elixir-format
 msgid "You set the number of rooms by hand; Automatic makes it follow the sign-ups again;"
 msgstr "Кількість кімнат ви задали вручну; «Автоматично» знову рахуватиме їх за реєстраціями;"
+
+#: lib/cab_web/controllers/owner_controller.ex:462
+#, elixir-autogen, elixir-format
+msgid "%{club} - Responses - %{session}"
+msgstr "%{club} - Відповіді - %{session}"
+
+#: lib/cab_web/controllers/owner_html/responses.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "Download CSV"
+msgstr "Завантажити CSV"
+
+#: lib/cab_web/controllers/owner_html/responses.html.heex:29
+#, elixir-autogen, elixir-format
+msgid "No guest has registered through the form yet."
+msgstr "Через форму ще не зареєструвався жоден гість."
+
+#: lib/cab_web/responses_csv.ex:20
+#, elixir-autogen, elixir-format
+msgid "Registered (UTC)"
+msgstr "Зареєстровано (UTC)"
+
+#: lib/cab_web/controllers/owner_html/responses.html.heex:15
+#: lib/cab_web/controllers/owner_html/session.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "Responses"
+msgstr "Відповіді"
+
+#: lib/cab_web/controllers/owner_html/responses.html.heex:24
+#, elixir-autogen, elixir-format
+msgid "Responses — %{count} guest"
+msgid_plural "Responses — %{count} guests"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: lib/cab_web/responses_csv.ex:40
+#, elixir-autogen, elixir-format
+msgid "responses"
+msgstr "відповіді"
