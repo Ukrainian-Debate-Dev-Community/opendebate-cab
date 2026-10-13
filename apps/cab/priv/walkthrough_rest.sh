@@ -499,8 +499,14 @@ register_guest() {
   [ "$STATUS" = "200" ] || fail "GET /r/$GSESSION ($rg_jar): status $STATUS, want 200"
   rg_tok=$(csrf)
   [ -n "$rg_tok" ] || fail "no csrf token on the registration form"
+  # the built-in e-mail field is required by default: without it, 422
   STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/$rg_jar" -c "$JARS/$rg_jar" \
     --data-urlencode "_csrf_token=$rg_tok" --data-urlencode "name=$rg_name" \
+    "$BASE/r/$GSESSION")
+  [ "$STATUS" = "422" ] || fail "POST /r/$GSESSION without e-mail ($rg_jar): status $STATUS, want 422"
+  STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/$rg_jar" -c "$JARS/$rg_jar" \
+    --data-urlencode "_csrf_token=$rg_tok" --data-urlencode "name=$rg_name" \
+    --data-urlencode "answers[email]=$rg_jar-$RUN@example.org" \
     "$BASE/r/$GSESSION")
   [ "$STATUS" = "200" ] || fail "POST /r/$GSESSION ($rg_jar): status $STATUS, want 200"
   PERSONAL=$(grep -o '/l/[A-Za-z0-9_-]\{30,\}' "$BODY" | head -1)
