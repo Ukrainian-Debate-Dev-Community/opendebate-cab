@@ -978,7 +978,7 @@ msgstr "Мій розклад"
 #: lib/cab_web/controllers/owner_html/responses.html.heex:31
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex:20
 #: lib/cab_web/controllers/session_page_html/show.html.heex:84
-#: lib/cab_web/responses_csv.ex:20
+#: lib/cab_web/responses_csv.ex:21
 #, elixir-autogen, elixir-format
 msgid "Name"
 msgstr "Ім'я"
@@ -3445,7 +3445,7 @@ msgstr "Завантажити CSV"
 msgid "No guest has registered through the form yet."
 msgstr "Через форму ще не зареєструвався жоден гість."
 
-#: lib/cab_web/responses_csv.ex:20
+#: lib/cab_web/responses_csv.ex:21
 #, elixir-autogen, elixir-format
 msgid "Registered (UTC)"
 msgstr "Зареєстровано (UTC)"
@@ -3464,7 +3464,7 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 
-#: lib/cab_web/responses_csv.ex:40
+#: lib/cab_web/responses_csv.ex:41
 #, elixir-autogen, elixir-format
 msgid "responses"
 msgstr "відповіді"

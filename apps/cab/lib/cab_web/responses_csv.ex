@@ -2,10 +2,11 @@ defmodule CabWeb.ResponsesCsv do
   @moduledoc """
   A session's form responses as a CSV file the head downloads
   (`Cab.Links.responses/1`): name, registration time, then one column
-  per form field. Written by hand: RFC 4180 quoting with CRLF line
-  ends, UTF-8 with a byte order mark so Excel opens Ukrainian text
-  correctly, and a guest's answer that would start a spreadsheet
-  formula is kept as text.
+  per form field. Written by hand: semicolon-separated (what Excel
+  expects in a Ukrainian or most European locales; Google Sheets and
+  Numbers detect it too), RFC 4180 quoting with CRLF line ends, UTF-8
+  with a byte order mark so Excel opens Ukrainian text correctly, and a
+  guest's answer that would start a spreadsheet formula is kept as text.
   """
 
   use Gettext, backend: CabWeb.Gettext
@@ -59,7 +60,7 @@ defmodule CabWeb.ResponsesCsv do
     ~s(attachment; filename="#{fallback}"; filename*=UTF-8''#{URI.encode(filename, &URI.char_unreserved?/1)})
   end
 
-  defp line(fields), do: [Enum.map_join(fields, ",", &field/1), "\r\n"]
+  defp line(fields), do: [Enum.map_join(fields, ";", &field/1), "\r\n"]
 
   @doc false
   def field(nil), do: ""
@@ -67,7 +68,7 @@ defmodule CabWeb.ResponsesCsv do
   def field(value) when is_binary(value) do
     value = defuse(value)
 
-    if String.match?(value, ~r/[",\r\n]|^\s|\s$/u),
+    if String.match?(value, ~r/[";,\r\n]|^\s|\s$/u),
       do: ~s(") <> String.replace(value, ~s("), ~s("")) <> ~s("),
       else: value
   end

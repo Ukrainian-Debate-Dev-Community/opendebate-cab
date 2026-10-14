@@ -121,9 +121,9 @@ defmodule CabWeb.ResponsesTest do
     assert <<0xEF, 0xBB, 0xBF, csv::binary>> = body
 
     assert csv ==
-             "Name,Registered (UTC),Your e-mail,Phone,Level,School,Your level\r\n" <>
-               ~s("Anna ""Ann"" Koval",2026-10-10 09:30,anna@example.org,+380 44 123 45 67,novice,,\r\n) <>
-               ~s{"Bohdan, Jr.",2026-10-11 10:00,"'=HYPERLINK(""http://x"")",,,"Lyceum 1,\nKyiv",pro\r\n}
+             "Name;Registered (UTC);Your e-mail;Phone;Level;School;Your level\r\n" <>
+               ~s("Anna ""Ann"" Koval";2026-10-10 09:30;anna@example.org;+380 44 123 45 67;novice;;\r\n) <>
+               ~s{"Bohdan, Jr.";2026-10-11 10:00;"'=HYPERLINK(""http://x"")";;;"Lyceum 1,\nKyiv";pro\r\n}
   end
 
   test "a Ukrainian file name keeps its letters in the UTF-8 name" do
@@ -151,6 +151,7 @@ defmodule CabWeb.ResponsesTest do
 
     assert field("plain") == "plain"
     assert field("a,b") == ~s("a,b")
+    assert field("a;b") == ~s("a;b")
     assert field(~s(say "hi")) == ~s("say ""hi""")
     assert field("two\r\nlines") == ~s("two\r\nlines")
     assert field(" padded") == ~s(" padded")
