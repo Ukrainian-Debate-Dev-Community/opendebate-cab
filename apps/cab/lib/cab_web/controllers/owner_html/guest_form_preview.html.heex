@@ -29,6 +29,7 @@
         action={~p"/c/#{@club.uuid}/owner/form/preview"}
         title={gettext("Register for %{session}", session: gettext("the next session"))}
         fields={@fields}
+        logo={CabWeb.ClubProfile.logo_path(@club)}
         preview
       />
     </.section>

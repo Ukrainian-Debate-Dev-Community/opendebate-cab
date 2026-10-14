@@ -111,7 +111,7 @@
           "Clubs"
         ],
         "summary": "Edit the club profile",
-        "description": "The club head edits the profile; fields left out stay as they are.",
+        "description": "The club head edits the profile; fields left out stay as they are. The logo is not set here: the head uploads it on the club's edit page (an HTML form, multipart/form-data, field `logo`: PNG, JPEG or WebP recognised by its bytes, at most 1 MB, no SVG; `remove_logo=yes` removes it).",
         "parameters": [
           {
             "name": "uuid",
@@ -2670,6 +2670,14 @@
               ]
             },
             "maxItems": 1
+          },
+          "logo_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The club's logo (PNG, JPEG or WebP) at an absolute address on cab, cached for a year since the file never changes; a new logo gets a new address. null without a logo"
           }
         },
         "required": [
@@ -2679,7 +2687,8 @@
           "languages",
           "audiences",
           "format_other",
-          "language_other"
+          "language_other",
+          "logo_url"
         ],
         "description": "A club's public profile"
       },

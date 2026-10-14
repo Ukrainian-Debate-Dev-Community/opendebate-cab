@@ -26,6 +26,9 @@
     <.flash_banners flash={@flash} />
 
     <.section title={gettext("About")} pad>
+      <div :if={@club.logo} class="club-id">
+        <.club_logo club={@club} size={:lg} />
+      </div>
       <b id="club-name">{@club.name}</b>{if @club.city, do: ", #{@club.city}"}
       <p>
         {ngettext("%{count} member", "%{count} members", length(@members))}{if head_name(

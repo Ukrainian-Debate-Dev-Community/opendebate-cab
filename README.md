@@ -63,6 +63,7 @@ bin/cab eval "Cab.Release.migrate()"
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | yes | sign-in with GitHub |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | yes | sign-in with Google |
 | `LEGAL_DIR` | yes | folder with `en/policy.md`, `en/terms.md` (and other languages); 404 without |
+| `CAB_UPLOADS_DIR` | yes | folder for club logos, served at `/uploads`; in the image `/app/uploads`, a persistent volume kept in the backups |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` | for mail | without `SMTP_HOST` mail is kept in memory and not sent |
 | `MAIL_FROM` | for mail | `Name <address>`, e.g. `cab <noreply@example.org>` |
 | `SESSION_COOKIE_DOMAIN` | no | e.g. `.example.org`, so sibling sites can read the sign-in |

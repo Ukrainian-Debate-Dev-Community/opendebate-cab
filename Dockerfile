@@ -46,6 +46,9 @@ ENV LANG=C.UTF-8 PHX_SERVER=true MIX_ENV=prod
 
 COPY --from=build --chown=opendebate:opendebate /app/_build/prod/rel/cab ./
 USER opendebate
+# club logos (CAB_UPLOADS_DIR); a volume mounted here starts out owned
+# by the app user
+RUN mkdir /app/uploads
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
   CMD curl -fsS http://localhost:4000/healthz || exit 1

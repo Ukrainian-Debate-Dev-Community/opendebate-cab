@@ -21,6 +21,9 @@ defmodule Cab.Clubs.Club do
     # private = standings only (excluded from global standings, own
     # standings members-only); everything else stays public
     field :is_private, :boolean, default: false
+    # the club's logo: a file in Cab.Uploads, set by
+    # Cab.Clubs.update_club/3, never cast; nil = no logo
+    field :logo, :string
     # the guest registration form: a Core.Forms definition guests
     # answer after their name; the head edits it on its own page
     # (Cab.Clubs.edit_registration_form/2) - never cast here

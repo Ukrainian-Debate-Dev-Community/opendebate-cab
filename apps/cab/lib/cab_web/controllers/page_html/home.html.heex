@@ -33,9 +33,16 @@
     </div>
 
     <.section title={gettext("Clubs")}>
-      <.table id="clubs-directory" rows={@clubs} empty={gettext("No clubs here yet.")}>
+      <.table
+        id="clubs-directory"
+        rows={@clubs}
+        empty={gettext("No clubs here yet.")}
+      >
         <:col :let={club} label={gettext("Club")}>
-          <.link href={~p"/c/#{club.uuid}"}>{club.name}</.link>
+          <span class="club-name">
+            <.club_logo club={club} />
+            <.link href={~p"/c/#{club.uuid}"}>{club.name}</.link>
+          </span>
         </:col>
         <:col :let={club} label={gettext("City")}>{club.city}</:col>
         <:col :let={club} label={gettext("Format")}>

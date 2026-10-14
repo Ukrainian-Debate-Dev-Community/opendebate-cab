@@ -134,6 +134,12 @@ if config_env() == :prod do
 
   host = System.get_env("PHX_HOST") || "example.com"
 
+  # club logos: a persistent volume, kept in the backups
+  config :cab,
+         :uploads_dir,
+         System.get_env("CAB_UPLOADS_DIR") ||
+           raise("environment variable CAB_UPLOADS_DIR is missing")
+
   # Mail: SMTP when SMTP_HOST is set, otherwise kept in memory (nothing
   # leaves the server). MAIL_FROM is "Name <address>".
   if smtp_host = System.get_env("SMTP_HOST") do

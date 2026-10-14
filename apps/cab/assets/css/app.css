@@ -648,6 +648,24 @@ table.t tr.linked:hover td { background:var(--brand-50); }
 .field-actions { display:inline-flex; flex-wrap:wrap; gap:4px 12px; }
 
 /* ================================================================
+   Club logo: a club's image beside its name; it never grows past its
+   box
+   ================================================================ */
+.club-logo { display:inline-block; width:24px; height:24px; max-width:100%; object-fit:contain;
+             border-radius:6px; background:var(--surface); vertical-align:middle; flex:none; }
+.club-logo.lg { width:72px; height:72px; border-radius:10px; }
+.club-id { margin-bottom:10px; }
+.club-name { display:inline-flex; align-items:center; gap:8px; min-width:0; }
+.form .f-head.with-logo { display:flex; align-items:center; gap:12px; }
+.form .f-head.with-logo .club-logo { width:44px; height:44px; border-radius:8px; }
+
+/* the logo picker */
+.file-field { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; }
+.file-field input[type=file] { font:inherit; font-size:.8rem; max-width:100%; }
+.file-remove { display:flex; align-items:center; gap:7px; font-size:.8rem; cursor:pointer; }
+.file-remove input { width:15px; height:15px; accent-color:var(--brand); }
+
+/* ================================================================
    PHONES - the sidenav folds into a top bar with a Menu button,
    content takes the full width, controls are thumb-sized
    ================================================================ */
@@ -763,6 +781,7 @@ table.t tr.linked:hover td { background:var(--brand-50); }
   .brow .iron { min-height:44px; align-items:center; }
 
   .field-actions a { display:inline-block; padding:8px 0; }
+  .club-logo.lg { width:56px; height:56px; }
 
   /* the batch bar: Select all leads (the table head is folded away),
      the actions wrap under it, every control thumb-sized */

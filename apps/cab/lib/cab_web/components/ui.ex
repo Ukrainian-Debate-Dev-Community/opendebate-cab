@@ -417,8 +417,10 @@ defmodule CabWeb.Ui do
   `:float`, `:scale` (flush integer segments), `:yesno` (two pills),
   `:select` (pills at 2-4 options, dropdown at 5+), `:multi` (stacked
   checks), `:check` (one yes box), `:datetime` (half-split pair, pass
-  `names`). A `:text` block may name its input type (`input`: email,
-  tel); a `:select` dropdown may lead with an empty `prompt` option.
+  `names`), `:file` (an image picker with the current one's `preview`
+  and a `remove` box; pass `enctype="multipart/form-data"`). A `:text`
+  block may name its input type (`input`: email, tel); a `:select`
+  dropdown may lead with an empty `prompt` option.
 
   Server errors render per block: pass `errors` as a map of
   block-name => message; the failing block gets the amber border +
@@ -438,6 +440,8 @@ defmodule CabWeb.Ui do
   attr :description, :string, default: nil
   attr :errors, :map, default: %{}, doc: "block name => server-side error message"
   attr :hidden, :list, default: [], doc: "extra hidden inputs as {name, value}"
+  attr :enctype, :string, default: nil, doc: "multipart/form-data for a :file block"
+  attr :logo, :string, default: nil, doc: "an image beside the head block (the club's logo)"
 
   slot :block do
     attr :name, :any
@@ -461,6 +465,11 @@ defmodule CabWeb.Ui do
     attr :other_name, :any, doc: "that free-text field's name"
     attr :other_value, :string, doc: "that free-text field's current text"
     attr :other_placeholder, :string
+    attr :accept, :string, doc: "a :file block's accepted types"
+    attr :preview, :string, doc: "a :file block's current image"
+    attr :preview_alt, :string, doc: "that image's text"
+    attr :remove, :string, doc: "a :file block's remove box name (shown with a preview)"
+    attr :remove_label, :string
   end
 
   slot :submit do
@@ -471,12 +480,15 @@ defmodule CabWeb.Ui do
 
   def form_for(assigns) do
     ~H"""
-    <form class="form" id={@id} action={@action} method={@method}>
+    <form class="form" id={@id} action={@action} method={@method} enctype={@enctype}>
       <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
       <input :for={{name, value} <- @hidden} type="hidden" name={name} value={value} />
-      <div :if={@title || @description} class="f-head">
-        <h3 :if={@title}>{@title}</h3>
-        <p :if={@description}>{@description}</p>
+      <div :if={@title || @description} class={if @logo, do: "f-head with-logo", else: "f-head"}>
+        <img :if={@logo} class="club-logo" src={@logo} alt="" />
+        <div>
+          <h3 :if={@title}>{@title}</h3>
+          <p :if={@description}>{@description}</p>
+        </div>
       </div>
       <div :for={block <- @block} class={["f-block", @errors[block[:name]] && "err"]}>
         <label :if={block[:label]} class="q">
@@ -622,6 +634,23 @@ defmodule CabWeb.Ui do
         </div>
         """
 
+      :file ->
+        ~H"""
+        <div class="file-field">
+          <img
+            :if={@b[:preview]}
+            class="club-logo lg"
+            src={@b[:preview]}
+            alt={@b[:preview_alt] || ""}
+          />
+          <input type="file" name={@name} accept={@b[:accept]} aria-label={@b[:label]} />
+          <label :if={@b[:preview] && @b[:remove]} class="file-remove">
+            <input type="checkbox" name={@b[:remove]} value="yes" />
+            {@b[:remove_label]}
+          </label>
+        </div>
+        """
+
       :datetime ->
         [date_name, time_name] = Enum.map(block[:names] || [:date, :time], &to_string/1)
         [date_value, time_value] = block[:values] || [nil, nil]
@@ -653,6 +682,24 @@ defmodule CabWeb.Ui do
 
   defp same?(nil, _candidate), do: false
   defp same?(value, candidate), do: to_string(value) == to_string(candidate)
+
+  @doc """
+  A club's logo (CabWeb.ClubProfile.logo_path/1), nothing without one.
+  Decorative: the club's name always stands next to it.
+  """
+  attr :club, :map, required: true
+  attr :size, :atom, default: :sm, values: [:sm, :lg]
+
+  def club_logo(assigns) do
+    ~H"""
+    <img
+      :if={CabWeb.ClubProfile.logo_path(@club)}
+      class={if @size == :lg, do: "club-logo lg", else: "club-logo"}
+      src={CabWeb.ClubProfile.logo_path(@club)}
+      alt=""
+    />
+    """
+  end
 
   # ---------------------------------------------------------------
   # 4. Ballot
