@@ -230,13 +230,18 @@ defmodule CabWeb.OwnerSessionLive do
   # the CopyLinks hook wrote the checked guests' links to the clipboard
   def handle_event("links_copied", %{"ok" => true}, socket) do
     %{state: state, links: links, selected: selected} = socket.assigns
-    %{linked: linked, unlinked: unlinked} = CabWeb.OwnerHTML.batch_links(state.signups, links, selected)
+
+    %{linked: linked, unlinked: unlinked} =
+      CabWeb.OwnerHTML.batch_links(state.signups, links, selected)
 
     info =
       if unlinked == 0,
         do: ngettext("Copied %{count} link.", "Copied %{count} links.", linked),
         else:
-          ngettext("Copied %{count} link; %{missing}.", "Copied %{count} links; %{missing}.", linked,
+          ngettext(
+            "Copied %{count} link; %{missing}.",
+            "Copied %{count} links; %{missing}.",
+            linked,
             missing:
               ngettext(
                 "%{count} person has no personal link",
@@ -251,7 +256,11 @@ defmodule CabWeb.OwnerSessionLive do
   def handle_event("links_copied", _params, socket),
     do:
       {:noreply,
-       put_flash(socket, :error, gettext("This browser did not let us copy. Copy each link instead."))}
+       put_flash(
+         socket,
+         :error,
+         gettext("This browser did not let us copy. Copy each link instead.")
+       )}
 
   def handle_event("add_typed", %{"q" => q}, socket) do
     %{club: club, current: current, state: state} = socket.assigns

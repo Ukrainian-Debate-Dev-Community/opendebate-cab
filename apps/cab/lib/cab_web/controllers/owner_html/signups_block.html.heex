@@ -52,7 +52,11 @@
       </button>
     <% end %>
   </div>
-  <div :if={@confirm_remove && MapSet.size(@selected) > 0} id="confirm-remove" class="banner bad flush">
+  <div
+    :if={@confirm_remove && MapSet.size(@selected) > 0}
+    id="confirm-remove"
+    class="banner bad flush"
+  >
     <span>
       {ngettext(
         "Remove %{count} person from %{session}?",

@@ -31,10 +31,15 @@ defmodule CabWeb.OwnerHTML do
     picked = Enum.filter(signups, &MapSet.member?(selected, &1["id"]))
 
     lines =
-      for participant <- picked, link = guest_link(participant, links),
+      for participant <- picked,
+          link = guest_link(participant, links),
           do: "#{participant["display_name"]} - #{url(~p"/l/#{link.code}")}"
 
-    %{text: Enum.join(lines, "\n"), linked: length(lines), unlinked: length(picked) - length(lines)}
+    %{
+      text: Enum.join(lines, "\n"),
+      linked: length(lines),
+      unlinked: length(picked) - length(lines)
+    }
   end
 
   defp all_selected?(signups, selected),
