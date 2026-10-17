@@ -768,9 +768,16 @@ defmodule CabWeb.Ui do
   no role, so anyone fits any slot and the drag decides who judges;
   `draft` maps slot key => participant id. The hidden form
   `form_id` carries the submit (the chrome's gold segment).
+
+  With `count_event`, a room-count bar sits on top: - and + push that
+  event with `rooms` one fewer or one more (1 to `max_rooms`), and
+  Automatic (lit while `auto`) pushes `rooms: "automatic"`.
   """
   attr :id, :string, default: "allocator"
   attr :rooms, :integer, required: true
+  attr :auto, :boolean, default: true, doc: "the room count follows the sign-ups"
+  attr :max_rooms, :integer, default: 20
+  attr :count_event, :string, default: nil, doc: "the room-count bar's phx-click event"
   attr :people, :map, required: true
   attr :draft, :map, required: true
   attr :form_id, :string, required: true
@@ -789,6 +796,39 @@ defmodule CabWeb.Ui do
 
     ~H"""
     <div class="dnd" id={@id} phx-hook="Allocator">
+      <div :if={@count_event} class="rcount">
+        <span class="tlabel">{gettext("Rooms")}</span>
+        <span class="stepper">
+          <button
+            type="button"
+            phx-click={@count_event}
+            phx-value-rooms={@rooms - 1}
+            disabled={@rooms <= 1}
+            aria-label={gettext("One room fewer")}
+          >
+            -
+          </button>
+          <span class="n" aria-live="polite">{@rooms}</span>
+          <button
+            type="button"
+            phx-click={@count_event}
+            phx-value-rooms={@rooms + 1}
+            disabled={@rooms >= @max_rooms}
+            aria-label={gettext("One room more")}
+          >
+            +
+          </button>
+        </span>
+        <button
+          type="button"
+          class={["auto", @auto && "on"]}
+          phx-click={@count_event}
+          phx-value-rooms="automatic"
+          aria-pressed={to_string(@auto)}
+        >
+          {gettext("Automatic")}
+        </button>
+      </div>
       <div class="tray" data-drop="tray">
         <span class="tlabel">{gettext("Waiting (%{count})", count: length(@tray))}</span>
         <.chip :for={person <- @tray} person={person} />

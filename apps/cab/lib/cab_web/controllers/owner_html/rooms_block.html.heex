@@ -1,15 +1,17 @@
 <%= case @state.stage do %>
   <% :signup -> %>
-    <.section title={
-      gettext("Allocation — %{count} room(s), count automatic",
-        count: Cab.Sessions.room_count(@state.signups)
-      )
-    }>
+    <.section title={allocation_title(@current, @state.signups)}>
       <div class="pad">
         <p>
-          {gettext(
-            "A room seats nine (eight speakers and an adjudicator), so the room count follows the sign-ups;"
-          )}
+          <%= if @current.draft_rooms do %>
+            {gettext(
+              "You set the number of rooms by hand; Automatic makes it follow the sign-ups again;"
+            )}
+          <% else %>
+            {gettext(
+              "A room seats nine (eight speakers and an adjudicator), so the room count follows the sign-ups;"
+            )}
+          <% end %>
           <b>{gettext("nobody is placed automatically")}</b>
           {gettext("— drag people from the tray into the slots, then")}
           <b>{gettext("Start session")}</b>
@@ -17,7 +19,10 @@
         </p>
       </div>
       <.allocator
-        rooms={Cab.Sessions.room_count(@state.signups)}
+        rooms={Cab.Sessions.rooms_for(@current, @state.signups)}
+        auto={is_nil(@current.draft_rooms)}
+        max_rooms={Cab.Sessions.max_rooms()}
+        count_event="rooms"
         people={people(@state.signups)}
         draft={@draft}
         form_id="allocator-form"
@@ -25,19 +30,19 @@
       />
     </.section>
   <% :closed -> %>
-    <.section title={
-      gettext("Allocation — %{count} room(s), count automatic",
-        count: Cab.Sessions.room_count(@state.signups)
-      )
-    }>
+    <.section title={allocation_title(@current, @state.signups)}>
       <div class="pad">
         <p>
-          {attendance_line(@state.signups)} <b>{gettext("Nobody is placed automatically")}</b>
+          {attendance_line(@current, @state.signups)}
+          <b>{gettext("Nobody is placed automatically")}</b>
           {gettext("— drag people from the tray into the slots.")}
         </p>
       </div>
       <.allocator
-        rooms={Cab.Sessions.room_count(@state.signups)}
+        rooms={Cab.Sessions.rooms_for(@current, @state.signups)}
+        auto={is_nil(@current.draft_rooms)}
+        max_rooms={Cab.Sessions.max_rooms()}
+        count_event="rooms"
         people={people(@state.signups)}
         draft={@draft}
         form_id="allocator-form"

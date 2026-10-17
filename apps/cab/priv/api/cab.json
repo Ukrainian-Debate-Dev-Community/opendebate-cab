@@ -1193,6 +1193,111 @@
         "x-access": "club head"
       }
     },
+    "/sessions/{uuid}/room-count": {
+      "put": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Set the number of rooms",
+        "description": "The allocator's room count, set by hand (1 to 20) or automatic again (the count then follows the sign-ups: a room seats nine). People placed in rooms past the new count go back to the tray. Only before the rooms are made (409 afterwards).",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "rooms"
+                ],
+                "properties": {
+                  "rooms": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 20
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "automatic"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "A number of rooms, or \"automatic\" (null works too)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The room count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "rooms": {
+                      "type": "integer",
+                      "description": "The number of rooms the allocator shows now"
+                    },
+                    "automatic": {
+                      "type": "boolean",
+                      "description": "Whether the count follows the sign-ups"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
+    },
     "/sessions/{uuid}/finish": {
       "post": {
         "tags": [

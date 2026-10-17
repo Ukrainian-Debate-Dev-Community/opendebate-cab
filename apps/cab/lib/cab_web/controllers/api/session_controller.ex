@@ -17,7 +17,8 @@ defmodule CabWeb.Api.SessionController do
               :close_signups,
               :reopen_signups,
               :start,
-              :reopen_registration
+              :reopen_registration,
+              :room_count
             ]
 
   # POST /api/cab/v1/clubs/:uuid/sessions
@@ -150,6 +151,23 @@ defmodule CabWeb.Api.SessionController do
       json(conn, %{uuid: session.uuid, stage: :signup})
     end
   end
+
+  # PUT /api/cab/v1/sessions/:uuid/room-count {"rooms": 1..20 | "automatic"
+  # | null} - the allocator's room count, set by hand or automatic again;
+  # 409 once the rooms are made
+  def room_count(conn, %{"rooms" => rooms}) do
+    with {:ok, session} <- Sessions.set_draft_rooms(conn.assigns.session, rooms),
+         {:ok, state} <- Sessions.state(session) do
+      json(conn, %{
+        uuid: session.uuid,
+        rooms: Sessions.rooms_for(session, state.signups),
+        automatic: is_nil(session.draft_rooms)
+      })
+    end
+  end
+
+  def room_count(_conn, _params),
+    do: {:error, %{rooms: "rooms is required: 1 to #{Sessions.max_rooms()}, or \"automatic\""}}
 
   # POST /api/cab/v1/sessions/:uuid/close-signups - flow-2's explicit
   # "sign-ups close" edge; 409 unless the session is :signup

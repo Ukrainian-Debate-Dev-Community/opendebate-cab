@@ -52,6 +52,24 @@ defmodule CabWeb.OwnerSessionLive do
     |> reply(socket)
   end
 
+  # the room count: a number set by hand, or "automatic" again
+  def handle_event("rooms", %{"rooms" => rooms}, socket) do
+    %{current: current, club: club, state: state} = socket.assigns
+
+    case Sessions.set_draft_rooms(current, rooms) do
+      {:ok, session} ->
+        session = %{session | club: club}
+
+        {:noreply,
+         socket
+         |> assign(:current, session)
+         |> assign(:draft, Sessions.draft(session, state.signups))}
+
+      error ->
+        reply(error, socket)
+    end
+  end
+
   def handle_event("unplace", %{"id" => id}, socket) do
     socket.assigns.current
     |> Sessions.unplace(to_int(id))

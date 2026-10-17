@@ -176,4 +176,49 @@ defmodule CabWeb.SessionLiveTest do
     assert Enum.map(teams, & &1["participant_ids"]) == [[1, 2], [3, 4], [5, 6], [7, 8]]
     assert Cab.Sessions.get_by_uuid(session.uuid).draft_allocation == %{}
   end
+
+  test "the head sets the number of rooms with - and +, and goes back to automatic",
+       %{conn: conn} do
+    head = user_fixture(%{node_user_id: 9})
+    club = club_fixture(head, %{engine_organisation_id: 3})
+    session = session_fixture(club, engine_event_id: 11)
+
+    stub_engine(for i <- 1..9, do: %{"id" => i, "role" => "speaker", "display_name" => "S#{i}"})
+
+    {:ok, view, html} =
+      live(
+        init_test_session(conn, %{user_id: head.id}),
+        ~p"/c/#{club.uuid}/owner/s/#{session.uuid}"
+      )
+
+    # nine people: one room, automatic, and - cannot go below one
+    assert html =~ "1 room(s), count automatic"
+    assert html =~ ~s(aria-pressed="true")
+    assert view |> element(~s(.rcount button[phx-value-rooms="0"])) |> render() =~ "disabled"
+    refute html =~ ~s(data-slot="2:judge")
+
+    html = view |> element(~s(.rcount button[phx-value-rooms="2"])) |> render_click()
+    assert html =~ "2 room(s), count set by hand"
+    assert html =~ ~s(data-slot="2:judge")
+    assert html =~ ~s(aria-pressed="false")
+
+    # a drop into the new room lands; the choice survives a reload
+    render_hook(view, "place", %{"id" => 1, "slot" => "2:judge"})
+    assert Cab.Sessions.get_by_uuid(session.uuid).draft_allocation == %{"2:judge" => 1}
+
+    {:ok, _view, reloaded} =
+      live(
+        init_test_session(conn, %{user_id: head.id}),
+        ~p"/c/#{club.uuid}/owner/s/#{session.uuid}"
+      )
+
+    assert reloaded =~ "2 room(s), count set by hand"
+
+    # back to automatic: one room, the person in room 2 back in the tray
+    html = view |> element(".rcount button.auto") |> render_click()
+    assert html =~ "1 room(s), count automatic"
+    refute html =~ ~s(data-slot="2:judge")
+    assert Cab.Sessions.get_by_uuid(session.uuid).draft_rooms == nil
+    assert Cab.Sessions.get_by_uuid(session.uuid).draft_allocation == %{}
+  end
 end

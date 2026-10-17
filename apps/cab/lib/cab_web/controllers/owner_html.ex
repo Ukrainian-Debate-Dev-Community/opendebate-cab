@@ -95,14 +95,27 @@ defmodule CabWeb.OwnerHTML do
     ngettext("%{count} person", "%{count} people", people)
   end
 
-  defp attendance_line(signups) do
-    rooms = Cab.Sessions.room_count(signups)
+  defp attendance_line(session, signups) do
+    rooms = Cab.Sessions.rooms_for(session, signups)
 
     ngettext(
       "%{people} checked in, %{count} room.",
       "%{people} checked in, %{count} rooms.",
       rooms,
       people: signed_up_counts(signups)
+    )
+  end
+
+  # the allocation's title: how many rooms, and who set that number
+  defp allocation_title(%{draft_rooms: nil} = session, signups) do
+    gettext("Allocation — %{count} room(s), count automatic",
+      count: Cab.Sessions.rooms_for(session, signups)
+    )
+  end
+
+  defp allocation_title(session, signups) do
+    gettext("Allocation — %{count} room(s), count set by hand",
+      count: Cab.Sessions.rooms_for(session, signups)
     )
   end
 

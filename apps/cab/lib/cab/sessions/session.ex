@@ -14,6 +14,9 @@ defmodule Cab.Sessions.Session do
     field :signups_closed_at, :utc_datetime
     # the allocator draft: slot key => participant id (see Cab.Sessions.place/3)
     field :draft_allocation, :map, default: %{}
+    # the draft's room count set by hand; nil = automatic (see
+    # Cab.Sessions.rooms_for/2)
+    field :draft_rooms, :integer
     # lifecycle facts recorded when cab performs them (lists read these,
     # never the engine): see Cab.Sessions.stage_of/1
     field :name, :string
