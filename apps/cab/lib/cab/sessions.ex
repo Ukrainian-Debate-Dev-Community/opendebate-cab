@@ -752,6 +752,35 @@ defmodule Cab.Sessions do
     notify(result, session)
   end
 
+  @doc """
+  Several removals at once: each id goes through `remove_signup/3`, so
+  the rules are the single removal's. Everyone who can go goes; the
+  rest come back with the reason they stay, in the order asked.
+  """
+  def remove_signups(%User{} = user, %Session{} = session, participant_ids)
+      when is_list(participant_ids) do
+    participant_ids
+    |> Enum.uniq()
+    |> Enum.reduce(%{removed: [], refused: []}, fn participant_id, acc ->
+      case remove_signup(user, session, participant_id) do
+        :ok -> %{acc | removed: [participant_id | acc.removed]}
+        error -> %{acc | refused: [{participant_id, refusal(error)} | acc.refused]}
+      end
+    end)
+    |> then(&%{removed: Enum.reverse(&1.removed), refused: Enum.reverse(&1.refused)})
+  end
+
+  defp refusal({:error, :conflict, message}) when is_binary(message), do: message
+  defp refusal({:error, message}) when is_binary(message), do: message
+
+  defp refusal({:error, :forbidden}),
+    do: dgettext("errors", "Only the club head can remove other people.")
+
+  defp refusal({:error, %{} = details}) when not is_struct(details),
+    do: details |> Map.values() |> Enum.join(" ")
+
+  defp refusal(_other), do: dgettext("errors", "Something went wrong, try again.")
+
   @doc "Participant ids seated in a room - as a speaker or the chair."
   def seated_ids(rooms) do
     for room <- rooms,
