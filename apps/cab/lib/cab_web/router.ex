@@ -181,6 +181,8 @@ defmodule CabWeb.Router do
     post "/owner/sessions/:session_uuid/rooms/delete", OwnerController, :delete_rooms
     post "/owner/sessions/:session_uuid/finish", OwnerController, :finish
     post "/owner/sessions/:session_uuid/cancel", OwnerController, :cancel_session
+    get "/owner/sessions/:session_uuid/responses", OwnerController, :responses
+    get "/owner/sessions/:session_uuid/responses/csv", OwnerController, :responses_csv
   end
 
   # /r/:session_uuid is THE one registration URL (v3.1): guests get a
@@ -240,6 +242,7 @@ defmodule CabWeb.Router do
     post "/sessions/:uuid/invitations", PeopleController, :invite
 
     get "/sessions/:uuid/links", LinkController, :index
+    get "/sessions/:uuid/responses", LinkController, :responses
     post "/sessions/:uuid/links", LinkController, :create
   end
 

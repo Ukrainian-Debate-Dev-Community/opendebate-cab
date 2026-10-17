@@ -24,6 +24,27 @@ defmodule CabWeb.Api.LinkController do
     end
   end
 
+  # GET /api/cab/v1/sessions/:uuid/responses - head only: the guests'
+  # answers to the club's registration form, the rows of the Responses
+  # page. `columns` are the labels in form order (then labels only old
+  # answers carry); each guest's `answers` map a label to the value.
+  def responses(conn, _params) do
+    %{columns: columns, rows: rows} = Links.responses(conn.assigns.session)
+
+    json(conn, %{
+      uuid: conn.assigns.session.uuid,
+      columns: Enum.map(columns, & &1["label"]),
+      responses:
+        for row <- rows do
+          %{
+            name: row.name,
+            registered_at: row.registered_at,
+            answers: Map.new(row.answers, fn {label, answer} -> {label, answer["value"]} end)
+          }
+        end
+    })
+  end
+
   # POST /api/cab/v1/sessions/:uuid/links {"name"} - the head
   # issues a guest registration + personal link by hand
   def create(conn, params) do
