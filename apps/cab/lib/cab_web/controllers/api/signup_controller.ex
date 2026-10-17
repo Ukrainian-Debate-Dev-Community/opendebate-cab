@@ -43,6 +43,32 @@ defmodule CabWeb.Api.SignupController do
     end
   end
 
+  # POST /api/cab/v1/sessions/:uuid/signups/remove {"participant_ids": [..]}
+  # - head only: removes everyone who can go, answers who stayed and why
+  def remove_many(conn, params) do
+    with :ok <- require_owner(conn),
+         {:ok, ids} <- participant_ids(params) do
+      result = Sessions.remove_signups(conn.assigns.current_user, conn.assigns.session, ids)
+
+      json(conn, %{
+        removed: result.removed,
+        refused: for({id, error} <- result.refused, do: %{participant_id: id, error: error})
+      })
+    end
+  end
+
+  @max_batch 200
+
+  defp participant_ids(%{"participant_ids" => ids})
+       when is_list(ids) and ids != [] and length(ids) <= @max_batch do
+    if Enum.all?(ids, &(is_integer(&1) and &1 > 0)),
+      do: {:ok, ids},
+      else: {:error, %{participant_ids: "must be positive integers"}}
+  end
+
+  defp participant_ids(_params),
+    do: {:error, %{participant_ids: "a list of 1 to #{@max_batch} participant ids is required"}}
+
   defp require_owner(conn) do
     if Cab.Clubs.covers?(conn.assigns.club_role, :owner), do: :ok, else: {:error, :forbidden}
   end
