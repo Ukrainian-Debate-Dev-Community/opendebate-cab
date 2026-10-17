@@ -15,7 +15,10 @@ defmodule Cab.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      # translation files list each text's file without a line number and
+      # keep entries sorted, so branches rarely conflict in them
+      gettext: [write_reference_line_numbers: false, sort_by_msgid: :case_sensitive]
     ]
   end
 
