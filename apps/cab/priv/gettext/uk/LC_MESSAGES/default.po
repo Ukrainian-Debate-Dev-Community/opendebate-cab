@@ -1309,6 +1309,11 @@ msgstr "Мова:"
 msgid "Linking lets you sign in to this same account with either. Separate accounts are fine too: link only if you want them to be one. If the method you link already has its own cab account, you can merge the two."
 msgstr "Прив'язка дає змогу входити в цей самий акаунт будь-яким із цих способів. Окремі акаунти теж нормально: прив'язуйте, лише якщо хочете, щоб це був один акаунт. Якщо спосіб, який ви прив'язуєте, вже має власний акаунт у cab, ці два акаунти можна об'єднати."
 
+#: lib/cab_web/controllers/owner_html/club.html.heex
+#, elixir-autogen, elixir-format
+msgid "Logo"
+msgstr "Логотип"
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Lowest"
@@ -1694,6 +1699,11 @@ msgstr "Необов'язкова мітка, щоб згодом знайти �
 msgid "Optional — when the session is planned to start, in your time zone."
 msgstr "Необов'язково — коли сесія має початися, у вашому часовому поясі."
 
+#: lib/cab_web/controllers/owner_html/club.html.heex
+#, elixir-autogen, elixir-format
+msgid "Optional. PNG, JPEG or WebP, at most 1 MB; a square image looks best."
+msgstr "Необов'язково. PNG, JPEG або WebP, до 1 МБ; найкраще виглядає квадратне зображення."
+
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Optional: a line under the question."
@@ -1974,6 +1984,11 @@ msgstr "Видалити поле"
 #, elixir-autogen, elixir-format
 msgid "Remove selected"
 msgstr "Прибрати вибраних"
+
+#: lib/cab_web/controllers/owner_html/club.html.heex
+#, elixir-autogen, elixir-format
+msgid "Remove the logo"
+msgstr "Прибрати логотип"
 
 #: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
@@ -2317,6 +2332,7 @@ msgstr "Щось пішло не так"
 
 #: lib/cab/feedback.ex
 #: lib/cab_web/controllers/head_invitation_controller.ex
+#: lib/cab_web/controllers/owner_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Something went wrong, try again."
 msgstr "Щось пішло не так, спробуйте ще раз."
@@ -2478,6 +2494,11 @@ msgstr "Клубу потрібна назва."
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
+msgid "The current logo"
+msgstr "Поточний логотип"
+
+#: lib/cab_web/controllers/owner_html/club.html.heex
+#, elixir-autogen, elixir-format
 msgid "The current session lives under Rooms."
 msgstr "Поточна сесія є в розділі «Кімнати»."
 
@@ -2525,6 +2546,16 @@ msgstr "Запрошення стати головою %{club} збережен�
 #, elixir-autogen, elixir-format
 msgid "The link stops working once its history is yours."
 msgstr "Після того як історія стане вашою, посилання перестане працювати."
+
+#: lib/cab_web/controllers/owner_controller.ex
+#, elixir-autogen, elixir-format
+msgid "The logo must be a PNG, JPEG or WebP image."
+msgstr "Логотип має бути зображенням PNG, JPEG або WebP."
+
+#: lib/cab_web/controllers/owner_controller.ex
+#, elixir-autogen, elixir-format
+msgid "The logo must be at most 1 MB."
+msgstr "Логотип має бути не більшим за 1 МБ."
 
 #: lib/cab_web/controllers/account_controller.ex
 #: lib/cab_web/controllers/admin_controller.ex

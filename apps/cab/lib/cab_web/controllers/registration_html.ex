@@ -29,6 +29,7 @@ defmodule CabWeb.RegistrationHTML do
   attr :answers, :map, default: %{}
   attr :errors, :map, default: %{}
   attr :preview, :boolean, default: false
+  attr :logo, :string, default: nil, doc: "the club's logo beside the title"
 
   def guest_form(assigns) do
     ~H"""
@@ -36,6 +37,7 @@ defmodule CabWeb.RegistrationHTML do
       id="guest-register-form"
       action={@action}
       title={@title}
+      logo={@logo}
       description={
         gettext("No account needed — you'll get a personal link that is your access to this session.")
       }

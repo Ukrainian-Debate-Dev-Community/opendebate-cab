@@ -41,7 +41,8 @@ defmodule CabWeb.Api.ClubController do
   # PATCH /api/cab/v1/clubs/:uuid {"name", "city", "meeting_info",
   # "description", "contacts", "is_private", "formats", "languages",
   # "audiences", "format_other", "language_other"} - head edits the
-  # profile; fields left out stay
+  # profile; fields left out stay (the logo is uploaded on the HTML page
+  # only)
   def update(conn, params) do
     attrs =
       Map.take(
@@ -66,7 +67,8 @@ defmodule CabWeb.Api.ClubController do
       format_other: club.format_other,
       languages: club.languages,
       language_other: club.language_other,
-      audiences: club.audiences
+      audiences: club.audiences,
+      logo_url: CabWeb.ClubProfile.logo_url(club)
     }
   end
 

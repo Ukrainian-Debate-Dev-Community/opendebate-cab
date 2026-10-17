@@ -7,6 +7,9 @@ defmodule CabWeb.Endpoint do
     websocket: [connect_info: [session: {CabWeb.Session, :options, []}]],
     longpoll: [connect_info: [session: {CabWeb.Session, :options, []}]]
 
+  # club logos (Cab.Uploads), from a folder set at boot
+  plug CabWeb.UploadsStatic
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # When code reloading is disabled (e.g., in production),

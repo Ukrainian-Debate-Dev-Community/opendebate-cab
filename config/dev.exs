@@ -11,6 +11,9 @@ config :cab, Cab.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+# club logos (Cab.Uploads): an ignored folder in the repo root
+config :cab, :uploads_dir, Path.expand("../uploads/cab", __DIR__)
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #

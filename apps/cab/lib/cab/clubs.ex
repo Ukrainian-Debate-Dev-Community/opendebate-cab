@@ -66,16 +66,42 @@ defmodule Cab.Clubs do
     Repo.all(from c in Club, order_by: c.name)
   end
 
-  @doc "The head/admin edits the club profile - gateway row only."
-  def update_club(%Club{} = club, attrs) do
-    changeset = Club.changeset(club, attrs)
+  @doc """
+  The head/admin edits the club profile - gateway row only. `logo` is
+  :keep, :remove or {:file, path} (an upload, checked by its bytes in
+  Cab.Uploads); a refused file returns {:error, :type | :size} and
+  changes nothing. A replaced or removed logo's file is deleted once
+  the row is saved.
+  """
+  def update_club(%Club{} = club, attrs, logo \\ :keep) do
+    with {:ok, new_logo} <- take_logo(logo) do
+      changeset =
+        club
+        |> Club.changeset(attrs)
+        |> then(&if(logo == :keep, do: &1, else: Ecto.Changeset.put_change(&1, :logo, new_logo)))
 
-    # the club's name is also its engine organisation's name: a rename
-    # reaches the engine first, so the two never drift apart
-    with {:ok, _} <- rename_in_engine(club, Ecto.Changeset.get_change(changeset, :name)) do
-      Repo.update(changeset)
+      # the club's name is also its engine organisation's name: a rename
+      # reaches the engine first, so the two never drift apart
+      result =
+        with {:ok, _} <- rename_in_engine(club, Ecto.Changeset.get_change(changeset, :name)) do
+          Repo.update(changeset)
+        end
+
+      case result do
+        {:ok, updated} ->
+          if updated.logo != club.logo, do: Cab.Uploads.delete(club.logo)
+          {:ok, updated}
+
+        error ->
+          Cab.Uploads.delete(new_logo)
+          error
+      end
     end
   end
+
+  defp take_logo(:keep), do: {:ok, nil}
+  defp take_logo(:remove), do: {:ok, nil}
+  defp take_logo({:file, path}), do: Cab.Uploads.store(path)
 
   @doc "The club's guest registration form, its locked fields (Club.guest_form_locked/0) first."
   def guest_form(%Club{} = club),

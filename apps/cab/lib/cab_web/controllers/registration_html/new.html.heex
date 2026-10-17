@@ -20,6 +20,7 @@
         id="register-form"
         action={~p"/r/#{@session.uuid}"}
         title={gettext("Register for %{session}", session: @state.event["name"])}
+        logo={CabWeb.ClubProfile.logo_path(@club)}
         description={
           gettext("Registering as %{name} — one registration per session.",
             name: @current_user.name || @current_user.username
@@ -42,6 +43,7 @@
         action={~p"/r/#{@session.uuid}"}
         title={gettext("Register for %{session}", session: @state.event["name"])}
         fields={@fields}
+        logo={CabWeb.ClubProfile.logo_path(@club)}
         name={@name}
         answers={@answers}
         errors={@errors}

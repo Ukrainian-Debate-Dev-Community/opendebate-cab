@@ -37,18 +37,30 @@ defmodule CabWeb.OwnerController do
       |> Map.merge(Map.take(params, @profile_fields))
       |> one_choice(~w(formats languages audiences))
 
-    case Clubs.update_club(conn.assigns.club, attrs) do
+    case Clubs.update_club(conn.assigns.club, attrs, logo_change(params)) do
       {:ok, _club} ->
         conn
         |> put_flash(:info, gettext("Club profile saved."))
         |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
 
-      {:error, %Ecto.Changeset{}} ->
+      {:error, reason} ->
         conn
-        |> put_flash(:error, gettext("The club needs a name."))
+        |> put_flash(:error, update_error(reason))
         |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
     end
   end
+
+  # a new file wins over the remove box; no file and no tick keeps it
+  defp logo_change(%{"logo" => %Plug.Upload{path: path}}), do: {:file, path}
+  defp logo_change(%{"remove_logo" => "yes"}), do: :remove
+  defp logo_change(_params), do: :keep
+
+  defp update_error(:type), do: gettext("The logo must be a PNG, JPEG or WebP image.")
+  defp update_error(:size), do: gettext("The logo must be at most 1 MB.")
+
+  defp update_error(%Ecto.Changeset{}), do: gettext("The club needs a name.")
+
+  defp update_error(_engine_error), do: gettext("Something went wrong, try again.")
 
   # ---------------------------------------------------------------
   # The guest registration form: the club's own fields after the

@@ -22,6 +22,7 @@
       <.form_for
         id="club-profile-form"
         action={~p"/c/#{@club.uuid}/owner/club"}
+        enctype="multipart/form-data"
         description={gettext("Exactly what visitors read on the club page.")}
       >
         <:block
@@ -32,6 +33,17 @@
           value={@club.name}
         />
         <:block name={:city} type={:text} label={gettext("City")} value={@club.city} />
+        <:block
+          name={:logo}
+          type={:file}
+          label={gettext("Logo")}
+          accept="image/png,image/jpeg,image/webp"
+          preview={CabWeb.ClubProfile.logo_path(@club)}
+          preview_alt={gettext("The current logo")}
+          remove="remove_logo"
+          remove_label={gettext("Remove the logo")}
+          hint={gettext("Optional. PNG, JPEG or WebP, at most 1 MB; a square image looks best.")}
+        />
         <:block
           name={:meeting_info}
           type={:text}
