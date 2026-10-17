@@ -226,6 +226,7 @@ defmodule CabWeb.Router do
     post "/sessions/:uuid/reopen-registration", SessionController, :reopen_registration
     put "/sessions/:uuid/room-count", SessionController, :room_count
     post "/sessions/:uuid/signups", SignupController, :create
+    post "/sessions/:uuid/signups/remove", SignupController, :remove_many
     delete "/sessions/:uuid/signups/:participant_id", SignupController, :delete
     post "/sessions/:uuid/rooms", RoomController, :create
     delete "/sessions/:uuid/rooms", RoomController, :delete

@@ -460,7 +460,38 @@ const RoomCard = {
   updated() { this.render && this.render() },
 }
 
-const Hooks = {BallotMath, PrepClock, Allocator, RoomCard}
+// put text on the clipboard: the Clipboard API on secure pages, the
+// old textarea + execCommand path elsewhere; done(ok) either way
+function copyText(text, done) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => done(true), () => done(false))
+  } else {
+    const area = document.createElement("textarea")
+    area.value = text
+    area.style.position = "fixed"
+    area.style.opacity = "0"
+    document.body.appendChild(area)
+    area.select()
+    let ok = false
+    try { ok = document.execCommand("copy") } catch (_e) { ok = false }
+    area.remove()
+    done(ok)
+  }
+}
+
+// the People list's Copy links: the server renders the checked guests'
+// lines into data-links; after copying, it says how many went
+const CopyLinks = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      const text = this.el.dataset.links || ""
+      if (!text) return this.pushEvent("links_copied", {ok: true})
+      copyText(text, ok => this.pushEvent("links_copied", {ok}))
+    })
+  },
+}
+
+const Hooks = {BallotMath, PrepClock, Allocator, RoomCard, CopyLinks}
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
@@ -563,20 +594,7 @@ document.addEventListener("click", e => {
       btn.textContent = t("copy", "Copy")
     }, 1500)
   }
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(btn.dataset.copy).then(() => done(true), () => done(false))
-  } else {
-    const area = document.createElement("textarea")
-    area.value = btn.dataset.copy
-    area.style.position = "fixed"
-    area.style.opacity = "0"
-    document.body.appendChild(area)
-    area.select()
-    let ok = false
-    try { ok = document.execCommand("copy") } catch (_e) { ok = false }
-    area.remove()
-    done(ok)
-  }
+  copyText(btn.dataset.copy, done)
 })
 
 // The lines below enable quality of life phoenix_live_reload

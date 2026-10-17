@@ -200,6 +200,35 @@ defmodule CabWeb.UiTest do
     assert html =~ ~s(class="num")
   end
 
+  test "table: the head slot leads the first header cell only, the rest are plain labels" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.table rows={[]}>
+        <:head><input type="checkbox" class="pick" /></:head>
+        <:col :let={s} label="Name">{s}</:col>
+        <:col :let={s} label="Seat">{s}</:col>
+        <:col :let={s}>{s}</:col>
+      </.table>
+      """)
+
+    [head] = Regex.run(~r/<thead>.*<\/thead>/s, html)
+    assert [_one] = Regex.scan(~r/class="pick"/, head)
+    assert head =~ ~r/class="pick">\s*Name/
+    refute head =~ "false"
+
+    plain =
+      rendered_to_string(~H"""
+      <.table rows={[]}>
+        <:col :let={s} label="Name">{s}</:col>
+        <:col :let={s}>{s}</:col>
+      </.table>
+      """)
+
+    refute plain =~ "false"
+  end
+
   test "table renders the centered empty state line with the full colspan" do
     assigns = %{}
 

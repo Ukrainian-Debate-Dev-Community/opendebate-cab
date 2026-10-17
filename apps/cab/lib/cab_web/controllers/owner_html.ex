@@ -22,6 +22,29 @@ defmodule CabWeb.OwnerHTML do
   defp guest_link(%{"id" => participant_id}, links),
     do: Enum.find(links, &(&1.engine_participant_id == participant_id))
 
+  @doc """
+  What Copy links puts on the clipboard for the checked people: one
+  "Name - link" line per guest, in table order. Members and signed-in
+  users have no personal link; they are counted, not copied.
+  """
+  def batch_links(signups, links, selected) do
+    picked = Enum.filter(signups, &MapSet.member?(selected, &1["id"]))
+
+    lines =
+      for participant <- picked,
+          link = guest_link(participant, links),
+          do: "#{participant["display_name"]} - #{url(~p"/l/#{link.code}")}"
+
+    %{
+      text: Enum.join(lines, "\n"),
+      linked: length(lines),
+      unlinked: length(picked) - length(lines)
+    }
+  end
+
+  defp all_selected?(signups, selected),
+    do: signups != [] and Enum.all?(signups, &MapSet.member?(selected, &1["id"]))
+
   defp guest_answers(participant, links) do
     case guest_link(participant, links) do
       %{answers: answers} when is_list(answers) -> answers

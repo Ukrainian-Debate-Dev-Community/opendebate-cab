@@ -707,6 +707,58 @@ defmodule Cab.SessionsTest do
     assert_received {:deleted, "42"}
   end
 
+  test "remove_signups: each id by the single removal's rules; refusals carry the reason",
+       %{head: head, club: club} do
+    member = user_fixture(%{node_user_id: 44})
+    membership_fixture(member, club)
+    session = session_fixture(club, engine_event_id: 11)
+    test_pid = self()
+
+    participants = [
+      %{"id" => 41, "user_id" => 44, "role" => "speaker", "display_name" => "Own"},
+      %{"id" => 42, "user_id" => 55, "role" => "speaker", "display_name" => "Seated"},
+      %{"id" => 43, "user_id" => 66, "role" => "speaker", "display_name" => "Waiting"}
+    ]
+
+    rooms = [
+      %{
+        "id" => 71,
+        "status" => "pending",
+        "RoomTeams" => [%{"RoomSpeakers" => [%{"EventParticipant" => %{"id" => 42}}]}],
+        "RoomAdjudicators" => []
+      }
+    ]
+
+    stub(fn conn, _params ->
+      state_stub(conn, participants, rooms) ||
+        case {conn.method, conn.request_path} do
+          {"PUT", "/api/events/11/participants/" <> _pid} ->
+            ok(conn, %{})
+
+          {"DELETE", "/api/events/11/participants/" <> pid} ->
+            send(test_pid, {:deleted, pid})
+            Req.Test.json(conn, %{"status" => "success"})
+        end
+    end)
+
+    # a member: only their own signup goes
+    assert %{removed: [41], refused: [{43, refused}]} =
+             Sessions.remove_signups(member, session, [41, 43])
+
+    assert refused == "Only the club head can remove other people."
+    assert_received {:deleted, "41"}
+    refute_received {:deleted, "43"}
+
+    # the head: everyone not seated, duplicates once, order kept
+    assert %{removed: [43], refused: [{42, seated}, {77, missing}]} =
+             Sessions.remove_signups(head, session, [42, 43, 43, 77])
+
+    assert seated =~ "Seated is seated in a room"
+    assert missing == "That person isn't in this session."
+    assert_received {:deleted, "43"}
+    refute_received {:deleted, _}
+  end
+
   test "delete_rooms removes pending rooms only", %{head: head, club: club} do
     session = session_fixture(club, engine_event_id: 11)
     test_pid = self()

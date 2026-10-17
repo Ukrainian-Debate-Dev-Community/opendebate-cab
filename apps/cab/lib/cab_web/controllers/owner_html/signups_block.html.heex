@@ -16,8 +16,95 @@
       <button type="submit" class="btn-quiet">{gettext("Send link")}</button>
     </.form>
   </div>
+  <%!-- batch actions over the checked rows; the selection is the LiveView's --%>
+  <div
+    :if={@state.signups != []}
+    id="people-batch"
+    class={["batch", MapSet.size(@selected) == 0 && "idle"]}
+  >
+    <label class="pick-all">
+      <input
+        type="checkbox"
+        class="pick"
+        phx-click="select_all"
+        checked={all_selected?(@state.signups, @selected)}
+      />
+      {gettext("Select all")}
+    </label>
+    <%= if MapSet.size(@selected) > 0 do %>
+      <span class="count">
+        {ngettext("%{count} selected", "%{count} selected", MapSet.size(@selected))}
+      </span>
+      <button
+        type="button"
+        id="copy-links"
+        class="btn-quiet"
+        phx-hook="CopyLinks"
+        data-links={batch_links(@state.signups, @links, @selected).text}
+      >
+        {gettext("Copy links")}
+      </button>
+      <button type="button" class="btn-quiet quiet" phx-click="confirm_remove">
+        {gettext("Remove selected")}
+      </button>
+      <button type="button" class="btn-link" phx-click="clear_selection">
+        {gettext("Clear")}
+      </button>
+    <% end %>
+  </div>
+  <div
+    :if={@confirm_remove && MapSet.size(@selected) > 0}
+    id="confirm-remove"
+    class="banner bad flush"
+  >
+    <span>
+      {ngettext(
+        "Remove %{count} person from %{session}?",
+        "Remove %{count} people from %{session}?",
+        MapSet.size(@selected),
+        session: @state.event["name"]
+      )}
+    </span>
+    <span class="actions">
+      <button type="button" class="btn-quiet quiet" phx-click="remove_selected">
+        {gettext("Remove")}
+      </button>
+      <button type="button" class="btn-link" phx-click="cancel_remove">
+        {gettext("Cancel")}
+      </button>
+    </span>
+  </div>
+  <div :if={@refused != []} id="remove-refused" class="banner bad flush refused">
+    <span>
+      {ngettext(
+        "%{count} person could not be removed:",
+        "%{count} people could not be removed:",
+        length(@refused)
+      )}
+      <ul>
+        <li :for={{name, reason} <- @refused}>{name}: {reason}</li>
+      </ul>
+    </span>
+  </div>
   <.table id="session-people" rows={@state.signups} empty={gettext("Nobody registered yet.")}>
+    <:head>
+      <input
+        type="checkbox"
+        class="pick"
+        phx-click="select_all"
+        checked={all_selected?(@state.signups, @selected)}
+        aria-label={gettext("Select all")}
+      />
+    </:head>
     <:col :let={participant} label={gettext("Name")}>
+      <input
+        type="checkbox"
+        class="pick"
+        phx-click="toggle"
+        phx-value-id={participant["id"]}
+        checked={MapSet.member?(@selected, participant["id"])}
+        aria-label={gettext("Select %{name}", name: participant["display_name"])}
+      />
       {participant["display_name"]}
       <.sub>{person_kind(participant, @links, @members, @invitations)}</.sub>
       <%!-- the guest's answers to the club's registration form: head only --%>
