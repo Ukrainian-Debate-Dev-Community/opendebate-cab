@@ -25,6 +25,7 @@ defmodule CabWeb.OwnerSessionLive do
          socket
          |> assign(:session_uuid, session.uuid)
          |> assign(:query, "")
+         |> assign(selected: MapSet.new(), confirm_remove: false, refused: [])
          |> load()}
     end
   end
@@ -166,6 +167,92 @@ defmodule CabWeb.OwnerSessionLive do
     end
   end
 
+  # the People list's batch actions: the checked rows live here
+  def handle_event("toggle", %{"id" => id}, socket) do
+    id = to_int(id)
+    selected = socket.assigns.selected
+
+    selected =
+      if MapSet.member?(selected, id),
+        do: MapSet.delete(selected, id),
+        else: MapSet.put(selected, id)
+
+    {:noreply, assign(socket, selected: selected, confirm_remove: false)}
+  end
+
+  def handle_event("select_all", _params, socket) do
+    ids = signup_ids(socket.assigns.state)
+
+    selected =
+      if MapSet.subset?(ids, socket.assigns.selected) and MapSet.size(ids) > 0,
+        do: MapSet.new(),
+        else: ids
+
+    {:noreply, assign(socket, selected: selected, confirm_remove: false)}
+  end
+
+  def handle_event("clear_selection", _params, socket),
+    do: {:noreply, assign(socket, selected: MapSet.new(), confirm_remove: false, refused: [])}
+
+  def handle_event("confirm_remove", _params, socket),
+    do: {:noreply, assign(socket, :confirm_remove, MapSet.size(socket.assigns.selected) > 0)}
+
+  def handle_event("cancel_remove", _params, socket),
+    do: {:noreply, assign(socket, :confirm_remove, false)}
+
+  # each checked person goes through the single removal; who stays is listed with why
+  def handle_event("remove_selected", _params, socket) do
+    %{current_user: head, current: session, state: state, selected: selected} = socket.assigns
+    ids = for participant <- state.signups, participant["id"] in selected, do: participant["id"]
+    names = Map.new(state.signups, &{&1["id"], &1["display_name"]})
+    %{removed: removed, refused: refused} = Sessions.remove_signups(head, session, ids)
+
+    socket =
+      if removed == [],
+        do: socket,
+        else:
+          put_flash(
+            socket,
+            :info,
+            ngettext("Removed %{count} person.", "Removed %{count} people.", length(removed))
+          )
+
+    {:noreply,
+     socket
+     |> assign(
+       selected: MapSet.new(refused, &elem(&1, 0)),
+       confirm_remove: false,
+       refused: for({id, reason} <- refused, do: {Map.get(names, id, "#{id}"), reason})
+     )
+     |> load()}
+  end
+
+  # the CopyLinks hook wrote the checked guests' links to the clipboard
+  def handle_event("links_copied", %{"ok" => true}, socket) do
+    %{state: state, links: links, selected: selected} = socket.assigns
+    %{linked: linked, unlinked: unlinked} = CabWeb.OwnerHTML.batch_links(state.signups, links, selected)
+
+    info =
+      if unlinked == 0,
+        do: ngettext("Copied %{count} link.", "Copied %{count} links.", linked),
+        else:
+          ngettext("Copied %{count} link; %{missing}.", "Copied %{count} links; %{missing}.", linked,
+            missing:
+              ngettext(
+                "%{count} person has no personal link",
+                "%{count} people have no personal link",
+                unlinked
+              )
+          )
+
+    {:noreply, put_flash(socket, :info, info)}
+  end
+
+  def handle_event("links_copied", _params, socket),
+    do:
+      {:noreply,
+       put_flash(socket, :error, gettext("This browser did not let us copy. Copy each link instead."))}
+
   def handle_event("add_typed", %{"q" => q}, socket) do
     %{club: club, current: current, state: state} = socket.assigns
     add(socket, Invitations.resolve(club, current, state.signups, q))
@@ -216,6 +303,7 @@ defmodule CabWeb.OwnerSessionLive do
       socket
       |> assign(:current, session)
       |> assign(:state, state)
+      |> assign(:selected, MapSet.intersection(socket.assigns.selected, signup_ids(state)))
       |> assign(:draft, Sessions.draft(session, state.signups))
       |> assign(:links, Links.list_for_session(session))
       |> assign(:invitations, Invitations.for_session(session))
@@ -277,6 +365,8 @@ defmodule CabWeb.OwnerSessionLive do
         reply(error, socket)
     end
   end
+
+  defp signup_ids(state), do: MapSet.new(state.signups, & &1["id"])
 
   defp to_int(id) when is_integer(id), do: id
 

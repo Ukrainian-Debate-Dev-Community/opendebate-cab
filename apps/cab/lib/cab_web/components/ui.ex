@@ -333,6 +333,8 @@ defmodule CabWeb.Ui do
 
   attr :empty, :string, default: nil, doc: "the empty-table line; nil = \"Nothing here yet.\""
 
+  slot :head, doc: "markup before the first column's label (a select-all box)"
+
   slot :col do
     attr :label, :string
     attr :num, :boolean
@@ -350,10 +352,10 @@ defmodule CabWeb.Ui do
         <tr>
           <th :if={@rank} style="width:40px">#</th>
           <th
-            :for={col <- @col}
+            :for={{col, i} <- Enum.with_index(@col)}
             class={[(col[:num] || col[:float]) && "num", col[:center] && "c"]}
           >
-            {col[:label]}
+            {if i == 0, do: render_slot(@head)}{col[:label]}
           </th>
         </tr>
       </thead>
