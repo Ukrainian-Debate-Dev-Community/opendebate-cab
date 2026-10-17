@@ -70,7 +70,7 @@ msgid_plural "%{count} members"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/cab_web/controllers/owner_html.ex:113
+#: lib/cab_web/controllers/owner_html.ex:118
 #, elixir-autogen, elixir-format
 msgid "%{count} person"
 msgid_plural "%{count} people"
@@ -78,7 +78,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/cab_web/controllers/owner_controller.ex:355
-#: lib/cab_web/live/owner_session_live.ex:270
+#: lib/cab_web/live/owner_session_live.ex:279
 #, elixir-autogen, elixir-format
 msgid "%{count} room(s) created."
 msgstr ""
@@ -120,14 +120,14 @@ msgstr ""
 msgid "%{rank}th"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html.ex:81
-#: lib/cab_web/controllers/owner_html.ex:94
+#: lib/cab_web/controllers/owner_html.ex:86
+#: lib/cab_web/controllers/owner_html.ex:99
 #, elixir-autogen, elixir-format
 msgid "%{room} %{side}"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html.ex:74
-#: lib/cab_web/controllers/owner_html.ex:93
+#: lib/cab_web/controllers/owner_html.ex:79
+#: lib/cab_web/controllers/owner_html.ex:98
 #, elixir-autogen, elixir-format
 msgid "%{room} adjudicator"
 msgstr ""
@@ -304,7 +304,7 @@ msgstr ""
 msgid "Admin"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html.ex:129
+#: lib/cab_web/controllers/owner_html.ex:134
 #, elixir-autogen, elixir-format
 msgid "Allocation — %{count} room(s), count automatic"
 msgstr ""
@@ -376,7 +376,7 @@ msgstr ""
 
 #: lib/cab_web/components/ui.ex:758
 #: lib/cab_web/components/ui.ex:850
-#: lib/cab_web/controllers/owner_html.ex:66
+#: lib/cab_web/controllers/owner_html.ex:71
 #: lib/cab_web/session_format.ex:15
 #: lib/cab_web/session_format.ex:90
 #, elixir-autogen, elixir-format
@@ -390,7 +390,7 @@ msgstr ""
 
 #: lib/cab_web/components/ui.ex:759
 #: lib/cab_web/components/ui.ex:851
-#: lib/cab_web/controllers/owner_html.ex:67
+#: lib/cab_web/controllers/owner_html.ex:72
 #: lib/cab_web/session_format.ex:16
 #: lib/cab_web/session_format.ex:91
 #, elixir-autogen, elixir-format
@@ -974,7 +974,7 @@ msgid "My schedule"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/responses.html.heex:31
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:95
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:99
 #: lib/cab_web/controllers/session_page_html/show.html.heex:84
 #: lib/cab_web/responses_csv.ex:21
 #, elixir-autogen, elixir-format
@@ -1059,7 +1059,7 @@ msgstr ""
 msgid "Nobody is placed automatically"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:85
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:89
 #: lib/cab_web/controllers/session_page_html/show.html.heex:82
 #, elixir-autogen, elixir-format
 msgid "Nobody registered yet."
@@ -1092,7 +1092,7 @@ msgstr ""
 
 #: lib/cab_web/components/ui.ex:756
 #: lib/cab_web/components/ui.ex:848
-#: lib/cab_web/controllers/owner_html.ex:64
+#: lib/cab_web/controllers/owner_html.ex:69
 #: lib/cab_web/session_format.ex:13
 #: lib/cab_web/session_format.ex:88
 #, elixir-autogen, elixir-format
@@ -1106,7 +1106,7 @@ msgstr ""
 
 #: lib/cab_web/components/ui.ex:757
 #: lib/cab_web/components/ui.ex:849
-#: lib/cab_web/controllers/owner_html.ex:65
+#: lib/cab_web/controllers/owner_html.ex:70
 #: lib/cab_web/session_format.ex:14
 #: lib/cab_web/session_format.ex:89
 #, elixir-autogen, elixir-format
@@ -1169,7 +1169,7 @@ msgid "People (%{count})"
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex:49
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:112
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:116
 #: lib/cab_web/controllers/registration_html/created.html.heex:23
 #, elixir-autogen, elixir-format
 msgid "Personal link"
@@ -1477,7 +1477,7 @@ msgstr ""
 msgid "Scan or open"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:109
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:113
 #, elixir-autogen, elixir-format
 msgid "Seat"
 msgstr ""
@@ -1524,7 +1524,7 @@ msgid "Session opened. Registration is open."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_controller.ex:228
-#: lib/cab_web/live/owner_session_live.ex:264
+#: lib/cab_web/live/owner_session_live.ex:273
 #, elixir-autogen, elixir-format
 msgid "Session started with %{count} room(s)."
 msgstr ""
@@ -1906,7 +1906,7 @@ msgid "This session is finished — results live on the"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_controller.ex:237
-#: lib/cab_web/live/owner_session_live.ex:321
+#: lib/cab_web/live/owner_session_live.ex:330
 #: lib/cab_web/live/room_live.ex:62
 #: lib/cab_web/live/session_live.ex:93
 #, elixir-autogen, elixir-format
@@ -2199,14 +2199,14 @@ msgstr ""
 msgid "finished"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html.ex:53
+#: lib/cab_web/controllers/owner_html.ex:58
 #, elixir-autogen, elixir-format
 msgid "guest"
 msgstr ""
 
 #: lib/cab_web/controllers/me_html.ex:23
 #: lib/cab_web/controllers/member_html.ex:14
-#: lib/cab_web/controllers/owner_html.ex:60
+#: lib/cab_web/controllers/owner_html.ex:65
 #, elixir-autogen, elixir-format
 msgid "head"
 msgstr ""
@@ -2221,7 +2221,7 @@ msgstr ""
 msgid "incomplete"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html.ex:52
+#: lib/cab_web/controllers/owner_html.ex:57
 #, elixir-autogen, elixir-format
 msgid "invited, not accepted yet"
 msgstr ""
@@ -2258,8 +2258,8 @@ msgstr ""
 
 #: lib/cab_web/controllers/me_html.ex:24
 #: lib/cab_web/controllers/member_html.ex:15
-#: lib/cab_web/controllers/owner_html.ex:54
-#: lib/cab_web/controllers/owner_html.ex:61
+#: lib/cab_web/controllers/owner_html.ex:59
+#: lib/cab_web/controllers/owner_html.ex:66
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "member"
@@ -2400,7 +2400,7 @@ msgstr ""
 #: lib/cab_web/components/form_components.ex:166
 #: lib/cab_web/controllers/account_html/show.html.heex:69
 #: lib/cab_web/controllers/owner_html/members.html.heex:71
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:126
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:130
 #, elixir-autogen, elixir-format
 msgid "remove"
 msgstr ""
@@ -2428,7 +2428,7 @@ msgstr ""
 msgid "session:"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html.ex:55
+#: lib/cab_web/controllers/owner_html.ex:60
 #, elixir-autogen, elixir-format
 msgid "signed-in user"
 msgstr ""
@@ -2443,7 +2443,7 @@ msgstr ""
 msgid "team total"
 msgstr ""
 
-#: lib/cab_web/live/owner_session_live.ex:294
+#: lib/cab_web/live/owner_session_live.ex:303
 #, elixir-autogen, elixir-format
 msgid "that did not work — try again"
 msgstr ""
@@ -2468,8 +2468,8 @@ msgstr ""
 msgid "void"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html.ex:71
-#: lib/cab_web/controllers/owner_html.ex:98
+#: lib/cab_web/controllers/owner_html.ex:76
+#: lib/cab_web/controllers/owner_html.ex:103
 #, elixir-autogen, elixir-format
 msgid "waiting"
 msgstr ""
@@ -2711,7 +2711,7 @@ msgstr ""
 msgid "give feedback"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html.ex:119
+#: lib/cab_web/controllers/owner_html.ex:124
 #, elixir-autogen, elixir-format
 msgid "%{people} checked in, %{count} room."
 msgid_plural "%{people} checked in, %{count} rooms."
@@ -3148,7 +3148,7 @@ msgid "Answer"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex:17
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:69
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:73
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr ""
@@ -3399,7 +3399,7 @@ msgstr ""
 msgid "the next session"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html.ex:135
+#: lib/cab_web/controllers/owner_html.ex:140
 #, elixir-autogen, elixir-format
 msgid "Allocation — %{count} room(s), count set by hand"
 msgstr ""
@@ -3500,14 +3500,14 @@ msgstr ""
 msgid "this session"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:75
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:79
 #, elixir-autogen, elixir-format
 msgid "%{count} person could not be removed:"
 msgid_plural "%{count} people could not be removed:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/cab_web/live/owner_session_live.ex:241
+#: lib/cab_web/live/owner_session_live.ex:246
 #, elixir-autogen, elixir-format
 msgid "%{count} person has no personal link"
 msgid_plural "%{count} people have no personal link"
@@ -3526,14 +3526,14 @@ msgstr[1] ""
 msgid "Clear"
 msgstr ""
 
-#: lib/cab_web/live/owner_session_live.ex:237
+#: lib/cab_web/live/owner_session_live.ex:239
 #, elixir-autogen, elixir-format
 msgid "Copied %{count} link."
 msgid_plural "Copied %{count} links."
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/cab_web/live/owner_session_live.ex:239
+#: lib/cab_web/live/owner_session_live.ex:241
 #, elixir-autogen, elixir-format
 msgid "Copied %{count} link; %{missing}."
 msgid_plural "Copied %{count} links; %{missing}."
@@ -3545,12 +3545,12 @@ msgstr[1] ""
 msgid "Copy links"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:66
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:70
 #, elixir-autogen, elixir-format
 msgid "Remove"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:57
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:61
 #, elixir-autogen, elixir-format
 msgid "Remove %{count} person from %{session}?"
 msgid_plural "Remove %{count} people from %{session}?"
@@ -3569,18 +3569,18 @@ msgid_plural "Removed %{count} people."
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:102
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:106
 #, elixir-autogen, elixir-format
 msgid "Select %{name}"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex:32
-#: lib/cab_web/controllers/owner_html/signups_block.html.heex:92
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex:96
 #, elixir-autogen, elixir-format
 msgid "Select all"
 msgstr ""
 
-#: lib/cab_web/live/owner_session_live.ex:254
+#: lib/cab_web/live/owner_session_live.ex:262
 #, elixir-autogen, elixir-format
 msgid "This browser did not let us copy. Copy each link instead."
 msgstr ""
