@@ -180,6 +180,7 @@ defmodule CabWeb.Router do
     post "/owner/sessions/:session_uuid/rooms", OwnerController, :make_rooms
     post "/owner/sessions/:session_uuid/rooms/delete", OwnerController, :delete_rooms
     post "/owner/sessions/:session_uuid/finish", OwnerController, :finish
+    get "/owner/sessions/:session_uuid/delete", OwnerController, :confirm_delete
     post "/owner/sessions/:session_uuid/cancel", OwnerController, :cancel_session
     get "/owner/sessions/:session_uuid/responses", OwnerController, :responses
     get "/owner/sessions/:session_uuid/responses/csv", OwnerController, :responses_csv

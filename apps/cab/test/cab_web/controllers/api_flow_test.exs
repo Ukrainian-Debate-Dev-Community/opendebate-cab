@@ -661,13 +661,37 @@ defmodule CabWeb.ApiFlowTest do
 
   test "session cancel removes the gateway row", %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
+    {:ok, signups} = Agent.start_link(fn -> [%{"id" => 41, "display_name" => "Ann"}] end)
 
     stub(fn conn, _params ->
       case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "status" => "scheduled"})
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, Agent.get(signups, & &1))
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [])
+
         {"DELETE", "/api/events/11"} ->
           Req.Test.json(conn, %{"status" => "success", "message" => "Event archived."})
       end
     end)
+
+    # somebody signed up: the session stays (409)
+    refused =
+      conn
+      |> log_in(head)
+      |> delete(~p"/api/cab/v1/sessions/#{session.uuid}")
+      |> json_response(409)
+
+    assert refused["error"] =~ "People signed up for this session"
+
+    Agent.update(signups, fn _ -> [] end)
 
     cancelled =
       conn

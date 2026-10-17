@@ -171,12 +171,12 @@ msgstr "У кожній кімнаті має бути %{count} команди �
 msgid "Every room needs an adjudicator."
 msgstr "У кожній кімнаті має бути суддя."
 
-#: lib/cab/sessions.ex:1348
+#: lib/cab/sessions.ex:1386
 #, elixir-autogen, elixir-format
 msgid "Every score must be an object."
 msgstr "Кожен бал має бути об'єктом."
 
-#: lib/cab/sessions.ex:1331
+#: lib/cab/sessions.ex:1369
 #, elixir-autogen, elixir-format
 msgid "Every score needs a speaker_participant_id."
 msgstr "Кожен бал має містити speaker_participant_id."
@@ -191,12 +191,12 @@ msgstr "Гості приєднуються через своє персонал
 msgid "Keep at least one way to sign in."
 msgstr "Залиште хоча б один спосіб входу."
 
-#: lib/cab/sessions.ex:1328
+#: lib/cab/sessions.ex:1366
 #, elixir-autogen, elixir-format
 msgid "Position must be 1 to 4 (OG, OO, CG, CO)."
 msgstr "Позиція має бути від 1 до 4 (ПУ, ПО, ДУ, ДО)."
 
-#: lib/cab/sessions.ex:1254
+#: lib/cab/sessions.ex:1292
 #, elixir-autogen, elixir-format
 msgid "Publish the room's motion first."
 msgstr "Спершу опублікуйте резолюцію кімнати."
@@ -231,12 +231,12 @@ msgstr "Кімнати можна видалити лише до того, як 
 msgid "Rooms must be a non-empty list of room objects."
 msgstr "Кімнати мають бути непорожнім списком об'єктів кімнат."
 
-#: lib/cab/sessions.ex:1334
+#: lib/cab/sessions.ex:1372
 #, elixir-autogen, elixir-format
 msgid "Scores are whole points from 50 to 100."
 msgstr "Бали є цілими числами від 50 до 100."
 
-#: lib/cab/sessions.ex:1319
+#: lib/cab/sessions.ex:1357
 #, elixir-autogen, elixir-format
 msgid "Scores must be a list of 8 entries."
 msgstr "Бали мають бути списком із 8 записів."
@@ -265,8 +265,8 @@ msgstr "Хтось із розміщених у кімнаті не бере у�
 #: lib/cab/invitations.ex:212
 #: lib/cab/links.ex:143
 #: lib/cab/links.ex:326
-#: lib/cab/sessions.ex:1612
-#: lib/cab/sessions.ex:1828
+#: lib/cab/sessions.ex:1650
+#: lib/cab/sessions.ex:1866
 #: lib/cab_web/components/form_components.ex:57
 #: lib/cab_web/components/form_components.ex:81
 #, elixir-autogen, elixir-format
@@ -298,7 +298,7 @@ msgstr "Ця людина не є членом цього клубу."
 msgid "That person isn't in this session."
 msgstr "Ця людина не бере участі в цій сесії."
 
-#: lib/cab/sessions.ex:1283
+#: lib/cab/sessions.ex:1321
 #, elixir-autogen, elixir-format
 msgid "That room is not part of this session."
 msgstr "Ця кімната не належить до цієї сесії."
@@ -329,9 +329,9 @@ msgstr "Після початку сесії кімнати не змінюют�
 msgid "This account already has a different %{provider} sign-in linked."
 msgstr "До цього акаунта вже прив'язано інший вхід через %{provider}."
 
-#: lib/cab/sessions.ex:1403
-#: lib/cab/sessions.ex:1423
-#: lib/cab/sessions.ex:1428
+#: lib/cab/sessions.ex:1441
+#: lib/cab/sessions.ex:1461
+#: lib/cab/sessions.ex:1466
 #, elixir-autogen, elixir-format
 msgid "This ballot doesn't match the room's draw."
 msgstr "Цей белот не відповідає сітці кімнати."
@@ -357,7 +357,7 @@ msgstr "У цій сесії немає кімнат для видалення."
 msgid "This session is finished, so its people stay on record."
 msgstr "Сесію завершено, тож її учасники лишаються в записах."
 
-#: lib/cab/sessions.ex:1390
+#: lib/cab/sessions.ex:1428
 #, elixir-autogen, elixir-format
 msgid "Two teams share the total %{totals}. BP allows no ties, so adjust the scores."
 msgstr "Дві команди мають однакову суму %{totals}. У БП нічиїх не буває, тож виправте бали."
@@ -372,7 +372,7 @@ msgstr "вже член клубу або запит на вступ ще роз
 msgid "tell the head about yourself and how to reach you"
 msgstr "розкажіть голові клубу про себе і як з вами зв'язатися"
 
-#: lib/cab/sessions.ex:1309
+#: lib/cab/sessions.ex:1347
 #, elixir-autogen, elixir-format
 msgid "a full ballot is 8 scores: two per team position 1..4 (og, oo, cg, co)"
 msgstr "повний белот: 8 балів, по два на кожну позицію команди 1..4 (ПУ, ПО, ДУ, ДО)"
@@ -397,7 +397,8 @@ msgstr "Введіть адресу e-mail, щоб запросити нову �
 msgid "Type their name for the invitation."
 msgstr "Введіть ім'я для запрошення."
 
-#: lib/cab/sessions.ex:1178
+#: lib/cab/sessions.ex:1182
+#: lib/cab/sessions.ex:1195
 #, elixir-autogen, elixir-format
 msgid "A finished session cannot be cancelled."
 msgstr "Завершену сесію не можна скасувати."
@@ -492,3 +493,13 @@ msgstr "Це поле питаємо завжди: його не можна пе
 #, elixir-autogen, elixir-format
 msgid "The number of rooms is 1 to %{max}, or automatic."
 msgstr "Кількість кімнат: від 1 до %{max} або автоматично."
+
+#: lib/cab/sessions.ex:1206
+#, elixir-autogen, elixir-format
+msgid "People signed up for this session, so it cannot be deleted. Only a session nobody signed up for can be."
+msgstr "На цю сесію вже зареєструвалися, тож її не можна видалити. Видалити можна лише сесію, на яку ніхто не зареєструвався."
+
+#: lib/cab/sessions.ex:1199
+#, elixir-autogen, elixir-format
+msgid "This session has rooms, so it cannot be deleted. Only a session nobody signed up for can be."
+msgstr "У цій сесії вже є кімнати, тож її не можна видалити. Видалити можна лише сесію, на яку ніхто не зареєструвався."

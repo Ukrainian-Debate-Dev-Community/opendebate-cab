@@ -435,6 +435,7 @@ msgstr ""
 #: lib/cab_web/controllers/admin_html/show.html.heex:81
 #: lib/cab_web/controllers/admin_html/show.html.heex:115
 #: lib/cab_web/controllers/me_html/show.html.heex:44
+#: lib/cab_web/controllers/owner_html/delete_session.html.heex:12
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex:12
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex:12
 #: lib/cab_web/controllers/owner_html/responses.html.heex:12
@@ -598,7 +599,7 @@ msgstr ""
 msgid "Debate clubs of Ukraine"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:45
+#: lib/cab_web/controllers/owner_html/session.html.heex:52
 #, elixir-autogen, elixir-format
 msgid "Delete rooms"
 msgstr ""
@@ -675,7 +676,7 @@ msgstr ""
 msgid "Find your club"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:53
+#: lib/cab_web/controllers/owner_html/session.html.heex:60
 #, elixir-autogen, elixir-format
 msgid "Finish session"
 msgstr ""
@@ -1223,7 +1224,7 @@ msgstr ""
 msgid "Prep until {time}"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:65
+#: lib/cab_web/controllers/owner_html/session.html.heex:72
 #, elixir-autogen, elixir-format
 msgid "Previous sessions live on the"
 msgstr ""
@@ -1498,20 +1499,16 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/show.html.heex:83
 #: lib/cab_web/controllers/me_html/show.html.heex:149
 #: lib/cab_web/controllers/member_html/archive_section.html.heex:3
+#: lib/cab_web/controllers/owner_html/delete_session.html.heex:13
 #: lib/cab_web/controllers/owner_html/responses.html.heex:13
-#: lib/cab_web/controllers/owner_html/session.html.heex:61
+#: lib/cab_web/controllers/owner_html/session.html.heex:68
 #: lib/cab_web/controllers/session_page_html/ballot.html.heex:12
 #: lib/cab_web/controllers/session_page_html/show.html.heex:54
 #, elixir-autogen, elixir-format
 msgid "Session"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_controller.ex:430
-#, elixir-autogen, elixir-format
-msgid "Session cancelled."
-msgstr ""
-
-#: lib/cab_web/controllers/owner_controller.ex:499
+#: lib/cab_web/controllers/owner_controller.ex:532
 #, elixir-autogen, elixir-format
 msgid "Session finished."
 msgstr ""
@@ -1903,7 +1900,7 @@ msgstr ""
 msgid "This session finished without rooms."
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:62
+#: lib/cab_web/controllers/owner_html/session.html.heex:69
 #, elixir-autogen, elixir-format
 msgid "This session is finished — results live on the"
 msgstr ""
@@ -2151,7 +2148,7 @@ msgstr ""
 msgid "closes registration and opens these rooms."
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:66
+#: lib/cab_web/controllers/owner_html/session.html.heex:73
 #, elixir-autogen, elixir-format
 msgid "club page"
 msgstr ""
@@ -2421,7 +2418,7 @@ msgstr ""
 msgid "running"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/session.html.heex:63
+#: lib/cab_web/controllers/owner_html/session.html.heex:70
 #, elixir-autogen, elixir-format
 msgid "session page"
 msgstr ""
@@ -3426,7 +3423,7 @@ msgstr ""
 msgid "You set the number of rooms by hand; Automatic makes it follow the sign-ups again;"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_controller.ex:462
+#: lib/cab_web/controllers/owner_controller.ex:495
 #, elixir-autogen, elixir-format
 msgid "%{club} - Responses - %{session}"
 msgstr ""
@@ -3462,4 +3459,42 @@ msgstr[1] ""
 #: lib/cab_web/responses_csv.ex:41
 #, elixir-autogen, elixir-format
 msgid "responses"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_controller.ex:438
+#, elixir-autogen, elixir-format
+msgid "%{club} - Delete session"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/delete_session.html.heex:27
+#, elixir-autogen, elixir-format
+msgid "Delete %{session}?"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/delete_session.html.heex:15
+#: lib/cab_web/controllers/owner_html/delete_session.html.heex:23
+#: lib/cab_web/controllers/owner_html/delete_session.html.heex:34
+#: lib/cab_web/controllers/owner_html/session.html.heex:44
+#, elixir-autogen, elixir-format
+msgid "Delete session"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/delete_session.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "Keep the session"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/delete_session.html.heex:29
+#, elixir-autogen, elixir-format
+msgid "Nobody has signed up, so the session can go: it disappears from the club, and its registration link and short link stop working. This cannot be undone."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_controller.ex:463
+#, elixir-autogen, elixir-format
+msgid "Session deleted."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/delete_session.html.heex:27
+#, elixir-autogen, elixir-format
+msgid "this session"
 msgstr ""

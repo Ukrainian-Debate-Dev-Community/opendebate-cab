@@ -835,8 +835,8 @@
         "tags": [
           "Sessions"
         ],
-        "summary": "Cancel a session",
-        "description": "The head cancels: the session is removed. A finished session cannot be cancelled (409).",
+        "summary": "Delete a session nobody signed up for",
+        "description": "The head deletes a session that has no sign-ups, no rooms and no ballots: the session is removed (its event is archived in the engine). A session with sign-ups, rooms or ballots is refused (409) - remove the people first; a finished session cannot be deleted either (409).",
         "parameters": [
           {
             "name": "uuid",
@@ -851,7 +851,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Cancelled",
+            "description": "Deleted",
             "content": {
               "application/json": {
                 "schema": {
@@ -882,7 +882,14 @@
             "$ref": "#/components/responses/NotFound"
           },
           "409": {
-            "$ref": "#/components/responses/Conflict"
+            "description": "The session has sign-ups, rooms or ballots, or is finished",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "422": {
             "$ref": "#/components/responses/Unprocessable"

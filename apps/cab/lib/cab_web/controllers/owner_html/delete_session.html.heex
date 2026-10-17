@@ -1,0 +1,38 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="rooms"
+>
+  <.chrome
+    crumbs={[
+      {@club.name, ~p"/c/#{@club.uuid}"},
+      {gettext("Club"), ~p"/c/#{@club.uuid}/owner"},
+      {@name || gettext("Session"), ~p"/c/#{@club.uuid}/owner/s/#{@current.uuid}"}
+    ]}
+    here={gettext("Delete session")}
+  >
+    <:seg href={~p"/c/#{@club.uuid}/owner/s/#{@current.uuid}"}>
+      {gettext("Keep the session")}
+    </:seg>
+  </.chrome>
+
+  <div class="pbody">
+    <.section title={gettext("Delete session")}>
+      <.form_for
+        id="delete-session-form"
+        action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/cancel"}
+        title={gettext("Delete %{session}?", session: @name || gettext("this session"))}
+        description={
+          gettext(
+            "Nobody has signed up, so the session can go: it disappears from the club, and its registration link and short link stop working. This cannot be undone."
+          )
+        }
+      >
+        <:submit quiet>{gettext("Delete session")}</:submit>
+      </.form_for>
+    </.section>
+  </div>
+</Layouts.app>
