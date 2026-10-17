@@ -1,0 +1,49 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  club={@club}
+  club_role={@club_role}
+  nav_session={@nav_session}
+  active="rooms"
+>
+  <.chrome
+    crumbs={[
+      {@club.name, ~p"/c/#{@club.uuid}"},
+      {gettext("Club"), ~p"/c/#{@club.uuid}/owner"},
+      {@current.name || gettext("Session"), ~p"/c/#{@club.uuid}/owner/s/#{@current.uuid}"}
+    ]}
+    here={gettext("Responses")}
+  >
+    <:seg href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/responses/csv"}>
+      {gettext("Download CSV")}
+    </:seg>
+  </.chrome>
+
+  <div class="pbody">
+    <.section title={
+      ngettext("Responses — %{count} guest", "Responses — %{count} guests", length(@rows))
+    }>
+      <.table
+        id="responses"
+        rows={@rows}
+        empty={gettext("No guest has registered through the form yet.")}
+      >
+        <:col :let={row} label={gettext("Name")}>{row.name}</:col>
+        <:col :let={row} label={gettext("Registered")}>
+          <.local_time at={row.registered_at} as={:short} />
+        </:col>
+        <:col
+          :let={row}
+          :for={column <- @columns}
+          label={CabWeb.FormComponents.field_label(column)}
+        >
+          <%= if answer = row.answers[column["label"]] do %>
+            <CabWeb.FormComponents.answer_value answer={answer} />
+          <% else %>
+            —
+          <% end %>
+        </:col>
+      </.table>
+    </.section>
+  </div>
+</Layouts.app>

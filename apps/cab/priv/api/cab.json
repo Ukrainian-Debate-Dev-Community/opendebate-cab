@@ -2353,6 +2353,99 @@
         ],
         "x-access": "club head"
       }
+    },
+    "/sessions/{uuid}/responses": {
+      "get": {
+        "tags": [
+          "People"
+        ],
+        "summary": "Form responses",
+        "description": "The guests' answers to the club's registration form, one entry per guest with a personal link for the session, oldest first: the rows of the session's Responses page. Answers go by the label they were given under (answers keep a copy), so they stay readable after the form changed: columns are the form's labels in form order, then labels only older answers carry. For the club head only.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "The session's uuid",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The responses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "columns": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Field labels, in column order"
+                    },
+                    "responses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "registered_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "answers": {
+                            "type": "object",
+                            "description": "Label => value (a string, a list of strings for multiple choice, true or false for yes/no); an unanswered field is left out",
+                            "additionalProperties": {
+                              "type": [
+                                "string",
+                                "array",
+                                "boolean"
+                              ],
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "cabSession": []
+          }
+        ],
+        "x-access": "club head"
+      }
     }
   },
   "components": {
