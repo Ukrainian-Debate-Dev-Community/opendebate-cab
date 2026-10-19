@@ -222,7 +222,15 @@ defmodule CabWeb.EightPagesTest do
           ok(conn, [%{"id" => 1, "name" => "Anna & Bohdan", "total_points" => 3}])
 
         "/api/events/11/standings/calculated/speakers" ->
-          ok(conn, [%{"id" => 7, "name" => "Anna Kovalenko", "total_points" => 101.53}])
+          ok(conn, [
+            %{
+              "id" => 7,
+              "name" => "Anna Kovalenko",
+              "total_points" => 233,
+              "average_score" => 77.67,
+              "speeches" => 3
+            }
+          ])
 
         "/api/events/11/stats/adjudicators" ->
           ok(conn, [
@@ -269,10 +277,12 @@ defmodule CabWeb.EightPagesTest do
 
       refute html =~ ~s(href="/c/#{club.uuid}/standings/clubs")
 
-      # engine output verbatim: name + total_points, session named
+      # engine output verbatim: name, raw total, average and speeches
       assert html =~ ~s(id="standings-speakers")
       assert html =~ "Anna Kovalenko"
-      assert html =~ "101.53"
+      assert html =~ ~r/>\s*233\s*</
+      assert html =~ "77.67"
+      assert html =~ ~r/>\s*3\s*</
       assert html =~ "Walk night"
 
       # NO wins/winrate/played strings anywhere on standings pages
@@ -335,7 +345,15 @@ defmodule CabWeb.EightPagesTest do
             ok(conn, [%{"id" => 8, "name" => "Newer Winner", "total_points" => 99.0}])
 
           "/api/events/11/standings/calculated/speakers" ->
-            ok(conn, [%{"id" => 7, "name" => "Anna Kovalenko", "total_points" => 101.53}])
+            ok(conn, [
+              %{
+                "id" => 7,
+                "name" => "Anna Kovalenko",
+                "total_points" => 233,
+                "average_score" => 77.67,
+                "speeches" => 3
+              }
+            ])
 
           "/api/events/" <> _rounds ->
             ok(conn, [%{"id" => 21, "sequence" => 1}])

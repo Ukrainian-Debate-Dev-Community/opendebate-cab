@@ -46,6 +46,12 @@
         <:col :let={row} :if={@tab in ["teams", "speakers"]} label={gettext("Points")} num>
           {row["total_points"]}
         </:col>
+        <:col :let={row} :if={@tab == "speakers"} label={gettext("Avg score")} num>
+          {row["average_score"] || "—"}
+        </:col>
+        <:col :let={row} :if={@tab == "speakers"} label={gettext("Speeches")} num>
+          {row["speeches"] || "—"}
+        </:col>
         <:col :let={row} :if={@tab == "adjudicators"} label={gettext("Adjudicator")}>
           {row["name"]}
         </:col>

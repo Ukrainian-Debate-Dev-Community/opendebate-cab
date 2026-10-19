@@ -78,7 +78,12 @@ defmodule Cab.Standings do
     end
   end
 
-  @doc "Engine calculated speaker standings for the scope's session, verbatim."
+  @doc """
+  Engine calculated speaker standings for the scope's session, verbatim
+  (`[%{"name" => _, "total_points" => _, "average_score" => _,
+  "speeches" => _}, ...]`: the raw sum of speech scores, their average
+  and count).
+  """
   def speakers(%{actor: actor, session: session}) do
     case EngineApi.speaker_standings(actor, session.engine_event_id) do
       {:ok, rows} -> rows
