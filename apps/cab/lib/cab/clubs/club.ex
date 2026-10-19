@@ -42,6 +42,26 @@ defmodule Cab.Clubs.Club do
   @languages ~w(uk en other)
   @audiences ~w(school university open)
 
+  @name_max 120
+  @city_max 80
+  @meeting_info_max 300
+  @description_max 5000
+  @contacts_max 500
+  @other_max 60
+
+  @doc "The profile's text fields with their most characters, for the form."
+  def max_lengths do
+    %{
+      name: @name_max,
+      city: @city_max,
+      meeting_info: @meeting_info_max,
+      description: @description_max,
+      contacts: @contacts_max,
+      format_other: @other_max,
+      language_other: @other_max
+    }
+  end
+
   def formats, do: @formats
   def languages, do: @languages
   def audiences, do: @audiences
@@ -80,7 +100,11 @@ defmodule Cab.Clubs.Club do
       :format_other,
       :language_other
     ])
-    |> validate_required([:name])
+    |> Cab.Text.clean_text(:name, required: true, max: @name_max)
+    |> Cab.Text.clean_text(:city, max: @city_max)
+    |> Cab.Text.clean_text(:meeting_info, max: @meeting_info_max, multiline: true)
+    |> Cab.Text.clean_text(:description, max: @description_max, multiline: true)
+    |> Cab.Text.clean_text(:contacts, max: @contacts_max, multiline: true)
     |> one_at_most([:formats, :languages, :audiences])
     |> validate_subset(:formats, @formats)
     |> validate_subset(:languages, @languages)
@@ -104,10 +128,7 @@ defmodule Cab.Clubs.Club do
   # and gone when "other" is not ticked
   defp other_text(changeset, list, field) do
     if "other" in (get_field(changeset, list) || []) do
-      changeset
-      |> update_change(field, &(&1 && String.trim(&1)))
-      |> then(&if(get_field(&1, field) == "", do: put_change(&1, field, nil), else: &1))
-      |> validate_length(field, max: 60)
+      Cab.Text.clean_text(changeset, field, max: @other_max)
     else
       put_change(changeset, field, nil)
     end

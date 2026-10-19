@@ -30,9 +30,16 @@
           type={:text}
           label={gettext("Club name")}
           required
+          maxlength={Cab.Clubs.Club.max_lengths().name}
           value={@club.name}
         />
-        <:block name={:city} type={:text} label={gettext("City")} value={@club.city} />
+        <:block
+          name={:city}
+          type={:text}
+          label={gettext("City")}
+          value={@club.city}
+          maxlength={Cab.Clubs.Club.max_lengths().city}
+        />
         <:block
           name={:logo}
           type={:file}
@@ -48,6 +55,7 @@
           name={:meeting_info}
           type={:text}
           label={gettext("Meetings")}
+          maxlength={Cab.Clubs.Club.max_lengths().meeting_info}
           value={@club.meeting_info}
           hint={gettext("When and where the club meets, e.g. Thursdays 18:30, Hrushevskoho 4.")}
         />
@@ -55,12 +63,14 @@
           name={:description}
           type={:longtext}
           label={gettext("About the club")}
+          maxlength={Cab.Clubs.Club.max_lengths().description}
           value={@club.description}
         />
         <:block
           name={:contacts}
           type={:text}
           label={gettext("Contacts")}
+          maxlength={Cab.Clubs.Club.max_lengths().contacts}
           value={@club.contacts}
           hint={gettext("Telegram, email — how newcomers reach the club.")}
         />
@@ -129,6 +139,7 @@
           name={:name}
           type={:text}
           label={gettext("Session name")}
+          maxlength={Cab.Sessions.max_lengths().name}
           hint={gettext("Shown to members on the club page; defaults to the date.")}
         />
         <:block

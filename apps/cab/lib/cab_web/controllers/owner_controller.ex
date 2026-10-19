@@ -58,7 +58,7 @@ defmodule CabWeb.OwnerController do
   defp update_error(:type), do: gettext("The logo must be a PNG, JPEG or WebP image.")
   defp update_error(:size), do: gettext("The logo must be at most 1 MB.")
 
-  defp update_error(%Ecto.Changeset{}), do: gettext("The club needs a name.")
+  defp update_error(%Ecto.Changeset{} = changeset), do: CabWeb.ClubProfile.save_error(changeset)
 
   defp update_error(_engine_error), do: gettext("Something went wrong, try again.")
 

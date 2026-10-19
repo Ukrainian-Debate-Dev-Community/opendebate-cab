@@ -45,8 +45,19 @@
         action={~p"/admin/clubs"}
         description={gettext("Club creation is admin-only — users can only request membership.")}
       >
-        <:block name={:name} type={:text} label={gettext("Club name")} required />
-        <:block name={:city} type={:text} label={gettext("City")} />
+        <:block
+          name={:name}
+          type={:text}
+          label={gettext("Club name")}
+          required
+          maxlength={Cab.Clubs.Club.max_lengths().name}
+        />
+        <:block
+          name={:city}
+          type={:text}
+          label={gettext("City")}
+          maxlength={Cab.Clubs.Club.max_lengths().city}
+        />
         <:block
           name={:head}
           type={:text}
@@ -64,6 +75,7 @@
           name={:head_name}
           type={:text}
           label={gettext("Their name")}
+          maxlength={Cab.HeadInvitations.name_max()}
           hint={gettext("Only for an invitation: the name the e-mail greets.")}
         />
       </.form_for>
@@ -99,6 +111,7 @@
           name={:head_name}
           type={:text}
           label={gettext("Their name")}
+          maxlength={Cab.HeadInvitations.name_max()}
           hint={gettext("Only for an invitation: the name the e-mail greets.")}
         />
         <:submit

@@ -31,7 +31,7 @@ defmodule Cab.Invitations do
   `%{members: [user], users: [user], guest: name | nil}`.
   """
   def search(%Club{} = club, %Session{} = session, signups, query) do
-    query = query |> to_string() |> String.trim()
+    query = Core.Text.trim(query)
     taken = taken_ids(session, signups)
 
     if query == "" do
@@ -83,7 +83,7 @@ defmodule Cab.Invitations do
   guest by that name.
   """
   def resolve(%Club{} = club, %Session{} = session, signups, query) do
-    query = query |> to_string() |> String.trim()
+    query = Core.Text.trim(query)
     hits = search(club, session, signups, query)
     q = String.downcase(query)
 

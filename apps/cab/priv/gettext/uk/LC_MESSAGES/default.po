@@ -149,6 +149,12 @@ msgstr[2] ""
 msgid "%{done} The e-mail could not be sent: send %{name} this link yourself: %{url}"
 msgstr "%{done} E-mail не вдалося надіслати: надішліть %{name} це посилання самі: %{url}"
 
+#: lib/cab_web/club_profile.ex
+#: lib/cab_web/controllers/account_controller.ex
+#, elixir-autogen, elixir-format
+msgid "%{field}: %{error}"
+msgstr "%{field}: %{error}"
+
 #: lib/cab_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
 msgid "%{method} is now linked to this account."
@@ -345,6 +351,7 @@ msgstr "Про клуб"
 msgid "About me"
 msgstr "Про мене"
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "About the club"
@@ -642,6 +649,7 @@ msgstr "Змініть час, щоб перенести кінець підго
 msgid "Choose a guest."
 msgstr "Оберіть гостя."
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
@@ -694,6 +702,7 @@ msgstr "Сесії клубу"
 msgid "Club creation is admin-only — users can only request membership."
 msgstr "Клуби створює лише адміністратор — користувачі можуть тільки подати заявку на вступ."
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
@@ -740,6 +749,7 @@ msgstr "Контакт"
 msgid "Contact us"
 msgstr "Напишіть нам"
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Contacts"
@@ -886,6 +896,7 @@ msgstr "Видалити сесію"
 msgid "Discussion"
 msgstr "Коментар"
 
+#: lib/cab_web/controllers/account_controller.ex
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Display name"
@@ -1082,6 +1093,7 @@ msgstr "Акаунт створюється автоматично під час
 msgid "For one person who ended up with two accounts and cannot sign in to both. The account that heads a club is kept, or else the older one; it gets the other's history, clubs, head positions and sign-in methods. It cannot be undone."
 msgstr "Для людини, у якої опинилося два акаунти і яка не може увійти в обидва. Лишається акаунт, що очолює клуб, а якщо такого немає, то старіший; до нього переходять історія, клуби, посади голови та способи входу іншого. Скасувати це неможливо."
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
@@ -1293,6 +1305,7 @@ msgstr "ЛО"
 msgid "Label"
 msgstr "Назва"
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
@@ -1339,6 +1352,7 @@ msgstr "РЕЗОЛЮЦІЯ"
 msgid "Main page"
 msgstr "Головна"
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Meetings"
@@ -2331,6 +2345,7 @@ msgid "Something went wrong"
 msgstr "Щось пішло не так"
 
 #: lib/cab/feedback.ex
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/head_invitation_controller.ex
 #: lib/cab_web/controllers/owner_controller.ex
 #, elixir-autogen, elixir-format
@@ -2485,12 +2500,6 @@ msgstr "Голова клубу читає ваші відповіді, перш
 #, elixir-autogen, elixir-format
 msgid "The club head will review your request."
 msgstr "Голова клубу розгляне вашу заявку."
-
-#: lib/cab_web/controllers/admin_controller.ex
-#: lib/cab_web/controllers/owner_controller.ex
-#, elixir-autogen, elixir-format
-msgid "The club needs a name."
-msgstr "Клубу потрібна назва."
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
@@ -2732,11 +2741,6 @@ msgstr "Введіть ім'я члена клубу, точне ім'я кор�
 #, elixir-autogen, elixir-format
 msgid "Type the head's username or e-mail."
 msgstr "Введіть ім'я користувача або e-mail голови."
-
-#: lib/cab_web/controllers/admin_controller.ex
-#, elixir-autogen, elixir-format
-msgid "Type their name for the invitation."
-msgstr "Введіть ім'я для запрошення."
 
 #: lib/cab_web/club_profile.ex
 #, elixir-autogen, elixir-format

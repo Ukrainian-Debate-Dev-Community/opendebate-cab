@@ -16,9 +16,13 @@ defmodule Cab.HeadInvitations do
   alias Cab.Clubs.{Club, HeadInvitation, Membership}
 
   @valid_days 14
+  @name_max 120
 
   @doc "How long a link works, in days."
   def valid_days, do: @valid_days
+
+  @doc "The most characters the invitee's name has."
+  def name_max, do: @name_max
 
   @doc """
   Invites `name` at `email` to head `club`. `interim` is the admin who
@@ -26,17 +30,11 @@ defmodule Cab.HeadInvitations do
   Returns `{:ok, invitation, token}`; the token exists only in the link.
   """
   def invite(%Club{} = club, email, name, %User{} = inviter, interim \\ nil) do
-    email = email |> to_string() |> String.trim()
-    name = name |> to_string() |> String.trim()
+    case check_invitee(email, name) do
+      {:error, message} ->
+        {:error, message}
 
-    cond do
-      not email?(email) ->
-        {:error, dgettext("errors", "Type an e-mail address to invite someone new.")}
-
-      name == "" ->
-        {:error, dgettext("errors", "Type their name for the invitation.")}
-
-      true ->
+      {:ok, email, name} ->
         token = new_token()
         now = DateTime.utc_now(:second)
 
@@ -60,8 +58,37 @@ defmodule Cab.HeadInvitations do
     end
   end
 
-  @doc "An address worth sending to: something@domain.tld, no spaces."
-  def email?(text), do: Regex.match?(~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/, to_string(text))
+  @doc """
+  The invitee's address and name as they are stored: `{:ok, email,
+  name}` or `{:error, message}` - checked before anything is created.
+  """
+  def check_invitee(email, name) do
+    email = Core.Text.trim(email)
+
+    with true <- email?(email) || {:error, :email},
+         {:ok, name} when is_binary(name) <-
+           Cab.Text.check(name,
+             required: true,
+             max: @name_max,
+             message: dgettext("errors", "Type their name for the invitation.")
+           ) do
+      {:ok, email, name}
+    else
+      {:error, :email} ->
+        {:error, dgettext("errors", "Type an e-mail address to invite someone new.")}
+
+      {:error, message} ->
+        {:error, message}
+    end
+  end
+
+  @doc "An address worth sending to: something@domain.tld, no spaces, 254 characters at most."
+  def email?(text) when is_binary(text) do
+    String.valid?(text) and String.length(text) <= 254 and
+      Regex.match?(~r/^[^\s@\p{C}]+@[^\s@\p{C}]+\.[^\s@\p{C}]+$/u, text)
+  end
+
+  def email?(_text), do: false
 
   @doc """
   The pending invitation behind a token, or why there is none:

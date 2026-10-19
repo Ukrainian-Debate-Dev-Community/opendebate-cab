@@ -35,9 +35,9 @@ defmodule CabWeb.Api.RoomController do
 
   # POST /api/cab/v1/rooms/:id/motion {"session_uuid", "motion_text"}
   def motion(conn, %{"id" => id, "motion_text" => motion_text} = params) do
-    attrs = Map.take(params, ["infoslide", "keyword"])
-
     with {:ok, room_id} <- room_id(id),
+         {:ok, motion_text, attrs} <-
+           Sessions.clean_motion(motion_text, Map.take(params, ["infoslide", "keyword"])),
          {:ok, _data} <-
            Sessions.set_room_motion(
              conn.assigns.current_user,
@@ -55,7 +55,7 @@ defmodule CabWeb.Api.RoomController do
 
       json(conn, %{
         room_id: room_id,
-        motion: %{text: motion_text, infoslide: attrs["infoslide"], keyword: attrs["keyword"]}
+        motion: %{text: motion_text, infoslide: attrs[:infoslide], keyword: attrs[:keyword]}
       })
     end
   end

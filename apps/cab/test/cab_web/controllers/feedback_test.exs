@@ -278,6 +278,27 @@ defmodule CabWeb.FeedbackTest do
       refute_received {:feedback_sent, _, _}
     end
 
+    test "the discussion: invisible text is blank, over-long or garbled text refused, the rest trimmed",
+         %{session: session, anna: anna} do
+      for blank <- ["\u00A0\u00A0", "\u200B\u200C", " \uFEFF\u200D "] do
+        assert {:error, %{"discussion" => "Explain your feedback."}} =
+                 Feedback.submit(anna, session, 71, form("8", "7", blank))
+      end
+
+      assert {:error, %{"discussion" => "5000 characters at most."}} =
+               Feedback.submit(anna, session, 71, form("8", "7", String.duplicate("x", 5001)))
+
+      assert {:error, %{"discussion" => "Use plain text without control characters."}} =
+               Feedback.submit(anna, session, 71, form("8", "7", "Fair\u0000call."))
+
+      refute_received {:feedback_sent, _, _}
+
+      assert :ok =
+               Feedback.submit(anna, session, 71, form("8", "7", "\u200B Fair.\r\nThanks.\u00A0"))
+
+      assert_received {:feedback_sent, %{"comment" => "Fair.\nThanks."}, _}
+    end
+
     test "someone not on a team in the room cannot send", %{session: session, outsider: outsider} do
       assert {:error, :forbidden} = Feedback.submit(outsider, session, 71, form("8", "7", "Hi."))
     end

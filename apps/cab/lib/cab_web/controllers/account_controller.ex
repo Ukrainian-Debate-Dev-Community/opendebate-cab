@@ -26,9 +26,18 @@ defmodule CabWeb.AccountController do
         |> put_flash(:info, gettext("Profile saved."))
         |> redirect(to: ~p"/account")
 
-      {:error, %Ecto.Changeset{}} ->
+      {:error, %Ecto.Changeset{} = changeset} ->
+        message =
+          case Cab.Text.first_error(changeset, [:name]) do
+            {:name, error} ->
+              gettext("%{field}: %{error}", field: gettext("Display name"), error: error)
+
+            nil ->
+              gettext("Could not save the profile.")
+          end
+
         conn
-        |> put_flash(:error, gettext("Could not save the profile."))
+        |> put_flash(:error, message)
         |> render_account()
     end
   end

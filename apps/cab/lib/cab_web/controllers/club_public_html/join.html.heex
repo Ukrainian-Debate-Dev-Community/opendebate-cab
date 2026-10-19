@@ -24,6 +24,7 @@
           type={:longtext}
           label={gettext("About me")}
           required
+          maxlength={Cab.Clubs.Membership.max_lengths().message}
           value={@message}
           hint={gettext("Who you are and why you want to debate here.")}
         />
@@ -32,6 +33,7 @@
           type={:text}
           label={gettext("Contact")}
           required
+          maxlength={Cab.Clubs.Membership.max_lengths().contact}
           value={@contact}
           hint={gettext("Telegram, phone or email the head can reach you at.")}
         />

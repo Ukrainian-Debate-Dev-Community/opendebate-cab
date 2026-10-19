@@ -27,6 +27,10 @@ defmodule Cab.Links do
   alias Cab.Sessions.Session
 
   @username_attempts 3
+  @name_max 120
+
+  @doc "The most characters a guest's name has."
+  def name_max, do: @name_max
 
   # ---------------------------------------------------------------
   # Reads
@@ -200,7 +204,7 @@ defmodule Cab.Links do
   on the link; nil (the head adding a guest by hand) asks nothing.
   Returns `{:ok, link}` with the user preloaded,
   `{:error, :conflict, message}` once sign-ups closed,
-  `{:error, %{name: message}}` for a blank name (plus
+  `{:error, %{name: message}}` for a blank, over-long or garbled name (plus
   `{:answer, field_id} => message` for each refused answer), or
   `{:error, message}`.
   """
@@ -311,14 +315,16 @@ defmodule Cab.Links do
     end
   end
 
-  defp validate_name(name) when is_binary(name) do
-    case String.trim(name) do
-      "" -> {:error, %{name: dgettext("errors", "Enter a name.")}}
-      trimmed -> {:ok, trimmed}
+  defp validate_name(name) do
+    case Cab.Text.check(name,
+           required: true,
+           max: @name_max,
+           message: dgettext("errors", "Enter a name.")
+         ) do
+      {:ok, name} -> {:ok, name}
+      {:error, message} -> {:error, %{name: message}}
     end
   end
-
-  defp validate_name(_name), do: {:error, %{name: dgettext("errors", "Enter a name.")}}
 
   defp create_guest_user(name, attempts \\ @username_attempts)
 

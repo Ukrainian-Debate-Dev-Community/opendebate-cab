@@ -144,6 +144,12 @@ msgstr[1] ""
 msgid "%{done} The e-mail could not be sent: send %{name} this link yourself: %{url}"
 msgstr ""
 
+#: lib/cab_web/club_profile.ex
+#: lib/cab_web/controllers/account_controller.ex
+#, elixir-autogen, elixir-format
+msgid "%{field}: %{error}"
+msgstr ""
+
 #: lib/cab_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
 msgid "%{method} is now linked to this account."
@@ -338,6 +344,7 @@ msgstr ""
 msgid "About me"
 msgstr ""
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "About the club"
@@ -635,6 +642,7 @@ msgstr ""
 msgid "Choose a guest."
 msgstr ""
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
@@ -687,6 +695,7 @@ msgstr ""
 msgid "Club creation is admin-only — users can only request membership."
 msgstr ""
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
@@ -733,6 +742,7 @@ msgstr ""
 msgid "Contact us"
 msgstr ""
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Contacts"
@@ -877,6 +887,7 @@ msgstr ""
 msgid "Discussion"
 msgstr ""
 
+#: lib/cab_web/controllers/account_controller.ex
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Display name"
@@ -1073,6 +1084,7 @@ msgstr ""
 msgid "For one person who ended up with two accounts and cannot sign in to both. The account that heads a club is kept, or else the older one; it gets the other's history, clubs, head positions and sign-in methods. It cannot be undone."
 msgstr ""
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
@@ -1284,6 +1296,7 @@ msgstr ""
 msgid "Label"
 msgstr ""
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
@@ -1330,6 +1343,7 @@ msgstr ""
 msgid "Main page"
 msgstr ""
 
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Meetings"
@@ -2319,6 +2333,7 @@ msgid "Something went wrong"
 msgstr ""
 
 #: lib/cab/feedback.ex
+#: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/head_invitation_controller.ex
 #: lib/cab_web/controllers/owner_controller.ex
 #, elixir-autogen, elixir-format
@@ -2472,12 +2487,6 @@ msgstr ""
 #: lib/cab_web/controllers/club_public_html/join.html.heex
 #, elixir-autogen, elixir-format
 msgid "The club head will review your request."
-msgstr ""
-
-#: lib/cab_web/controllers/admin_controller.ex
-#: lib/cab_web/controllers/owner_controller.ex
-#, elixir-autogen, elixir-format
-msgid "The club needs a name."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
@@ -2719,11 +2728,6 @@ msgstr ""
 #: lib/cab_web/controllers/admin_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Type the head's username or e-mail."
-msgstr ""
-
-#: lib/cab_web/controllers/admin_controller.ex
-#, elixir-autogen, elixir-format
-msgid "Type their name for the invitation."
 msgstr ""
 
 #: lib/cab_web/club_profile.ex

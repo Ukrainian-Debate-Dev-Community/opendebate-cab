@@ -107,6 +107,35 @@ defmodule CabWeb.HeadInvitationsTest do
     assert Clubs.list_clubs() |> Enum.filter(&(&1.name in ["X Club", "Y Club"])) == []
   end
 
+  test "invisible or over-long names make nothing: no club, no invitation", %{conn: conn} do
+    admin = admin_fixture()
+
+    for {club_name, head_name} <- [
+          {"\u200B\u00A0", "Nina"},
+          {"Z Club", "\u200B\uFEFF"},
+          {"Z Club", String.duplicate("x", 121)}
+        ] do
+      resp =
+        conn
+        |> log_in(admin)
+        |> post(~p"/admin/clubs", %{name: club_name, head: "z@example.com", head_name: head_name})
+
+      assert redirected_to(resp) == "/admin"
+      assert Phoenix.Flash.get(resp.assigns.flash, :error)
+    end
+
+    resp =
+      conn
+      |> log_in(admin)
+      |> post(~p"/admin/clubs", %{name: "\u200B", head: admin.username})
+
+    assert Phoenix.Flash.get(resp.assigns.flash, :error) == "Club name: Fill this in."
+
+    assert Clubs.list_clubs() |> Enum.filter(&(&1.name == "Z Club")) == []
+    assert Repo.all(HeadInvitation) |> Enum.filter(&(&1.email == "z@example.com")) == []
+    refute_email_sent()
+  end
+
   test "changing the head by e-mail keeps the current head until acceptance", %{conn: conn} do
     admin = admin_fixture()
     head = user_fixture()
