@@ -69,11 +69,43 @@ bin/cab eval "Cab.Release.migrate()"
 | `SESSION_COOKIE_DOMAIN` | no | e.g. `.example.org`, so sibling sites can read the sign-in |
 | `RATE_LIMIT_ENABLED` | no | the JSON API's rate limit, `true` by default |
 | `RATE_LIMIT_SIGNED_IN`, `RATE_LIMIT_ANONYMOUS` | no | requests per minute, 60 and 20 by default |
+| `FORM_RATE_LIMIT` | no | `true` turns on the public forms' rate limit (off by default, independent of `RATE_LIMIT_ENABLED`) |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | no | Cloudflare Turnstile on the public forms; off unless both are set |
 | `PHX_SERVER` | set by the image | starts the web server |
 | `PORT` | no | 4000 by default |
 | `POOL_SIZE` | no | the database pool, 10 by default |
 | `ECTO_IPV6` | no | `true` to reach the database over IPv6 |
 | `DNS_CLUSTER_QUERY` | no | only for clustering several nodes |
+
+## Bot protection
+
+The public forms - a guest's registration at `/r/<session>` and a club
+join request at `/c/<club>/join` - can be guarded (`CabWeb.BotGuard`).
+Both protections are off until an operator turns them on; signed-in
+members registering for a session are never asked.
+
+- **Rate limits** (`FORM_RATE_LIMIT=true`, or `rate_limit: true` in
+  `config :cab, CabWeb.BotGuard`): per client IP 30 guest registrations
+  per 10 minutes (room for a club registering over one Wi-Fi), per
+  session 120 per hour; join requests 10 per hour per account and 30
+  per hour per IP. Over a limit the form answers 429 with `Retry-After`.
+  Behind Cloudflare the client IP is `CF-Connecting-IP`. The numbers
+  live in the same config.
+- **Cloudflare Turnstile**, when `TURNSTILE_SITE_KEY` and
+  `TURNSTILE_SECRET_KEY` are set: the widget on the form, its token
+  checked with Cloudflare on submit. If Cloudflare cannot be reached the
+  submit is refused with a "try again" message.
+
+To get the keys: in the Cloudflare dashboard open Turnstile, choose
+**Add widget**, name it, add cab's hostname (e.g. `cab.example.org`),
+pick **Managed** mode and create it; copy the site key and the secret
+key into the two variables. Cloudflare's test keys
+(`1x00000000000000000000AA` with the secret
+`1x0000000000000000000000000000000AA`) always pass, for local trials.
+
+E-mail answers are checked by `Core.Forms.email?/1`: no spaces, control
+or percent characters, quotes, misplaced dots, a real top-level domain
+and 254 characters at most.
 
 ## Who runs it
 
