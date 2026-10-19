@@ -538,6 +538,7 @@ msgid "Avg feedback counts a base of 5 as one vote: (5 + every feedback score) /
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Avg score"
 msgstr ""
@@ -2356,6 +2357,11 @@ msgstr ""
 #: lib/cab_web/controllers/standings_html/standings_tabs.html.heex
 #, elixir-autogen, elixir-format
 msgid "Speakers"
+msgstr ""
+
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Speeches"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex

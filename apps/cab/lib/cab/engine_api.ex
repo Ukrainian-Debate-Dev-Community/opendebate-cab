@@ -149,7 +149,8 @@ defmodule Cab.EngineApi do
     [{id,name,total_points}] where points = sum(N - rank); swing teams
     excluded; hidden rounds included only for privileged viewers.
   - `GET /events/:eventId/standings/calculated/speakers` -> sorted
-    [{id,name,total_points}], points = sum(score * (1+(N-rank)*0.1))
+    [{id,name,total_points,average_score,speeches}], points = plain sum
+    of speech scores; sorted by points, then average.
 
   ### Formats
   - `GET /formats` - seeded: id 1 = British Parliamentary (BP),

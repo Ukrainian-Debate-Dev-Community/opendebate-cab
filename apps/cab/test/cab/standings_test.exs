@@ -74,7 +74,15 @@ defmodule Cab.StandingsTest do
           ok(conn, [%{"id" => 1, "name" => "Anna & Bohdan", "total_points" => 3}])
 
         "/api/events/11/standings/calculated/speakers" ->
-          ok(conn, [%{"id" => 7, "name" => "Anna Kovalenko", "total_points" => 101.53}])
+          ok(conn, [
+            %{
+              "id" => 7,
+              "name" => "Anna Kovalenko",
+              "total_points" => 233,
+              "average_score" => 77.67,
+              "speeches" => 3
+            }
+          ])
 
         "/api/events/11/stats/adjudicators" ->
           ok(conn, [
@@ -86,7 +94,15 @@ defmodule Cab.StandingsTest do
     scope = Standings.latest_finished()
 
     assert [%{"name" => "Anna & Bohdan", "total_points" => 3}] = Standings.teams(scope)
-    assert [%{"name" => "Anna Kovalenko", "total_points" => 101.53}] = Standings.speakers(scope)
+
+    assert [
+             %{
+               "name" => "Anna Kovalenko",
+               "total_points" => 233,
+               "average_score" => 77.67,
+               "speeches" => 3
+             }
+           ] = Standings.speakers(scope)
 
     assert [%{"name" => "Petro", "rooms_adjudicated" => 2, "avg_feedback" => 8.5}] =
              Standings.adjudicators(scope)

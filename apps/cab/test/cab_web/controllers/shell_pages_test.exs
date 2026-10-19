@@ -267,7 +267,15 @@ defmodule CabWeb.ShellPagesTest do
             ok(conn, [%{"id" => 1, "name" => "Anna & Bohdan", "total_points" => 3}])
 
           "/api/events/11/standings/calculated/speakers" ->
-            ok(conn, [%{"id" => 7, "name" => "Anna Kovalenko", "total_points" => 101.53}])
+            ok(conn, [
+              %{
+                "id" => 7,
+                "name" => "Anna Kovalenko",
+                "total_points" => 233,
+                "average_score" => 77.67,
+                "speeches" => 3
+              }
+            ])
 
           "/api/events/11/stats/adjudicators" ->
             ok(conn, [
@@ -305,7 +313,10 @@ defmodule CabWeb.ShellPagesTest do
 
       speakers = conn |> get(~p"/standings/speakers") |> html_response(200)
       assert speakers =~ "Anna Kovalenko"
-      assert speakers =~ "101.53"
+      assert speakers =~ ~r/>\s*233\s*</
+      assert speakers =~ "77.67"
+      assert speakers =~ "Avg score"
+      assert speakers =~ "Speeches"
 
       judges = conn |> get(~p"/standings/adjudicators") |> html_response(200)
       assert judges =~ "Petro"

@@ -545,6 +545,7 @@ msgid "Avg feedback counts a base of 5 as one vote: (5 + every feedback score) /
 msgstr "Сер. відгук рахує базову 5 як один голос: (5 + усі оцінки з відгуків) / (кількість відгуків + 1)."
 
 #: lib/cab_web/controllers/me_html/show.html.heex
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Avg score"
 msgstr "Сер. бал"
@@ -2369,6 +2370,11 @@ msgstr "Спікер"
 #, elixir-autogen, elixir-format
 msgid "Speakers"
 msgstr "Спікери"
+
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Speeches"
+msgstr "Промови"
 
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/club_public_html/show.html.heex
