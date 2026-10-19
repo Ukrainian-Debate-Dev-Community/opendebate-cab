@@ -206,7 +206,9 @@ defmodule Cab.FormTextTest do
     test "is trimmed, nil when invisible, at most 120 characters" do
       user = user_fixture(%{name: "Ann"})
 
-      assert {:ok, %{name: "Ann Lee"}} = Accounts.update_profile(user, %{"name" => "\u200B Ann Lee\u00A0"})
+      assert {:ok, %{name: "Ann Lee"}} =
+               Accounts.update_profile(user, %{"name" => "\u200B Ann Lee\u00A0"})
+
       assert {:ok, %{name: nil}} = Accounts.update_profile(user, %{"name" => "\u200B\u00A0"})
 
       assert {:error, changeset} =
