@@ -1,3 +1,12 @@
+# What `make release` releases (scripts/release reads these)
+RELEASE_NAME      = opendebate-cab
+RELEASE_REPO      = Ukrainian-Debate-Dev-Community/opendebate-cab
+RELEASE_CI        = ci.yml
+RELEASE_FILES     = mix.exs apps/core/mix.exs apps/cab/mix.exs
+RELEASE_CHANGELOG = CHANGELOG.md
+IMAGE             = ghcr.io/ukrainian-debate-dev-community/opendebate-cab
+RELEASE_ARTIFACT  = the image $(IMAGE):v{version} (release workflow)
+
 RUN_DIR = .run
 # Homebrew's postgresql@16 psql (survives upgrades), else psql on PATH
 PSQL   ?= $(shell p="$$(brew --prefix postgresql@16 2>/dev/null)/bin/psql"; [ -x "$$p" ] && echo "$$p" || echo psql)
@@ -30,8 +39,10 @@ build:
 test:
 	$(NIX) sh -c 'MIX_ENV=test mix test'
 
-# Everything that runs without the local stack (make dev:e2e needs it)
+# Everything that runs without the local stack (make dev:e2e needs it):
+# the unit tests and the release script's own checks
 test-all: test
+	python3 scripts/release --self-test
 
 lint:
 	$(NIX) sh -c 'mix format --check-formatted && (cd apps/cab && MIX_ENV=test mix gettext.extract --check-up-to-date) && mix hex.audit'
@@ -143,24 +154,16 @@ dev\:image: FORCE
 	docker build -t $(IMAGE):local .
 
 # ---------------------------------------------------------------
-# Releases: master moves only here, by fast-forward to nightly
+# Releases: main moves only here, by fast-forward to a release commit
+# on nightly. scripts/release (the same in every repo) does it all:
+#   make release BUMP=patch|minor|major   (or VERSION=X.Y.Z)
+#   make release BUMP=patch DRY_RUN=1     preview, changes nothing
+#   make release RESUME=1                 finish an interrupted release
 # ---------------------------------------------------------------
 
-IMAGE = ghcr.io/ukrainian-debate-dev-community/opendebate-cab
-
-# make release VERSION=v0.1.0 - from a clean nightly whose CI is green:
-# fast-forward master, tag, push both; the tag publishes the image
 release:
-	@echo "$(VERSION)" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "usage: make release VERSION=vX.Y.Z"; exit 1; }
-	@[ -z "$$(git status --porcelain --untracked-files=no)" ] || { echo "the working tree has changes"; exit 1; }
-	@[ "$$(git rev-parse --abbrev-ref HEAD)" = "nightly" ] || { echo "switch to nightly first"; exit 1; }
-	@git fetch -q origin
-	@[ "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/nightly)" ] || { echo "nightly differs from origin/nightly: pull or push first"; exit 1; }
-	@[ -z "$$(git tag -l $(VERSION))" ] && [ -z "$$(git ls-remote --tags origin refs/tags/$(VERSION))" ] || { echo "$(VERSION) already exists"; exit 1; }
-	@[ "$$(gh run list --workflow ci.yml --commit $$(git rev-parse HEAD) --json conclusion -q '.[0].conclusion')" = "success" ] || { echo "CI on this commit is not green"; exit 1; }
-	@echo "release $(VERSION): master -> $$(git rev-parse --short HEAD) ($$(git log -1 --format=%s)), tag $(VERSION), image $(IMAGE):$(VERSION)"
-	@printf "type the version again to confirm: "; read answer < /dev/tty; [ "$$answer" = "$(VERSION)" ] || { echo "cancelled"; exit 1; }
-	git push origin nightly:master
-	git tag -a $(VERSION) -m $(VERSION)
-	git push origin $(VERSION)
-	@echo "pushed; the release workflow now builds $(IMAGE):$(VERSION)"
+	@python3 scripts/release --name '$(RELEASE_NAME)' --repo '$(RELEASE_REPO)' \
+		--ci '$(RELEASE_CI)' --files '$(RELEASE_FILES)' --changelog '$(RELEASE_CHANGELOG)' \
+		--artifact '$(RELEASE_ARTIFACT)' $(if $(BUMP),--bump '$(BUMP)') \
+		$(if $(VERSION),--version '$(VERSION)') $(if $(SINCE),--since '$(SINCE)') \
+		$(if $(DRY_RUN),--dry-run) $(if $(RESUME),--resume)
