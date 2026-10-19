@@ -1,8 +1,8 @@
 name: release
 
-# A tag vX.Y.Z on master (made by `make release`) publishes the
-# opendebate-cab image, and a GitHub release with the changes since the
-# previous tag.
+# A tag vX.Y.Z on main (made by `make release`) publishes the
+# opendebate-cab image. `make release` publishes the GitHub release with
+# its notes; this workflow creates one only if it is missing.
 on:
   push:
     tags: ["v*.*.*"]
@@ -36,7 +36,12 @@ jobs:
           tags: ${{ steps.tags.outputs.list }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: GitHub release
+      - name: GitHub release, if make release has not made it
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "release $GITHUB_REF_NAME exists"
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "opendebate-cab $GITHUB_REF_NAME"
+          fi

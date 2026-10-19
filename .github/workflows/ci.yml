@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [master, nightly]
+    branches: [main, nightly]
   pull_request:
   workflow_dispatch:
 
@@ -65,7 +65,7 @@ jobs:
         working-directory: apps/cab
       - run: mix hex.audit
 
-  # master moves only on release; every pull request goes to nightly
+  # main moves only on release; every pull request goes to nightly
   guard:
     runs-on: ubuntu-latest
     steps:
@@ -73,8 +73,8 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.ref }}
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$BASE" = "master" ]; then
-            echo "::error::Pull requests go to nightly; master moves only on release."
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$BASE" = "main" ]; then
+            echo "::error::Pull requests go to nightly; main moves only on release."
             exit 1
           fi
           echo "ok"
