@@ -392,7 +392,7 @@ msgstr "Введіть ім'я для запрошення."
 #: lib/cab/text.ex
 #, elixir-autogen, elixir-format
 msgid "Use plain text without control characters."
-msgstr "Використовуйте звичайний текст без керувальних символів."
+msgstr "Використовуйте звичайний текст без спеціальних знаків."
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
