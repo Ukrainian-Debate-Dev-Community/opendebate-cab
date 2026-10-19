@@ -337,4 +337,33 @@ defmodule CabWeb.PeopleBatchTest do
       assert Agent.get(agent, & &1.deleted) == []
     end
   end
+
+  describe "e-mailing a personal link" do
+    test "an address the e-mail check refuses sends nothing",
+         %{conn: conn, head: head, club: club, session: session, signups: signups} = ctx do
+      stub_engine(signups)
+      view = page(conn, head, club, session)
+
+      for address <- ["a%00b@x.com", "a..b@x.com", "a@x"] do
+        html =
+          render_hook(view, "send_link", %{
+            "link" => to_string(ctx.greta_link.id),
+            "email" => address
+          })
+
+        assert html =~ "Enter an e-mail address like name@example.com."
+      end
+
+      Swoosh.TestAssertions.assert_no_email_sent()
+
+      html =
+        render_hook(view, "add_guest_by_email", %{
+          "name" => "Ivy Invalid",
+          "email" => "a%00b@x.com"
+        })
+
+      assert html =~ "Enter an e-mail address like name@example.com."
+      refute Repo.get_by(User, name: "Ivy Invalid")
+    end
+  end
 end

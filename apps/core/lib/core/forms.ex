@@ -60,6 +60,42 @@ defmodule Core.Forms do
   @doc "Every field type, in the editor's order."
   def types, do: @types
 
+  @doc """
+  An address worth sending mail to - a deliberately simple check, not
+  the full RFC 5322 grammar:
+
+    * at most 254 characters, exactly one @, something on both sides
+    * no spaces, control characters, percent signs (an encoded
+      `%00`), quotes or the other characters only a quoted address
+      may hold: `"' ( ) , : ; < > [ ] \\`
+    * no dot at the start or end of either side, never two in a row
+    * a domain of at least two labels, the last (the top-level
+      domain) letters only, or an `xn--` name
+
+      iex> Core.Forms.email?("ada@example.org")
+      true
+      iex> Core.Forms.email?("a%00b@x.com")
+      false
+  """
+  def email?(value) when is_binary(value) do
+    with true <- String.length(value) <= 254,
+         false <- value =~ ~r/[\s\p{C}%"'(),:;<>\[\]\\]/u,
+         [local, domain] <- String.split(value, "@"),
+         true <- dotted?(local) and dotted?(domain),
+         [_ | [_ | _]] = labels <- String.split(domain, ".") do
+      List.last(labels) =~ ~r/^(\p{L}{2,63}|xn--[a-z0-9-]{1,59})$/iu
+    else
+      _ -> false
+    end
+  end
+
+  def email?(_value), do: false
+
+  # non-empty, no dot at either end, no two dots in a row
+  defp dotted?(part),
+    do: part != "" and not String.starts_with?(part, ".") and
+      not String.ends_with?(part, ".") and not String.contains?(part, "..")
+
   @doc "Does this type pick from options?"
   def choice_type?(type), do: type in @choice_types
 
@@ -425,9 +461,7 @@ defmodule Core.Forms do
   end
 
   defp check(%{"type" => "email"}, value) do
-    if String.length(value) <= 254 and value =~ ~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-      do: {:ok, value},
-      else: {:error, {:invalid, :email}}
+    if email?(value), do: {:ok, value}, else: {:error, {:invalid, :email}}
   end
 
   # an optional + in front, then digits with spaces, dashes or brackets
