@@ -351,7 +351,7 @@ defmodule CabWeb.PeopleBatchTest do
             "email" => address
           })
 
-        assert html =~ "Enter an e-mail address like name@example.com."
+        assert html =~ "Enter an e-mail address."
       end
 
       Swoosh.TestAssertions.assert_no_email_sent()
@@ -362,7 +362,7 @@ defmodule CabWeb.PeopleBatchTest do
           "email" => "a%00b@x.com"
         })
 
-      assert html =~ "Enter an e-mail address like name@example.com."
+      assert html =~ "Enter an e-mail address."
       refute Repo.get_by(User, name: "Ivy Invalid")
     end
   end

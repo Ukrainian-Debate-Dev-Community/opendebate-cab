@@ -113,7 +113,6 @@ msgid "Enter a phone number: 7 to 20 digits, + in front if needed."
 msgstr "Введіть номер телефону: від 7 до 20 цифр, за потреби з + на початку."
 
 #: lib/cab_web/components/form_components.ex
-#: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
 msgid "Enter an e-mail address like name@example.com."
 msgstr "Введіть e-mail, наприклад name@example.com."
