@@ -1,8 +1,14 @@
 RUN_DIR = .run
-PSQL   ?= /opt/homebrew/Cellar/postgresql@16/16.12/bin/psql
+# Homebrew's postgresql@16 psql (survives upgrades), else psql on PATH
+PSQL   ?= $(shell p="$$(brew --prefix postgresql@16 2>/dev/null)/bin/psql"; [ -x "$$p" ] && echo "$$p" || echo psql)
 NIX     = nix develop --command
 
-.PHONY: setup dev build test test-all test-e2e test-phone api-docs lint fmt clean up down restart fresh backfill stress logs status sync-engine release image
+.PHONY: setup dev build test test-all lint fmt clean release FORCE
+
+# Targets named dev:<x> run against the local stack. GNU make 3.81 keeps
+# the backslash of an escaped colon in .PHONY and prerequisite lists, so
+# these depend on FORCE instead and call each other through $(MAKE).
+FORCE:
 
 # ---------------------------------------------------------------
 # Standard targets
@@ -14,7 +20,9 @@ setup:
 	cd engine && npm install
 	$(NIX) sh -c 'mix deps.get && mix ecto.create && mix ecto.migrate'
 
-dev: up
+# make dev = make dev:up
+dev:
+	@$(MAKE) --no-print-directory dev:up
 
 build:
 	$(NIX) mix compile --warnings-as-errors
@@ -22,8 +30,8 @@ build:
 test:
 	$(NIX) sh -c 'MIX_ENV=test mix test'
 
-# Unit tests, then the full session roundtrip against the running stack
-test-all: test test-e2e
+# Everything that runs without the local stack (make dev:e2e needs it)
+test-all: test
 
 lint:
 	$(NIX) sh -c 'mix format --check-formatted && (cd apps/cab && MIX_ENV=test mix gettext.extract --check-up-to-date) && mix hex.audit'
@@ -39,7 +47,7 @@ clean:
 # ---------------------------------------------------------------
 
 # Start both services in the background. Logs go to .run/*.log.
-up:
+dev\:up: FORCE
 	@mkdir -p $(RUN_DIR)
 	@if lsof -ti :3100 >/dev/null 2>&1; then \
 		echo "engine   already running on :3100"; \
@@ -58,71 +66,81 @@ up:
 		if curl -s -o /dev/null --max-time 2 http://localhost:4000/ 2>/dev/null; then \
 			echo " ready"; echo "open http://localhost:4000/"; exit 0; \
 		fi; printf "."; sleep 2; \
-	done; echo " not up after 2 min - check: make logs"
+	done; echo " not up after 2 min - check: make dev:logs"
 
 # Stop the services (kills whatever listens on :3100 / :4000).
-down:
+dev\:down: FORCE
 	@-lsof -ti :4000 2>/dev/null | xargs kill 2>/dev/null; true
 	@-lsof -ti :3100 2>/dev/null | xargs kill 2>/dev/null; true
 	@echo "stopped (ports 3100 and 4000 freed)"
 
-restart: down up
+dev\:restart: FORCE
+	@$(MAKE) --no-print-directory dev:down
+	@$(MAKE) --no-print-directory dev:up
 
 # Wipe BOTH databases, reseed the engine, migrate cab, restart
 # the stack and load fresh demo data around your own account:
-#   make fresh DEV_USER=<your cab username>
-fresh:
-	@test -n "$(DEV_USER)" || { echo "usage: make fresh DEV_USER=<your cab username>"; exit 1; }
-	@$(MAKE) down
+#   make dev:fresh DEV_USER=<your cab username>
+dev\:fresh: FORCE
+	@test -n "$(DEV_USER)" || { echo "usage: make dev:fresh DEV_USER=<your cab username>"; exit 1; }
+	@$(MAKE) --no-print-directory dev:down
 	@echo "== wiping engine db (cab_dev) =="
 	$(PSQL) -d postgres -c 'DROP DATABASE IF EXISTS cab_dev;' -c 'CREATE DATABASE cab_dev OWNER postgres;'
 	cd engine && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
 	@echo "== wiping cab db (cab_gateway_dev) =="
 	$(NIX) sh -c 'mix ecto.drop --force && mix ecto.create && mix ecto.migrate'
-	@$(MAKE) up
+	@$(MAKE) --no-print-directory dev:up
 	@echo "== loading demo data =="
 	apps/cab/priv/prime_demo.sh $(DEV_USER)
 	@echo "fresh demo ready: http://localhost:4000/"
 
 # Record lifecycle facts on cab session rows that predate them.
 # Safe to re-run; needs the engine up.
-backfill:
+dev\:backfill: FORCE
 	$(NIX) mix cab.backfill_sessions
 
-# The full session roundtrip against the running local stack (make up;
-# make fresh first for a clean database). Re-runnable.
-test-e2e:
+# The full session roundtrip against the running local stack (make
+# dev:up; make dev:fresh first for a clean database). Re-runnable.
+dev\:e2e: FORCE
 	apps/cab/priv/walkthrough_rest.sh
 
-# Every key page as an iPhone 15 against the running stack (make up):
+# Every key page as an iPhone 15 against the running stack (make dev:up):
 # fails when a page scrolls sideways. Not part of CI.
-# Signs in as DEV_USER: make test-phone DEV_USER=<a cab username>
-test-phone:
-	@test -n "$(DEV_USER)" || { echo "usage: make test-phone DEV_USER=<a cab username>"; exit 1; }
+# Signs in as DEV_USER: make dev:phone DEV_USER=<a cab username>
+dev\:phone: FORCE
+	@test -n "$(DEV_USER)" || { echo "usage: make dev:phone DEV_USER=<a cab username>"; exit 1; }
 	DEV_USER=$(DEV_USER) PATH="$(dir $(PSQL)):$$PATH" uv run tools/phone/phone_check.py
 
 # Refresh the engine's API description served at /api/docs from the
 # pinned engine (after the engine pin moves)
-api-docs:
+dev\:api-docs: FORCE
 	cp engine/docs/openapi.yml apps/cab/priv/api/engine.yml
 
-# Load test against the running local stack (make up first)
-stress:
+# Load test against the running local stack (make dev:up first)
+dev\:stress: FORCE
 	ulimit -n 8192 && uv run tools/stress/stress.py
 
-logs:
+dev\:logs: FORCE
 	@mkdir -p $(RUN_DIR) && touch $(RUN_DIR)/engine.log $(RUN_DIR)/cab.log
 	tail -n 40 -f $(RUN_DIR)/engine.log $(RUN_DIR)/cab.log
 
-status:
+dev\:status: FORCE
 	@if lsof -ti :3100 >/dev/null 2>&1; then echo "engine   up   :3100"; else echo "engine   down :3100"; fi
 	@if lsof -ti :4000 >/dev/null 2>&1; then echo "cab      up   :4000"; else echo "cab      down :4000"; fi
 
-# Move the engine pin to the org's latest main (what nightly does)
-sync-engine:
-	git -C engine fetch origin main
-	git -C engine checkout origin/main
+# Move the engine pin to the engine's latest release tag (what the
+# nightly workflow does). REF=<ref> pins another ref instead, e.g.
+# make dev:bump-engine REF=origin/nightly
+dev\:bump-engine: FORCE
+	git -C engine fetch --quiet --tags origin
+	@ref="$(REF)"; [ -n "$$ref" ] || ref=$$(git -C engine tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$$' | sort -V | tail -1); \
+	test -n "$$ref" || { echo "the engine has no release tag yet: make dev:bump-engine REF=origin/nightly"; exit 1; }; \
+	git -C engine checkout --quiet "$$ref" && echo "engine at $$ref"
 	git -C engine log --oneline -1
+
+# Build the release image locally (needs docker running)
+dev\:image: FORCE
+	docker build -t $(IMAGE):local .
 
 # ---------------------------------------------------------------
 # Releases: master moves only here, by fast-forward to nightly
@@ -146,7 +164,3 @@ release:
 	git tag -a $(VERSION) -m $(VERSION)
 	git push origin $(VERSION)
 	@echo "pushed; the release workflow now builds $(IMAGE):$(VERSION)"
-
-# Build the release image locally (needs docker running)
-image:
-	docker build -t $(IMAGE):local .

@@ -19,14 +19,28 @@ answer 404.
 ## Getting started
 
 ```sh
-make setup   # engine checkout and packages, Elixir deps, databases
-make up      # engine on :3100, cab on :4000
-make status  # what is running
-make down
-make test    # unit tests
-make test-all
-make test-phone DEV_USER=<username>  # every key page as an iPhone 15, against the running stack (make up)
+make setup     # engine checkout and packages, Elixir deps, databases
+make dev:up    # engine on :3100, cab on :4000 (make dev does the same)
+make test      # unit tests
+make test-all  # everything that runs without the stack
 ```
+
+The standard targets (`setup build test test-all lint fmt clean`) are
+local and never need the running stack. Targets named `dev:<x>` work on
+the local stack:
+
+| Command | Does |
+|---|---|
+| `make dev:up` / `make dev:down` / `make dev:restart` | start, stop, restart the engine and cab |
+| `make dev:status` / `make dev:logs` | what is running / follow the logs in `.run/` |
+| `make dev:fresh DEV_USER=<your cab username>` | wipe both databases, load demo data |
+| `make dev:e2e` | the full session walkthrough against the running stack |
+| `make dev:phone DEV_USER=<username>` | every key page as an iPhone 15 |
+| `make dev:stress` | load test against the running stack |
+| `make dev:backfill` | record lifecycle facts on older session rows |
+| `make dev:bump-engine` | move the engine pin to the engine's latest release (`REF=<ref>` for another) |
+| `make dev:api-docs` | refresh the engine's API description from the pinned engine |
+| `make dev:image` | build the release image locally (Docker needed) |
 
 The dev stack reads `.env` at the repo root (OAuth keys, engine secret,
 `LEGAL_DIR`) and `engine/.env`. Tooling comes from `nix develop`.
@@ -42,7 +56,7 @@ The dev stack reads `.env` at the repo root (OAuth keys, engine secret,
   commit and pushes both. The tag publishes the image
   `ghcr.io/ukrainian-debate-dev-community/opendebate-cab:vX.Y.Z` (and
   `:sha-<commit>`) with a GitHub release.
-- `make image` builds the image locally (Docker needed).
+- `make dev:image` builds the image locally (Docker needed).
 
 The image runs the `cab` release on port 4000 and answers `GET /healthz`.
 Before starting a new version run the migrations:

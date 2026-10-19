@@ -3,7 +3,7 @@
 # dependencies = ["playwright"]
 # ///
 """Render key cab pages as an iPhone 15 against the running dev stack
-(make up) and fail if any page scrolls sideways.
+(make dev:up) and fail if any page scrolls sideways.
 
     uv run tools/phone/phone_check.py [--shots DIR]
 

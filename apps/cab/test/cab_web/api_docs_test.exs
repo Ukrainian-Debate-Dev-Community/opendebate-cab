@@ -42,7 +42,7 @@ defmodule CabWeb.ApiDocsTest do
 
   test "engine.yml is the pinned engine's own description, unchanged" do
     assert File.read!(Path.join(@priv, "engine.yml")) == File.read!(@engine_spec),
-           "run make api-docs to refresh the copy"
+           "run make dev:api-docs to refresh the copy"
   end
 
   test "the page and both descriptions are served without a session", %{conn: conn} do

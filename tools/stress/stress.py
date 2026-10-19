@@ -2,7 +2,7 @@
 # requires-python = ">=3.11"
 # dependencies = ["websockets>=13", "httpx>=0.27"]
 # ///
-"""Stress test for cab against the running local stack (make up).
+"""Stress test for cab against the running local stack (make dev:up).
 
 Drives one session the way a busy club night would, over real HTTP and
 real LiveView websockets, and reports latency, errors, engine calls and
@@ -17,7 +17,7 @@ database pool waits per phase:
     uv run tools/stress/stress.py [--viewers 300] [--signups 60] [--tabs 5]
 
 Writes nothing outside the dev database it runs against; every run makes
-its own users and club. Run `make fresh` afterwards for a clean demo.
+its own users and club. Run `make dev:fresh` afterwards for a clean demo.
 """
 
 import argparse
