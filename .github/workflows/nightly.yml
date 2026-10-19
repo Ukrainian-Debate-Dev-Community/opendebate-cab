@@ -1,8 +1,10 @@
 name: nightly
 
-# Every night: move the engine pin to the engine's latest main. When it
-# changed, the move lands on the engine/bump branch with a pull request
-# into nightly; CI runs on it, and a maintainer merges it like any other.
+# Every night: move the engine pin to the engine's latest release tag
+# vX.Y.Z, so the pin moves release by release. When it changed, the move
+# lands on the engine/bump branch with a pull request into nightly; CI
+# runs on it, and a maintainer merges it like any other. 02:00, an hour
+# before uadebate's cab bump.
 on:
   schedule:
     - cron: "0 2 * * *"
@@ -26,17 +28,23 @@ jobs:
         with:
           ref: nightly
           fetch-depth: 0
-      - name: Move the engine pin to its latest main
+      - name: Move the engine pin to its latest release
         id: bump
         run: |
           git submodule set-url engine https://github.com/Ukrainian-Debate-Dev-Community/opendebate-engine.git
           git submodule update --init engine
           before=$(git -C engine rev-parse HEAD)
-          git -C engine fetch origin main
-          git -C engine checkout origin/main
+          git -C engine fetch --tags origin
+          tag=$(git -C engine tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)
           git checkout -- .gitmodules
+          if [ -z "$tag" ]; then
+            echo "the engine has no release yet"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git -C engine checkout "$tag"
           after=$(git -C engine rev-parse HEAD)
-          echo "short=$(git -C engine rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "short=$tag" >> "$GITHUB_OUTPUT"
           if [ "$before" = "$after" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
@@ -54,7 +62,7 @@ jobs:
           if [ -z "$(gh pr list --head engine/bump --base nightly --state open --json number -q '.[].number')" ]; then
             gh pr create --head engine/bump --base nightly \
               --title "chore: engine at ${{ steps.bump.outputs.short }}" \
-              --body "The engine's latest main. Merge when CI is green."
+              --body "The engine's latest release. Run make dev:api-docs if its API description changed; merge when CI is green."
           else
             gh pr edit engine/bump --title "chore: engine at ${{ steps.bump.outputs.short }}"
           fi

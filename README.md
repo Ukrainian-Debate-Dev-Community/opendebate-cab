@@ -19,30 +19,58 @@ answer 404.
 ## Getting started
 
 ```sh
-make setup   # engine checkout and packages, Elixir deps, databases
-make up      # engine on :3100, cab on :4000
-make status  # what is running
-make down
-make test    # unit tests
-make test-all
-make test-phone DEV_USER=<username>  # every key page as an iPhone 15, against the running stack (make up)
+make setup     # engine checkout and packages, Elixir deps, databases
+make dev:up    # engine on :3100, cab on :4000 (make dev does the same)
+make test      # unit tests
+make test-all  # everything that runs without the stack
 ```
+
+The standard targets (`setup build test test-all lint fmt clean`) are
+local and never need the running stack. Targets named `dev:<x>` work on
+the local stack:
+
+| Command | Does |
+|---|---|
+| `make dev:up` / `make dev:down` / `make dev:restart` | start, stop, restart the engine and cab |
+| `make dev:status` / `make dev:logs` | what is running / follow the logs in `.run/` |
+| `make dev:fresh DEV_USER=<your cab username>` | wipe both databases, load demo data |
+| `make dev:e2e` | the full session walkthrough against the running stack |
+| `make dev:phone DEV_USER=<username>` | every key page as an iPhone 15 |
+| `make dev:stress` | load test against the running stack |
+| `make dev:backfill` | record lifecycle facts on older session rows |
+| `make dev:bump-engine` | move the engine pin to the engine's latest release (`REF=<ref>` for another) |
+| `make dev:api-docs` | refresh the engine's API description from the pinned engine |
+| `make dev:image` | build the release image locally (Docker needed) |
 
 The dev stack reads `.env` at the repo root (OAuth keys, engine secret,
 `LEGAL_DIR`) and `engine/.env`. Tooling comes from `nix develop`.
 
 ## Branches and releases
 
-- `nightly` is the default branch and the only target for pull requests;
-  CI (`test`, `lint`, `guard`, `docker`) must pass. Every night a workflow
-  moves the engine pin to the engine's latest main and opens a pull
-  request into `nightly` when it changed.
-- `master` moves only on a release: `make release VERSION=vX.Y.Z` from a
-  clean `nightly` whose CI is green fast-forwards `master`, tags the
-  commit and pushes both. The tag publishes the image
-  `ghcr.io/ukrainian-debate-dev-community/opendebate-cab:vX.Y.Z` (and
-  `:sha-<commit>`) with a GitHub release.
-- `make image` builds the image locally (Docker needed).
+- `nightly` is the default branch and the only target for pull requests
+  (squash-merged); CI (`test`, `lint`, `guard`, `docker`) must pass.
+  Every night a workflow moves the engine pin to the engine's latest
+  release tag and opens a pull request into `nightly` when it changed.
+- `main` moves only on a release, by fast-forward to the release commit.
+- Versions are the git tags `vX.Y.Z`. A release, from a clean `nightly`
+  equal to `origin/nightly` whose CI is green:
+
+  ```sh
+  make release BUMP=patch|minor|major   # or VERSION=X.Y.Z
+  make release BUMP=patch DRY_RUN=1     # preview the version and notes
+  ```
+
+  It shows the next version and the release notes (from the squash-merged
+  pull request titles since the last tag) and asks you to type
+  `opendebate-cab:vX.Y.Z`. Then it writes the version into the `mix.exs`
+  files, prepends the notes to `CHANGELOG.md`, commits
+  `chore(release): opendebate-cab vX.Y.Z` on `nightly` and pushes it,
+  waits for CI on that commit, fast-forwards `main` to it, pushes the
+  annotated tag and publishes the GitHub release. If a step fails after
+  the commit, `make release RESUME=1` finishes it. The tag publishes the
+  image `ghcr.io/ukrainian-debate-dev-community/opendebate-cab:vX.Y.Z`
+  (and `:sha-<commit>`).
+- `make dev:image` builds the image locally (Docker needed).
 
 The image runs the `cab` release on port 4000 and answers `GET /healthz`.
 Before starting a new version run the migrations:

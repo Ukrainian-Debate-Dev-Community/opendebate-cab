@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The full session roundtrip against the live stack (engine :3100 +
-# cab :4000; `make fresh` for a clean database, then `make test-e2e`).
+# cab :4000; `make dev:fresh` for a clean database, then `make dev:e2e`).
 # Every step asserts the HTTP status and a JSON field or page marker;
 # exits non-zero on the first failed assertion.
 #
@@ -73,7 +73,7 @@ assert() {
 }
 
 command -v jq >/dev/null || { echo "jq is required"; exit 1; }
-curl -sf -o /dev/null --max-time 3 "$BASE/" || { echo "gateway not up; run: make up"; exit 1; }
+curl -sf -o /dev/null --max-time 3 "$BASE/" || { echo "gateway not up; run: make dev:up"; exit 1; }
 
 # ----------------------------------------------------------------
 say "users via /dev/switch-user (cookie jar = identity)"
