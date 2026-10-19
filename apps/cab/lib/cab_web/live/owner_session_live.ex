@@ -98,15 +98,18 @@ defmodule CabWeb.OwnerSessionLive do
   # the address is used once to send the personal link, never stored
   def handle_event("add_guest_by_email", %{"name" => name, "email" => email}, socket) do
     %{current: session, club: club} = socket.assigns
-    email = String.trim(email)
+    email = Core.Text.trim(email)
 
-    case String.trim(name) do
-      "" ->
+    cond do
+      Core.Text.blank?(name) ->
         {:noreply, put_flash(socket, :error, gettext("Enter a name."))}
 
-      name ->
+      not Cab.HeadInvitations.email?(email) ->
+        {:noreply, put_flash(socket, :error, gettext("Enter an e-mail address."))}
+
+      true ->
         case Links.register_guest(session, name) do
-          {:ok, link} ->
+          {:ok, %{user: %{name: name}} = link} ->
             info =
               case CabWeb.Emails.guest_link(email, link, session, club) do
                 :ok ->
@@ -134,16 +137,18 @@ defmodule CabWeb.OwnerSessionLive do
   # an existing guest's personal link, sent to an address typed once
   def handle_event("send_link", %{"link" => link_id, "email" => email}, socket) do
     %{current: session, club: club, links: links} = socket.assigns
-    email = String.trim(email)
+    email = Core.Text.trim(email)
 
-    case Enum.find(links, &(to_string(&1.id) == link_id)) do
-      nil ->
+    link = Enum.find(links, &(to_string(&1.id) == link_id))
+
+    cond do
+      is_nil(link) ->
         {:noreply, put_flash(socket, :error, gettext("Choose a guest."))}
 
-      _link when email == "" ->
+      not Cab.HeadInvitations.email?(email) ->
         {:noreply, put_flash(socket, :error, gettext("Enter an e-mail address."))}
 
-      link ->
+      true ->
         case CabWeb.Emails.guest_link(email, link, session, club) do
           :ok ->
             {:noreply,

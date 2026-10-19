@@ -1,3 +1,4 @@
+#: lib/cab/text.ex
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "%{count} characters at most."
@@ -138,6 +139,7 @@ msgstr ""
 msgid "Every score needs a speaker_participant_id."
 msgstr ""
 
+#: lib/cab/text.ex
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Fill this in."
@@ -364,9 +366,19 @@ msgstr ""
 msgid "Type an e-mail address to invite someone new."
 msgstr ""
 
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
+msgid "Type the motion."
+msgstr ""
+
 #: lib/cab/head_invitations.ex
 #, elixir-autogen, elixir-format
 msgid "Type their name for the invitation."
+msgstr ""
+
+#: lib/cab/text.ex
+#, elixir-autogen, elixir-format
+msgid "Use plain text without control characters."
 msgstr ""
 
 #: lib/cab/sessions.ex

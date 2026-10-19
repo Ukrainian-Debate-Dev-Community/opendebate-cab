@@ -65,7 +65,14 @@
             {gettext("Nobody in cab uses %{email}. Their name", email: String.trim(@query))}
           </label>
           <div class="row">
-            <input id="add-guest-name" type="text" name="name" required autocomplete="off" />
+            <input
+              id="add-guest-name"
+              type="text"
+              name="name"
+              required
+              maxlength={Cab.Links.name_max()}
+              autocomplete="off"
+            />
             <button type="submit">{gettext("Add as a guest")}</button>
           </div>
           <p>{gettext("We e-mail them their personal link; the address is not stored.")}</p>

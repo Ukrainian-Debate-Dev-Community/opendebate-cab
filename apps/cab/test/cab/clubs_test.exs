@@ -178,7 +178,7 @@ defmodule Cab.ClubsTest do
       assert updated.uuid == club.uuid
 
       assert {:error, changeset} = Clubs.update_club(club, %{"name" => ""})
-      assert %{name: ["can't be blank"]} = errors_on(changeset)
+      assert %{name: ["Fill this in."]} = errors_on(changeset)
     end
   end
 

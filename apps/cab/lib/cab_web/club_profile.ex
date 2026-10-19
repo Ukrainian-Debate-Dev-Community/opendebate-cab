@@ -1,7 +1,7 @@
 defmodule CabWeb.ClubProfile do
   @moduledoc """
-  Labels for the club profile facts (format, language, audience) and
-  the address of the club's logo.
+  Labels for the club profile facts (format, language, audience), the
+  address of the club's logo and a refused save's message.
   """
   use Gettext, backend: CabWeb.Gettext
 
@@ -35,6 +35,25 @@ defmodule CabWeb.ClubProfile do
     end)
     |> Enum.join(", ")
   end
+
+  @doc "A refused profile save in one line: the first field that is wrong, and why."
+  def save_error(%Ecto.Changeset{} = changeset) do
+    case Cab.Text.first_error(
+           changeset,
+           ~w(name city meeting_info description contacts format_other language_other)a
+         ) do
+      {field, message} -> gettext("%{field}: %{error}", field: field_label(field), error: message)
+      nil -> gettext("Something went wrong, try again.")
+    end
+  end
+
+  defp field_label(:name), do: gettext("Club name")
+  defp field_label(:city), do: gettext("City")
+  defp field_label(:meeting_info), do: gettext("Meetings")
+  defp field_label(:description), do: gettext("About the club")
+  defp field_label(:contacts), do: gettext("Contacts")
+  defp field_label(:format_other), do: gettext("Format")
+  defp field_label(:language_other), do: gettext("Language")
 
   defp format("bp"), do: gettext("BP")
   defp format("apf"), do: gettext("APF")

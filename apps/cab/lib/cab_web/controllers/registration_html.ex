@@ -43,7 +43,14 @@ defmodule CabWeb.RegistrationHTML do
       }
       errors={@errors}
     >
-      <:block name={:name} type={:text} label={gettext("Your name")} required value={@name} />
+      <:block
+        name={:name}
+        type={:text}
+        label={gettext("Your name")}
+        required
+        value={@name}
+        maxlength={Cab.Links.name_max()}
+      />
       <:block
         :for={field <- @fields}
         name={answer_name(field)}

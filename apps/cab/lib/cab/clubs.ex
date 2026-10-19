@@ -28,13 +28,16 @@ defmodule Cab.Clubs do
   """
   def create_club(name, city, %User{} = head) do
     head = Accounts.ensure_node_user(head)
+    changeset = Club.changeset(%Club{}, %{name: name, city: city})
 
-    with {:ok, actor} <- require_node_user(head),
+    # the name is checked before the engine names an organisation after it
+    with {:ok, %Club{name: name}} <- Ecto.Changeset.apply_action(changeset, :insert),
+         {:ok, actor} <- require_node_user(head),
          {:ok, org} <- EngineApi.create_organisation(actor, name) do
       Repo.transaction(fn ->
         club =
-          %Club{engine_organisation_id: org["id"]}
-          |> Club.changeset(%{name: name, city: city})
+          changeset
+          |> Ecto.Changeset.put_change(:engine_organisation_id, org["id"])
           |> Repo.insert!()
 
         %Membership{user_id: head.id, club_id: club.id}
@@ -80,10 +83,11 @@ defmodule Cab.Clubs do
         |> Club.changeset(attrs)
         |> then(&if(logo == :keep, do: &1, else: Ecto.Changeset.put_change(&1, :logo, new_logo)))
 
-      # the club's name is also its engine organisation's name: a rename
-      # reaches the engine first, so the two never drift apart
+      # the club's name is also its engine organisation's name: a valid
+      # rename reaches the engine first, so the two never drift apart
       result =
-        with {:ok, _} <- rename_in_engine(club, Ecto.Changeset.get_change(changeset, :name)) do
+        with {:ok, _} <- Ecto.Changeset.apply_action(changeset, :update),
+             {:ok, _} <- rename_in_engine(club, Ecto.Changeset.get_change(changeset, :name)) do
           Repo.update(changeset)
         end
 

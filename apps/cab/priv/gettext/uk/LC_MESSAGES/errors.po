@@ -11,6 +11,7 @@ msgstr ""
 "Language: uk\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100 != 11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
 
+#: lib/cab/text.ex
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "%{count} characters at most."
@@ -151,6 +152,7 @@ msgstr "Кожен бал має бути об'єктом."
 msgid "Every score needs a speaker_participant_id."
 msgstr "Кожен бал має містити speaker_participant_id."
 
+#: lib/cab/text.ex
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Fill this in."
@@ -377,10 +379,20 @@ msgstr "Дві команди мають однакову суму %{totals}. У
 msgid "Type an e-mail address to invite someone new."
 msgstr "Введіть адресу e-mail, щоб запросити нову людину."
 
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
+msgid "Type the motion."
+msgstr "Введіть резолюцію."
+
 #: lib/cab/head_invitations.ex
 #, elixir-autogen, elixir-format
 msgid "Type their name for the invitation."
 msgstr "Введіть ім'я для запрошення."
+
+#: lib/cab/text.ex
+#, elixir-autogen, elixir-format
+msgid "Use plain text without control characters."
+msgstr "Використовуйте звичайний текст без керувальних символів."
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format

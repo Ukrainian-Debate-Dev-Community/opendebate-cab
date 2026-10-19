@@ -42,8 +42,8 @@ defmodule CabWeb.AdminController do
             )
             |> redirect(to: ~p"/admin")
 
-          {:error, %Ecto.Changeset{}} ->
-            bounce(conn, gettext("The club needs a name."))
+          {:error, %Ecto.Changeset{} = changeset} ->
+            bounce(conn, CabWeb.ClubProfile.save_error(changeset))
 
           {:error, message} ->
             bounce(conn, message)
@@ -54,8 +54,11 @@ defmodule CabWeb.AdminController do
              {:ok, invitation, token} <- HeadInvitations.invite(club, email, name, admin, admin) do
           conn |> invited(invitation, token, :created) |> redirect(to: ~p"/admin")
         else
-          {:error, %Ecto.Changeset{}} -> bounce(conn, gettext("The club needs a name."))
-          {:error, message} -> bounce(conn, message)
+          {:error, %Ecto.Changeset{} = changeset} ->
+            bounce(conn, CabWeb.ClubProfile.save_error(changeset))
+
+          {:error, message} ->
+            bounce(conn, message)
         end
 
       {:error, message} ->
@@ -180,7 +183,7 @@ defmodule CabWeb.AdminController do
 
   # an account by exact username or e-mail; else an address to invite
   defp resolve_head(params) do
-    login = String.trim(params["head"] || "")
+    login = Core.Text.trim(params["head"])
 
     case Accounts.get_user_by_login(login) do
       %Accounts.User{} = user ->
@@ -192,9 +195,8 @@ defmodule CabWeb.AdminController do
             {:error, gettext("Type the head's username or e-mail.")}
 
           HeadInvitations.email?(login) ->
-            if String.trim(params["head_name"] || "") == "",
-              do: {:error, gettext("Type their name for the invitation.")},
-              else: {:invite, login, params["head_name"]}
+            with {:ok, email, name} <- HeadInvitations.check_invitee(login, params["head_name"]),
+                 do: {:invite, email, name}
 
           true ->
             {:error,
@@ -256,7 +258,7 @@ defmodule CabWeb.AdminController do
 
   # an account by its exact username or e-mail, as typed on the form
   defp typed_account(login) do
-    login = String.trim(login || "")
+    login = Core.Text.trim(login)
 
     case login != "" && Accounts.get_user_by_login(login) do
       %Accounts.User{} = user -> {:ok, user}

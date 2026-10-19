@@ -13,6 +13,7 @@
           name={:name}
           type={:text}
           label={gettext("Display name")}
+          maxlength={Cab.Accounts.name_max()}
           value={@current_user.name}
           hint={gettext("Shown instead of your username on rosters and draws.")}
         />

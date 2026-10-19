@@ -165,4 +165,40 @@ defmodule CabWeb.ClubProfileTest do
            |> patch(~p"/api/cab/v1/clubs/#{club.uuid}", %{formats: ["chess"]})
            |> json_response(422)
   end
+
+  test "a name of spaces or invisible characters is refused with the field's own words",
+       %{conn: conn, head: head, club: club} do
+    html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
+    assert html =~ ~s(maxlength="120")
+    assert html =~ ~s(maxlength="5000")
+
+    for blank <- ["\u00A0\u00A0", "\u200B\uFEFF"] do
+      resp = conn |> log_in(head) |> post(~p"/c/#{club.uuid}/owner/club", %{name: blank})
+      assert Phoenix.Flash.get(resp.assigns.flash, :error) == "Club name: Fill this in."
+    end
+
+    resp =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/club", %{
+        name: club.name,
+        description: String.duplicate("x", 5001)
+      })
+
+    assert Phoenix.Flash.get(resp.assigns.flash, :error) ==
+             "About the club: 5000 characters at most."
+
+    assert Cab.Clubs.get_by_uuid(club.uuid).name == "Kyiv Debate Club"
+
+    body =
+      conn
+      |> log_in(head)
+      |> patch(~p"/api/cab/v1/clubs/#{club.uuid}", %{name: "\u200B", city: "Ky\u0000iv"})
+      |> json_response(422)
+
+    assert body["details"] == %{
+             "name" => ["Fill this in."],
+             "city" => ["Use plain text without control characters."]
+           }
+  end
 end

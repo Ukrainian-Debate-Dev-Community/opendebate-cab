@@ -52,6 +52,7 @@ defmodule CabWeb.FormComponents do
   def editor_error(:locked),
     do: dgettext("errors", "This field is always asked: it cannot be moved or removed.")
 
+  def editor_error(:invalid), do: Cab.Text.message(:invalid)
   def editor_error(:locked_removed), do: editor_error(:locked)
   def editor_error(:locked_moved), do: editor_error(:locked)
   def editor_error(_code), do: dgettext("errors", "Something went wrong, try again.")
@@ -78,6 +79,7 @@ defmodule CabWeb.FormComponents do
     do: dgettext("errors", "%{count} characters at most.", count: max)
 
   def answer_error(:not_an_option, _type), do: dgettext("errors", "Choose from the options.")
+  def answer_error(:invalid, _type), do: Cab.Text.message(:invalid)
   def answer_error(_code, _type), do: dgettext("errors", "Something went wrong, try again.")
 
   # ---------------------------------------------------------------

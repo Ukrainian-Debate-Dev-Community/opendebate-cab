@@ -29,6 +29,10 @@ defmodule Cab.Feedback do
 
   @base 5
   @keys ~w(accuracy reasoning)
+  @discussion_max 5000
+
+  @doc "The most characters the discussion has."
+  def discussion_max, do: @discussion_max
 
   @doc "The base that counts as one vote in an adjudicator's average."
   def base, do: @base
@@ -139,11 +143,13 @@ defmodule Cab.Feedback do
       |> check_discussion(attrs)
 
     if errors == %{} do
+      {:ok, discussion} = discussion(attrs)
+
       {:ok,
        %{
          accuracy: score_value(attrs["accuracy"]),
          reasoning: score_value(attrs["reasoning"]),
-         discussion: String.trim(attrs["discussion"])
+         discussion: discussion
        }}
     else
       {:error, errors}
@@ -158,15 +164,19 @@ defmodule Cab.Feedback do
   end
 
   defp check_discussion(errors, attrs) do
-    case attrs["discussion"] do
-      text when is_binary(text) ->
-        if String.trim(text) == "",
-          do: Map.put(errors, "discussion", gettext("Explain your feedback.")),
-          else: errors
-
-      _ ->
-        Map.put(errors, "discussion", gettext("Explain your feedback."))
+    case discussion(attrs) do
+      {:ok, _text} -> errors
+      {:error, message} -> Map.put(errors, "discussion", message)
     end
+  end
+
+  defp discussion(attrs) do
+    Cab.Text.check(attrs["discussion"],
+      required: true,
+      max: @discussion_max,
+      multiline: true,
+      message: gettext("Explain your feedback.")
+    )
   end
 
   defp score_value(value) when is_integer(value), do: value

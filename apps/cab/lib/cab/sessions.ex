@@ -26,6 +26,12 @@ defmodule Cab.Sessions do
   # the most rooms the head may set by hand: well past any club night,
   # and an empty room is refused at Start anyway
   @max_rooms 20
+  # the most characters a session name and a motion's parts have (the
+  # engine caps the keyword at 32 itself)
+  @name_max 120
+  @motion_max 1000
+  @infoslide_max 5000
+  @keyword_max 32
   # the engine needs a role on every participant; signups enter as
   # speakers and Start re-roles whoever the head dragged into a chair
   @signup_role "speaker"
@@ -193,9 +199,9 @@ defmodule Cab.Sessions do
   `parse_schedule/2` for the form's date/time pair.
   """
   def open(%User{} = head, %Club{} = club, name, scheduled_at \\ nil) do
-    name = presence(name) || "Club session #{Date.utc_today()}"
-
-    with {:ok, actor} <- owner_actor(head, club),
+    with {:ok, name} <- Cab.Text.check(name, max: @name_max),
+         name = name || "Club session #{Date.utc_today()}",
+         {:ok, actor} <- owner_actor(head, club),
          {:ok, event} <- EngineApi.create_event(actor, club.engine_organisation_id, name),
          {:ok, round} <- EngineApi.create_round(actor, event["id"], "Club round", 1) do
       %Session{
@@ -449,6 +455,15 @@ defmodule Cab.Sessions do
 
   @doc "The most rooms the head may set by hand."
   def max_rooms, do: @max_rooms
+
+  @doc "The most characters of a session name and a motion's parts, for the forms."
+  def max_lengths,
+    do: %{
+      name: @name_max,
+      motion_text: @motion_max,
+      infoslide: @infoslide_max,
+      keyword: @keyword_max
+    }
 
   @doc """
   START SESSION from the server-held draft: the draft becomes the
@@ -1253,11 +1268,39 @@ defmodule Cab.Sessions do
   """
   def set_room_motion(%User{} = user, %Session{} = session, room_id, motion_text, attrs \\ %{}) do
     result =
-      with {:ok, actor} <- acting_for(user, session, room_id) do
+      with {:ok, motion_text, attrs} <- clean_motion(motion_text, attrs),
+           {:ok, actor} <- acting_for(user, session, room_id) do
         EngineApi.set_room_motion(actor, room_id, motion_text, attrs)
       end
 
     notify(result, session)
+  end
+
+  @doc """
+  A motion as typed, checked: `{:ok, motion_text, attrs}` with the
+  text trimmed (required, at most #{@motion_max} characters) and the
+  given `infoslide` (#{@infoslide_max}, newlines kept) and `keyword`
+  (#{@keyword_max}) trimmed, nil when blank; or `{:error, message}`.
+  """
+  def clean_motion(motion_text, attrs) do
+    attrs = Map.new(attrs, fn {key, value} -> {to_string(key), value} end)
+
+    with {:ok, text} <-
+           Cab.Text.check(motion_text,
+             required: true,
+             max: @motion_max,
+             message: dgettext("errors", "Type the motion.")
+           ),
+         {:ok, infoslide} <-
+           Cab.Text.check(attrs["infoslide"], max: @infoslide_max, multiline: true),
+         {:ok, keyword} <- Cab.Text.check(attrs["keyword"], max: @keyword_max) do
+      cleaned =
+        %{"infoslide" => infoslide, "keyword" => keyword}
+        |> Map.take(Map.keys(attrs))
+        |> Map.new(fn {key, value} -> {String.to_existing_atom(key), value} end)
+
+      {:ok, text, cleaned}
+    end
   end
 
   @doc """
@@ -1899,7 +1942,7 @@ defmodule Cab.Sessions do
   defp presence(nil), do: nil
 
   defp presence(string) when is_binary(string) do
-    case String.trim(string) do
+    case Core.Text.trim(string) do
       "" -> nil
       trimmed -> trimmed
     end

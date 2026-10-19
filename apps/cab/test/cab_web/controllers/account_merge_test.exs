@@ -205,4 +205,24 @@ defmodule CabWeb.AccountMergeTest do
     assert Phoenix.Flash.get(unknown.assigns.flash, :error) =~
              ~s(No account has the username or e-mail "nobody".)
   end
+
+  test "the display name: over-long or garbled is refused with the field named; invisible is none",
+       %{conn: conn} do
+    user = user_fixture(%{name: "Ann"})
+
+    resp = conn |> signed_in(user) |> post(~p"/account", %{name: String.duplicate("x", 121)})
+
+    assert Phoenix.Flash.get(resp.assigns.flash, :error) ==
+             "Display name: 120 characters at most."
+
+    resp = conn |> signed_in(user) |> post(~p"/account", %{name: "A\u0000nn"})
+
+    assert Phoenix.Flash.get(resp.assigns.flash, :error) ==
+             "Display name: Use plain text without control characters."
+
+    assert Cab.Repo.reload(user).name == "Ann"
+
+    conn |> signed_in(user) |> post(~p"/account", %{name: "\u200B\u00A0"})
+    assert Cab.Repo.reload(user).name == nil
+  end
 end

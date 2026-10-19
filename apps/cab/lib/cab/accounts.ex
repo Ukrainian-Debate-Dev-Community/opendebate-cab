@@ -32,7 +32,7 @@ defmodule Cab.Accounts do
   or nil. Guests (personal-link identities) are never returned.
   """
   def get_user_by_login(login) when is_binary(login) do
-    case String.downcase(String.trim(login)) do
+    case String.downcase(Core.Text.trim(login)) do
       "" ->
         nil
 
@@ -70,6 +70,11 @@ defmodule Cab.Accounts do
 
   def time_zones, do: @time_zones
 
+  @name_max 120
+
+  @doc "The most characters a display name has."
+  def name_max, do: @name_max
+
   def update_profile(%User{} = user, attrs) do
     changes = %{name: attrs["name"] || attrs[:name]}
 
@@ -83,6 +88,7 @@ defmodule Cab.Accounts do
 
     user
     |> User.changeset(changes)
+    |> Cab.Text.clean_text(:name, max: @name_max)
     |> Ecto.Changeset.cast(changes, [:time_zone])
     |> Repo.update()
   end

@@ -85,6 +85,7 @@
               name={:discussion}
               type={:longtext}
               label={gettext("Discussion")}
+              maxlength={Cab.Feedback.discussion_max()}
               hint={gettext("Explain your feedback.")}
               required
               value={@values["discussion"]}

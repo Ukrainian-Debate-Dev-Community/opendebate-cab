@@ -299,6 +299,41 @@ defmodule CabWeb.RegistrationFormTest do
       assert both =~ "Fill this in."
     end
 
+    test "invisible, over-long or garbled name and answers are refused; nothing is created",
+         %{conn: conn, club: club} do
+      {club, ids} = with_form(club)
+      session = session_fixture(club, engine_event_id: 11)
+      stub_stage([])
+
+      html =
+        conn
+        |> anon()
+        |> post(~p"/r/#{session.uuid}", %{
+          name: "\u200B\u00A0",
+          answers: %{"email" => "\uFEFF", ids["Phone"] => "12\u0000"}
+        })
+        |> html_response(422)
+
+      assert html =~ "Enter a name."
+      assert html =~ "Fill this in."
+      assert html =~ "Use plain text without control characters."
+      assert html =~ ~s(maxlength="120")
+
+      long =
+        conn
+        |> anon()
+        |> post(~p"/r/#{session.uuid}", %{
+          name: String.duplicate("x", 121),
+          answers: %{"email" => "greta@example.com"}
+        })
+        |> html_response(422)
+
+      assert long =~ "120 characters at most."
+      refute_received :engine_signup
+      assert Repo.all(Link) == []
+      assert_no_email_sent()
+    end
+
     test "answers are kept on the guest's link and the personal link is e-mailed",
          %{conn: conn, club: club} do
       {club, ids} = with_form(club)

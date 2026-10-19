@@ -529,7 +529,9 @@ defmodule CabWeb.Ui do
         """
 
       :longtext ->
-        ~H|<textarea rows="3" name={@name} placeholder={@b[:placeholder]}>{@b[:value]}</textarea>|
+        ~H"""
+        <textarea rows="3" name={@name} placeholder={@b[:placeholder]} maxlength={@b[:maxlength]}>{@b[:value]}</textarea>
+        """
 
       :int ->
         ~H|<input type="number" name={@name} value={@b[:value]} min={@b[:min]} max={@b[:max]} />|
