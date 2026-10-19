@@ -98,6 +98,35 @@ defmodule Core.FormsTest do
       assert {:error, %{form: {:too_many_fields, 30}}} = Forms.add_field(full, %{"label" => "One more", "type" => "text"})
     end
 
+    test "labels, hints and options: invisible text is empty, control characters refused" do
+      for blank <- ["\u00A0\u00A0", "\u200B", " \uFEFF\u200D "] do
+        assert {:error, %{label: :required}} =
+                 Forms.add_field([], %{"label" => blank, "type" => "text"})
+      end
+
+      assert {:ok, [%{"label" => "Phone", "hint" => nil}]} =
+               Forms.add_field([], %{"label" => "\u200BPhone\u00A0", "hint" => "\u200B ", "type" => "text"})
+
+      assert {:error, %{label: :invalid}} =
+               Forms.add_field([], %{"label" => "Ph\u0000one", "type" => "text"})
+
+      assert {:error, %{hint: :invalid}} =
+               Forms.add_field([], %{"label" => "L", "hint" => "a\u0007", "type" => "text"})
+
+      assert {:error, %{label: {:too_long, 120}}} =
+               Forms.add_field([], %{"label" => " " <> String.duplicate("x", 121), "type" => "text"})
+
+      # an invisible line is no option
+      assert {:error, %{options: {:options_count, 2, 20}}} =
+               Forms.add_field([], %{"label" => "L", "type" => "choice", "options" => "a\n\u200B\n\u00A0"})
+
+      assert {:ok, [%{"options" => ["a", "b"]}]} =
+               Forms.add_field([], %{"label" => "L", "type" => "choice", "options" => "\u200Ba\nb\uFEFF"})
+
+      assert {:error, %{options: :invalid}} =
+               Forms.add_field([], %{"label" => "L", "type" => "choice", "options" => "a\nb\u0000"})
+    end
+
     test "every type can be added" do
       for type <- Forms.types() do
         options = if Forms.choice_type?(type), do: "x\ny", else: ""
@@ -312,6 +341,46 @@ defmodule Core.FormsTest do
       assert e[ids["Short"]] == {:too_long, 200}
       assert {:error, _} = check.("Long", String.duplicate("x", 2001))
       assert {:error, _} = check.("Level", "Open")
+    end
+
+    test "invisible answers are empty; control characters are refused", %{form: form, ids: ids} do
+      for blank <- ["   ", "\u00A0", "\u200B\u200C", "\uFEFF"] do
+        {:error, errors} = Forms.validate_answers(form, params(ids, %{"Mail" => blank, "Rules" => "yes"}))
+        assert errors == %{ids["Mail"] => :required}
+      end
+
+      {:ok, answers} =
+        Forms.validate_answers(
+          form,
+          params(ids, %{
+            "Mail" => "\u200Ba@b.co\u00A0",
+            "Rules" => "yes",
+            "Short" => "\u200B",
+            "Long" => "one\r\n\ttwo\n"
+          })
+        )
+
+      assert Enum.map(answers, &{&1["label"], &1["value"]}) == [
+               {"Long", "one\n\ttwo"},
+               {"Mail", "a@b.co"},
+               {"Rules", true}
+             ]
+
+      {:error, errors} =
+        Forms.validate_answers(
+          form,
+          params(ids, %{"Mail" => "a@b.co", "Rules" => "yes", "Short" => "a\nb", "Long" => "a\u0000b"})
+        )
+
+      assert errors == %{ids["Short"] => :invalid, ids["Long"] => :invalid}
+
+      {:error, errors} =
+        Forms.validate_answers(
+          form,
+          params(ids, %{"Mail" => "a@b.co", "Rules" => "yes", "Short" => "\u00A0" <> String.duplicate("x", 201)})
+        )
+
+      assert errors == %{ids["Short"] => {:too_long, 200}}
     end
 
     test "optional left empty is left out; unticked optional yes/no is a no", %{form: form, ids: ids} do

@@ -32,16 +32,18 @@ defmodule Core.Forms do
   `{:ok, definition}`, `{:error, :not_found}` or `{:error, errors}`
   keyed by param (or `:form`), with these codes:
 
-    * `:required`, `{:too_long, max}` - label, hint
+    * `:required`, `{:too_long, max}`, `:invalid` - label, hint
     * `:unknown_type` - type
     * `{:options_count, min, max}`, `{:option_too_long, max}`,
-      `:duplicate_options` - options of the choice types
+      `:duplicate_options`, `:invalid` - options of the choice types
     * `{:too_many_fields, max}`, `:duplicate_id`, `:not_a_list`,
       `:locked_removed`, `:locked_moved` - form
     * `{:error, :locked}` - removing or moving a locked field
 
   Answer codes: `:required`, `{:invalid, :email | :phone | :telegram
-  | :number}`, `{:too_long, max}`, `:not_an_option`, `:unknown_type`.
+  | :number}`, `{:too_long, max}`, `:not_an_option`, `:unknown_type`,
+  `:invalid` (control characters). Text is cleaned with `Core.Text`:
+  only whitespace or invisible characters count as empty.
   """
 
   @types ~w(text longtext number email phone telegram yesno choice multi)
@@ -262,24 +264,15 @@ defmodule Core.Forms do
 
   @doc "The editor's params as a field with this id: `{:ok, field}` or `{:error, errors}`."
   def build_field(params, id) when is_map(params) do
-    label = text(params["label"])
-    hint = text(params["hint"])
+    label = Core.Text.clean(params["label"], required: true, max: @label_max)
+    hint = Core.Text.clean(params["hint"], max: @hint_max)
     type = params["type"]
     options = if choice_type?(type), do: options(params["options"]), else: []
 
     errors =
       %{}
-      |> put_error(:label, label == nil, :required)
-      |> put_error(
-        :label,
-        label && String.length(label) > @label_max,
-        {:too_long, @label_max}
-      )
-      |> put_error(
-        :hint,
-        hint && String.length(hint) > @hint_max,
-        {:too_long, @hint_max}
-      )
+      |> put_error(:label, match?({:error, _}, label), elem(label, 1))
+      |> put_error(:hint, match?({:error, _}, hint), elem(hint, 1))
       |> put_error(:type, type not in @types, :unknown_type)
       |> put_error(:options, choice_type?(type) && options_error(options), options_error(options))
 
@@ -288,8 +281,8 @@ defmodule Core.Forms do
        %{
          "id" => id,
          "type" => type,
-         "label" => label,
-         "hint" => hint,
+         "label" => elem(label, 1),
+         "hint" => elem(hint, 1),
          "required" => params["required"] in ["yes", "true", true],
          "options" => options,
          "locked" => false
@@ -304,7 +297,14 @@ defmodule Core.Forms do
   defp new_id, do: :crypto.strong_rand_bytes(6) |> Base.url_encode64(padding: false)
 
   defp options(raw) when is_binary(raw) do
-    raw |> String.split(~r/\R/) |> Enum.map(&String.trim/1) |> Enum.reject(&(&1 == ""))
+    raw
+    |> String.split(~r/\R/)
+    |> Enum.map(&Core.Text.clean/1)
+    |> Enum.reject(&(&1 == {:ok, nil}))
+    |> Enum.map(fn
+      {:ok, option} -> option
+      {:error, _code} -> :invalid
+    end)
   end
 
   defp options(raw) when is_list(raw),
@@ -314,6 +314,9 @@ defmodule Core.Forms do
 
   defp options_error(options) do
     cond do
+      :invalid in options ->
+        :invalid
+
       length(options) < @options_min or length(options) > @options_max ->
         {:options_count, @options_min, @options_max}
 
@@ -333,15 +336,6 @@ defmodule Core.Forms do
       do: Map.put(errors, field, message),
       else: errors
   end
-
-  defp text(value) when is_binary(value) do
-    case String.trim(value) do
-      "" -> nil
-      trimmed -> trimmed
-    end
-  end
-
-  defp text(_value), do: nil
 
   # ---------------------------------------------------------------
   # Answering
@@ -413,10 +407,11 @@ defmodule Core.Forms do
   end
 
   defp answer(field, raw) do
-    case {text(raw), field["required"]} do
-      {nil, true} -> {:error, :required}
-      {nil, _optional} -> {:ok, nil}
-      {value, _required} -> check(field, value)
+    case {Core.Text.clean(raw, multiline: field["type"] == "longtext"), field["required"]} do
+      {{:ok, nil}, true} -> {:error, :required}
+      {{:ok, nil}, _optional} -> {:ok, nil}
+      {{:ok, value}, _required} -> check(field, value)
+      {{:error, code}, _required} -> {:error, code}
     end
   end
 
