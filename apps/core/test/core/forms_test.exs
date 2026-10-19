@@ -7,6 +7,8 @@ defmodule Core.FormsTest do
 
   alias Core.Forms
 
+  doctest Core.Forms, only: [email?: 1]
+
   defp add!(definition, params) do
     {:ok, definition} = Forms.add_field(definition, Map.merge(%{"required" => "no"}, params))
     definition
@@ -395,6 +397,61 @@ defmodule Core.FormsTest do
       {:error, errors} = Forms.validate_answers(form, %{})
       assert errors[ids["Level"]] == :required
       assert errors[ids["Days"]] == :required
+    end
+  end
+
+  describe "email?/1" do
+    test "takes ordinary addresses" do
+      for address <- ~w(ada@example.org a.b+tag@mail.example.co.uk o_k-1@x.io a@b.co
+                        name@sait.xn--j1amh test@sub.domain.museum) do
+        assert Forms.email?(address), address
+      end
+
+      assert Forms.email?("ivan@\u043a\u0438\u0457\u0432.\u0443\u043a\u0440")
+    end
+
+    test "refuses percent-encoded, control and space characters" do
+      for address <- ["a%00b@x.com", "a%40b@x.com", "a\u0000b@x.com", "a\tb@x.com", "a\nb@x.com",
+                      "a b@x.com", " a@x.com", "a@x.com\r", "a@x\u00a0.com", "a@x.c\u007fm"] do
+        refute Forms.email?(address), inspect(address)
+      end
+    end
+
+    test "refuses quotes and the characters only a quoted address may hold" do
+      for address <- [~s("a"@x.com), "a'b@x.com", "a(b)@x.com", "a,b@x.com", "a:b@x.com",
+                      "a;b@x.com", "<a@x.com>", "a[b]@x.com", "a\\b@x.com"] do
+        refute Forms.email?(address), inspect(address)
+      end
+    end
+
+    test "refuses misplaced dots" do
+      for address <- ~w(a..b@x.com .a@x.com a.@x.com a@.x.com a@x..com a@x.com.) do
+        refute Forms.email?(address), address
+      end
+    end
+
+    test "refuses a missing or odd top-level domain and a missing part" do
+      for address <- ~w(a@x a@x.c a@x.c0m a@x.123 @x.com a@ a a@b@x.com) do
+        refute Forms.email?(address), address
+      end
+
+      refute Forms.email?("")
+      refute Forms.email?(nil)
+    end
+
+    test "refuses more than 254 characters" do
+      domain = String.duplicate("d", 60) <> ".com"
+      ok = String.duplicate("a", 254 - String.length(domain) - 1) <> "@" <> domain
+      assert String.length(ok) == 254
+      assert Forms.email?(ok)
+      refute Forms.email?("a" <> ok)
+    end
+
+    test "an e-mail answer uses the same check", %{} do
+      form = add!([], %{"label" => "Mail", "type" => "email", "required" => "yes"})
+      [%{"id" => id}] = form
+      assert {:error, %{^id => {:invalid, :email}}} = Forms.validate_answers(form, %{id => "a%00b@x.com"})
+      assert {:ok, [%{"value" => "a@x.com"}]} = Forms.validate_answers(form, %{id => " a@x.com "})
     end
   end
 end

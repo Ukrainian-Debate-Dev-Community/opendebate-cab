@@ -291,6 +291,8 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
               cursor:pointer; margin:0; }
 .opts input[type=checkbox], .opts input[type=radio]
   { width:15px; height:15px; accent-color:var(--brand); }
+/* the Turnstile widget keeps its own size; the block reserves its height */
+.form .f-guard .cf-turnstile { min-height:65px; }
 .form .f-submit { display:flex; align-items:center; gap:12px;
                   padding:12px var(--px); background:var(--surface-2); }
 .btn-go { border:none; cursor:pointer; font:inherit; font-size:.8rem;

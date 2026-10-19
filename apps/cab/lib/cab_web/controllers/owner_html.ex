@@ -149,7 +149,7 @@ defmodule CabWeb.OwnerHTML do
 
   # an address no account uses: the guest gets a name, the link goes out by hand
   defp email_only?(query, %{users: []}),
-    do: String.match?(String.trim(query), ~r/^[^@\s]+@[^@\s]+\.[^@\s]+$/)
+    do: Core.Forms.email?(String.trim(query))
 
   defp email_only?(_query, _suggestions), do: false
 end

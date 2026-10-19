@@ -82,12 +82,8 @@ defmodule Cab.HeadInvitations do
     end
   end
 
-  @doc "An address worth sending to: something@domain.tld, no spaces, 254 characters at most."
-  def email?(text) when is_binary(text) do
-    String.valid?(text) and String.length(text) <= 254 and
-      Regex.match?(~r/^[^\s@\p{C}]+@[^\s@\p{C}]+\.[^\s@\p{C}]+$/u, text)
-  end
-
+  @doc "An address worth sending to; see Core.Forms.email?/1."
+  def email?(text) when is_binary(text), do: Core.Forms.email?(text)
   def email?(_text), do: false
 
   @doc """

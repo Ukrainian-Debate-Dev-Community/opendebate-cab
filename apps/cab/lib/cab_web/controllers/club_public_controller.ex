@@ -152,8 +152,22 @@ defmodule CabWeb.ClubPublicController do
   # the form's answers; the head reads them in Requests
   def join(conn, params) do
     club = conn.assigns.club
+    user = conn.assigns.current_user
 
-    case Clubs.request_join(conn.assigns.current_user, club, params) do
+    case CabWeb.BotGuard.check(conn, params, {:join, club, user}) do
+      :ok ->
+        request_join(conn, club, user, params)
+
+      {:limited, seconds} ->
+        conn |> CabWeb.BotGuard.limited(seconds) |> render_join(params, %{})
+
+      {:error, message} ->
+        conn |> put_status(422) |> render_join(params, %{turnstile: message})
+    end
+  end
+
+  defp request_join(conn, club, user, params) do
+    case Clubs.request_join(user, club, params) do
       {:ok, _membership} ->
         conn
         |> put_flash(:info, gettext("Request sent. The club head will review it."))

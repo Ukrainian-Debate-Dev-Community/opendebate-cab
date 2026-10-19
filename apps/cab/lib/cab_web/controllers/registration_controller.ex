@@ -69,6 +69,19 @@ defmodule CabWeb.RegistrationController do
   # the club's own form fields come after the name; an e-mail answer
   # gets the personal link sent there too
   defp create_guest(conn, session, state, params) do
+    case CabWeb.BotGuard.check(conn, params, {:guest, session}) do
+      :ok ->
+        register_guest(conn, session, state, params)
+
+      {:limited, seconds} ->
+        conn |> CabWeb.BotGuard.limited(seconds) |> render_form(session, state, params, %{})
+
+      {:error, message} ->
+        conn |> put_status(422) |> render_form(session, state, params, %{turnstile: message})
+    end
+  end
+
+  defp register_guest(conn, session, state, params) do
     case Links.register_guest(session, params["name"], answer_params(params)) do
       {:ok, link} ->
         render(conn, :created,
