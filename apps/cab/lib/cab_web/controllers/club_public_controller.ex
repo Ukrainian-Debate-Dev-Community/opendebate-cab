@@ -158,6 +158,9 @@ defmodule CabWeb.ClubPublicController do
       :ok ->
         request_join(conn, club, user, params)
 
+      {:limited, seconds} ->
+        conn |> CabWeb.BotGuard.limited(seconds) |> render_join(params, %{})
+
       {:error, message} ->
         conn |> put_status(422) |> render_join(params, %{turnstile: message})
     end

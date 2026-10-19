@@ -110,6 +110,11 @@ if config_env() == :prod do
     anonymous: {per_minute.("RATE_LIMIT_ANONYMOUS", "20"), 20},
     trust_cf_ip: true
 
+  # the public forms' rate limit, independent of the API's: opt-in
+  if form_rate_limit = System.get_env("FORM_RATE_LIMIT") do
+    config :cab, CabWeb.BotGuard, rate_limit: form_rate_limit == "true"
+  end
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """

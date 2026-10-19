@@ -73,6 +73,9 @@ defmodule CabWeb.RegistrationController do
       :ok ->
         register_guest(conn, session, state, params)
 
+      {:limited, seconds} ->
+        conn |> CabWeb.BotGuard.limited(seconds) |> render_form(session, state, params, %{})
+
       {:error, message} ->
         conn |> put_status(422) |> render_form(session, state, params, %{turnstile: message})
     end

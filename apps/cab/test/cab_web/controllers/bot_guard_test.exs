@@ -1,8 +1,9 @@
 defmodule CabWeb.BotGuardTest do
   @moduledoc """
   Bot protection on the public forms - a guest's registration at
-  /r/:sess and a join request at /c/:club/join: Cloudflare Turnstile
-  (widget and server-side check, Cloudflare stubbed with Req.Test).
+  /r/:sess and a join request at /c/:club/join: the rate limits per
+  IP, session and account, and Cloudflare Turnstile (widget and
+  server-side check, Cloudflare stubbed with Req.Test).
   Signed-in members registering for a session are never asked.
   """
   # the settings are application-wide: this module runs alone
@@ -21,7 +22,15 @@ defmodule CabWeb.BotGuardTest do
 
   setup %{conn: conn} do
     turnstile = Application.get_env(:cab, :turnstile)
-    on_exit(fn -> restore(:turnstile, turnstile) end)
+    guard = Application.get_env(:cab, CabWeb.BotGuard)
+
+    on_exit(fn ->
+      restore(:turnstile, turnstile)
+      restore(CabWeb.BotGuard, guard)
+      CabWeb.RateLimit.reset()
+    end)
+
+    CabWeb.RateLimit.reset()
 
     head = user_fixture(%{node_user_id: 9})
     club = club_fixture(head, %{engine_organisation_id: 3})
@@ -63,6 +72,14 @@ defmodule CabWeb.BotGuardTest do
           conn |> Plug.Conn.put_status(500) |> Req.Test.json(%{})
       end
     end)
+  end
+
+  defp limits_on(limits) do
+    Application.put_env(
+      :cab,
+      CabWeb.BotGuard,
+      Keyword.merge(Application.get_env(:cab, CabWeb.BotGuard), [rate_limit: true] ++ limits)
+    )
   end
 
   defp ok(conn, data), do: Req.Test.json(conn, %{"status" => "success", "data" => data})
@@ -263,6 +280,108 @@ defmodule CabWeb.BotGuardTest do
 
       assert redirected_to(sent) == "/c/#{club.uuid}"
       assert [_request] = Cab.Clubs.list_join_requests(club)
+    end
+  end
+
+  describe "rate limits" do
+    test "per IP: over the limit a guest gets 429 with Retry-After; nothing is created",
+         %{conn: conn, club: club} do
+      limits_on(guest_per_ip: {2, 600})
+      [one, two] = for _ <- 1..2, do: session_fixture(club, engine_event_id: 11)
+
+      conn |> anon() |> post(~p"/r/#{one.uuid}", guest(%{})) |> html_response(200)
+      conn |> anon() |> post(~p"/r/#{two.uuid}", guest(%{})) |> html_response(200)
+
+      limited = conn |> anon() |> post(~p"/r/#{one.uuid}", guest(%{}))
+      html = html_response(limited, 429)
+      assert html =~ "Too many attempts. Please try again in 5 minutes."
+      assert html =~ ~s(value="Greta Guest")
+      assert [retry] = get_resp_header(limited, "retry-after")
+      assert String.to_integer(retry) in 1..300
+      assert length(Repo.all(Link)) == 2
+
+      # another address has its own bucket
+      conn
+      |> anon()
+      |> Map.put(:remote_ip, {10, 0, 0, 2})
+      |> post(~p"/r/#{one.uuid}", guest(%{}))
+      |> html_response(200)
+    end
+
+    test "per session: every address together", %{conn: conn, session: session} do
+      limits_on(guest_per_session: {2, 3600})
+
+      for i <- 1..2 do
+        conn
+        |> anon()
+        |> Map.put(:remote_ip, {10, 0, 0, i})
+        |> post(~p"/r/#{session.uuid}", guest(%{}))
+        |> html_response(200)
+      end
+
+      limited =
+        conn
+        |> anon()
+        |> Map.put(:remote_ip, {10, 0, 0, 3})
+        |> post(~p"/r/#{session.uuid}", guest(%{}))
+
+      assert html_response(limited, 429) =~ "Too many attempts."
+      assert length(Repo.all(Link)) == 2
+    end
+
+    test "switched on, the defaults let a club register over one Wi-Fi",
+         %{conn: conn, session: session} do
+      limits_on([])
+      assert Application.get_env(:cab, CabWeb.BotGuard)[:guest_per_ip] == {30, 600}
+
+      for i <- 1..16 do
+        conn
+        |> anon()
+        |> post(~p"/r/#{session.uuid}", guest(%{"name" => "Guest #{i}"}))
+        |> html_response(200)
+      end
+
+      assert length(Repo.all(Link)) == 16
+    end
+
+    test "off by default: no limit", %{conn: conn, club: club} do
+      refute Application.get_env(:cab, CabWeb.BotGuard)[:rate_limit]
+
+      for _ <- 1..7 do
+        session = session_fixture(club, engine_event_id: 11)
+        conn |> anon() |> post(~p"/r/#{session.uuid}", guest(%{})) |> html_response(200)
+      end
+    end
+
+    test "signed-in members are not limited",
+         %{conn: conn, club: club, member: member} do
+      limits_on(guest_per_ip: {1, 600}, guest_per_session: {1, 3600})
+
+      for _ <- 1..3 do
+        session = session_fixture(club, engine_event_id: 11)
+        registered = conn |> log_in(member) |> post(~p"/r/#{session.uuid}", %{})
+        assert Phoenix.Flash.get(registered.assigns.flash, :info) == "You are registered."
+      end
+    end
+
+    test "join requests: per account, then per IP", %{conn: conn, club: club} do
+      limits_on(join_per_user: {1, 3600}, join_per_ip: {2, 3600})
+      [ada, bob, cy] = for _ <- 1..3, do: user_fixture()
+
+      sent = conn |> log_in(ada) |> post(~p"/c/#{club.uuid}/join", join(%{}))
+      assert redirected_to(sent) == "/c/#{club.uuid}"
+
+      again = conn |> log_in(ada) |> post(~p"/c/#{club.uuid}/join", join(%{}))
+      assert html_response(again, 429) =~ "Too many attempts. Please try again in 60 minutes."
+      assert get_resp_header(again, "retry-after") != []
+
+      sent = conn |> log_in(bob) |> post(~p"/c/#{club.uuid}/join", join(%{}))
+      assert redirected_to(sent) == "/c/#{club.uuid}"
+
+      # ada's refused try took the IP's second token
+      third = conn |> log_in(cy) |> post(~p"/c/#{club.uuid}/join", join(%{}))
+      assert html_response(third, 429) =~ "Too many attempts."
+      assert length(Cab.Clubs.list_join_requests(club)) == 2
     end
   end
 end

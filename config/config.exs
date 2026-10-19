@@ -25,6 +25,18 @@ config :cab, CabWeb.RateLimit,
   anonymous: {20, 20},
   trust_cf_ip: false
 
+# the public forms' rate limit (CabWeb.BotGuard), off unless an operator
+# turns it on (rate_limit: true, or FORM_RATE_LIMIT=true in production).
+# Submits as {count, seconds} per client IP and per session (a guest's
+# registration), per account and per IP (join requests); per IP is
+# generous, a whole club may register over one Wi-Fi
+config :cab, CabWeb.BotGuard,
+  rate_limit: false,
+  guest_per_ip: {30, 600},
+  guest_per_session: {120, 3600},
+  join_per_user: {10, 3600},
+  join_per_ip: {30, 3600}
+
 # Policy and Terms are the deployment's own documents, one folder per
 # language (en/policy.md, en/terms.md, ...); cab only serves them.
 # LEGAL_DIR (runtime.exs, also read from .env) points at them; without it
