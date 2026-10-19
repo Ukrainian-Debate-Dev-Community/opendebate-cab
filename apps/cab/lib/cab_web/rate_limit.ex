@@ -61,7 +61,11 @@ defmodule CabWeb.RateLimit do
     end
   end
 
-  defp client_ip(conn, settings) do
+  @doc """
+  The visitor's address: CF-Connecting-IP when `trust_cf_ip` is on,
+  the connection's own address otherwise.
+  """
+  def client_ip(conn, settings \\ settings()) do
     forwarded = settings[:trust_cf_ip] && List.first(get_req_header(conn, "cf-connecting-ip"))
     forwarded || conn.remote_ip |> :inet.ntoa() |> to_string()
   end

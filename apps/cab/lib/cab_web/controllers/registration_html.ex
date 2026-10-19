@@ -42,6 +42,7 @@ defmodule CabWeb.RegistrationHTML do
         gettext("No account needed — you'll get a personal link that is your access to this session.")
       }
       errors={@errors}
+      guard={!@preview}
     >
       <:block
         name={:name}

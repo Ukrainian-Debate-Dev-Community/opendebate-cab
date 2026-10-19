@@ -1761,6 +1761,11 @@ msgstr ""
 msgid "Played as a guest? Paste that session's personal link to move its results onto this account."
 msgstr ""
 
+#: lib/cab_web/bot_guard.ex
+#, elixir-autogen, elixir-format
+msgid "Please confirm you are not a robot."
+msgstr ""
+
 #: lib/cab_web/club_scope.ex
 #: lib/cab_web/controllers/feedback_controller.ex
 #: lib/cab_web/controllers/guest_link_controller.ex
@@ -2768,6 +2773,11 @@ msgstr ""
 #: lib/cab_web/controllers/registration_html/created.html.heex
 #, elixir-autogen, elixir-format
 msgid "We also sent it to %{email}."
+msgstr ""
+
+#: lib/cab_web/bot_guard.ex
+#, elixir-autogen, elixir-format
+msgid "We could not check that you are not a robot right now. Please try again."
 msgstr ""
 
 #: lib/cab_web/controllers/registration_html/created.html.heex

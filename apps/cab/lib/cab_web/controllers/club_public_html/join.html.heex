@@ -18,6 +18,7 @@
         title={gettext("Join %{club}", club: @club.name)}
         description={gettext("The club head reads your answers before approving.")}
         errors={@errors}
+        guard
       >
         <:block
           name={:message}

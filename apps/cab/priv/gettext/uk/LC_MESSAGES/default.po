@@ -1770,6 +1770,11 @@ msgstr "Місце"
 msgid "Played as a guest? Paste that session's personal link to move its results onto this account."
 msgstr "Грали як гість? Вставте персональне посилання тієї сесії, щоб перенести її результати в цей акаунт."
 
+#: lib/cab_web/bot_guard.ex
+#, elixir-autogen, elixir-format
+msgid "Please confirm you are not a robot."
+msgstr "Підтвердіть, будь ласка, що ви не робот."
+
 #: lib/cab_web/club_scope.ex
 #: lib/cab_web/controllers/feedback_controller.ex
 #: lib/cab_web/controllers/guest_link_controller.ex
@@ -2781,6 +2786,11 @@ msgstr "Чекають (%{count})"
 #, elixir-autogen, elixir-format
 msgid "We also sent it to %{email}."
 msgstr "Ми також надіслали його на %{email}."
+
+#: lib/cab_web/bot_guard.ex
+#, elixir-autogen, elixir-format
+msgid "We could not check that you are not a robot right now. Please try again."
+msgstr "Зараз не вдалося перевірити, що ви не робот. Спробуйте ще раз."
 
 #: lib/cab_web/controllers/registration_html/created.html.heex
 #, elixir-autogen, elixir-format

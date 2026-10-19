@@ -443,6 +443,10 @@ defmodule CabWeb.Ui do
   attr :enctype, :string, default: nil, doc: "multipart/form-data for a :file block"
   attr :logo, :string, default: nil, doc: "an image beside the head block (the club's logo)"
 
+  attr :guard, :boolean,
+    default: false,
+    doc: "a public form's bot protection before the submit block (CabWeb.BotGuard)"
+
   slot :block do
     attr :name, :any
     attr :names, :list, doc: "the two field names of a :datetime pair"
@@ -498,6 +502,7 @@ defmodule CabWeb.Ui do
         <div :if={@errors[block[:name]]} class="error">{@errors[block[:name]]}</div>
         <div :if={block[:hint] && !@errors[block[:name]]} class="hint">{block[:hint]}</div>
       </div>
+      <.bot_guard :if={@guard} error={@errors[:turnstile]} />
       <div :for={submit <- @submit} class="f-submit">
         <button
           type="submit"
@@ -509,6 +514,37 @@ defmodule CabWeb.Ui do
         <span :if={submit[:note]} class="note">{submit[:note]}</span>
       </div>
     </form>
+    """
+  end
+
+  # the Turnstile widget (when configured) in its own block; it follows
+  # the footer's light/dark choice, the system's otherwise
+  attr :error, :string, default: nil
+
+  defp bot_guard(assigns) do
+    assigns = assign(assigns, :site_key, CabWeb.Turnstile.site_key())
+
+    ~H"""
+    <div :if={@site_key} class={["f-block", "f-guard", @error && "err"]}>
+      <div
+        class="cf-turnstile"
+        data-sitekey={@site_key}
+        data-language={Gettext.get_locale(CabWeb.Gettext)}
+        data-theme="auto"
+        data-size="flexible"
+      >
+      </div>
+      <div :if={@error} class="error">{@error}</div>
+      <script>
+        (() => {
+          const theme = document.documentElement.dataset.theme
+          if (theme === "light" || theme === "dark")
+            document.querySelectorAll(".cf-turnstile").forEach((el) => (el.dataset.theme = theme))
+        })()
+      </script>
+      <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer>
+      </script>
+    </div>
     """
   end
 
