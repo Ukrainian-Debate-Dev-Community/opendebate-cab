@@ -244,15 +244,15 @@ defmodule CabWeb.ClubLookTest do
     end
 
     test "the registration page shows the club's logo", %{conn: conn, club: club} do
-      session = session_fixture(club, engine_event_id: 11)
+      session_fixture(club, engine_event_id: 11)
       stub_stage()
 
-      html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
       refute html =~ "club-logo"
 
       club = with_logo(club, @jpeg)
 
-      html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
       assert html =~ ~s(class="f-head with-logo")
       assert html =~ ~s(src="/uploads/#{club.logo}")
     end

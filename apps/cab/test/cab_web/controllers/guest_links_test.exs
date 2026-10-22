@@ -77,14 +77,21 @@ defmodule CabWeb.GuestLinksTest do
       session = session_fixture(club, engine_event_id: 11)
       stub_stage([])
 
-      html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
 
+      assert html =~ ~s(id="register")
       assert html =~ ~s(id="guest-register-form")
-      assert html =~ ~s(action="/r/#{session.uuid}")
+      assert html =~ ~s(action="/c/#{club.uuid}/register")
+      assert html =~ ~s(name="session" value="#{session.uuid}")
       assert html =~ ~s(name="name")
       # no role choice: the head seats people at allocation
       refute html =~ ~s(name="as")
       refute html =~ "Registration is closed"
+    end
+
+    test "the old shared URL leads to the club page's section", %{conn: conn, club: club} do
+      session = session_fixture(club, engine_event_id: 11)
+      assert redirected_to(get(conn, ~p"/r/#{session.uuid}")) == "/c/#{club.uuid}#register"
     end
 
     test "unknown session is 404", %{conn: conn} do
@@ -93,10 +100,10 @@ defmodule CabWeb.GuestLinksTest do
     end
 
     test "any stage but :signup serves the closed notice", %{conn: conn, club: club} do
-      session = closed_session_fixture(club, engine_event_id: 11)
+      closed_session_fixture(club, engine_event_id: 11)
       stub_stage([])
 
-      html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
       assert html =~ "Registration is closed for this session."
       refute html =~ ~s(id="guest-register-form")
     end
@@ -120,11 +127,18 @@ defmodule CabWeb.GuestLinksTest do
       html =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{
-          name: "Greta Guest",
-          as: "speak",
-          answers: %{"email" => "greta@example.com"}
-        })
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(
+            %{
+              name: "Greta Guest",
+              as: "speak",
+              answers: %{"email" => "greta@example.com"}
+            },
+            "session",
+            session.uuid
+          )
+        )
         |> html_response(200)
 
       # an engine participant with no engine account behind it
@@ -160,7 +174,10 @@ defmodule CabWeb.GuestLinksTest do
       html =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{name: "   ", as: "speak"})
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(%{name: "   ", as: "speak"}, "session", session.uuid)
+        )
         |> html_response(422)
 
       assert html =~ "Enter a name."
@@ -173,13 +190,16 @@ defmodule CabWeb.GuestLinksTest do
       session = closed_session_fixture(club, engine_event_id: 11)
       stub_stage([])
 
-      html =
+      late =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{name: "Late Larry", as: "speak"})
-        |> html_response(200)
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(%{name: "Late Larry", as: "speak"}, "session", session.uuid)
+        )
 
-      assert html =~ "Registration is closed for this session."
+      assert redirected_to(late) == "/c/#{club.uuid}"
+      assert Phoenix.Flash.get(late.assigns.flash, :error) =~ "Registration is closed"
       assert Repo.all(Link) == []
       refute Repo.exists?(from u in User, where: like(u.username, "guest-%"))
     end
@@ -659,7 +679,7 @@ defmodule CabWeb.GuestLinksTest do
         |> html_response(200)
 
       assert html =~ ~s(id="shared-registration-url")
-      assert html =~ "/r/#{session.uuid}"
+      assert html =~ "/c/#{club.uuid}#register"
       assert html =~ ~s(data-copy=)
 
       # guests and everyone else share one table: kind, seat, link, remove

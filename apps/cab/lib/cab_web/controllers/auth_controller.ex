@@ -114,9 +114,12 @@ defmodule CabWeb.AuthController do
       |> put_session(:user_id, user.id)
       |> put_flash(:info, linked || gettext("Signed in as %{username}.", username: user.username))
 
-    # a head invitation opened before signing in finishes here
+    # a head invitation opened before signing in finishes here; else
+    # back to the page that asked for the sign-in, if one did
     {conn, path} = CabWeb.HeadInvitationController.accept_pending(conn, user)
-    redirect(conn, to: path || ~p"/")
+    return_to = get_session(conn, :return_to)
+    conn = delete_session(conn, :return_to)
+    redirect(conn, to: path || return_to || ~p"/")
   end
 
   def logout(conn, _params) do

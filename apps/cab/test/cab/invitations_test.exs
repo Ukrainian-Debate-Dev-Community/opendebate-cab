@@ -212,14 +212,14 @@ defmodule Cab.InvitationsTest do
     end
 
     test "registering through the shared link accepts a pending invitation",
-         %{conn: conn, head: head, session: session, agent: agent} do
+         %{club: club, conn: conn, head: head, session: session, agent: agent} do
       olena = user_fixture(%{username: "olena", node_user_id: 600})
       {:ok, _invitation} = Invitations.invite(head, session, olena)
 
       conn
       |> init_test_session(%{user_id: olena.id})
       |> Plug.Conn.put_private(:plug_skip_csrf_protection, true)
-      |> post(~p"/r/#{session.uuid}")
+      |> post(~p"/c/#{club.uuid}/register", %{"session" => session.uuid})
 
       assert [_claim] = calls(agent, "POST", "/api/users/claim-participant")
       # no second registration in the engine

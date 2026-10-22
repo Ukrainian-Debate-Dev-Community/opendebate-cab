@@ -113,6 +113,8 @@ defmodule CabWeb.Router do
     get "/standings/:tab", ClubPublicController, :standings
     get "/join", ClubPublicController, :join_form
     post "/join", ClubPublicController, :join
+    # the club page's registration section (#register) posts here
+    post "/register", ClubPublicController, :register
 
     # THE session page, public and stage-aware (reached via the
     # sidenav Rooms item). Its actions are identity-gated, not
@@ -140,8 +142,8 @@ defmodule CabWeb.Router do
     post "/s/:session_uuid/rooms/:id/feedback", FeedbackController, :create
 
     # the roster - the only member-gated page (v3.1: the member tree
-    # is gone; registration lives at /r/:sess, the club page is the
-    # sessions archive)
+    # is gone; registration is a section of the club page, which is
+    # also the sessions archive)
     get "/members", MemberController, :members
 
     # owner tree: /owner is the club page as an edit-in-place form
@@ -189,8 +191,8 @@ defmodule CabWeb.Router do
     get "/owner/sessions/:session_uuid/responses/csv", OwnerController, :responses_csv
   end
 
-  # /r/:session_uuid is THE one registration URL (v3.1): guests get a
-  # personal link, signed-in users sign up as themselves; /l/:code is a
+  # /r/:session_uuid, the registration URL heads shared before, leads
+  # to the club page's registration section; /l/:code is a
   # guest's permanent personal link - the code IS the identity:
   # opening it signs the browser session in as the guest and lands
   # on the session page, where their cancel/ballot actions work by
@@ -198,8 +200,7 @@ defmodule CabWeb.Router do
   scope "/", CabWeb do
     pipe_through :browser
 
-    get "/r/:session_uuid", RegistrationController, :new
-    post "/r/:session_uuid", RegistrationController, :create
+    get "/r/:session_uuid", RegistrationController, :show
 
     get "/l/:code", GuestLinkController, :show
     post "/l/:code/claim", GuestLinkController, :claim

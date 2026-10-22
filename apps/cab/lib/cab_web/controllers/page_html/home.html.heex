@@ -60,7 +60,7 @@
                   at={session.scheduled_at}
                   as={:weekday_time}
                 />
-                <.link href={~p"/r/#{session.uuid}"} class="btn-quiet btn-sm">
+                <.link href={~p"/c/#{club.uuid}" <> "#register"} class="btn-quiet btn-sm">
                   {gettext("Register")}
                 </.link>
               </span>

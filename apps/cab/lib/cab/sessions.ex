@@ -784,6 +784,7 @@ defmodule Cab.Sessions do
              EngineApi.delete_participant(head_actor, session.engine_event_id, participant_id) do
         Cab.Links.purge_guest(participant["id"])
         Cab.Invitations.forget_participant(session, participant_id)
+        Cab.Registrations.forget_participant(session, participant_id)
         :ok
       end
 

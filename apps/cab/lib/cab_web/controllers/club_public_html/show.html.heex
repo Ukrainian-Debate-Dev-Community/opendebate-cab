@@ -10,13 +10,17 @@
     <:seg :if={@club_role in [:owner, :admin]} href={~p"/c/#{@club.uuid}/owner"}>
       {gettext("Edit club")}
     </:seg>
-    <:seg :if={@club_role == :public and is_nil(@current_user)} href={~p"/signin"} primary>
+    <:seg
+      :if={@club_role == :public and is_nil(@current_user)}
+      href={~p"/signin"}
+      primary={!form_open?(@registration)}
+    >
       {gettext("Request to join")}
     </:seg>
     <:seg
       :if={@club_role == :public and @current_user}
       href={~p"/c/#{@club.uuid}/join"}
-      primary
+      primary={!form_open?(@registration)}
     >
       {gettext("Request to join")}
     </:seg>
@@ -24,6 +28,8 @@
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
+
+    <.registration_section :if={@registration} club={@club} registration={@registration} />
 
     <.section title={gettext("About")} pad>
       <div :if={@club.logo} class="club-id">

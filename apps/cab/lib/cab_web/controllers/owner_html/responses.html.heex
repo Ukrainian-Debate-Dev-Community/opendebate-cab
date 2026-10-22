@@ -21,12 +21,12 @@
 
   <div class="pbody">
     <.section title={
-      ngettext("Responses — %{count} guest", "Responses — %{count} guests", length(@rows))
+      ngettext("Responses — %{count} person", "Responses — %{count} people", length(@rows))
     }>
       <.table
         id="responses"
         rows={@rows}
-        empty={gettext("No guest has registered through the form yet.")}
+        empty={gettext("Nobody has registered through the form yet.")}
       >
         <:col :let={row} label={gettext("Name")}>{row.name}</:col>
         <:col :let={row} label={gettext("Registered")}>
