@@ -1,6 +1,19 @@
 defmodule CabWeb.MeHTML do
-  @moduledoc "/me - profile, invitations, my clubs and schedule, engine stats verbatim, history."
+  @moduledoc """
+  /me - profile, invitations, my clubs and schedule, engine stats
+  verbatim, history; and a member's saved answers for one club.
+  """
   use CabWeb, :html
+
+  import CabWeb.FormComponents,
+    only: [
+      answer_name: 1,
+      block_type: 1,
+      field_label: 1,
+      input_type: 1,
+      placeholder: 1,
+      prompt: 1
+    ]
 
   embed_templates "me_html/*"
 

@@ -9,20 +9,36 @@ defmodule CabWeb.Api.JoinRequestController do
   plug ClubScope, [source: :club, require: :authenticated] when action == :create
   plug ClubScope, [source: :join_request, require: :owner] when action == :update
 
-  # POST /api/cab/v1/clubs/:uuid/join-requests {"message", "contact"} -
-  # a join request IS a pending membership; both answers are
-  # REQUIRED (the join form's fields, read by the head in Requests)
+  # POST /api/cab/v1/clubs/:uuid/join-requests {"answers": {field id
+  # => value}, "message", "contact"} - a join request IS a pending
+  # membership; the answers to the club form's member fields are
+  # checked like the web form's, message and contact are optional
   def create(conn, params) do
-    with {:ok, membership} <-
-           Clubs.request_join(conn.assigns.current_user, conn.assigns.club, params) do
-      conn
-      |> put_status(201)
-      |> json(%{
-        id: membership.id,
-        status: membership.status,
-        message: membership.message,
-        contact: membership.contact
-      })
+    club = conn.assigns.club
+
+    case Clubs.request_join(conn.assigns.current_user, club, params) do
+      {:ok, membership} ->
+        conn
+        |> put_status(201)
+        |> json(%{
+          id: membership.id,
+          status: membership.status,
+          message: membership.message,
+          contact: membership.contact,
+          answers: membership.answers
+        })
+
+      {:error, {:answers, codes}} ->
+        {:error, answer_details(Clubs.member_fields(club), codes)}
+
+      error ->
+        error
+    end
+  end
+
+  defp answer_details(fields, codes) do
+    for field <- fields, code = codes[field["id"]], into: %{} do
+      {field["id"], CabWeb.FormComponents.answer_error(code, field["type"])}
     end
   end
 

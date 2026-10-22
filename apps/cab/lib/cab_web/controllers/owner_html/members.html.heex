@@ -24,11 +24,13 @@
           {request.user.username}
           <.sub :if={request.user.name}>{request.user.name}</.sub>
         </:col>
-        <:col :let={request} label={gettext("About them")}>
-          {request.message || "—"}
+        <:col :let={request} label={gettext("Answers")}>
+          <CabWeb.FormComponents.form_answers answers={request.answers} />
+          <span :if={request.message} class="sub answer">{request.message}</span>
           <.sub :if={request.contact}>
             {gettext("contact: %{contact}", contact: request.contact)}
           </.sub>
+          <span :if={request.answers == [] && !request.message && !request.contact}>—</span>
         </:col>
         <:col :let={request} label={gettext("Requested")}>
           <.local_time at={request.inserted_at} as={:date} />
@@ -59,6 +61,9 @@
           <.sub :if={membership.user.name}>{membership.user.name}</.sub>
         </:col>
         <:col :let={membership} label={gettext("Role")}>{role_word(membership.role)}</:col>
+        <:col :let={membership} label={gettext("Answers")}>
+          <CabWeb.FormComponents.form_answers answers={membership.answers} />
+        </:col>
         <:col :let={membership} label={gettext("Since")}>
           <.local_time at={membership.inserted_at} as={:date} />
         </:col>

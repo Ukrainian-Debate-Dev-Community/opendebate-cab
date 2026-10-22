@@ -133,46 +133,123 @@ defmodule CabWeb.HtmlTreesTest do
   # The join form
   # ---------------------------------------------------------------
 
-  test "join: the FORM page with required answers; the owner reads them in Requests", %{
+  test "join: the FORM asks the member fields; the owner reads the answers", %{
     conn: conn,
     club: club,
     head: head
   } do
+    club =
+      form_fields_fixture(club, [
+        %{"label" => "University", "type" => "text", "required" => "yes", "scope" => "members"},
+        %{
+          "label" => "Who invited you",
+          "type" => "text",
+          "required" => "yes",
+          "scope" => "guests"
+        }
+      ])
+
+    uni = field_id(club, "University")
     user = user_fixture(%{username: "wannabe"})
 
-    # the form page: both required blocks
+    # the form page: the member field, never the guests-only one
     form = conn |> log_in(user) |> get(~p"/c/#{club.uuid}/join") |> html_response(200)
     assert form =~ ~s(id="join-request-form")
-    assert form =~ ~s(name="message")
-    assert form =~ ~s(name="contact")
+    assert form =~ ~s(name="answers[#{uni}]")
+    assert form =~ "University"
+    refute form =~ "Who invited you"
+    refute form =~ ~s(name="message")
 
-    # missing answers re-render with the errors - no request created
-    failed = conn |> log_in(user) |> post(~p"/c/#{club.uuid}/join", %{message: "hi"})
-    assert html_response(failed, 422) =~ "tell the head"
+    # a missing answer re-renders with the error - no request created
+    failed = conn |> log_in(user) |> post(~p"/c/#{club.uuid}/join", %{answers: %{uni => " "}})
+    assert html_response(failed, 422) =~ "Fill this in."
     assert Cab.Clubs.list_join_requests(club) == []
 
-    sent =
-      conn
-      |> log_in(user)
-      |> post(~p"/c/#{club.uuid}/join", %{message: "I debated at school", contact: "@wb"})
+    sent = conn |> log_in(user) |> post(~p"/c/#{club.uuid}/join", %{answers: %{uni => "KPI"}})
 
     assert redirected_to(sent) == "/c/#{club.uuid}"
     assert Phoenix.Flash.get(sent.assigns.flash, :info) =~ "club head will review"
     assert [request] = Cab.Clubs.list_join_requests(club)
-    assert request.message == "I debated at school"
-    assert request.contact == "@wb"
+    assert Core.Forms.answer_values(request.answers) == %{uni => "KPI"}
+
+    # a second request goes back to the club page with the reason
+    again = conn |> log_in(user) |> post(~p"/c/#{club.uuid}/join", %{answers: %{uni => "KPI"}})
+    assert redirected_to(again) == "/c/#{club.uuid}"
+    assert Phoenix.Flash.get(again.assigns.flash, :error) =~ "already"
 
     # the owner's members page shows the answers
     owner_html =
       conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner/members") |> html_response(200)
 
     assert owner_html =~ "wannabe"
-    assert owner_html =~ "I debated at school"
-    assert owner_html =~ "@wb"
+    assert owner_html =~ "University"
+    assert owner_html =~ "KPI"
+
+    # once approved they stay with the member, still head-only
+    {:ok, _} = Cab.Clubs.approve_join(Cab.Clubs.get_membership(request.id))
+
+    owner_html =
+      conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner/members") |> html_response(200)
+
+    assert owner_html =~ "KPI"
+
+    member_view = conn |> log_in(user) |> get(~p"/c/#{club.uuid}/members") |> html_response(200)
+    assert member_view =~ "wannabe"
+    refute member_view =~ "KPI"
+
+    public_view = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
+    refute public_view =~ "KPI"
 
     # anonymous visitors hit the auth wall -> /signin
     anon = get(conn, ~p"/c/#{club.uuid}/join")
     assert redirected_to(anon) == "/signin"
+  end
+
+  test "My page: a member edits their saved answers for a club", %{conn: conn, club: club} do
+    club =
+      form_fields_fixture(club, [
+        %{"label" => "University", "type" => "text", "required" => "yes", "scope" => "members"}
+      ])
+
+    uni = field_id(club, "University")
+    user = user_fixture()
+    {:ok, request} = Cab.Clubs.request_join(user, club, %{"answers" => %{uni => "KPI"}})
+    {:ok, _} = Cab.Clubs.approve_join(Cab.Clubs.get_membership(request.id))
+
+    Req.Test.stub(Core.Engine, fn req ->
+      data =
+        if req.request_path in ["/api/users/schedule", "/api/users/history"],
+          do: %{"as_adjudicator" => [], "as_player" => []},
+          else: nil
+
+      Req.Test.json(req, %{"status" => "success", "data" => data})
+    end)
+
+    me = conn |> log_in(user) |> get(~p"/me") |> html_response(200)
+    assert me =~ ~s(href="/me/clubs/#{club.uuid}/answers")
+
+    page = conn |> log_in(user) |> get(~p"/me/clubs/#{club.uuid}/answers") |> html_response(200)
+    assert page =~ ~s(id="member-answers-form")
+    assert page =~ ~s(value="KPI")
+    assert page =~ "that session only"
+
+    failed =
+      conn |> log_in(user) |> post(~p"/me/clubs/#{club.uuid}/answers", %{answers: %{uni => ""}})
+
+    assert html_response(failed, 422) =~ "Fill this in."
+
+    saved =
+      conn
+      |> log_in(user)
+      |> post(~p"/me/clubs/#{club.uuid}/answers", %{answers: %{uni => "KNU"}})
+
+    assert redirected_to(saved) == "/me"
+    membership = Cab.Clubs.membership_of(club, user)
+    assert Core.Forms.answer_values(membership.answers) == %{uni => "KNU"}
+
+    # someone else's club: nothing to edit
+    other = club_fixture(user_fixture())
+    assert conn |> log_in(user) |> get(~p"/me/clubs/#{other.uuid}/answers") |> response(404)
   end
 
   test "owner approves and declines from the members page", %{

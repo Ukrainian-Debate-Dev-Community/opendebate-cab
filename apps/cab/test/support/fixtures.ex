@@ -40,6 +40,24 @@ defmodule Cab.Fixtures do
     |> Repo.insert!()
   end
 
+  @doc """
+  Adds fields to the club's registration form, each from editor
+  params ("label", "type", "required" "yes"/"no", "scope", "options");
+  returns the updated club.
+  """
+  def form_fields_fixture(%Club{} = club, fields) do
+    Enum.reduce(fields, club, fn params, club ->
+      {:ok, club} =
+        Cab.Clubs.edit_registration_form(club, &Core.Forms.add_field(&1, params))
+
+      club
+    end)
+  end
+
+  @doc "The id of the club form's field with that label."
+  def field_id(%Club{} = club, label),
+    do: Enum.find_value(Cab.Clubs.guest_form(club), &(&1["label"] == label && &1["id"]))
+
   def session_fixture(%Club{} = club, opts \\ []) do
     %Session{
       club_id: club.id,

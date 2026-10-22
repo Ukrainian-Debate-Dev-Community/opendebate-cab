@@ -62,6 +62,11 @@ msgstr "%{club} — вступ"
 msgid "%{club} — Members"
 msgstr "%{club} — члени клубу"
 
+#: lib/cab_web/controllers/me_controller.ex
+#, elixir-autogen, elixir-format
+msgid "%{club} — My answers"
+msgstr "%{club} — мої відповіді"
+
 #: lib/cab_web/controllers/registration_controller.ex
 #, elixir-autogen, elixir-format
 msgid "%{club} — Register"
@@ -346,21 +351,11 @@ msgstr "АПФ"
 msgid "About"
 msgstr "Про клуб"
 
-#: lib/cab_web/controllers/club_public_html/join.html.heex
-#, elixir-autogen, elixir-format
-msgid "About me"
-msgstr "Про мене"
-
 #: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "About the club"
 msgstr "Про клуб"
-
-#: lib/cab_web/controllers/owner_html/members.html.heex
-#, elixir-autogen, elixir-format
-msgid "About them"
-msgstr "Про людину"
 
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
@@ -490,6 +485,11 @@ msgstr "Ім'я користувача або e-mail акаунта. Якщо e-
 #, elixir-autogen, elixir-format
 msgid "Answer"
 msgstr "Відповідь"
+
+#: lib/cab_web/controllers/owner_html/members.html.heex
+#, elixir-autogen, elixir-format
+msgid "Answers"
+msgstr "Відповіді"
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -744,11 +744,6 @@ msgstr "Клуби"
 #, elixir-autogen, elixir-format
 msgid "Clubs run weekly practice rounds: pick one and come debate."
 msgstr "Клуби щотижня проводять тренувальні раунди: оберіть свій і приходьте дебатувати."
-
-#: lib/cab_web/controllers/club_public_html/join.html.heex
-#, elixir-autogen, elixir-format
-msgid "Contact"
-msgstr "Контакт"
 
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
@@ -1479,6 +1474,11 @@ msgstr "Резолюція: ще не опублікована"
 msgid "Motions"
 msgstr "Резолюції"
 
+#: lib/cab_web/controllers/me_html/answers.html.heex
+#, elixir-autogen, elixir-format
+msgid "My answers"
+msgstr "Мої відповіді"
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "My clubs"
@@ -1486,6 +1486,7 @@ msgstr "Мої клуби"
 
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/me_controller.ex
+#: lib/cab_web/controllers/me_html/answers.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
@@ -1687,6 +1688,11 @@ msgstr "На одну кімнату більше"
 #, elixir-autogen, elixir-format
 msgid "Only for an invitation: the name the e-mail greets."
 msgstr "Лише для запрошення: ім'я, до якого звертається лист."
+
+#: lib/cab_web/controllers/me_html/answers.html.heex
+#, elixir-autogen, elixir-format
+msgid "Only the club head sees your answers."
+msgstr "Ваші відповіді бачить лише голова клубу."
 
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex
 #, elixir-autogen, elixir-format
@@ -2150,6 +2156,7 @@ msgid "Same person's other account"
 msgstr "Інший акаунт тієї ж людини"
 
 #: lib/cab_web/controllers/account_html/show.html.heex
+#: lib/cab_web/controllers/me_html/answers.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Save"
@@ -2473,11 +2480,6 @@ msgstr "ім'я користувача в Telegram"
 msgid "Telegram, email — how newcomers reach the club."
 msgstr "Telegram, e-mail — як новачки можуть зв'язатися з клубом."
 
-#: lib/cab_web/controllers/club_public_html/join.html.heex
-#, elixir-autogen, elixir-format
-msgid "Telegram, phone or email the head can reach you at."
-msgstr "Telegram, телефон або e-mail, за якими голова клубу може з вами зв'язатися."
-
 #: lib/cab_web/components/layouts/app.html.heex
 #: lib/cab_web/controllers/page_controller.ex
 #: lib/cab_web/controllers/signin_html/show.html.heex
@@ -2521,11 +2523,6 @@ msgstr "Акаунти лишаються окремими."
 #, elixir-autogen, elixir-format
 msgid "The club head reads your answers before approving."
 msgstr "Голова клубу читає ваші відповіді, перш ніж схвалити заявку."
-
-#: lib/cab_web/controllers/club_public_html/join.html.heex
-#, elixir-autogen, elixir-format
-msgid "The club head will review your request."
-msgstr "Голова клубу розгляне вашу заявку."
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
@@ -2866,11 +2863,6 @@ msgstr "Яка мова, напр. польська"
 msgid "Who"
 msgstr "Хто"
 
-#: lib/cab_web/controllers/club_public_html/join.html.heex
-#, elixir-autogen, elixir-format
-msgid "Who you are and why you want to debate here."
-msgstr "Хто ви і чому хочете дебатувати тут."
-
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Who's registered"
@@ -2957,6 +2949,16 @@ msgstr "Можливо, у вас уже є акаунт"
 msgid "You set the number of rooms by hand; Automatic makes it follow the sign-ups again;"
 msgstr "Кількість кімнат ви задали вручну; «Автоматично» знову рахуватиме їх за реєстраціями;"
 
+#: lib/cab_web/controllers/club_public_html/join.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your answers are also your defaults when you register for this club's sessions; change them on My page."
+msgstr "Ці відповіді стануть типовими для ваших реєстрацій на сесії клубу; змінити їх можна на «Моїй сторінці»."
+
+#: lib/cab_web/controllers/me_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Your answers are saved."
+msgstr "Ваші відповіді збережено."
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -2967,6 +2969,11 @@ msgstr "Ваша середня оцінка з базовим голосом:"
 #, elixir-autogen, elixir-format
 msgid "Your data"
 msgstr "Ваші дані"
+
+#: lib/cab_web/controllers/me_html/answers.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your default answers for this club: every registration for its sessions starts from them. Changing an answer while registering changes it for that session only."
+msgstr "Ваші типові відповіді для цього клубу: з них починається кожна реєстрація на його сесії. Якщо змінити відповідь під час реєстрації, зміна стосується лише цієї сесії."
 
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
@@ -3159,6 +3166,11 @@ msgstr "раніше:"
 #, elixir-autogen, elixir-format
 msgid "edit"
 msgstr "змінити"
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "edit answers"
+msgstr "змінити відповіді"
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #, elixir-autogen, elixir-format

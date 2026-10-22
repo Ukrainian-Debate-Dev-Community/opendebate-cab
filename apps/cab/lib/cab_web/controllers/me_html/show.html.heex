@@ -62,6 +62,14 @@
               {tonight_words(@tonight[m.club_id])}
           <% end %>
         </:col>
+        <:col :let={m}>
+          <.link
+            :if={Cab.Clubs.member_fields(m.club) != []}
+            href={~p"/me/clubs/#{m.club.uuid}/answers"}
+          >
+            {gettext("edit answers")}
+          </.link>
+        </:col>
       </.table>
     </.section>
 

@@ -161,13 +161,14 @@ defmodule Cab.FormTextTest do
       %{club: club_fixture(head), user: user_fixture()}
     end
 
-    test "both answers need visible text", %{club: club, user: user} do
-      for blank <- @blanks do
-        assert {:error, changeset} =
-                 Clubs.request_join(user, club, %{"message" => blank, "contact" => blank})
+    test "a message or contact with nothing visible is left out", %{club: club, user: user} do
+      blank = " \u200B "
 
-        assert %{message: [_], contact: [_]} = errors_on(changeset)
-      end
+      assert {:ok, membership} =
+               Clubs.request_join(user, club, %{"message" => blank, "contact" => blank})
+
+      assert membership.message == nil
+      assert membership.contact == nil
     end
 
     test "over-long or garbled answers are refused; good ones are trimmed",

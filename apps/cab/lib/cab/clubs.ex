@@ -115,6 +115,9 @@ defmodule Cab.Clubs do
   def guest_fields(%Club{} = club),
     do: Enum.reject(guest_form(club), &(Club.scope(&1) == "members"))
 
+  @doc "The registration form's fields a member is asked (scope members or both)."
+  def member_fields(%Club{} = club), do: Core.Forms.for_audience(guest_form(club), :member)
+
   @doc """
   The head edits the club's guest registration form: `edit` gets the
   current `Core.Forms` definition and returns `{:ok, definition}` (then
@@ -263,19 +266,54 @@ defmodule Cab.Clubs do
   # ---------------------------------------------------------------
 
   @doc """
-  A signed-in user asks to join through the join FORM: a pending
-  membership row carrying the two required answers (about me +
-  contact) the head reads in Requests. Never a bare button.
+  A signed-in user asks to join: a pending membership row with their
+  answers to the club form's member fields (`attrs["answers"]`, keyed
+  by field id) - saved as their defaults for this club - and, from
+  older clients, an optional message and contact. `{:error, {:answers,
+  codes}}` (field id => Core.Forms code) when an answer is refused.
   """
   def request_join(%User{} = user, %Club{} = club, attrs \\ %{}) do
-    %Membership{user_id: user.id, club_id: club.id}
-    |> Membership.join_changeset(%{
-      role: "member",
-      status: "pending",
-      message: attrs["message"] || attrs[:message],
-      contact: attrs["contact"] || attrs[:contact]
-    })
-    |> Repo.insert()
+    with {:ok, answers} <- check_member_answers(club, attrs) do
+      %Membership{user_id: user.id, club_id: club.id}
+      |> Membership.join_changeset(
+        %{
+          role: "member",
+          status: "pending",
+          message: attrs["message"] || attrs[:message],
+          contact: attrs["contact"] || attrs[:contact]
+        },
+        answers
+      )
+      |> Repo.insert()
+    end
+  end
+
+  @doc """
+  The member changes their saved answers for the club (My page ->
+  My clubs -> Edit); session registrations start from them.
+  """
+  def update_member_answers(%Membership{} = membership, params) do
+    with {:ok, answers} <- check_member_answers(membership.club, %{"answers" => params}) do
+      membership |> Ecto.Changeset.change(answers: answers) |> Repo.update()
+    end
+  end
+
+  @doc "The user's membership row in the club (pending included), with the club, or nil."
+  def membership_of(%Club{} = club, %User{} = user) do
+    Repo.one(
+      from m in Membership,
+        where: m.club_id == ^club.id and m.user_id == ^user.id,
+        preload: [:club]
+    )
+  end
+
+  defp check_member_answers(club, attrs) do
+    params = attrs["answers"] || attrs[:answers]
+
+    case Core.Forms.validate_answers(member_fields(club), params) do
+      {:ok, answers} -> {:ok, answers}
+      {:error, codes} -> {:error, {:answers, codes}}
+    end
   end
 
   def get_membership(id), do: Repo.get(Membership, id) |> Repo.preload([:user, :club])

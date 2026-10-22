@@ -268,7 +268,7 @@ defmodule CabWeb.BotGuardTest do
         |> html_response(422)
 
       assert html =~ "Please confirm you are not a robot."
-      assert html =~ "I debated at school"
+      assert html =~ ~s(id="join-request-form")
       assert Cab.Clubs.list_join_requests(club) == []
 
       turnstile_on()

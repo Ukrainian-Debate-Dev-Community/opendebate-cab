@@ -546,7 +546,7 @@
           "Clubs"
         ],
         "summary": "Ask to join",
-        "description": "A join request is a pending membership. Both answers are required; the head reads them.",
+        "description": "A join request is a pending membership. answers holds the answers to the club form's member fields, keyed by field id, checked like the web form; they become the member's saved answers, which only the head reads. message and contact are optional and kept for older clients.",
         "parameters": [
           {
             "name": "uuid",
@@ -560,25 +560,26 @@
           }
         ],
         "requestBody": {
-          "required": true,
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
+                  "answers": {
+                    "type": "object",
+                    "description": "Field id => value: a string, a list of strings for multiple choice, \"yes\" for a ticked yes/no",
+                    "additionalProperties": true
+                  },
                   "message": {
                     "type": "string",
-                    "description": "About you"
+                    "description": "About you (optional)"
                   },
                   "contact": {
                     "type": "string",
-                    "description": "How the head can reach you"
+                    "description": "How the head can reach you (optional)"
                   }
-                },
-                "required": [
-                  "message",
-                  "contact"
-                ]
+                }
               }
             }
           }
@@ -2777,6 +2778,25 @@
               "string",
               "null"
             ]
+          },
+          "answers": {
+            "type": "array",
+            "description": "The answers given, each with the field's id, label and type copied in",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "value": {}
+              }
+            }
           }
         }
       },

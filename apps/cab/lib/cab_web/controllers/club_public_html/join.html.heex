@@ -21,24 +21,23 @@
         guard
       >
         <:block
-          name={:message}
-          type={:longtext}
-          label={gettext("About me")}
-          required
-          maxlength={Cab.Clubs.Membership.max_lengths().message}
-          value={@message}
-          hint={gettext("Who you are and why you want to debate here.")}
+          :for={field <- @fields}
+          name={answer_name(field)}
+          type={block_type(field)}
+          label={field_label(field)}
+          required={field["required"]}
+          hint={field["hint"]}
+          options={field["options"]}
+          value={@answers[field["id"]]}
+          input={input_type(field)}
+          placeholder={placeholder(field)}
+          prompt={prompt(field)}
         />
-        <:block
-          name={:contact}
-          type={:text}
-          label={gettext("Contact")}
-          required
-          maxlength={Cab.Clubs.Membership.max_lengths().contact}
-          value={@contact}
-          hint={gettext("Telegram, phone or email the head can reach you at.")}
-        />
-        <:submit note={gettext("The club head will review your request.")}>
+        <:submit note={
+          gettext(
+            "Your answers are also your defaults when you register for this club's sessions; change them on My page."
+          )
+        }>
           {gettext("Send request")}
         </:submit>
       </.form_for>
