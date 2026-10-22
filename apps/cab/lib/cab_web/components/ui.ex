@@ -149,13 +149,6 @@ defmodule CabWeb.Ui do
             href={members_href(@club, @club_role)}
             label={gettext("Members")}
           />
-          <.nav_item
-            :if={@nav_session && Cab.Sessions.stage_of(@nav_session) == :signup}
-            active={@active}
-            key="register"
-            href={~p"/r/#{@nav_session.uuid}"}
-            label={gettext("Register")}
-          />
         <% else %>
           <.nav_item active={@active} key="clubs" href={~p"/"} label={gettext("Clubs")} />
           <.nav_item

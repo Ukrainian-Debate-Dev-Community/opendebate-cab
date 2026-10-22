@@ -393,9 +393,9 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(id="register-form")
     assert html =~ "Registering as"
     # the sidenav follows the viewer's real role here too: a member
-    # sees the member roster link, Register is lit
+    # sees the member roster link; registration is not a sidebar item
     assert html =~ ~s(href="/c/#{club.uuid}/members")
-    assert html =~ ~s(class="item on">Register<)
+    refute html =~ ">Register<"
 
     head_html =
       conn
