@@ -506,6 +506,11 @@ msgstr "Попросіть адміністратора, який вас зап�
 msgid "Ask the club head about the next session."
 msgstr "Спитайте голову клубу про наступну сесію."
 
+#: lib/cab_web/components/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Asked of"
+msgstr "Кого питаємо"
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Audience"
@@ -928,6 +933,11 @@ msgstr "Сітка"
 msgid "E-mail address"
 msgstr "Адреса e-mail"
 
+#: lib/cab_web/controllers/owner_html/guest_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Each field is asked of guests, of members, or of both. Guests answer theirs when they register for a session of the club without an account."
+msgstr "Кожне поле адресоване гостям, членам клубу або всім. Гості заповнюють свої поля, коли реєструються на сесію клубу без акаунта."
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Edit"
@@ -1132,15 +1142,15 @@ msgstr "Гість"
 msgid "Guest history"
 msgstr "Гостьова історія"
 
-#: lib/cab_web/controllers/owner_html/guest_form.html.heex
+#: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
-msgid "Guest registration form"
-msgstr "Форма реєстрації гостей"
+msgid "Guests and members"
+msgstr "Гості та члени клубу"
 
-#: lib/cab_web/controllers/owner_html/guest_form.html.heex
+#: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
-msgid "Guests answer these fields when they register for any session of the club without an account. Members who sign in are not asked."
-msgstr "Гості заповнюють ці поля, коли реєструються на будь-яку сесію клубу без акаунта. Учасників, які входять в акаунт, не питають."
+msgid "Guests only"
+msgstr "Лише гості"
 
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
@@ -1394,6 +1404,11 @@ msgstr "Члени клубу"
 #, elixir-autogen, elixir-format
 msgid "Members (%{count})"
 msgstr "Члени клубу (%{count})"
+
+#: lib/cab_web/components/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Members only"
+msgstr "Лише члени клубу"
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format

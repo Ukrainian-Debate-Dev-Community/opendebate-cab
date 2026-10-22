@@ -79,7 +79,7 @@ defmodule CabWeb.OwnerController do
   # this club, with nothing to send
   def preview_form(conn, _params) do
     render(conn, :guest_form_preview,
-      fields: Clubs.guest_form(conn.assigns.club),
+      fields: Clubs.guest_fields(conn.assigns.club),
       page_title: gettext("%{club} - Registration form", club: conn.assigns.club.name)
     )
   end
@@ -146,7 +146,7 @@ defmodule CabWeb.OwnerController do
     render(conn, :guest_form,
       definition: Clubs.guest_form(conn.assigns.club),
       editing: editing,
-      values: Map.take(values, ~w(label hint type required options)),
+      values: Map.take(values, ~w(label hint type required options scope)),
       errors: errors,
       page_title: gettext("%{club} - Registration form", club: conn.assigns.club.name)
     )

@@ -10,9 +10,13 @@ defmodule Core.Forms do
 
       %{"id" => "k3J9xQ2a", "type" => "phone", "label" => "Phone",
         "hint" => nil, "required" => true, "options" => [],
-        "locked" => false}
+        "scope" => "both", "locked" => false}
 
-  The id is stable across edits. A locked field is one the app always
+  The id is stable across edits. The scope says who is asked the
+  field: "guests" (people without an account with the app's owner -
+  a club's guests, say), "members", or "both" (also when a stored
+  field has none); `for_audience/2` picks a form's fields for one of
+  them. A locked field is one the app always
   asks (`with_locked/2` puts the app's locked fields in front when it
   reads a definition): it cannot be removed or moved, and only its
   required flag and hint can change. Answers are a list in form order:
@@ -30,10 +34,12 @@ defmodule Core.Forms do
   Editing functions take the editor's params ("label", "hint",
   "required" "yes"/"no", "type", "options" one per line) and return
   `{:ok, definition}`, `{:error, :not_found}` or `{:error, errors}`
-  keyed by param (or `:form`), with these codes:
+  keyed by param (or `:form`), with these codes ("scope" is optional,
+  "both" when not sent):
 
     * `:required`, `{:too_long, max}`, `:invalid` - label, hint
     * `:unknown_type` - type
+    * `:unknown_scope` - scope
     * `{:options_count, min, max}`, `{:option_too_long, max}`,
       `:duplicate_options`, `:invalid` - options of the choice types
     * `{:too_many_fields, max}`, `:duplicate_id`, `:not_a_list`,
@@ -48,6 +54,7 @@ defmodule Core.Forms do
 
   @types ~w(text longtext number email phone telegram yesno choice multi)
   @choice_types ~w(choice multi)
+  @scopes ~w(guests members both)
   @max_fields 30
   @label_max 120
   @hint_max 200
@@ -96,6 +103,24 @@ defmodule Core.Forms do
     do: part != "" and not String.starts_with?(part, ".") and
       not String.ends_with?(part, ".") and not String.contains?(part, "..")
 
+  @doc "Every scope, in the editor's order."
+  def scopes, do: @scopes
+
+  @doc "A field's scope: its stored one, \"both\" when it has none."
+  def scope(%{"scope" => scope}) when scope in @scopes, do: scope
+  def scope(_field), do: "both"
+
+  @doc """
+  The fields asked of an audience, in form order: `:guest` gets the
+  "guests" and "both" fields, `:member` the "members" and "both" ones.
+  """
+  def for_audience(definition, audience) when is_list(definition) do
+    skip = if audience == :member, do: "guests", else: "members"
+    Enum.reject(definition, &(scope(&1) == skip))
+  end
+
+  def for_audience(_definition, _audience), do: []
+
   @doc "Does this type pick from options?"
   def choice_type?(type), do: type in @choice_types
 
@@ -120,7 +145,8 @@ defmodule Core.Forms do
 
   @doc """
   Replaces a field's settings, keeping its id and place. A locked
-  field takes only "required" and "hint"; its label and type stay.
+  field takes only "required" and "hint"; its label, type and
+  scope stay.
   """
   def update_field(definition, id, params) when is_list(definition) do
     with %{} = old <- field(definition, id) || {:error, :not_found},
@@ -137,7 +163,8 @@ defmodule Core.Forms do
     |> lock()
   end
 
-  defp rebuild(old, params), do: build_field(params, old["id"])
+  defp rebuild(old, params),
+    do: build_field(Map.put_new(params, "scope", scope(old)), old["id"])
 
   defp lock({:ok, field}), do: {:ok, Map.put(field, "locked", true)}
   defp lock(error), do: error
@@ -192,8 +219,8 @@ defmodule Core.Forms do
   The definition with the app's locked fields in front, in the given
   order - for reading a stored definition (even an empty one). Each
   locked field keeps its stored "required" and "hint"; its id, type,
-  label and options are the app's. The other stored fields follow,
-  unlocked.
+  label, options and scope are the app's. The other stored fields
+  follow, unlocked, each with its scope ("both" when it has none).
   """
   def with_locked(definition, locked) when is_list(locked) do
     definition = if is_list(definition), do: definition, else: []
@@ -205,11 +232,14 @@ defmodule Core.Forms do
 
         default
         |> Map.merge(Map.take(stored, ~w(required hint)))
+        |> Map.put("scope", scope(default))
         |> Map.put("locked", true)
       end
 
     rest =
-      for field <- definition, field["id"] not in locked_ids, do: Map.put(field, "locked", false)
+      for field <- definition, field["id"] not in locked_ids do
+        field |> Map.put("scope", scope(field)) |> Map.put("locked", false)
+      end
 
     fixed ++ rest
   end
@@ -286,7 +316,7 @@ defmodule Core.Forms do
   end
 
   @doc "A field as the editor's params (the edit form's starting values)."
-  def field_params(nil), do: %{"type" => "text", "required" => "no"}
+  def field_params(nil), do: %{"type" => "text", "required" => "no", "scope" => "both"}
 
   def field_params(field) when is_map(field) do
     %{
@@ -294,6 +324,7 @@ defmodule Core.Forms do
       "hint" => field["hint"],
       "type" => field["type"],
       "required" => if(field["required"] in [true, "yes", "true"], do: "yes", else: "no"),
+      "scope" => field["scope"] || "both",
       "options" => field["options"] |> List.wrap() |> Enum.join("\n")
     }
   end
@@ -304,12 +335,14 @@ defmodule Core.Forms do
     hint = Core.Text.clean(params["hint"], max: @hint_max)
     type = params["type"]
     options = if choice_type?(type), do: options(params["options"]), else: []
+    scope = params["scope"] || "both"
 
     errors =
       %{}
       |> put_error(:label, match?({:error, _}, label), elem(label, 1))
       |> put_error(:hint, match?({:error, _}, hint), elem(hint, 1))
       |> put_error(:type, type not in @types, :unknown_type)
+      |> put_error(:scope, scope not in @scopes, :unknown_scope)
       |> put_error(:options, choice_type?(type) && options_error(options), options_error(options))
 
     if errors == %{} do
@@ -321,6 +354,7 @@ defmodule Core.Forms do
          "hint" => elem(hint, 1),
          "required" => params["required"] in ["yes", "true", true],
          "options" => options,
+         "scope" => scope,
          "locked" => false
        }}
     else

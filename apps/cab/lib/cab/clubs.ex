@@ -111,6 +111,9 @@ defmodule Cab.Clubs do
   def guest_form(%Club{} = club),
     do: Core.Forms.with_locked(club.guest_form, Club.guest_form_locked())
 
+  @doc "The registration form's fields a guest is asked (scope guests or both)."
+  def guest_fields(%Club{} = club), do: Core.Forms.for_audience(guest_form(club), :guest)
+
   @doc """
   The head edits the club's guest registration form: `edit` gets the
   current `Core.Forms` definition and returns `{:ok, definition}` (then

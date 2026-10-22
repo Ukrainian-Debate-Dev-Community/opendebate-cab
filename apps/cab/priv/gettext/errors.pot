@@ -59,6 +59,11 @@ msgstr ""
 msgid "Choose one."
 msgstr ""
 
+#: lib/cab_web/components/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose who is asked."
+msgstr ""
+
 #: lib/cab/links.ex
 #, elixir-autogen, elixir-format
 msgid "Could not create the personal link. Try again."

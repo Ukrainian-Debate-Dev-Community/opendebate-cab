@@ -162,6 +162,54 @@ defmodule Core.FormsTest do
     end
   end
 
+  describe "scopes" do
+    test "a field is for both unless it says otherwise" do
+      [field] = add!([], %{"label" => "A", "type" => "text"})
+      assert field["scope"] == "both"
+      assert Forms.field_params(field)["scope"] == "both"
+      assert Forms.field_params(nil)["scope"] == "both"
+      assert Forms.scope(%{"label" => "stored before scopes"}) == "both"
+      assert Forms.scope(%{"scope" => "nobody"}) == "both"
+
+      assert [%{"scope" => "both"}] =
+               Forms.with_locked([%{"id" => "x", "label" => "Old", "type" => "text"}], [])
+    end
+
+    test "an unknown scope is refused" do
+      assert {:error, %{scope: :unknown_scope}} =
+               Forms.add_field([], %{"label" => "A", "type" => "text", "scope" => "all"})
+    end
+
+    test "an edit keeps the scope unless it sends one" do
+      [field] = add!([], %{"label" => "A", "type" => "text", "scope" => "members"})
+      id = field["id"]
+      assert {:ok, [%{"scope" => "members"}]} = Forms.update_field([field], id, %{"label" => "B", "type" => "text"})
+
+      assert {:ok, [%{"scope" => "guests"}]} =
+               Forms.update_field([field], id, %{"label" => "B", "type" => "text", "scope" => "guests"})
+    end
+
+    test "for_audience picks a form's fields for guests or members" do
+      form =
+        []
+        |> add!(%{"label" => "G", "type" => "text", "scope" => "guests"})
+        |> add!(%{"label" => "M", "type" => "text", "scope" => "members"})
+        |> add!(%{"label" => "B", "type" => "text"})
+
+      assert Enum.map(Forms.for_audience(form, :guest), & &1["label"]) == ["G", "B"]
+      assert Enum.map(Forms.for_audience(form, :member), & &1["label"]) == ["M", "B"]
+      assert Forms.for_audience(nil, :guest) == []
+    end
+
+    test "normalize keeps a sent scope and refuses an unknown one" do
+      sent = [%{"id" => "a", "label" => "A", "type" => "text", "scope" => "members"}]
+      assert {:ok, [%{"scope" => "members"}]} = Forms.normalize(sent)
+
+      assert {:error, %{0 => %{scope: :unknown_scope}}} =
+               Forms.normalize([%{"label" => "A", "type" => "text", "scope" => "x"}])
+    end
+  end
+
   describe "locked fields" do
     @email %{
       "id" => "email",
@@ -169,7 +217,8 @@ defmodule Core.FormsTest do
       "label" => "Your e-mail",
       "hint" => nil,
       "required" => true,
-      "options" => []
+      "options" => [],
+      "scope" => "guests"
     }
 
     setup do
@@ -211,7 +260,8 @@ defmodule Core.FormsTest do
           "label" => "Other",
           "type" => "text",
           "required" => "no",
-          "hint" => "for the link"
+          "hint" => "for the link",
+          "scope" => "members"
         })
 
       assert email == Map.merge(@email, %{"required" => false, "hint" => "for the link", "locked" => true})

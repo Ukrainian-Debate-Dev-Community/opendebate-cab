@@ -72,6 +72,11 @@ msgstr "Оберіть із запропонованих варіантів."
 msgid "Choose one."
 msgstr "Оберіть один."
 
+#: lib/cab_web/components/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose who is asked."
+msgstr "Оберіть, кого питати."
+
 #: lib/cab/links.ex
 #, elixir-autogen, elixir-format
 msgid "Could not create the personal link. Try again."
