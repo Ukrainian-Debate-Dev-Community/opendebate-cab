@@ -457,6 +457,31 @@ defmodule CabWeb.GuestLinksTest do
       assert conn |> get(~p"/l/#{link.code}") |> response(404)
     end
 
+    test "cancelling in the club page's section goes back to it",
+         %{conn: conn, club: club, session: session, link: link} do
+      stub_stage([guest_signup(41, nil)], [], fn conn, _params ->
+        case {conn.method, conn.request_path} do
+          {"PUT", "/api/events/11/participants/41"} ->
+            ok(conn, %{})
+
+          {"DELETE", "/api/events/11/participants/41"} ->
+            Req.Test.json(conn, %{"status" => "success", "message" => "Participant archived."})
+
+          _other ->
+            nil
+        end
+      end)
+
+      conn = get(conn, ~p"/l/#{link.code}")
+
+      conn =
+        conn
+        |> anon()
+        |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove?from=club")
+
+      assert redirected_to(conn) == "/c/#{club.uuid}#register"
+    end
+
     test "guest cannot cancel someone else's signup",
          %{conn: conn, club: club, session: session, link: link} do
       stub_stage([guest_signup(41, nil), guest_signup(42, 888, "speaker", "Other")])

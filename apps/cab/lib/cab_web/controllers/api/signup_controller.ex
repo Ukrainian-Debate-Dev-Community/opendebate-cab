@@ -21,11 +21,35 @@ defmodule CabWeb.Api.SignupController do
     end
   end
 
-  def create(conn, _params) do
-    with {:ok, participant} <- Sessions.signup(conn.assigns.current_user, conn.assigns.session) do
-      conn
-      |> put_status(201)
-      |> json(%{participant_id: participant["id"]})
+  # self sign-up {"answers": {field id => value}}: the same club form
+  # questions as the club page (Cab.Registrations), required ones
+  # included
+  def create(conn, params) do
+    user = conn.assigns.current_user
+    session = conn.assigns.session
+
+    case Cab.Registrations.register(user, session, answer_params(params)) do
+      {:ok, participant_id} ->
+        conn
+        |> put_status(201)
+        |> json(%{participant_id: participant_id})
+
+      {:error, {:answers, codes}} ->
+        session = Cab.Repo.preload(session, :club)
+        {_kind, fields, _values} = Cab.Registrations.form_for(session.club, user)
+        {:error, answer_details(fields, codes)}
+
+      error ->
+        error
+    end
+  end
+
+  defp answer_params(%{"answers" => answers}) when is_map(answers), do: answers
+  defp answer_params(_params), do: %{}
+
+  defp answer_details(fields, codes) do
+    for field <- fields, code = codes[field["id"]], into: %{} do
+      {field["id"], CabWeb.FormComponents.answer_error(code, field["type"])}
     end
   end
 

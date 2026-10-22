@@ -22,9 +22,19 @@ defmodule CabWeb.SessionPageController do
   # POST .../signups/:participant_id/remove - the viewer cancels
   # their OWN registration (member or guest alike; the context
   # authorises owner-or-self)
-  def cancel_signup(conn, %{"session_uuid" => session_uuid, "participant_id" => participant_id}) do
+  # (from=club: cancelled in the club page's registration section,
+  # which is where the viewer goes back to)
+  def cancel_signup(
+        conn,
+        %{"session_uuid" => session_uuid, "participant_id" => participant_id} = params
+      ) do
     club = conn.assigns.club
-    back = fn session -> ~p"/c/#{club.uuid}/s/#{session.uuid}" end
+
+    back = fn session ->
+      if params["from"] == "club",
+        do: ~p"/c/#{club.uuid}" <> "#register",
+        else: ~p"/c/#{club.uuid}/s/#{session.uuid}"
+    end
 
     with %User{} = user <- conn.assigns.current_user,
          %Session{} = session <- Sessions.get_for_club(club, session_uuid),

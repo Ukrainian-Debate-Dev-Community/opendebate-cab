@@ -143,7 +143,7 @@ defmodule CabWeb.ClubPublicHTML do
               <.link
                 :if={@registration.signup}
                 href={
-                  ~p"/c/#{@club.uuid}/s/#{@registration.session.uuid}/signups/#{@registration.signup["id"]}/remove"
+                  ~p"/c/#{@club.uuid}/s/#{@registration.session.uuid}/signups/#{@registration.signup["id"]}/remove?from=club"
                 }
                 method="post"
                 class="btn-quiet btn-sm"

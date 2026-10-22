@@ -180,10 +180,34 @@ defmodule CabWeb.ApiFlowTest do
     assert state["stage"] == "signup"
     assert state["club_uuid"] == club.uuid
 
-    signup =
+    # the club form's required member field is asked here too
+    phone = %{
+      "id" => "phone",
+      "type" => "phone",
+      "label" => "Phone",
+      "hint" => nil,
+      "required" => true,
+      "scope" => "members"
+    }
+
+    club
+    |> Ecto.Changeset.change(guest_form: Cab.Clubs.guest_form(club) ++ [phone])
+    |> Cab.Repo.update!()
+
+    refused =
       conn
       |> log_in(member)
       |> post(~p"/api/cab/v1/sessions/#{session_uuid}/signups", %{})
+      |> json_response(422)
+
+    assert Map.has_key?(refused["details"], "phone")
+
+    signup =
+      conn
+      |> log_in(member)
+      |> post(~p"/api/cab/v1/sessions/#{session_uuid}/signups", %{
+        "answers" => %{"phone" => "+380 50 123 45 67"}
+      })
       |> json_response(201)
 
     assert is_integer(signup["participant_id"])
