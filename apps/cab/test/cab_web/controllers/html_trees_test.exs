@@ -466,7 +466,7 @@ defmodule CabWeb.HtmlTreesTest do
       conn |> log_in(member) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
 
     assert page =~ "Register"
-    assert page =~ "/c/#{club.uuid}#register"
+    assert page =~ "/c/#{club.uuid}?session=#{session.uuid}#register"
 
     # the section, signed in as a member: the member fields prefilled
     # from the saved answers, no name, no guests-only field
@@ -509,7 +509,7 @@ defmodule CabWeb.HtmlTreesTest do
         "answers" => %{uni => "KNU"}
       })
 
-    assert redirected_to(registered) == "/c/#{club.uuid}#register"
+    assert redirected_to(registered) == "/c/#{club.uuid}?session=#{session.uuid}#register"
     assert Phoenix.Flash.get(registered.assigns.flash, :info) =~ "registered"
 
     # this session's answer is KNU; the saved default stays KPI
@@ -600,7 +600,7 @@ defmodule CabWeb.HtmlTreesTest do
         "answers" => %{who => "Anna"}
       })
 
-    assert redirected_to(registered) == "/c/#{club.uuid}#register"
+    assert redirected_to(registered) == "/c/#{club.uuid}?session=#{session.uuid}#register"
     assert [registration] = Cab.Registrations.for_session(session)
     assert registration.user_id == outsider.id
     assert Core.Forms.answer_values(registration.answers) == %{who => "Anna"}

@@ -89,9 +89,39 @@ defmodule CabWeb.GuestLinksTest do
       refute html =~ "Registration is closed"
     end
 
+    test "several open sessions: choose one, the nearest first", %{conn: conn, club: club} do
+      later = session_fixture(club, name: "Later", scheduled_at: ~U[2026-11-05 18:00:00Z])
+      nearer = session_fixture(club, name: "Nearer", scheduled_at: ~U[2026-11-01 18:00:00Z])
+      _closed = session_fixture(club, signups_closed_at: ~U[2026-10-20 18:00:00Z])
+      stub_stage([])
+
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
+
+      assert html =~ "Choose a session:"
+      assert html =~ ~s(href="/c/#{club.uuid}?session=#{later.uuid}#register")
+      assert html =~ ~s(href="/c/#{club.uuid}?session=#{nearer.uuid}#register")
+      assert html =~ ~s(name="session" value="#{nearer.uuid}")
+      # a session closed for sign-ups is not offered
+      assert length(String.split(html, ~s(class="reg-choice))) == 3
+
+      chosen = conn |> get(~p"/c/#{club.uuid}?session=#{later.uuid}") |> html_response(200)
+      assert chosen =~ ~s(name="session" value="#{later.uuid}")
+      refute chosen =~ ~s(name="session" value="#{nearer.uuid}")
+    end
+
+    test "one open session: no choice to make", %{conn: conn, club: club} do
+      _session = session_fixture(club, engine_event_id: 11)
+      stub_stage([])
+
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
+      refute html =~ "Choose a session:"
+    end
+
     test "the old shared URL leads to the club page's section", %{conn: conn, club: club} do
       session = session_fixture(club, engine_event_id: 11)
-      assert redirected_to(get(conn, ~p"/r/#{session.uuid}")) == "/c/#{club.uuid}#register"
+
+      assert redirected_to(get(conn, ~p"/r/#{session.uuid}")) ==
+               "/c/#{club.uuid}?session=#{session.uuid}#register"
     end
 
     test "unknown session is 404", %{conn: conn} do
@@ -479,7 +509,7 @@ defmodule CabWeb.GuestLinksTest do
         |> anon()
         |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove?from=club")
 
-      assert redirected_to(conn) == "/c/#{club.uuid}#register"
+      assert redirected_to(conn) == "/c/#{club.uuid}?session=#{session.uuid}#register"
     end
 
     test "guest cannot cancel someone else's signup",
@@ -704,7 +734,7 @@ defmodule CabWeb.GuestLinksTest do
         |> html_response(200)
 
       assert html =~ ~s(id="shared-registration-url")
-      assert html =~ "/c/#{club.uuid}#register"
+      assert html =~ "/c/#{club.uuid}?session=#{session.uuid}#register"
       assert html =~ ~s(data-copy=)
 
       # guests and everyone else share one table: kind, seat, link, remove

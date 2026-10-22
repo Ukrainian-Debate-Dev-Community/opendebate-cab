@@ -13,8 +13,11 @@ defmodule CabWeb.RegistrationController do
 
   def show(conn, %{"session_uuid" => session_uuid}) do
     case Sessions.get_by_uuid(session_uuid) do
-      %Session{club: club} -> redirect(conn, to: ~p"/c/#{club.uuid}" <> "#register")
-      nil -> CabWeb.ErrorHTML.respond(conn, 404)
+      %Session{} = session ->
+        redirect(conn, to: CabWeb.ClubPublicController.register_path(session))
+
+      nil ->
+        CabWeb.ErrorHTML.respond(conn, 404)
     end
   end
 end

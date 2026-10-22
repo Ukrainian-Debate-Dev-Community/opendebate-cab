@@ -657,6 +657,11 @@ msgstr "Змініть час, щоб перенести кінець підго
 msgid "Choose a guest."
 msgstr "Оберіть гостя."
 
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "Choose a session:"
+msgstr "Оберіть сесію:"
+
 #: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
@@ -1762,6 +1767,11 @@ msgstr "Відкрити сторінку моєї сесії"
 #, elixir-autogen, elixir-format
 msgid "Open new session"
 msgstr "Відкрити нову сесію"
+
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "Open sessions"
+msgstr "Відкриті сесії"
 
 #: lib/cab_web/controllers/club_public_html.ex
 #, elixir-autogen, elixir-format
@@ -3213,6 +3223,11 @@ msgstr "сторінці клубу"
 msgid "contact: %{contact}"
 msgstr "контакт: %{contact}"
 
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "date to be set"
+msgstr "дату ще не призначено"
+
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "debating — waiting for the ballot"
@@ -3675,6 +3690,11 @@ msgstr "так/ні"
 #, elixir-autogen, elixir-format
 msgid "you"
 msgstr "ви"
+
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "you are registered"
+msgstr "ви зареєстровані"
 
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format

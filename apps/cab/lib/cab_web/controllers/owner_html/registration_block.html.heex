@@ -1,5 +1,8 @@
 <%= if @state.stage == :signup do %>
-  <.copy_banner id="shared-registration-url" url={url(~p"/c/#{@club.uuid}") <> "#register"}>
+  <.copy_banner
+    id="shared-registration-url"
+    url={url(~p"/c/#{@club.uuid}?#{[session: @session_uuid]}") <> "#register"}
+  >
     {gettext("Share to register: the club page")}
   </.copy_banner>
 

@@ -15,8 +15,8 @@ defmodule CabWeb.ClubPublicController do
   # join CTA; while the club's current session takes sign-ups, the
   # registration section (#register) is the page's gold action. The
   # owner edits the same page in place at /owner.
-  def show(conn, _params) do
-    render_show(conn, registration(conn, %{}, %{}))
+  def show(conn, params) do
+    render_show(conn, registration(conn, Map.take(params, ["session"]), %{}))
   end
 
   # POST /c/:club_uuid/register {"session", "name", "answers"} - the
@@ -55,7 +55,7 @@ defmodule CabWeb.ClubPublicController do
       {:ok, _participant_id} ->
         conn
         |> put_flash(:info, gettext("You are registered."))
-        |> redirect(to: ~p"/c/#{session.club.uuid}" <> "#register")
+        |> redirect(to: register_path(session))
 
       {:error, {:answers, codes}} ->
         {_kind, fields, _values} = Cab.Registrations.form_for(session.club, user)
@@ -103,7 +103,7 @@ defmodule CabWeb.ClubPublicController do
 
         conn
         |> CabWeb.Caching.no_store()
-        |> render_show(%{registration(conn, %{}, %{}) | done: done})
+        |> render_show(%{registration(conn, %{"session" => session.uuid}, %{}) | done: done})
 
       {:error, :conflict, message} ->
         conn |> put_flash(:error, message) |> redirect(to: ~p"/c/#{session.club.uuid}")
@@ -151,13 +151,46 @@ defmodule CabWeb.ClubPublicController do
     )
   end
 
-  # the registration section, or nil: the club's current session and
-  # what this viewer sees of it - :guest, :member or :account (a form),
-  # :registered, :closed or :running. `params`/`errors` refill a form
+  @doc "The club page's registration section, with this session chosen."
+  def register_path(%Session{} = session),
+    do: ~p"/c/#{session.club.uuid}?#{[session: session.uuid]}" <> "#register"
+
+  # the registration section, or nil: every session taking sign-ups to
+  # choose from (params["session"], else the nearest one the viewer is
+  # not registered for) and what this viewer sees of the chosen one -
+  # :guest, :member or :account (a form), :registered; with none open,
+  # the current session's :closed or :running. `params`/`errors`
+  # refill a form
   defp registration(conn, params, errors) do
-    case Sessions.current_for_club(conn.assigns.club) do
-      nil -> nil
-      session -> section(conn, %{session | club: conn.assigns.club}, params, errors)
+    club = conn.assigns.club
+
+    case Enum.map(Sessions.open_for_club(club), &%{&1 | club: club}) do
+      [] ->
+        case Sessions.current_for_club(club) do
+          nil -> nil
+          session -> section(conn, %{session | club: club}, params, errors)
+        end
+
+      open ->
+        choices = Enum.map(open, &%{session: &1, registered: registered?(conn, &1)})
+
+        chosen =
+          Enum.find(open, &(&1.uuid == params["session"])) ||
+            Enum.find_value(choices, hd(open), &(!&1.registered && &1.session))
+
+        section = section(conn, chosen, params, errors)
+        if length(choices) > 1, do: %{section | choices: choices}, else: section
+    end
+  end
+
+  defp registered?(conn, session) do
+    viewer = conn.assigns.current_user
+
+    cond do
+      is_nil(viewer) -> false
+      Cab.Links.holds_session?(viewer.id, session) -> true
+      user = account(viewer) -> own_signup(session, user) != nil
+      true -> false
     end
   end
 
@@ -170,7 +203,8 @@ defmodule CabWeb.ClubPublicController do
       name: params["name"],
       errors: errors,
       signup: nil,
-      done: nil
+      done: nil,
+      choices: []
     }
 
     viewer = conn.assigns.current_user
@@ -201,7 +235,7 @@ defmodule CabWeb.ClubPublicController do
 
       true ->
         {kind, fields, saved} = Cab.Registrations.form_for(session.club, user)
-        values = if params == %{}, do: saved, else: answer_params(params)
+        values = if Map.has_key?(params, "answers"), do: answer_params(params), else: saved
         %{base | kind: kind, fields: fields, values: values}
     end
   end

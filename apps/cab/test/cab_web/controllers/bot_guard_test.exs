@@ -273,7 +273,7 @@ defmodule CabWeb.BotGuardTest do
         |> log_in(member)
         |> post(~p"/c/#{club.uuid}/register", Map.put(%{}, "session", session.uuid))
 
-      assert redirected_to(registered) == "/c/#{club.uuid}#register"
+      assert redirected_to(registered) == "/c/#{club.uuid}?session=#{session.uuid}#register"
       assert Phoenix.Flash.get(registered.assigns.flash, :info) == "You are registered."
       refute_received {:siteverify, _form}
     end

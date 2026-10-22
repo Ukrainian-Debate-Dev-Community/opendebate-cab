@@ -134,7 +134,7 @@ defmodule CabWeb.CabinetHomeTest do
       })
 
     membership_fixture(user, club)
-    session_fixture(club, engine_event_id: 11)
+    session = session_fixture(club, engine_event_id: 11)
 
     Req.Test.stub(Core.Engine, fn req ->
       case req.request_path do
@@ -181,7 +181,9 @@ defmodule CabWeb.CabinetHomeTest do
     assert html =~ "a session is open"
     assert html =~ ~s(href="/c/#{club.uuid}")
     # the club list: a Register button, no "registration open" words
-    assert html =~ ~s(href="/c/#{club.uuid}#register" class="btn-quiet btn-sm")
+    assert html =~
+             ~s(href="/c/#{club.uuid}?session=#{session.uuid}#register" class="btn-quiet btn-sm")
+
     refute html =~ "registration open"
   end
 

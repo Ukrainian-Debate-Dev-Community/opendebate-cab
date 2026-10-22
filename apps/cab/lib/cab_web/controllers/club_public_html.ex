@@ -30,8 +30,9 @@ defmodule CabWeb.ClubPublicHTML do
   defp session_title(session), do: session.name || gettext("The next session")
 
   @doc """
-  The club page's registration section (#register) for the club's
-  current session: a form while it takes sign-ups (the guest form,
+  The club page's registration section (#register): with several
+  sessions taking sign-ups, a choice of them first; then for the
+  chosen one: a form while it takes sign-ups (the guest form,
   or the member's / account's fields as themselves), the guest's
   personal link once registered, else where things stand.
   """
@@ -42,6 +43,30 @@ defmodule CabWeb.ClubPublicHTML do
     ~H"""
     <div id="register">
       <.section title={gettext("Registration")}>
+        <nav
+          :if={@registration.choices != []}
+          class="pad reg-choices"
+          aria-label={gettext("Open sessions")}
+        >
+          <span class="hint">{gettext("Choose a session:")}</span>
+          <.link
+            :for={choice <- @registration.choices}
+            href={~p"/c/#{@club.uuid}?#{[session: choice.session.uuid]}" <> "#register"}
+            class={["reg-choice", choice.session.id == @registration.session.id && "on"]}
+            aria-current={choice.session.id == @registration.session.id && "true"}
+          >
+            <span class="when">
+              <.local_time
+                :if={choice.session.scheduled_at}
+                at={choice.session.scheduled_at}
+                as={:weekday_time}
+              />
+              <span :if={!choice.session.scheduled_at}>{gettext("date to be set")}</span>
+            </span>
+            <b>{session_title(choice.session)}</b>
+            <span :if={choice.registered} class="mine">{gettext("you are registered")}</span>
+          </.link>
+        </nav>
         <div class="pad">
           <b>{session_title(@registration.session)}</b>
           <span :if={@registration.session.scheduled_at}>
@@ -87,7 +112,9 @@ defmodule CabWeb.ClubPublicHTML do
             />
             <div class="pad">
               {gettext("Have an account?")}
-              <.link href={~p"/signin?#{[return_to: "/c/#{@club.uuid}#register"]}"}>
+              <.link href={
+                ~p"/signin?#{[return_to: "/c/#{@club.uuid}?session=#{@registration.session.uuid}#register"]}"
+              }>
                 {gettext("Sign in")}
               </.link>
               {gettext("to register as yourself.")}

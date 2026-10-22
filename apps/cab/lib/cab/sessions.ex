@@ -156,6 +156,21 @@ defmodule Cab.Sessions do
   end
 
   @doc """
+  The club's sessions taking sign-ups (not closed, started or
+  finished), nearest scheduled date first (unscheduled last, newest
+  first) - the club page's registration section offers each.
+  """
+  def open_for_club(%Club{} = club) do
+    Repo.all(
+      from s in Session,
+        where:
+          s.club_id == ^club.id and is_nil(s.finished_at) and is_nil(s.started_at) and
+            is_nil(s.signups_closed_at),
+        order_by: [asc_nulls_last: s.scheduled_at, desc: s.id]
+    )
+  end
+
+  @doc """
   The club's session people are looking for: a running one, else the
   unfinished one with the nearest scheduled date (unscheduled last),
   else the one finished last; nil for a club with no sessions.

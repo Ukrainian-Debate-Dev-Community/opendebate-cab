@@ -32,7 +32,7 @@ defmodule CabWeb.SessionPageController do
 
     back = fn session ->
       if params["from"] == "club",
-        do: ~p"/c/#{club.uuid}" <> "#register",
+        do: ~p"/c/#{club.uuid}?#{[session: session.uuid]}" <> "#register",
         else: ~p"/c/#{club.uuid}/s/#{session.uuid}"
     end
 
