@@ -31,7 +31,7 @@ defmodule CabWeb.LiveScope do
          |> assign(:current_user, user)
          |> assign(:club, club)
          |> assign(:club_role, Clubs.role_for(club, user))
-         |> assign(:nav_session, List.first(Sessions.list_for_club(club)))}
+         |> assign(:nav_session, Sessions.focus_for_club(club))}
     end
   end
 

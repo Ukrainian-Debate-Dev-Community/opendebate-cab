@@ -153,8 +153,29 @@ defmodule Cab.Sessions do
     end
   end
 
+  @doc "The club's sessions, latest date first (scheduled, else opened)."
   def list_for_club(%Club{} = club) do
-    Repo.all(from s in Session, where: s.club_id == ^club.id, order_by: [desc: s.id])
+    Repo.all(
+      from s in Session,
+        where: s.club_id == ^club.id,
+        order_by: [desc: coalesce(s.scheduled_at, s.inserted_at), desc: s.id]
+    )
+  end
+
+  @doc """
+  The club's session people are looking for: a running one, else the
+  unfinished one with the nearest scheduled date (unscheduled last),
+  else the one finished last; nil for a club with no sessions.
+  """
+  def focus_for_club(%Club{} = club), do: current_for_club(club) || last_finished(club)
+
+  defp last_finished(club) do
+    Repo.one(
+      from s in Session,
+        where: s.club_id == ^club.id and not is_nil(s.finished_at),
+        order_by: [desc: s.finished_at, desc: s.id],
+        limit: 1
+    )
   end
 
   @doc "The club's session with this uuid, or nil - guards cross-club ids."
@@ -1688,12 +1709,19 @@ defmodule Cab.Sessions do
   def stage_of(%Session{signups_closed_at: %DateTime{}}), do: :closed
   def stage_of(%Session{}), do: :signup
 
-  @doc "The club's session that is not finished yet, or nil."
+  @doc """
+  The club's unfinished session, or nil: a running one first, else the
+  nearest scheduled date (unscheduled last, newest first).
+  """
   def current_for_club(%Club{} = club) do
     Repo.one(
       from s in Session,
         where: s.club_id == ^club.id and is_nil(s.finished_at),
-        order_by: [desc: s.id],
+        order_by: [
+          asc: is_nil(s.started_at),
+          asc_nulls_last: s.scheduled_at,
+          desc: s.id
+        ],
         limit: 1
     )
   end
@@ -1833,7 +1861,7 @@ defmodule Cab.Sessions do
   def user_schedule(%User{}), do: []
 
   @doc """
-  The club page's "Club Sessions" table: EVERY session, newest first,
+  The club page's "Club Sessions" table: EVERY session, latest first,
   with its status from cab's records - done (+ the winner recorded at
   finish) | live | open. Pure database, no engine call.
   """
@@ -1863,7 +1891,7 @@ defmodule Cab.Sessions do
     Repo.all(
       from s in Session,
         where: s.club_id == ^club.id and not is_nil(s.finished_at),
-        order_by: [desc: s.finished_at]
+        order_by: [desc: coalesce(s.scheduled_at, s.inserted_at), desc: s.id]
     )
     |> Enum.map(fn session ->
       %{

@@ -311,7 +311,7 @@ defmodule CabWeb.HtmlTreesTest do
         time: "18:30"
       })
 
-    assert [session, _done] = Cab.Sessions.list_for_club(club)
+    assert [session] = Enum.reject(Cab.Sessions.list_for_club(club), & &1.finished_at)
     assert redirected_to(opened) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
     assert session.engine_event_id == 12
     assert session.scheduled_at == ~U[2026-10-09 18:30:00Z]

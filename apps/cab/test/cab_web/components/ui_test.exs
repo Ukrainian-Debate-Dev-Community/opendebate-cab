@@ -93,7 +93,7 @@ defmodule CabWeb.UiTest do
   test "sidenav club context: place items, role-scoped targets" do
     assigns = %{
       club: %{uuid: "abc", name: "Kyiv Debate Club", is_private: false},
-      session: %{uuid: "s1"}
+      session: %Cab.Sessions.Session{uuid: "s1"}
     }
 
     member_html =
@@ -133,6 +133,21 @@ defmodule CabWeb.UiTest do
 
     refute no_session =~ "/c/abc/s/"
     refute no_session =~ ">Register<"
+
+    # a finished session keeps Rooms (its results) but takes no sign-ups
+    assigns =
+      Map.put(assigns, :done, %Cab.Sessions.Session{
+        uuid: "s0",
+        finished_at: ~U[2026-10-08 20:00:00Z]
+      })
+
+    done_html =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:member} nav_session={@done} />
+      """)
+
+    assert done_html =~ ~s(href="/c/abc/s/s0")
+    refute done_html =~ ">Register<"
 
     # a private club's roster is members-only, so outsiders lose the item
     assigns = %{assigns | club: %{assigns.club | is_private: true}}

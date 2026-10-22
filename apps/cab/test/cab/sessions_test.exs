@@ -1309,4 +1309,42 @@ defmodule Cab.SessionsTest do
     assert recorded.winner_user_ids == [444]
     assert Sessions.stage_of(recorded) == :done
   end
+
+  describe "the club's current session" do
+    test "a running session first, else the nearest scheduled date", %{club: club} do
+      _far = session_fixture(club, scheduled_at: ~U[2026-12-01 18:00:00Z])
+      near = session_fixture(club, scheduled_at: ~U[2026-11-01 18:00:00Z])
+      _unscheduled = session_fixture(club)
+      assert Sessions.current_for_club(club).id == near.id
+
+      running = session_fixture(club, started_at: ~U[2026-10-20 18:00:00Z])
+      assert Sessions.current_for_club(club).id == running.id
+      assert Sessions.focus_for_club(club).id == running.id
+    end
+
+    test "unscheduled sessions come after scheduled ones, newest first", %{club: club} do
+      _older = session_fixture(club)
+      newer = session_fixture(club)
+      assert Sessions.current_for_club(club).id == newer.id
+
+      dated = session_fixture(club, scheduled_at: ~U[2027-01-01 18:00:00Z])
+      assert Sessions.current_for_club(club).id == dated.id
+    end
+
+    test "with nothing unfinished, the session finished last", %{club: club} do
+      assert Sessions.focus_for_club(club) == nil
+
+      _first = session_fixture(club, finished_at: ~U[2026-10-01 20:00:00Z])
+      last = session_fixture(club, finished_at: ~U[2026-10-08 20:00:00Z])
+      assert Sessions.current_for_club(club) == nil
+      assert Sessions.focus_for_club(club).id == last.id
+    end
+
+    test "lists sessions by date, latest first", %{club: club} do
+      a = session_fixture(club, scheduled_at: ~U[2026-10-01 18:00:00Z])
+      c = session_fixture(club, scheduled_at: ~U[2026-11-01 18:00:00Z])
+      b = session_fixture(club, scheduled_at: ~U[2026-10-15 18:00:00Z])
+      assert Enum.map(Sessions.list_for_club(club), & &1.id) == [c.id, b.id, a.id]
+    end
+  end
 end

@@ -69,12 +69,12 @@ defmodule CabWeb.ClubScope do
     club.archived_at != nil and not (user != nil and user.is_admin)
   end
 
-  # the sidenav's Rooms item needs the club's newest session; HTML
+  # the sidenav's Rooms item needs the club's current session; HTML
   # pages only (the JSON API carries no shell)
   defp assign_nav_session(conn, club) do
     case get_format(conn) do
       "json" -> conn
-      _ -> assign(conn, :nav_session, List.first(Sessions.list_for_club(club)))
+      _ -> assign(conn, :nav_session, Sessions.focus_for_club(club))
     end
   end
 
