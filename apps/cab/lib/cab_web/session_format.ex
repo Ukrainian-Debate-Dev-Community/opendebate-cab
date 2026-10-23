@@ -47,15 +47,18 @@ defmodule CabWeb.SessionFormat do
       else: gettext("motion pending, %{status}", status: status)
   end
 
-  @doc "The team at a side position; a 1-speaker team is marked (iron)."
+  @doc """
+  The people speaking at a side position (team names stay internal);
+  one person speaking twice is marked (iron).
+  """
   def team_label(room, position) do
     case Enum.find(room["RoomTeams"] || [], &(&1["position"] == position)) do
       nil ->
         "—"
 
       room_team ->
-        name = get_in(room_team, ["Team", "name"]) || "—"
-        if iron_team?(room_team), do: gettext("%{team} (iron)", team: name), else: name
+        names = if (n = speaker_names(room_team)) == "", do: "—", else: n
+        if iron_team?(room_team), do: gettext("%{team} (iron)", team: names), else: names
     end
   end
 
@@ -78,6 +81,32 @@ defmodule CabWeb.SessionFormat do
     else
       _ -> "—"
     end
+  end
+
+  @doc """
+  The room's adjudicators, the chair first: `%{name, chair}` each,
+  names resolved through the signups list like `judge_name/2`.
+  """
+  def judges(room, signups) do
+    (room["RoomAdjudicators"] || [])
+    |> Enum.sort_by(&(&1["role"] != "chair"))
+    |> Enum.map(fn adjudicator ->
+      id = get_in(adjudicator, ["EventParticipant", "id"])
+
+      name =
+        get_in(adjudicator, ["EventParticipant", "display_name"]) ||
+          Enum.find_value(signups, &(&1["id"] == id && &1["display_name"])) || "—"
+
+      %{name: name, chair: adjudicator["role"] == "chair"}
+    end)
+  end
+
+  @doc "The people speaking for a room team, each once (an iron speaker too)."
+  def speaker_list(room_team) do
+    (room_team["RoomSpeakers"] || [])
+    |> Enum.map(&get_in(&1, ["EventParticipant", "display_name"]))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
   end
 
   @doc "A room's teams in table (og/oo/cg/co) order."
