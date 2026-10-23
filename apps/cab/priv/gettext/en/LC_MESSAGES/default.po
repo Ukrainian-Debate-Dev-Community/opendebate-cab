@@ -239,11 +239,6 @@ msgstr ""
 msgid "(iron)"
 msgstr ""
 
-#: lib/cab_web/controllers/standings_html/standings_body.html.heex
-#, elixir-autogen, elixir-format
-msgid "(latest finished)"
-msgstr ""
-
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex
 #, elixir-autogen, elixir-format
 msgid ", a guest at %{session} in %{club}."
@@ -445,6 +440,11 @@ msgstr ""
 msgid "Admin"
 msgstr ""
 
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "All finished sessions of %{club}"
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html.ex
 #, elixir-autogen, elixir-format
 msgid "Allocation — %{count} room(s), count automatic"
@@ -543,8 +543,12 @@ msgstr ""
 msgid "Avg feedback counts a base of 5 as one vote: (5 + every feedback score) / (feedback count + 1)."
 msgstr ""
 
-#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Avg points"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Avg score"
 msgstr ""
@@ -930,6 +934,11 @@ msgstr ""
 msgid "Each field is asked of guests, of members, or of both. Guests answer theirs when they register for a session of the club without an account."
 msgstr ""
 
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Earlier session"
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Edit"
@@ -1005,6 +1014,7 @@ msgstr ""
 #: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Feedback"
 msgstr ""
@@ -1325,6 +1335,11 @@ msgstr ""
 msgid "Language:"
 msgstr ""
 
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Later session"
+msgstr ""
+
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Linking lets you sign in to this same account with either. Separate accounts are fine too: link only if you want them to be one. If the method you link already has its own cab account, you can merge the two."
@@ -1589,6 +1604,11 @@ msgstr ""
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "No results for this session yet."
+msgstr ""
+
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "No results yet."
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
@@ -2761,6 +2781,11 @@ msgid_plural "Too many attempts. Please try again in %{count} minutes."
 msgstr[0] ""
 msgstr[1] ""
 
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Total points"
+msgstr ""
+
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
 msgid "Two teams share a total. BP allows no ties, so adjust the scores."
@@ -3163,11 +3188,6 @@ msgstr ""
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "e-mail"
-msgstr ""
-
-#: lib/cab_web/controllers/standings_html/standings_body.html.heex
-#, elixir-autogen, elixir-format
-msgid "earlier:"
 msgstr ""
 
 #: lib/cab_web/components/form_components.ex

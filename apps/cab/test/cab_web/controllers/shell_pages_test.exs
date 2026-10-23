@@ -315,7 +315,7 @@ defmodule CabWeb.ShellPagesTest do
       assert speakers =~ "Anna Kovalenko"
       assert speakers =~ ~r/>\s*233\s*</
       assert speakers =~ "77.67"
-      assert speakers =~ "Avg score"
+      assert speakers =~ "Avg points"
       assert speakers =~ "Speeches"
 
       judges = conn |> get(~p"/standings/adjudicators") |> html_response(200)

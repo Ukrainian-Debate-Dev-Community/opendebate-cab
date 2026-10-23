@@ -421,6 +421,28 @@ defmodule Cab.EngineApi do
     Engine.get(actor, "/api/events/#{event_id}/stats/adjudicators") |> unwrap()
   end
 
+  @doc """
+  Speaker standings over all of an organisation's finished events, one
+  row per person: `[{user_id, participant_id, name, total_points,
+  average_score, speeches}]`.
+  """
+  def organisation_speaker_standings(actor, organisation_id) do
+    Engine.get(actor, "/api/organisations/#{organisation_id}/standings/speakers") |> unwrap()
+  end
+
+  @doc """
+  Adjudicator statistics over all of an organisation's finished events,
+  one row per person, `base` counted as one extra feedback vote:
+  `[{user_id, participant_id, name, rooms_adjudicated, feedback_count,
+  avg_feedback}]`.
+  """
+  def organisation_adjudicator_stats(actor, organisation_id, base) do
+    Engine.get(actor, "/api/organisations/#{organisation_id}/stats/adjudicators",
+      params: [base: base]
+    )
+    |> unwrap()
+  end
+
   @doc "Adjudicator statistics with `base` counted as one extra feedback vote."
   def adjudicator_stats(actor, event_id, base) do
     Engine.get(actor, "/api/events/#{event_id}/stats/adjudicators", params: [base: base])

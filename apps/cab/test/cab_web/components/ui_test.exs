@@ -42,6 +42,39 @@ defmodule CabWeb.UiTest do
     refute html =~ ~s(href="/motion" data-method)
   end
 
+  test "sidenav: My page and Admin in every context for the signed-in" do
+    assigns = %{
+      club: %{uuid: "abc", name: "Kyiv Debate Club", is_private: false},
+      admin: %{username: "root", name: nil, is_admin: true},
+      user: %{username: "anna", name: "Anna Kovalenko", is_admin: false}
+    }
+
+    member =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:member} current_user={@user} active="club" />
+      """)
+
+    assert member =~ ~s(href="/me")
+    assert member =~ ">My page<"
+    refute member =~ ">Admin<"
+
+    admin =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:admin} current_user={@admin} active="club" />
+      """)
+
+    assert admin =~ ">My page<"
+    assert admin =~ ~s(href="/admin")
+
+    anonymous =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:public} current_user={nil} active="club" />
+      """)
+
+    refute anonymous =~ ">My page<"
+    refute anonymous =~ ">Admin<"
+  end
+
   test "sidenav global context: cap, Clubs/Standings, Admin for admins only" do
     assigns = %{
       admin: %{username: "root", name: nil, is_admin: true},
@@ -518,5 +551,38 @@ defmodule CabWeb.UiTest do
     assert html =~ "session opened"
     assert html =~ ~s(class="banner bad")
     assert html =~ "could not sign up"
+  end
+
+  test "stepper: links or events, an end shown but off" do
+    assigns = %{}
+
+    links =
+      rendered_to_string(~H"""
+      <.stepper prev="/a" next={nil} prev_label="Earlier" next_label="Later">Now</.stepper>
+      """)
+
+    assert links =~ ~s(class="stepper")
+    assert links =~ ~s(href="/a")
+    assert links =~ ~s(class="off")
+    assert links =~ "Now"
+
+    events =
+      rendered_to_string(~H"""
+      <.stepper
+        event="rooms"
+        name="rooms"
+        prev={0}
+        next={2}
+        prev_off
+        prev_label="Fewer"
+        next_label="More"
+      >
+        1
+      </.stepper>
+      """)
+
+    assert events =~ ~s(phx-value-rooms="0")
+    assert events =~ ~s(phx-value-rooms="2")
+    assert events =~ "disabled"
   end
 end

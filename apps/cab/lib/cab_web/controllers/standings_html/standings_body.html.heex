@@ -14,39 +14,45 @@
   <%= if @scope do %>
     <.section title={tab_label(@tab)}>
       <div class="pad scope-card">
-        <p>
-          {gettext("session:")} <b>{@scope.session.name}</b>,
-          <.local_time at={scope_date(@scope)} as={:day} />, {@scope.club.name}{if assigns[
-                                                                                     :archive
-                                                                                   ],
-                                                                                   do:
-                                                                                     " " <>
-                                                                                       gettext(
-                                                                                         "(latest finished)"
-                                                                                       )}
-        </p>
-        <div :if={earlier_rows(assigns) != []} class="flinks">
-          <span class="mut">{gettext("earlier:")}</span>
-          <.link
-            :for={row <- earlier_rows(assigns)}
-            href={"#{@base}/#{@tab}?session=#{row.session_uuid}"}
-          >
-            {row.name}, <.local_time at={row.date} as={:day} />
-          </.link>
-        </div>
+        <%= cond do %>
+          <% @whole_club -> %>
+            <p>{gettext("All finished sessions of %{club}", club: @scope.club.name)}</p>
+          <% assigns[:archive] && @tab == "teams" -> %>
+            <%!-- teams go session by session: < earlier | this one | later > --%>
+            <.stepper
+              prev={step_href(assigns, 1)}
+              next={step_href(assigns, -1)}
+              prev_label={gettext("Earlier session")}
+              next_label={gettext("Later session")}
+            >
+              {@scope.session.name}, <.local_time at={scope_date(@scope)} as={:day} />
+            </.stepper>
+          <% true -> %>
+            <p>
+              {gettext("session:")} <b>{@scope.session.name}</b>,
+              <.local_time at={scope_date(@scope)} as={:day} />, {@scope.club.name}
+            </p>
+        <% end %>
       </div>
       <.table
         id={"standings-#{@tab}"}
         rows={@rows}
         rank
-        empty={gettext("No results for this session yet.")}
+        empty={
+          if @whole_club,
+            do: gettext("No results yet."),
+            else: gettext("No results for this session yet.")
+        }
       >
         <:col :let={row} :if={@tab == "teams"} label={gettext("Team")}>{row["name"]}</:col>
         <:col :let={row} :if={@tab == "speakers"} label={gettext("Speaker")}>{row["name"]}</:col>
-        <:col :let={row} :if={@tab in ["teams", "speakers"]} label={gettext("Points")} num>
+        <:col :let={row} :if={@tab == "teams"} label={gettext("Points")} num>
           {row["total_points"]}
         </:col>
-        <:col :let={row} :if={@tab == "speakers"} label={gettext("Avg score")} num>
+        <:col :let={row} :if={@tab == "speakers"} label={gettext("Total points")} num>
+          {row["total_points"]}
+        </:col>
+        <:col :let={row} :if={@tab == "speakers"} label={gettext("Avg points")} num>
           {row["average_score"] || "—"}
         </:col>
         <:col :let={row} :if={@tab == "speakers"} label={gettext("Speeches")} num>
@@ -60,6 +66,14 @@
         </:col>
         <:col :let={row} :if={@tab == "adjudicators"} label={gettext("Avg feedback")} num>
           {row["avg_feedback"] || "—"}
+        </:col>
+        <:col
+          :let={row}
+          :if={@tab == "adjudicators" and @whole_club}
+          label={gettext("Feedback")}
+          num
+        >
+          {row["feedback_count"]}
         </:col>
       </.table>
       <div :if={@tab == "adjudicators"} class="pad mut">

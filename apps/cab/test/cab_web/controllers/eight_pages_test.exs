@@ -237,6 +237,30 @@ defmodule CabWeb.EightPagesTest do
             %{"id" => 90, "name" => "Petro", "rooms_adjudicated" => 2, "avg_feedback" => 8.5}
           ])
 
+        # the club tabs for speakers and adjudicators: every finished
+        # session at once, the engine's organisation figures
+        "/api/organisations/3/standings/speakers" ->
+          ok(conn, [
+            %{
+              "user_id" => 70,
+              "name" => "Anna Kovalenko",
+              "total_points" => 233,
+              "average_score" => 77.67,
+              "speeches" => 3
+            }
+          ])
+
+        "/api/organisations/3/stats/adjudicators" ->
+          ok(conn, [
+            %{
+              "user_id" => 90,
+              "name" => "Petro",
+              "rooms_adjudicated" => 2,
+              "feedback_count" => 4,
+              "avg_feedback" => 8.5
+            }
+          ])
+
         # the scope card's archive selector peeks at winners
         "/api/events/11/rounds" ->
           ok(conn, [%{"id" => 21, "sequence" => 1}])
@@ -283,7 +307,11 @@ defmodule CabWeb.EightPagesTest do
       assert html =~ ~r/>\s*233\s*</
       assert html =~ "77.67"
       assert html =~ ~r/>\s*3\s*</
-      assert html =~ "Walk night"
+      assert html =~ "Total points"
+      assert html =~ "Avg points"
+      # every finished session at once, no session stepper
+      assert html =~ "All finished sessions of"
+      refute html =~ ~s(class="stepper")
 
       # NO wins/winrate/played strings anywhere on standings pages
       refute html =~ "wins"
@@ -313,11 +341,13 @@ defmodule CabWeb.EightPagesTest do
       assert judges =~ "Rooms adjudicated"
       assert judges =~ "Avg feedback"
       assert judges =~ "8.5"
+      assert judges =~ "Feedback"
+      assert judges =~ ~r/>\s*4\s*</
 
       assert conn |> get(~p"/c/#{club.uuid}/standings/clubs") |> response(404)
     end
 
-    test "?session walks the archive; earlier sessions are linked",
+    test "teams step through the finished sessions; other tabs do not",
          %{conn: conn, club: club, session: first_session} do
       # a second, newer finished session - the default scope lands on it
       _newer =
@@ -341,6 +371,15 @@ defmodule CabWeb.EightPagesTest do
           "/api/events/10" ->
             ok(conn, %{"id" => 10, "name" => "Newer night", "status" => "completed"})
 
+          "/api/events/10/standings/calculated/teams" ->
+            ok(conn, [%{"id" => 8, "name" => "Newer Winner", "total_points" => 3}])
+
+          "/api/events/11/standings/calculated/teams" ->
+            ok(conn, [%{"id" => 7, "name" => "Anna Kovalenko", "total_points" => 2}])
+
+          "/api/organisations/3/standings/speakers" ->
+            ok(conn, [])
+
           "/api/events/10/standings/calculated/speakers" ->
             ok(conn, [%{"id" => 8, "name" => "Newer Winner", "total_points" => 99.0}])
 
@@ -363,22 +402,30 @@ defmodule CabWeb.EightPagesTest do
         end
       end)
 
-      # default: the latest finished, with the earlier one linked below
-      html = conn |> get(~p"/c/#{club.uuid}/standings/speakers") |> html_response(200)
+      # default: the latest finished; the stepper's < steps to the earlier
+      # one, its > is off (nothing later)
+      html = conn |> get(~p"/c/#{club.uuid}/standings/teams") |> html_response(200)
       assert html =~ "Newer Winner"
-      assert html =~ "(latest finished)"
-      assert html =~ "earlier:"
-      assert html =~ "?session=#{first_session.uuid}"
+      assert html =~ ~s(class="stepper")
+      assert html =~ ~s(href="/c/#{club.uuid}/standings/teams?session=#{first_session.uuid}")
+      assert html =~ ~r/<span[^>]*class="off"/
 
       # the selector shows exactly that session's engine rows
       old_html =
         conn
-        |> get(~p"/c/#{club.uuid}/standings/speakers?session=#{first_session.uuid}")
+        |> get(~p"/c/#{club.uuid}/standings/teams?session=#{first_session.uuid}")
         |> html_response(200)
 
       assert old_html =~ "Anna Kovalenko"
       assert old_html =~ "Walk night"
       refute old_html =~ "Newer Winner"
+      # from the earlier one, > steps back to the latest
+      assert old_html =~
+               ~r/<a[^>]*href="\/c\/#{club.uuid}\/standings\/teams\?session=[^"]+"[^>]*aria-label="Later session"/
+
+      # only teams go session by session
+      speakers = conn |> get(~p"/c/#{club.uuid}/standings/speakers") |> html_response(200)
+      refute speakers =~ ~s(class="stepper")
     end
 
     test "no finished session shows the empty notice; engine trouble degrades to empty rows",
