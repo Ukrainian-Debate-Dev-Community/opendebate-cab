@@ -239,11 +239,6 @@ msgstr ""
 msgid "(iron)"
 msgstr ""
 
-#: lib/cab_web/controllers/standings_html/standings_body.html.heex
-#, elixir-autogen, elixir-format
-msgid "(latest finished)"
-msgstr ""
-
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex
 #, elixir-autogen, elixir-format
 msgid ", a guest at %{session} in %{club}."
@@ -924,6 +919,11 @@ msgstr ""
 msgid "Each field is asked of guests, of members, or of both. Guests answer theirs when they register for a session of the club without an account."
 msgstr ""
 
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Earlier session"
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Edit"
@@ -1312,6 +1312,11 @@ msgstr ""
 #: lib/cab_web/controllers/club_public_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Language:"
+msgstr ""
+
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Later session"
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex
@@ -3142,11 +3147,6 @@ msgstr ""
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "e-mail"
-msgstr ""
-
-#: lib/cab_web/controllers/standings_html/standings_body.html.heex
-#, elixir-autogen, elixir-format
-msgid "earlier:"
 msgstr ""
 
 #: lib/cab_web/components/form_components.ex

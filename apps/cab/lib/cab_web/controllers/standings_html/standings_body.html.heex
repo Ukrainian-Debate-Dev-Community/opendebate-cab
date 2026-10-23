@@ -14,26 +14,22 @@
   <%= if @scope do %>
     <.section title={tab_label(@tab)}>
       <div class="pad scope-card">
-        <p>
-          {gettext("session:")} <b>{@scope.session.name}</b>,
-          <.local_time at={scope_date(@scope)} as={:day} />, {@scope.club.name}{if assigns[
-                                                                                     :archive
-                                                                                   ],
-                                                                                   do:
-                                                                                     " " <>
-                                                                                       gettext(
-                                                                                         "(latest finished)"
-                                                                                       )}
-        </p>
-        <div :if={earlier_rows(assigns) != []} class="flinks">
-          <span class="mut">{gettext("earlier:")}</span>
-          <.link
-            :for={row <- earlier_rows(assigns)}
-            href={"#{@base}/#{@tab}?session=#{row.session_uuid}"}
+        <%= if assigns[:archive] && @tab == "teams" do %>
+          <%!-- teams go session by session: < earlier | this one | later > --%>
+          <.stepper
+            prev={step_href(assigns, 1)}
+            next={step_href(assigns, -1)}
+            prev_label={gettext("Earlier session")}
+            next_label={gettext("Later session")}
           >
-            {row.name}, <.local_time at={row.date} as={:day} />
-          </.link>
-        </div>
+            {@scope.session.name}, <.local_time at={scope_date(@scope)} as={:day} />
+          </.stepper>
+        <% else %>
+          <p>
+            {gettext("session:")} <b>{@scope.session.name}</b>,
+            <.local_time at={scope_date(@scope)} as={:day} />, {@scope.club.name}
+          </p>
+        <% end %>
       </div>
       <.table
         id={"standings-#{@tab}"}

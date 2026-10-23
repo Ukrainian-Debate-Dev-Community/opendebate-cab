@@ -245,11 +245,6 @@ msgstr "(5 рахується як один голос)"
 msgid "(iron)"
 msgstr "(айрон)"
 
-#: lib/cab_web/controllers/standings_html/standings_body.html.heex
-#, elixir-autogen, elixir-format
-msgid "(latest finished)"
-msgstr "(остання завершена)"
-
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex
 #, elixir-autogen, elixir-format
 msgid ", a guest at %{session} in %{club}."
@@ -933,6 +928,11 @@ msgstr "Адреса e-mail"
 msgid "Each field is asked of guests, of members, or of both. Guests answer theirs when they register for a session of the club without an account."
 msgstr "Кожне поле адресоване гостям, членам клубу або всім. Гості заповнюють свої поля, коли реєструються на сесію клубу без акаунта."
 
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Earlier session"
+msgstr "Попередня сесія"
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Edit"
@@ -1322,6 +1322,11 @@ msgstr "Мова"
 #, elixir-autogen, elixir-format
 msgid "Language:"
 msgstr "Мова:"
+
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Later session"
+msgstr "Наступна сесія"
 
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -3156,11 +3161,6 @@ msgstr "нижче"
 #, elixir-autogen, elixir-format
 msgid "e-mail"
 msgstr "e-mail"
-
-#: lib/cab_web/controllers/standings_html/standings_body.html.heex
-#, elixir-autogen, elixir-format
-msgid "earlier:"
-msgstr "раніше:"
 
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format

@@ -519,4 +519,37 @@ defmodule CabWeb.UiTest do
     assert html =~ ~s(class="banner bad")
     assert html =~ "could not sign up"
   end
+
+  test "stepper: links or events, an end shown but off" do
+    assigns = %{}
+
+    links =
+      rendered_to_string(~H"""
+      <.stepper prev="/a" next={nil} prev_label="Earlier" next_label="Later">Now</.stepper>
+      """)
+
+    assert links =~ ~s(class="stepper")
+    assert links =~ ~s(href="/a")
+    assert links =~ ~s(class="off")
+    assert links =~ "Now"
+
+    events =
+      rendered_to_string(~H"""
+      <.stepper
+        event="rooms"
+        name="rooms"
+        prev={0}
+        next={2}
+        prev_off
+        prev_label="Fewer"
+        next_label="More"
+      >
+        1
+      </.stepper>
+      """)
+
+    assert events =~ ~s(phx-value-rooms="0")
+    assert events =~ ~s(phx-value-rooms="2")
+    assert events =~ "disabled"
+  end
 end
