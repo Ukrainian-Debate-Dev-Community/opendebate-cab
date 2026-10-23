@@ -27,12 +27,16 @@ defmodule CabWeb.ClubPublicHTML do
   defp form_open?(%{kind: kind, done: nil}) when kind in [:guest, :member, :account], do: true
   defp form_open?(_registration), do: false
 
+  # the other open sessions, linked like the standings' session selector
+  defp other_choices(%{choices: choices, session: session}),
+    do: Enum.reject(choices, &(&1.session.id == session.id))
+
   defp session_title(session), do: session.name || gettext("The next session")
 
   @doc """
-  The club page's registration section (#register): with several
-  sessions taking sign-ups, a choice of them first; then for the
-  chosen one: a form while it takes sign-ups (the guest form,
+  The club page's registration section (#register) for the chosen
+  session (with several taking sign-ups, the others are linked as in
+  the standings' session selector): a form while it takes sign-ups (the guest form,
   or the member's / account's fields as themselves), the guest's
   personal link once registered, else where things stand.
   """
@@ -43,35 +47,26 @@ defmodule CabWeb.ClubPublicHTML do
     ~H"""
     <div id="register">
       <.section title={gettext("Registration")}>
-        <nav
-          :if={@registration.choices != []}
-          class="pad reg-choices"
-          aria-label={gettext("Open sessions")}
-        >
-          <span class="hint">{gettext("Choose a session:")}</span>
-          <.link
-            :for={choice <- @registration.choices}
-            href={~p"/c/#{@club.uuid}?#{[session: choice.session.uuid]}" <> "#register"}
-            class={["reg-choice", choice.session.id == @registration.session.id && "on"]}
-            aria-current={choice.session.id == @registration.session.id && "true"}
-          >
-            <span class="when">
+        <div class="pad scope-card">
+          <p>
+            <b>{session_title(@registration.session)}</b>
+            <span :if={@registration.session.scheduled_at}>
+              — <.local_time at={@registration.session.scheduled_at} as={:weekday_time} />
+            </span>
+          </p>
+          <div :if={other_choices(@registration) != []} class="flinks">
+            <span class="mut">{gettext("also open:")}</span>
+            <.link
+              :for={choice <- other_choices(@registration)}
+              href={~p"/c/#{@club.uuid}?#{[session: choice.session.uuid]}" <> "#register"}
+            >
+              {session_title(choice.session)}<span :if={choice.session.scheduled_at}>,
               <.local_time
-                :if={choice.session.scheduled_at}
                 at={choice.session.scheduled_at}
                 as={:weekday_time}
-              />
-              <span :if={!choice.session.scheduled_at}>{gettext("date to be set")}</span>
-            </span>
-            <b>{session_title(choice.session)}</b>
-            <span :if={choice.registered} class="mine">{gettext("you are registered")}</span>
-          </.link>
-        </nav>
-        <div class="pad">
-          <b>{session_title(@registration.session)}</b>
-          <span :if={@registration.session.scheduled_at}>
-            — <.local_time at={@registration.session.scheduled_at} as={:weekday_time} />
-          </span>
+              /></span><span :if={choice.registered}> ({gettext("you are registered")})</span>
+            </.link>
+          </div>
         </div>
         <%= case {@registration.kind, @registration.done} do %>
           <% {:guest, %{} = done} -> %>

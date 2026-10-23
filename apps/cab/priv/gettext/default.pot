@@ -650,11 +650,6 @@ msgstr ""
 msgid "Choose a guest."
 msgstr ""
 
-#: lib/cab_web/controllers/club_public_html.ex
-#, elixir-autogen, elixir-format
-msgid "Choose a session:"
-msgstr ""
-
 #: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
@@ -1757,11 +1752,6 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Open new session"
-msgstr ""
-
-#: lib/cab_web/controllers/club_public_html.ex
-#, elixir-autogen, elixir-format
-msgid "Open sessions"
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_html.ex
@@ -3128,6 +3118,11 @@ msgstr ""
 msgid "adjudicators fill the ballot right in their room"
 msgstr ""
 
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "also open:"
+msgstr ""
+
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "always asked"
@@ -3208,11 +3203,6 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/members.html.heex
 #, elixir-autogen, elixir-format
 msgid "contact: %{contact}"
-msgstr ""
-
-#: lib/cab_web/controllers/club_public_html.ex
-#, elixir-autogen, elixir-format
-msgid "date to be set"
 msgstr ""
 
 #: lib/cab_web/session_format.ex

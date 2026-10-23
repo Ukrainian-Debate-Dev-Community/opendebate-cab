@@ -92,21 +92,23 @@ defmodule CabWeb.GuestLinksTest do
     test "several open sessions: choose one, the nearest first", %{conn: conn, club: club} do
       later = session_fixture(club, name: "Later", scheduled_at: ~U[2026-11-05 18:00:00Z])
       nearer = session_fixture(club, name: "Nearer", scheduled_at: ~U[2026-11-01 18:00:00Z])
-      _closed = session_fixture(club, signups_closed_at: ~U[2026-10-20 18:00:00Z])
+      closed = session_fixture(club, signups_closed_at: ~U[2026-10-20 18:00:00Z])
       stub_stage([])
 
       html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
 
-      assert html =~ "Choose a session:"
+      assert html =~ "also open:"
+      # the chosen one in bold, the others linked (the standings' selector)
       assert html =~ ~s(href="/c/#{club.uuid}?session=#{later.uuid}#register")
-      assert html =~ ~s(href="/c/#{club.uuid}?session=#{nearer.uuid}#register")
+      refute html =~ ~s(href="/c/#{club.uuid}?session=#{nearer.uuid}#register")
       assert html =~ ~s(name="session" value="#{nearer.uuid}")
       # a session closed for sign-ups is not offered
-      assert length(String.split(html, ~s(class="reg-choice))) == 3
+      refute html =~ ~s(href="/c/#{club.uuid}?session=#{closed.uuid}#register")
 
       chosen = conn |> get(~p"/c/#{club.uuid}?session=#{later.uuid}") |> html_response(200)
       assert chosen =~ ~s(name="session" value="#{later.uuid}")
       refute chosen =~ ~s(name="session" value="#{nearer.uuid}")
+      assert chosen =~ ~s(href="/c/#{club.uuid}?session=#{nearer.uuid}#register")
     end
 
     test "one open session: no choice to make", %{conn: conn, club: club} do
@@ -114,7 +116,7 @@ defmodule CabWeb.GuestLinksTest do
       stub_stage([])
 
       html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
-      refute html =~ "Choose a session:"
+      refute html =~ "also open:"
     end
 
     test "the old shared URL leads to the club page's section", %{conn: conn, club: club} do
