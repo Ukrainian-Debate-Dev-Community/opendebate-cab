@@ -363,12 +363,13 @@ defmodule CabWeb.EightPagesTest do
         end
       end)
 
-      # default: the latest finished, with the earlier one linked below
+      # default: the latest finished; the stepper's < steps to the earlier
+      # one, its > is off (nothing later)
       html = conn |> get(~p"/c/#{club.uuid}/standings/speakers") |> html_response(200)
       assert html =~ "Newer Winner"
-      assert html =~ "(latest finished)"
-      assert html =~ "earlier:"
-      assert html =~ "?session=#{first_session.uuid}"
+      assert html =~ ~s(class="stepper")
+      assert html =~ ~s(href="/c/#{club.uuid}/standings/speakers?session=#{first_session.uuid}")
+      assert html =~ ~r/<span[^>]*class="off"/
 
       # the selector shows exactly that session's engine rows
       old_html =
@@ -379,6 +380,9 @@ defmodule CabWeb.EightPagesTest do
       assert old_html =~ "Anna Kovalenko"
       assert old_html =~ "Walk night"
       refute old_html =~ "Newer Winner"
+      # from the earlier one, > steps back to the latest
+      assert old_html =~
+               ~r/<a[^>]*href="\/c\/#{club.uuid}\/standings\/speakers\?session=[^"]+"[^>]*aria-label="Later session"/
     end
 
     test "no finished session shows the empty notice; engine trouble degrades to empty rows",

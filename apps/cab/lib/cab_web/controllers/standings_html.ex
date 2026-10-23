@@ -33,14 +33,17 @@ defmodule CabWeb.StandingsHTML do
 
   def standings_body(assigns)
 
-  # the archive minus the shown session - the selector links on the
-  # scope card (club scope passes archive + base; global passes none)
-  defp earlier_rows(%{archive: archive, scope: scope}) when is_list(archive) do
-    shown = scope && scope.session.uuid
-    Enum.reject(archive, &(&1.session_uuid == shown))
-  end
+  # the stepper's link `offset` sessions from the shown one in the
+  # archive (newest first: +1 is earlier, -1 later), nil past either end
+  defp step_href(%{archive: archive, scope: scope, base: base, tab: tab}, offset) do
+    index = Enum.find_index(archive, &(&1.session_uuid == scope.session.uuid))
+    to = index && index + offset
 
-  defp earlier_rows(_assigns), do: []
+    case to && to >= 0 && Enum.at(archive, to) do
+      %{session_uuid: uuid} -> "#{base}/#{tab}?session=#{uuid}"
+      _ -> nil
+    end
+  end
 
   defp scope_date(%{session: session}), do: session.scheduled_at || session.inserted_at
 

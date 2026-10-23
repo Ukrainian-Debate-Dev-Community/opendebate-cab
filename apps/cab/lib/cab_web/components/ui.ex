@@ -878,27 +878,20 @@ defmodule CabWeb.Ui do
     <div class="dnd" id={@id} phx-hook="Allocator">
       <div :if={@count_event} class="rcount">
         <span class="tlabel">{gettext("Rooms")}</span>
-        <span class="stepper">
-          <button
-            type="button"
-            phx-click={@count_event}
-            phx-value-rooms={@rooms - 1}
-            disabled={@rooms <= 1}
-            aria-label={gettext("One room fewer")}
-          >
-            -
-          </button>
-          <span class="n" aria-live="polite">{@rooms}</span>
-          <button
-            type="button"
-            phx-click={@count_event}
-            phx-value-rooms={@rooms + 1}
-            disabled={@rooms >= @max_rooms}
-            aria-label={gettext("One room more")}
-          >
-            +
-          </button>
-        </span>
+        <.stepper
+          event={@count_event}
+          name="rooms"
+          prev={@rooms - 1}
+          next={@rooms + 1}
+          prev_off={@rooms <= 1}
+          next_off={@rooms >= @max_rooms}
+          prev_text="-"
+          next_text="+"
+          prev_label={gettext("One room fewer")}
+          next_label={gettext("One room more")}
+        >
+          {@rooms}
+        </.stepper>
         <button
           type="button"
           class={["auto", @auto && "on"]}
@@ -1055,6 +1048,88 @@ defmodule CabWeb.Ui do
   defp utc_text(at, :short), do: Calendar.strftime(at, "%-d %b, %H:%M UTC")
   defp utc_text(at, :weekday_time), do: Calendar.strftime(at, "%a %H:%M UTC")
   defp utc_text(at, :time), do: Calendar.strftime(at, "%H:%M UTC")
+
+  @doc """
+  A stepper, `[ < | current | > ]`: steps to the previous or the next
+  value. With `event` both sides are LiveView buttons sending
+  `phx-value-<name>` = `prev` / `next`; without it they are links to
+  the `prev` / `next` paths. A side that is nil or false is shown but
+  off. The current value is the inner block.
+
+      <.stepper prev="/c/x/standings/teams?session=a" next={nil}
+                prev_label="Earlier session" next_label="Later session">
+        Club session, 17 Oct
+      </.stepper>
+  """
+  attr :prev, :any,
+    default: nil,
+    doc: "the previous value (event) or path (link); nil/false = off"
+
+  attr :next, :any, default: nil
+  attr :prev_off, :boolean, default: false, doc: "shown but off, keeping its value"
+  attr :next_off, :boolean, default: false
+  attr :event, :string, default: nil
+  attr :name, :string, default: "value", doc: "the phx-value-<name> an event sends"
+  attr :prev_text, :string, default: "<"
+  attr :next_text, :string, default: ">"
+  attr :prev_label, :string, required: true
+  attr :next_label, :string, required: true
+  slot :inner_block, required: true
+
+  def stepper(assigns) do
+    ~H"""
+    <span class="stepper">
+      <.step
+        value={@prev}
+        off={@prev_off or @prev in [nil, false]}
+        event={@event}
+        name={@name}
+        text={@prev_text}
+        label={@prev_label}
+      />
+      <span class="n" aria-live="polite">{render_slot(@inner_block)}</span>
+      <.step
+        value={@next}
+        off={@next_off or @next in [nil, false]}
+        event={@event}
+        name={@name}
+        text={@next_text}
+        label={@next_label}
+      />
+    </span>
+    """
+  end
+
+  attr :value, :any
+  attr :off, :boolean
+  attr :event, :string
+  attr :name, :string
+  attr :text, :string
+  attr :label, :string
+
+  defp step(%{event: event} = assigns) when is_binary(event) do
+    assigns = assign(assigns, :data, %{"phx-value-#{assigns.name}" => assigns.value})
+
+    ~H"""
+    <button
+      type="button"
+      phx-click={@event}
+      {@data}
+      disabled={@off}
+      aria-label={@label}
+      title={@label}
+    >
+      {@text}
+    </button>
+    """
+  end
+
+  defp step(assigns) do
+    ~H"""
+    <.link :if={!@off} href={@value} aria-label={@label} title={@label}>{@text}</.link>
+    <span :if={@off} class="off" aria-hidden="true">{@text}</span>
+    """
+  end
 
   @doc """
   The copy-to-clipboard affordance: a small button that writes `text`
