@@ -1871,7 +1871,6 @@ msgstr ""
 msgid "Refused when both took part in the same session."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/registration_html.ex
 #: lib/cab_web/controllers/registration_html/new.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex

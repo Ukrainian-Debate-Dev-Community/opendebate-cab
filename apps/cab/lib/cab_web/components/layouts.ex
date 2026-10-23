@@ -22,7 +22,7 @@ defmodule CabWeb.Layouts do
   attr :current_user, :any, default: nil
   attr :club, :any, default: nil, doc: "club context for the sidenav; nil = global"
   attr :club_role, :atom, default: :public
-  attr :nav_session, :any, default: nil, doc: "the club's newest session (sidenav Rooms)"
+  attr :nav_session, :any, default: nil, doc: "the club's current session (sidenav Rooms)"
   attr :active, :string, default: nil, doc: "the lit sidenav item"
 
   slot :inner_block, required: true
