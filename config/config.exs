@@ -77,6 +77,11 @@ config :esbuild,
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
+# mdex's precompiled NIF comes from its Cloudflare mirror: GitHub's
+# release redirects now carry more headers than the downloader's
+# :httpc accepts (header_too_long)
+config :mdex_native, artifact_source: :cloudflare
+
 # Configure tailwind (the version is required)
 config :tailwind,
   version: "4.3.0",
