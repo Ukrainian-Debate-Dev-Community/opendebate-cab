@@ -50,20 +50,27 @@ defmodule CabWeb.ApiFlowTest do
     # anonymous cannot ask
     assert conn |> post(~p"/api/cab/v1/clubs/#{club.uuid}/join-requests") |> json_response(401)
 
-    # the two answers are REQUIRED - a bare request is rejected
+    # the club form's required member field: a bare request is rejected
+    club =
+      form_fields_fixture(club, [
+        %{"label" => "University", "type" => "text", "required" => "yes", "scope" => "members"}
+      ])
+
+    uni = field_id(club, "University")
+
     missing =
       conn
       |> log_in(user)
       |> post(~p"/api/cab/v1/clubs/#{club.uuid}/join-requests")
       |> json_response(422)
 
-    assert missing["details"]["message"]
-    assert missing["details"]["contact"]
+    assert missing["details"][uni] == "Fill this in."
 
     created =
       conn
       |> log_in(user)
       |> post(~p"/api/cab/v1/clubs/#{club.uuid}/join-requests", %{
+        answers: %{uni => "KPI"},
         message: "I debated at school",
         contact: "@tg"
       })
@@ -72,13 +79,13 @@ defmodule CabWeb.ApiFlowTest do
     assert created["status"] == "pending"
     assert created["message"] == "I debated at school"
     assert created["contact"] == "@tg"
+    assert [%{"id" => ^uni, "label" => "University", "value" => "KPI"}] = created["answers"]
 
     # duplicates rejected
     assert conn
            |> log_in(user)
            |> post(~p"/api/cab/v1/clubs/#{club.uuid}/join-requests", %{
-             message: "again",
-             contact: "@tg"
+             answers: %{uni => "KPI"}
            })
            |> json_response(422)
 

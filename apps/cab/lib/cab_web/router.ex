@@ -60,6 +60,9 @@ defmodule CabWeb.Router do
 
     # my page - engine stats verbatim + participation history
     get "/me", MeController, :show
+    # a member's saved answers for one club (My clubs -> Edit)
+    get "/me/clubs/:club_uuid/answers", MeController, :edit_answers
+    post "/me/clubs/:club_uuid/answers", MeController, :update_answers
 
     # the Policy (personal data) and the Terms, linked from the footer;
     # the old /privacy address keeps working

@@ -1,0 +1,39 @@
+<Layouts.app flash={@flash} current_user={@current_user} active="me">
+  <.chrome crumbs={[{gettext("My page"), ~p"/me"}]} here={gettext("My answers")}></.chrome>
+
+  <div class="pbody">
+    <.flash_banners flash={@flash} />
+
+    <.section title={@club.name}>
+      <.form_for
+        id="member-answers-form"
+        action={~p"/me/clubs/#{@club.uuid}/answers"}
+        title={gettext("My answers")}
+        logo={CabWeb.ClubProfile.logo_path(@club)}
+        description={
+          gettext(
+            "Your default answers for this club: every registration for its sessions starts from them. Changing an answer while registering changes it for that session only."
+          )
+        }
+        errors={@errors}
+      >
+        <:block
+          :for={field <- @fields}
+          name={answer_name(field)}
+          type={block_type(field)}
+          label={field_label(field)}
+          required={field["required"]}
+          hint={field["hint"]}
+          options={field["options"]}
+          value={@answers[field["id"]]}
+          input={input_type(field)}
+          placeholder={placeholder(field)}
+          prompt={prompt(field)}
+        />
+        <:submit note={gettext("Only the club head sees your answers.")}>
+          {gettext("Save")}
+        </:submit>
+      </.form_for>
+    </.section>
+  </div>
+</Layouts.app>

@@ -15,6 +15,10 @@ defmodule Cab.Clubs.Membership do
     # reads them in Requests before approving
     field :message, :string
     field :contact, :string
+    # the answers to the club form's member fields (Core.Forms
+    # answers, label and type copied in); the member's defaults for
+    # session registrations, seen by the head and admins only
+    field :answers, {:array, :map}, default: []
 
     belongs_to :user, Cab.Accounts.User
     belongs_to :club, Cab.Clubs.Club
@@ -37,18 +41,16 @@ defmodule Cab.Clubs.Membership do
   end
 
   @doc """
-  The join-request changeset: the form's two REQUIRED answers (about
-  me, at most 2000 characters, + contact, at most 200) on top of the
-  pending-member row.
+  The join-request changeset: the pending-member row with the member's
+  checked answers (Core.Forms, put by the caller) and, from older
+  clients, an optional free message and contact.
   """
-  def join_changeset(membership, attrs) do
+  def join_changeset(membership, attrs, answers \\ []) do
     membership
     |> changeset(attrs)
     |> cast(attrs, [:message, :contact])
     |> Cab.Text.clean_text(:message, max: @message_max, multiline: true)
     |> Cab.Text.clean_text(:contact, max: @contact_max)
-    |> validate_required([:message, :contact],
-      message: dgettext("errors", "tell the head about yourself and how to reach you")
-    )
+    |> put_change(:answers, answers)
   end
 end

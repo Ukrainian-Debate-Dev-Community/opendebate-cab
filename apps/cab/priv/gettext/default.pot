@@ -62,6 +62,11 @@ msgstr ""
 msgid "%{club} — Members"
 msgstr ""
 
+#: lib/cab_web/controllers/me_controller.ex
+#, elixir-autogen, elixir-format
+msgid "%{club} — My answers"
+msgstr ""
+
 #: lib/cab_web/controllers/registration_controller.ex
 #, elixir-autogen, elixir-format
 msgid "%{club} — Register"
@@ -339,20 +344,10 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-#: lib/cab_web/controllers/club_public_html/join.html.heex
-#, elixir-autogen, elixir-format
-msgid "About me"
-msgstr ""
-
 #: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "About the club"
-msgstr ""
-
-#: lib/cab_web/controllers/owner_html/members.html.heex
-#, elixir-autogen, elixir-format
-msgid "About them"
 msgstr ""
 
 #: lib/cab_web/controllers/page_html/home.html.heex
@@ -482,6 +477,11 @@ msgstr ""
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Answer"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/members.html.heex
+#, elixir-autogen, elixir-format
+msgid "Answers"
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
@@ -736,11 +736,6 @@ msgstr ""
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Clubs run weekly practice rounds: pick one and come debate."
-msgstr ""
-
-#: lib/cab_web/controllers/club_public_html/join.html.heex
-#, elixir-autogen, elixir-format
-msgid "Contact"
 msgstr ""
 
 #: lib/cab_web/components/layouts/app.html.heex
@@ -1470,6 +1465,11 @@ msgstr ""
 msgid "Motions"
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/answers.html.heex
+#, elixir-autogen, elixir-format
+msgid "My answers"
+msgstr ""
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "My clubs"
@@ -1477,6 +1477,7 @@ msgstr ""
 
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/me_controller.ex
+#: lib/cab_web/controllers/me_html/answers.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
@@ -1677,6 +1678,11 @@ msgstr ""
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Only for an invitation: the name the e-mail greets."
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/answers.html.heex
+#, elixir-autogen, elixir-format
+msgid "Only the club head sees your answers."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex
@@ -2138,6 +2144,7 @@ msgid "Same person's other account"
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex
+#: lib/cab_web/controllers/me_html/answers.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Save"
@@ -2461,11 +2468,6 @@ msgstr ""
 msgid "Telegram, email — how newcomers reach the club."
 msgstr ""
 
-#: lib/cab_web/controllers/club_public_html/join.html.heex
-#, elixir-autogen, elixir-format
-msgid "Telegram, phone or email the head can reach you at."
-msgstr ""
-
 #: lib/cab_web/components/layouts/app.html.heex
 #: lib/cab_web/controllers/page_controller.ex
 #: lib/cab_web/controllers/signin_html/show.html.heex
@@ -2508,11 +2510,6 @@ msgstr ""
 #: lib/cab_web/controllers/club_public_html/join.html.heex
 #, elixir-autogen, elixir-format
 msgid "The club head reads your answers before approving."
-msgstr ""
-
-#: lib/cab_web/controllers/club_public_html/join.html.heex
-#, elixir-autogen, elixir-format
-msgid "The club head will review your request."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
@@ -2853,11 +2850,6 @@ msgstr ""
 msgid "Who"
 msgstr ""
 
-#: lib/cab_web/controllers/club_public_html/join.html.heex
-#, elixir-autogen, elixir-format
-msgid "Who you are and why you want to debate here."
-msgstr ""
-
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Who's registered"
@@ -2944,6 +2936,16 @@ msgstr ""
 msgid "You set the number of rooms by hand; Automatic makes it follow the sign-ups again;"
 msgstr ""
 
+#: lib/cab_web/controllers/club_public_html/join.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your answers are also your defaults when you register for this club's sessions; change them on My page."
+msgstr ""
+
+#: lib/cab_web/controllers/me_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Your answers are saved."
+msgstr ""
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -2953,6 +2955,11 @@ msgstr ""
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Your data"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/answers.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your default answers for this club: every registration for its sessions starts from them. Changing an answer while registering changes it for that session only."
 msgstr ""
 
 #: lib/cab_web/components/form_components.ex
@@ -3145,6 +3152,11 @@ msgstr ""
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "edit"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "edit answers"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex

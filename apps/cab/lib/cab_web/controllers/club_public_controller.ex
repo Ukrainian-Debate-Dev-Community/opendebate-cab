@@ -142,14 +142,14 @@ defmodule CabWeb.ClubPublicController do
   defp standings_rows("speakers", scope), do: Standings.speakers(scope)
   defp standings_rows("adjudicators", scope), do: Standings.adjudicators(scope)
 
-  # GET /c/:club_uuid/join - the join-request FORM (required: about
-  # me + contact). Never a bare button.
+  # GET /c/:club_uuid/join - the join-request FORM: the club form's
+  # member fields (none asked: the request alone)
   def join_form(conn, _params) do
     render_join(conn, %{}, %{})
   end
 
   # POST /c/:club_uuid/join - creates the pending membership with
-  # the form's answers; the head reads them in Requests
+  # the answers; the head reads them in Requests
   def join(conn, params) do
     club = conn.assigns.club
     user = conn.assigns.current_user
@@ -173,31 +173,35 @@ defmodule CabWeb.ClubPublicController do
         |> put_flash(:info, gettext("Request sent. The club head will review it."))
         |> redirect(to: ~p"/c/#{club.uuid}")
 
+      {:error, {:answers, codes}} ->
+        errors = CabWeb.FormComponents.answer_errors(Clubs.member_fields(club), codes)
+        conn |> put_status(422) |> render_join(params, errors)
+
+      # the row itself refused: already a member or a pending request
       {:error, %Ecto.Changeset{} = changeset} ->
         conn
-        |> put_status(422)
-        |> render_join(params, join_errors(changeset))
+        |> put_flash(:error, join_error(changeset))
+        |> redirect(to: ~p"/c/#{club.uuid}")
     end
   end
 
   defp render_join(conn, params, errors) do
     render(conn, :join,
-      message: params["message"],
-      contact: params["contact"],
+      fields: Clubs.member_fields(conn.assigns.club),
+      answers: answer_params(params),
       errors: errors,
       page_title: gettext("%{club} — Join", club: conn.assigns.club.name)
     )
   end
 
-  defp join_errors(changeset) do
+  defp answer_params(%{"answers" => %{} = answers}), do: answers
+  defp answer_params(_params), do: %{}
+
+  defp join_error(changeset) do
     changeset
     |> Ecto.Changeset.traverse_errors(fn {message, opts} ->
       Gettext.dgettext(CabWeb.Gettext, "errors", message, opts)
     end)
-    |> Enum.flat_map(fn
-      {field, [message | _rest]} when field in [:message, :contact] -> [{field, message}]
-      {_field, [message | _rest]} -> [{:message, message}]
-    end)
-    |> Map.new()
+    |> Enum.find_value(fn {_field, [message | _rest]} -> message end)
   end
 end

@@ -507,8 +507,3 @@ msgid_plural "should have at most %{count} item(s)"
 msgstr[0] "має містити щонайбільше %{count} елемент"
 msgstr[1] "має містити щонайбільше %{count} елементи"
 msgstr[2] "має містити щонайбільше %{count} елементів"
-
-#: lib/cab/clubs/membership.ex
-#, elixir-autogen, elixir-format
-msgid "tell the head about yourself and how to reach you"
-msgstr "розкажіть голові клубу про себе і як з вами зв'язатися"

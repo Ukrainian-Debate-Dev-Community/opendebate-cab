@@ -107,14 +107,71 @@ defmodule Cab.ClubsTest do
       assert Clubs.list_join_requests(club) == []
     end
 
-    test "both answers are REQUIRED - never a bare button", %{club: club} do
+    test "asks the club form's member fields: required ones, guests-only ones never",
+         %{club: club} do
+      club =
+        form_fields_fixture(club, [
+          %{"label" => "University", "type" => "text", "required" => "yes", "scope" => "members"},
+          %{"label" => "Phone", "type" => "phone", "required" => "no", "scope" => "both"},
+          %{
+            "label" => "Who invited you",
+            "type" => "text",
+            "required" => "yes",
+            "scope" => "guests"
+          }
+        ])
+
+      uni = field_id(club, "University")
+      phone = field_id(club, "Phone")
+      assert Enum.map(Clubs.member_fields(club), & &1["label"]) == ["University", "Phone"]
+
       user = user_fixture()
+      assert {:error, {:answers, %{^uni => :required}}} = Clubs.request_join(user, club)
 
-      assert {:error, changeset} = Clubs.request_join(user, club)
-      assert %{message: [_], contact: [_]} = errors_on(changeset)
+      assert {:error, {:answers, %{^phone => {:invalid, :phone}}}} =
+               Clubs.request_join(user, club, %{"answers" => %{uni => "KPI", phone => "nope"}})
 
-      assert {:error, changeset} = Clubs.request_join(user, club, %{"message" => "hi"})
-      assert %{contact: [_]} = errors_on(changeset)
+      assert {:ok, membership} =
+               Clubs.request_join(user, club, %{"answers" => %{uni => " KPI ", phone => ""}})
+
+      assert [%{"id" => ^uni, "label" => "University", "value" => "KPI"}] = membership.answers
+      assert membership.message == nil
+    end
+
+    test "a club form without member fields: the request alone", %{club: club} do
+      assert {:ok, membership} = Clubs.request_join(user_fixture(), club)
+      assert membership.answers == []
+    end
+
+    test "saved answers: edited by the member, gone with the membership", %{club: club} do
+      club =
+        form_fields_fixture(club, [
+          %{"label" => "University", "type" => "text", "required" => "yes", "scope" => "members"}
+        ])
+
+      uni = field_id(club, "University")
+      user = user_fixture()
+      {:ok, _} = Clubs.request_join(user, club, %{"answers" => %{uni => "KPI"}})
+
+      membership = Clubs.membership_of(club, user)
+      assert Core.Forms.answer_values(membership.answers) == %{uni => "KPI"}
+
+      assert {:error, {:answers, %{^uni => :required}}} =
+               Clubs.update_member_answers(membership, %{uni => " "})
+
+      assert {:ok, updated} = Clubs.update_member_answers(membership, %{uni => "KNU"})
+      assert Core.Forms.answer_values(updated.answers) == %{uni => "KNU"}
+
+      # declined: the row and its answers go
+      assert {:ok, _} = Clubs.decline_join(Clubs.get_membership(membership.id))
+      assert Clubs.membership_of(club, user) == nil
+
+      # removed after approval: the same
+      {:ok, again} = Clubs.request_join(user, club, %{"answers" => %{uni => "KPI"}})
+      {:ok, _} = Clubs.approve_join(Clubs.get_membership(again.id))
+      assert {:ok, _} = Clubs.remove_member(club, user.id)
+      assert Clubs.membership_of(club, user) == nil
+      refute Cab.Repo.get(Cab.Clubs.Membership, again.id)
     end
 
     test "decline deletes the pending membership", %{club: club} do

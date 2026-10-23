@@ -7,7 +7,7 @@ defmodule Core.FormsTest do
 
   alias Core.Forms
 
-  doctest Core.Forms, only: [email?: 1]
+  doctest Core.Forms, only: [email?: 1, answer_values: 1]
 
   defp add!(definition, params) do
     {:ok, definition} = Forms.add_field(definition, Map.merge(%{"required" => "no"}, params))

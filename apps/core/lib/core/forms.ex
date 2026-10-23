@@ -453,6 +453,18 @@ defmodule Core.Forms do
 
   def validate_answers(_definition, _params), do: {:ok, []}
 
+  @doc """
+  Answers as the values a form shows again, keyed by field id - to
+  prefill a form from earlier answers.
+
+      iex> Core.Forms.answer_values([%{"id" => "a", "value" => "x"}])
+      %{"a" => "x"}
+  """
+  def answer_values(answers) when is_list(answers),
+    do: Map.new(answers, fn answer -> {answer["id"], answer["value"]} end)
+
+  def answer_values(_answers), do: %{}
+
   @doc "The first answer's value of that type (e.g. the first e-mail given), or nil."
   def first_value(answers, type) when is_list(answers) do
     Enum.find_value(answers, fn
