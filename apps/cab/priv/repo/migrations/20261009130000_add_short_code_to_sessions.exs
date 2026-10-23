@@ -15,7 +15,7 @@ defmodule Cab.Repo.Migrations.AddShortCodeToSessions do
 
     for [id] <- rows do
       repo().query!("UPDATE sessions SET short_code = $1 WHERE id = $2", [
-        Cab.Sessions.Session.generate_short_code(),
+        Core.ShortCode.generate(),
         id
       ])
     end

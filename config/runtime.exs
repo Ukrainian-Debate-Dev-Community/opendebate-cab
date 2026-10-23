@@ -180,6 +180,13 @@ if config_env() == :prod do
     IO.warn("SMTP_HOST is not set: e-mails are kept in memory and never sent", [])
   end
 
+  # Short links to sibling sites: SHORT_LINK_HOSTS="example.org,www.example.org"
+  if hosts = System.get_env("SHORT_LINK_HOSTS") do
+    config :cab,
+           :short_link_hosts,
+           hosts |> String.split(",", trim: true) |> Enum.map(&String.trim/1)
+  end
+
   # Share the sign-in with sibling sites: SESSION_COOKIE_DOMAIN=".example.org"
   # lets every *.example.org host read cab's session cookie (read only).
   # Unset, the cookie stays on cab's own host.
