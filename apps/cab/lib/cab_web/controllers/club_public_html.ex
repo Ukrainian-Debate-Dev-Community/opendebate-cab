@@ -27,6 +27,12 @@ defmodule CabWeb.ClubPublicHTML do
   defp form_open?(%{kind: kind, done: nil}) when kind in [:guest, :member, :account], do: true
   defp form_open?(_registration), do: false
 
+  # the viewer's participant id in the chosen session (cancelling it)
+  defp my_participant(%{choices: choices, session: session, signup: signup}) do
+    Enum.find_value(choices, &(&1.session.id == session.id && &1.participant)) ||
+      (signup && signup["id"])
+  end
+
   # the Register button's menu: the other sessions taking sign-ups,
   # each opening this section for itself
   defp session_menu(club, %{choices: choices, session: session}) do
@@ -39,7 +45,8 @@ defmodule CabWeb.ClubPublicHTML do
       %{
         label: label,
         href: ~p"/c/#{club.uuid}?#{[session: other.uuid]}" <> "#register",
-        at: other.scheduled_at
+        at: other.scheduled_at,
+        registered: registered
       }
     end
   end
@@ -62,10 +69,13 @@ defmodule CabWeb.ClubPublicHTML do
       <.section title={gettext("Registration")}>
         <div class="pad scope-card">
           <p>
-            <b>{session_title(@registration.session)}</b>
-            <span :if={@registration.session.scheduled_at}>
-              — <.local_time at={@registration.session.scheduled_at} as={:weekday_time} />
-            </span>
+            <b>{session_title(@registration.session)}</b><span :if={
+              @registration.session.scheduled_at
+            }>,
+            <.local_time
+              at={@registration.session.scheduled_at}
+              as={:short}
+            /></span>
           </p>
         </div>
         <%= case {@registration.kind, @registration.done} do %>
@@ -160,22 +170,35 @@ defmodule CabWeb.ClubPublicHTML do
             </.form_for>
           <% {:registered, _done} -> %>
             <div class="pad">
-              <p>{gettext("You are registered for this session.")}</p>
-              <p>
-                <.link href={~p"/c/#{@club.uuid}/s/#{@registration.session.uuid}"}>
-                  {gettext("Open the session page")}
+              <p>{gettext("You are registered.")}</p>
+              <div class="sharebtns">
+                <.link
+                  :if={id = my_participant(@registration)}
+                  href={
+                    ~p"/c/#{@club.uuid}/s/#{@registration.session.uuid}/signups/#{id}/remove?from=club"
+                  }
+                  method="post"
+                  class="btn-quiet btn-sm"
+                >
+                  {gettext("Cancel registration")}
                 </.link>
-              </p>
-              <.link
-                :if={@registration.signup}
-                href={
-                  ~p"/c/#{@club.uuid}/s/#{@registration.session.uuid}/signups/#{@registration.signup["id"]}/remove?from=club"
-                }
-                method="post"
-                class="btn-quiet btn-sm"
-              >
-                {gettext("Cancel my registration")}
-              </.link>
+                <.link
+                  href={~p"/c/#{@club.uuid}/s/#{@registration.session.uuid}"}
+                  class="btn-quiet btn-sm"
+                >
+                  {gettext("Open")}
+                </.link>
+                <.dropdown_button
+                  :if={
+                    (others = Enum.sort_by(session_menu(@club, @registration), & &1.registered)) != []
+                  }
+                  quiet
+                  href={hd(others).href}
+                  items={tl(others)}
+                >
+                  {gettext("Register for another session")}
+                </.dropdown_button>
+              </div>
             </div>
           <% {:closed, _done} -> %>
             <div class="pad">

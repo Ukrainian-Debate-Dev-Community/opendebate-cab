@@ -4,9 +4,22 @@ defmodule CabWeb.MemberHTML do
 
   embed_templates "member_html/*"
 
-  @doc "The Club Sessions table - every session with its status in words; shared by the club and owner pages."
+  @doc """
+  The Club Sessions table - every session: name, date and time,
+  status in words, and the viewer's action (Register / Cancel
+  registration while it takes sign-ups, else Open); shared by the
+  club and owner pages.
+  """
   attr :club, :any, required: true
   attr :archive, :list, required: true
+
+  attr :mine, :map,
+    default: %{},
+    doc: "session uuid => the viewer's participant id (open sessions)"
+
+  attr :owner, :boolean,
+    default: false,
+    doc: "the head's edit view: every row opens the owner tree"
 
   def archive_section(assigns)
 

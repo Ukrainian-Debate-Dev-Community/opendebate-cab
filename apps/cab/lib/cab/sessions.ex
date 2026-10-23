@@ -1893,8 +1893,8 @@ defmodule Cab.Sessions do
 
   @doc """
   The club page's "Club Sessions" table: EVERY session, latest first,
-  with its status from cab's records - done (+ the winner recorded at
-  finish) | live | open. Pure database, no engine call.
+  with its status from cab's records - open (registration open) |
+  closed | running | finished. Pure database, no engine call.
   """
   def club_sessions(%Club{} = club) do
     for session <- list_for_club(club) do
@@ -1904,9 +1904,10 @@ defmodule Cab.Sessions do
         date: session.scheduled_at || session.inserted_at,
         status:
           case stage_of(session) do
-            :done -> :done
             :signup -> :open
-            _ -> :live
+            :closed -> :closed
+            :running -> :running
+            :done -> :finished
           end,
         winner: session.winner_name
       }

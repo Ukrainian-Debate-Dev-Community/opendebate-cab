@@ -71,7 +71,8 @@ defmodule CabWeb.HtmlTreesTest do
     # recent sessions: rows -> session page, progress as words
     assert html =~ ~s(id="club-sessions")
     assert html =~ "Night 1"
-    assert html =~ "done \u2014 won by Winners"
+    assert html =~ "finished"
+    refute html =~ "won by"
     assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
 
     # anonymous: the gold join CTA routes to /signin; club sidenav
@@ -545,14 +546,19 @@ defmodule CabWeb.HtmlTreesTest do
     end)
 
     html = conn |> log_in(member) |> get(~p"/c/#{club.uuid}") |> html_response(200)
-    assert html =~ "You are registered for this session."
-    assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove"
+    assert html =~ "You are registered."
+    assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove?from=club"
     refute html =~ ~s(id="register-form")
+    # the Club Sessions table: status in words, the viewer's action
+    assert html =~ "registration open"
+    assert html =~ "Cancel registration"
 
     Cab.Repo.update!(Ecto.Changeset.change(session, started_at: ~U[2026-10-22 18:00:00Z]))
 
     running = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
     assert running =~ "The session is running."
+    # a running session's row opens it
+    assert running =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}" class="btn-quiet btn-sm")
     refute running =~ ~s(id="guest-register-form")
   end
 

@@ -253,6 +253,18 @@ defmodule Cab.Links do
 
   def holds_session?(_user_id, _session), do: false
 
+  @doc "The engine participant id of this user's live link to the session, or nil."
+  def participant_in(user_id, %Session{id: session_id}) when is_integer(user_id) do
+    Repo.one(
+      from l in Link,
+        where: l.user_id == ^user_id and l.session_id == ^session_id and is_nil(l.revoked_at),
+        select: l.engine_participant_id,
+        limit: 1
+    )
+  end
+
+  def participant_in(_user_id, _session), do: nil
+
   @doc """
   Deletes a removed guest's cab account - their personal links go with
   it (the foreign key cascades) - so nothing personal stays behind. A

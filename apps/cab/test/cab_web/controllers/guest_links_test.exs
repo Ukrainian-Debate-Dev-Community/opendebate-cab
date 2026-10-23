@@ -101,7 +101,8 @@ defmodule CabWeb.GuestLinksTest do
       assert html =~ ~s(class="dd-btn go split")
       # the form registers for the nearest; the menu offers the others
       assert html =~ ~s(href="/c/#{club.uuid}?session=#{later.uuid}#register")
-      refute html =~ ~s(href="/c/#{club.uuid}?session=#{nearer.uuid}#register")
+      # the Club Sessions table offers Register on every open session
+      assert html =~ ~s(href="/c/#{club.uuid}?session=#{nearer.uuid}#register")
       assert html =~ ~s(name="session" value="#{nearer.uuid}")
       # a session closed for sign-ups is not offered
       refute html =~ ~s(href="/c/#{club.uuid}?session=#{closed.uuid}#register")

@@ -143,8 +143,17 @@ defmodule CabWeb.ClubPublicController do
   defp render_show(conn, registration) do
     club = conn.assigns.club
 
+    # the viewer's registrations in the sessions taking sign-ups, for
+    # the Club Sessions table's actions (session uuid => participant id)
+    mine =
+      for %{session: session, participant: id} <- (registration && registration.choices) || [],
+          id,
+          into: %{},
+          do: {session.uuid, id}
+
     render(conn, :show,
       recent: Sessions.club_sessions(club),
+      mine: mine,
       members: Clubs.list_members(club),
       registration: registration,
       page_title: club.name
@@ -172,25 +181,30 @@ defmodule CabWeb.ClubPublicController do
         end
 
       open ->
-        choices = Enum.map(open, &%{session: &1, registered: registered?(conn, &1)})
+        choices =
+          for session <- open do
+            id = my_participant(conn, session)
+            %{session: session, participant: id, registered: id != nil}
+          end
 
         chosen =
           Enum.find(open, &(&1.uuid == params["session"])) ||
             Enum.find_value(choices, hd(open), &(!&1.registered && &1.session))
 
-        section = section(conn, chosen, params, errors)
-        if length(choices) > 1, do: %{section | choices: choices}, else: section
+        %{section(conn, chosen, params, errors) | choices: choices}
     end
   end
 
-  defp registered?(conn, session) do
+  # the viewer's engine participant id in the session, or nil: a
+  # guest's personal link, else the account's own signup
+  defp my_participant(conn, session) do
     viewer = conn.assigns.current_user
 
     cond do
-      is_nil(viewer) -> false
-      Cab.Links.holds_session?(viewer.id, session) -> true
-      user = account(viewer) -> own_signup(session, user) != nil
-      true -> false
+      is_nil(viewer) -> nil
+      id = Cab.Links.participant_in(viewer.id, session) -> id
+      user = account(viewer) -> with %{"id" => id} <- own_signup(session, user), do: id
+      true -> nil
     end
   end
 

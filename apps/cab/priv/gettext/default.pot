@@ -357,6 +357,11 @@ msgstr ""
 msgid "Accuracy"
 msgstr ""
 
+#: lib/cab_web/controllers/member_html/archive_section.html.heex
+#, elixir-autogen, elixir-format
+msgid "Action"
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Add \"%{name}\" as a guest"
@@ -629,10 +634,15 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Cancel my registration"
+msgstr ""
+
+#: lib/cab_web/controllers/club_public_html.ex
+#: lib/cab_web/controllers/member_html/archive_section.html.heex
+#, elixir-autogen, elixir-format
+msgid "Cancel registration"
 msgstr ""
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
@@ -869,6 +879,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Date and start time"
+msgstr ""
+
+#: lib/cab_web/controllers/member_html/archive_section.html.heex
+#, elixir-autogen, elixir-format
+msgid "Date and time"
 msgstr ""
 
 #: lib/cab_web/controllers/page_html/home.html.heex
@@ -1743,6 +1758,8 @@ msgstr ""
 msgid "Only you see the answers, on each session's People list. If a guest gives an e-mail address, we send them their personal link there."
 msgstr ""
 
+#: lib/cab_web/controllers/club_public_html.ex
+#: lib/cab_web/controllers/member_html/archive_section.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
@@ -1762,11 +1779,6 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Open new session"
-msgstr ""
-
-#: lib/cab_web/controllers/club_public_html.ex
-#, elixir-autogen, elixir-format
-msgid "Open the session page"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
@@ -1957,6 +1969,7 @@ msgid "Refused when both took part in the same session."
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_html.ex
+#: lib/cab_web/controllers/member_html/archive_section.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
 #: lib/cab_web/controllers/registration_html.ex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -1968,6 +1981,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex
 #, elixir-autogen, elixir-format
 msgid "Register for %{session}"
+msgstr ""
+
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "Register for another session"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/responses.html.heex
@@ -2996,13 +3014,13 @@ msgstr ""
 msgid "You are registered as %{name}."
 msgstr ""
 
-#: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "You are registered for this session."
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_controller.ex
+#: lib/cab_web/controllers/club_public_html.ex
 #, elixir-autogen, elixir-format
 msgid "You are registered."
 msgstr ""
@@ -3215,16 +3233,6 @@ msgstr ""
 msgid "decline"
 msgstr ""
 
-#: lib/cab_web/controllers/member_html/archive_section.html.heex
-#, elixir-autogen, elixir-format
-msgid "done"
-msgstr ""
-
-#: lib/cab_web/controllers/member_html/archive_section.html.heex
-#, elixir-autogen, elixir-format
-msgid "done — won by %{winner}"
-msgstr ""
-
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "down"
@@ -3255,6 +3263,7 @@ msgstr ""
 msgid "empty"
 msgstr ""
 
+#: lib/cab_web/controllers/member_html/archive_section.html.heex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "finished"
@@ -3476,6 +3485,7 @@ msgid "registered user, will accept on My page"
 msgstr ""
 
 #: lib/cab_web/controllers/me_html.ex
+#: lib/cab_web/controllers/member_html/archive_section.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
