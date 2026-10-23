@@ -422,14 +422,15 @@ msgid "Adjudicator: %{name}"
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Adjudicator: {name}"
-msgstr ""
-
 #: lib/cab_web/controllers/standings_html.ex
 #: lib/cab_web/controllers/standings_html/standings_tabs.html.heex
 #, elixir-autogen, elixir-format
 msgid "Adjudicators"
+msgstr ""
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Adjudicators: {names}"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex
@@ -666,6 +667,11 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
+#: lib/cab_web/controllers/session_page_html/room.html.heex
+#, elixir-autogen, elixir-format
+msgid "Click the picture or the text to copy it, then paste it into the chat."
+msgstr ""
+
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
@@ -793,14 +799,19 @@ msgstr ""
 msgid "Copy"
 msgstr ""
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#, elixir-autogen, elixir-format
-msgid "Copy image"
-msgstr ""
-
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Copy links"
+msgstr ""
+
+#: lib/cab_web/controllers/session_page_html/room.html.heex
+#, elixir-autogen, elixir-format
+msgid "Copy the picture"
+msgstr ""
+
+#: lib/cab_web/controllers/session_page_html/room.html.heex
+#, elixir-autogen, elixir-format
+msgid "Copy the text"
 msgstr ""
 
 #: lib/cab_web/controllers/admin_controller.ex
@@ -841,11 +852,6 @@ msgstr ""
 #: lib/cab_web/ballot_form.ex
 #, elixir-autogen, elixir-format
 msgid "DPM"
-msgstr ""
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "DRAW"
 msgstr ""
 
 #: lib/cab_web/components/layouts/app.html.heex
@@ -1220,6 +1226,11 @@ msgstr ""
 msgid "Infoslide"
 msgstr ""
 
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Infoslide: {text}"
+msgstr ""
+
 #: lib/cab_web/controllers/head_invitation_controller.ex
 #: lib/cab_web/controllers/head_invitation_html/invalid.html.heex
 #, elixir-autogen, elixir-format
@@ -1473,6 +1484,11 @@ msgstr ""
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
 msgid "Motion: not published yet"
+msgstr ""
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Motion: {motion}"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
@@ -2130,11 +2146,6 @@ msgstr ""
 msgid "Room %{room} — %{status}"
 msgstr ""
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#, elixir-autogen, elixir-format
-msgid "Room card preview"
-msgstr ""
-
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -2173,11 +2184,6 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex
 #, elixir-autogen, elixir-format
 msgid "Save field"
-msgstr ""
-
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#, elixir-autogen, elixir-format
-msgid "Save image"
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex
@@ -2618,6 +2624,16 @@ msgstr ""
 msgid "The new head takes over; the old head retires."
 msgstr ""
 
+#: lib/cab_web/controllers/session_page_html/room.html.heex
+#, elixir-autogen, elixir-format
+msgid "The room as a picture: copy it"
+msgstr ""
+
+#: lib/cab_web/controllers/session_page_html/room.html.heex
+#, elixir-autogen, elixir-format
+msgid "The room as text: copy it"
+msgstr ""
+
 #: lib/cab_web/live/room_live.ex
 #, elixir-autogen, elixir-format
 msgid "The rooms were deleted. Back to the session."
@@ -2667,7 +2683,12 @@ msgstr ""
 
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
-msgid "This browser cannot copy images. Use Save image."
+msgid "This browser cannot copy pictures. Right-click or hold the picture to save it."
+msgstr ""
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "This browser cannot copy. Select the text and copy it."
 msgstr ""
 
 #: lib/cab_web/live/owner_session_live.ex
@@ -3528,11 +3549,6 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "their e-mail address"
-msgstr ""
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "this room's draw and motion, live"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/delete_session.html.heex

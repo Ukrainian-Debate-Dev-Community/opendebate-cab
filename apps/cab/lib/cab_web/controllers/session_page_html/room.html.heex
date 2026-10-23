@@ -161,15 +161,28 @@
         phx-hook="RoomCard"
         data-card={room_card(@state, @room, @session, @club)}
       >
-        <canvas
-          id={"room-card-canvas-#{@room["id"]}"}
-          role="img"
-          aria-label={gettext("Room card preview")}
-        ></canvas>
-        <div class="sharebtns">
-          <button type="button" class="copy" data-card-copy>{gettext("Copy image")}</button>
-          <button type="button" class="copy" data-card-save>{gettext("Save image")}</button>
+        <p class="sharehint">
+          {gettext("Click the picture or the text to copy it, then paste it into the chat.")}
           <span class="sharemsg" aria-live="polite"></span>
+        </p>
+        <div class="sharecols">
+          <canvas
+            id={"room-card-canvas-#{@room["id"]}"}
+            data-card-image
+            role="button"
+            tabindex="0"
+            aria-label={gettext("The room as a picture: copy it")}
+            title={gettext("Copy the picture")}
+          ></canvas>
+          <pre
+            id={"room-card-text-#{@room["id"]}"}
+            class="sharetext"
+            data-card-text
+            role="button"
+            tabindex="0"
+            aria-label={gettext("The room as text: copy it")}
+            title={gettext("Copy the text")}
+          ></pre>
         </div>
       </div>
     </.section>

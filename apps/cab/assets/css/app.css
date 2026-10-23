@@ -586,9 +586,18 @@ input.pick { width:15px; height:15px; margin:0 8px 0 0; vertical-align:-2px; acc
 .banner .actions { margin-left:auto; display:flex; align-items:center; gap:8px; }
 .banner.refused ul { margin:4px 0 0; padding-left:18px; }
 
-/* the room card preview: the PNG people paste into a messenger */
-.sharecard canvas { display:block; width:100%; max-width:540px; height:auto;
+/* the room card: the picture (a PNG for a messenger) and the same as
+   text, side by side; clicking either copies it */
+.sharehint { color:var(--muted); font-size:.82rem; margin-bottom:10px; }
+.sharecols { display:grid; grid-template-columns:minmax(0, 3fr) minmax(0, 2fr); gap:14px; align-items:start; }
+.sharecard canvas { display:block; width:100%; height:auto; cursor:pointer;
                     border:1px solid var(--line); border-radius:8px; background:var(--surface); }
+.sharetext { margin:0; padding:12px 14px; white-space:pre-wrap; overflow-wrap:anywhere; cursor:pointer;
+             font:.8rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color:var(--ink);
+             border:1px solid var(--line); border-radius:8px; background:var(--surface-2); }
+.sharecard canvas:hover, .sharetext:hover,
+.sharecard canvas:focus-visible, .sharetext:focus-visible { border-color:var(--brand); outline:none; }
+@media (max-width: 720px) { .sharecols { grid-template-columns:1fr; } }
 .sharebtns { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:10px; }
 .sharemsg { color:var(--muted); font-size:.82rem; }
 

@@ -429,15 +429,16 @@ msgid "Adjudicator: %{name}"
 msgstr "Суддя: %{name}"
 
 #: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Adjudicator: {name}"
-msgstr "Суддя: {name}"
-
 #: lib/cab_web/controllers/standings_html.ex
 #: lib/cab_web/controllers/standings_html/standings_tabs.html.heex
 #, elixir-autogen, elixir-format
 msgid "Adjudicators"
 msgstr "Судді"
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Adjudicators: {names}"
+msgstr "Судді: {names}"
 
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/admin_controller.ex
@@ -673,6 +674,11 @@ msgstr "Місто"
 msgid "Clear"
 msgstr "Скасувати вибір"
 
+#: lib/cab_web/controllers/session_page_html/room.html.heex
+#, elixir-autogen, elixir-format
+msgid "Click the picture or the text to copy it, then paste it into the chat."
+msgstr "Натисніть на зображення або текст, щоб скопіювати, і вставте в чат."
+
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
@@ -802,15 +808,20 @@ msgstr "Скопійовано. Вставте в чат."
 msgid "Copy"
 msgstr "Копіювати"
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#, elixir-autogen, elixir-format
-msgid "Copy image"
-msgstr "Копіювати зображення"
-
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Copy links"
 msgstr "Копіювати посилання"
+
+#: lib/cab_web/controllers/session_page_html/room.html.heex
+#, elixir-autogen, elixir-format
+msgid "Copy the picture"
+msgstr "Скопіювати зображення"
+
+#: lib/cab_web/controllers/session_page_html/room.html.heex
+#, elixir-autogen, elixir-format
+msgid "Copy the text"
+msgstr "Скопіювати текст"
 
 #: lib/cab_web/controllers/admin_controller.ex
 #, elixir-autogen, elixir-format
@@ -851,11 +862,6 @@ msgstr "ЗЛО"
 #, elixir-autogen, elixir-format
 msgid "DPM"
 msgstr "ЗПМ"
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "DRAW"
-msgstr "СІТКА"
 
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
@@ -1229,6 +1235,11 @@ msgstr "Якщо цим гостем були ви, додайте його ре
 msgid "Infoslide"
 msgstr "Інфослайд"
 
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Infoslide: {text}"
+msgstr "Інфослайд: {text}"
+
 #: lib/cab_web/controllers/head_invitation_controller.ex
 #: lib/cab_web/controllers/head_invitation_html/invalid.html.heex
 #, elixir-autogen, elixir-format
@@ -1483,6 +1494,11 @@ msgstr "Резолюція:"
 #, elixir-autogen, elixir-format
 msgid "Motion: not published yet"
 msgstr "Резолюція: ще не опублікована"
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Motion: {motion}"
+msgstr "Резолюція: {motion}"
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #, elixir-autogen, elixir-format
@@ -2142,11 +2158,6 @@ msgstr "Резолюція кімнати %{room}:"
 msgid "Room %{room} — %{status}"
 msgstr "Кімната %{room} — %{status}"
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#, elixir-autogen, elixir-format
-msgid "Room card preview"
-msgstr "Попередній перегляд картки кімнати"
-
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -2186,11 +2197,6 @@ msgstr "Зберегти"
 #, elixir-autogen, elixir-format
 msgid "Save field"
 msgstr "Зберегти поле"
-
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#, elixir-autogen, elixir-format
-msgid "Save image"
-msgstr "Зберегти зображення"
 
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
@@ -2630,6 +2636,16 @@ msgstr "Об'єднаний акаунт:"
 msgid "The new head takes over; the old head retires."
 msgstr "Новий голова бере справи на себе; попередній складає повноваження."
 
+#: lib/cab_web/controllers/session_page_html/room.html.heex
+#, elixir-autogen, elixir-format
+msgid "The room as a picture: copy it"
+msgstr "Кімната зображенням: скопіювати"
+
+#: lib/cab_web/controllers/session_page_html/room.html.heex
+#, elixir-autogen, elixir-format
+msgid "The room as text: copy it"
+msgstr "Кімната текстом: скопіювати"
+
 #: lib/cab_web/live/room_live.ex
 #, elixir-autogen, elixir-format
 msgid "The rooms were deleted. Back to the session."
@@ -2679,8 +2695,13 @@ msgstr "За цією адресою нічого немає."
 
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
-msgid "This browser cannot copy images. Use Save image."
-msgstr "Цей браузер не вміє копіювати зображення. Скористайтеся «Зберегти зображення»."
+msgid "This browser cannot copy pictures. Right-click or hold the picture to save it."
+msgstr "Цей браузер не копіює зображення. Натисніть правою кнопкою або утримуйте зображення, щоб зберегти його."
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "This browser cannot copy. Select the text and copy it."
+msgstr "Цей браузер не копіює. Виділіть текст і скопіюйте його."
 
 #: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
@@ -3542,11 +3563,6 @@ msgstr "без назви"
 #, elixir-autogen, elixir-format
 msgid "their e-mail address"
 msgstr "їхня адреса e-mail"
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "this room's draw and motion, live"
-msgstr "сітка й резолюція цієї кімнати наживо"
 
 #: lib/cab_web/controllers/owner_html/delete_session.html.heex
 #, elixir-autogen, elixir-format
