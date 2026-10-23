@@ -66,6 +66,20 @@ defmodule Cab.Clubs.Club do
   def languages, do: @languages
   def audiences, do: @audiences
 
+  @scopes ~w(guests members both)
+
+  @doc """
+  The registration form's own field attribute for `Core.Forms`: who is
+  asked a field - "guests", "members" or "both" (the default).
+  """
+  def form_attrs, do: %{"scope" => {@scopes, "both"}}
+
+  @doc "Every scope, in the editor's order."
+  def scopes, do: @scopes
+
+  @doc "A field's scope (\"both\" when it has none)."
+  def scope(field), do: Core.Forms.attr(field, "scope", form_attrs())
+
   @doc """
   The guest registration form's locked fields, always asked after the
   built-in name (Core.Forms.with_locked/2 puts them in front when the

@@ -303,12 +303,16 @@ defmodule CabWeb.RegistrationFormTest do
       {:ok, club} =
         Cab.Clubs.edit_registration_form(
           club,
-          &Core.Forms.add_field(&1, %{
-            "label" => "Student card",
-            "type" => "text",
-            "required" => "yes",
-            "scope" => "members"
-          })
+          &Core.Forms.add_field(
+            &1,
+            %{
+              "label" => "Student card",
+              "type" => "text",
+              "required" => "yes",
+              "scope" => "members"
+            },
+            Cab.Clubs.Club.form_attrs()
+          )
         )
 
       card = Map.new(Cab.Clubs.guest_form(club), &{&1["label"], &1["id"]})["Student card"]

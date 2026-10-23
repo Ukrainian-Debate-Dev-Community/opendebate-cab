@@ -10,13 +10,15 @@ defmodule Core.Forms do
 
       %{"id" => "k3J9xQ2a", "type" => "phone", "label" => "Phone",
         "hint" => nil, "required" => true, "options" => [],
-        "scope" => "both", "locked" => false}
+        "locked" => false}
 
-  The id is stable across edits. The scope says who is asked the
-  field: "guests" (people without an account with the app's owner -
-  a club's guests, say), "members", or "both" (also when a stored
-  field has none); `for_audience/2` picks a form's fields for one of
-  them. A locked field is one the app always
+  The id is stable across edits. An app may give its fields
+  attributes of its own (`attrs`: name => `{allowed values, default}`,
+  e.g. `%{"audience" => {~w(a b), "a"}}`): each field stores a value
+  for each, a stored field without one reads the default, an edit that
+  sends none keeps the field's, and a value outside the allowed ones
+  is `:not_allowed` under that name. Core gives them no meaning; the
+  app does. A locked field is one the app always
   asks (`with_locked/2` puts the app's locked fields in front when it
   reads a definition): it cannot be removed or moved, and only its
   required flag and hint can change. Answers are a list in form order:
@@ -34,12 +36,11 @@ defmodule Core.Forms do
   Editing functions take the editor's params ("label", "hint",
   "required" "yes"/"no", "type", "options" one per line) and return
   `{:ok, definition}`, `{:error, :not_found}` or `{:error, errors}`
-  keyed by param (or `:form`), with these codes ("scope" is optional,
-  "both" when not sent):
+  keyed by param (or `:form`), with these codes:
 
     * `:required`, `{:too_long, max}`, `:invalid` - label, hint
     * `:unknown_type` - type
-    * `:unknown_scope` - scope
+    * `:not_allowed` - an app attribute (keyed by its name)
     * `{:options_count, min, max}`, `{:option_too_long, max}`,
       `:duplicate_options`, `:invalid` - options of the choice types
     * `{:too_many_fields, max}`, `:duplicate_id`, `:not_a_list`,
@@ -54,7 +55,6 @@ defmodule Core.Forms do
 
   @types ~w(text longtext number email phone telegram yesno choice multi)
   @choice_types ~w(choice multi)
-  @scopes ~w(guests members both)
   @max_fields 30
   @label_max 120
   @hint_max 200
@@ -103,24 +103,6 @@ defmodule Core.Forms do
     do: part != "" and not String.starts_with?(part, ".") and
       not String.ends_with?(part, ".") and not String.contains?(part, "..")
 
-  @doc "Every scope, in the editor's order."
-  def scopes, do: @scopes
-
-  @doc "A field's scope: its stored one, \"both\" when it has none."
-  def scope(%{"scope" => scope}) when scope in @scopes, do: scope
-  def scope(_field), do: "both"
-
-  @doc """
-  The fields asked of an audience, in form order: `:guest` gets the
-  "guests" and "both" fields, `:member` the "members" and "both" ones.
-  """
-  def for_audience(definition, audience) when is_list(definition) do
-    skip = if audience == :member, do: "guests", else: "members"
-    Enum.reject(definition, &(scope(&1) == skip))
-  end
-
-  def for_audience(_definition, _audience), do: []
-
   @doc "Does this type pick from options?"
   def choice_type?(type), do: type in @choice_types
 
@@ -135,36 +117,39 @@ defmodule Core.Forms do
   # ---------------------------------------------------------------
 
   @doc "Adds a field at the end, with a new id."
-  def add_field(definition, params) when is_list(definition) do
+  def add_field(definition, params, attrs \\ %{}) when is_list(definition) do
     if length(definition) >= @max_fields do
       {:error, %{form: {:too_many_fields, @max_fields}}}
     else
-      with {:ok, field} <- build_field(params, new_id()), do: {:ok, definition ++ [field]}
+      with {:ok, field} <- build_field(params, new_id(), attrs), do: {:ok, definition ++ [field]}
     end
   end
 
   @doc """
   Replaces a field's settings, keeping its id and place. A locked
-  field takes only "required" and "hint"; its label, type and
-  scope stay.
+  field takes only "required" and "hint"; its label, type and app
+  attributes stay.
   """
-  def update_field(definition, id, params) when is_list(definition) do
+  def update_field(definition, id, params, attrs \\ %{}) when is_list(definition) do
     with %{} = old <- field(definition, id) || {:error, :not_found},
-         {:ok, field} <- rebuild(old, params) do
+         {:ok, field} <- rebuild(old, params, attrs) do
       {:ok, Enum.map(definition, &if(&1["id"] == id, do: field, else: &1))}
     end
   end
 
-  defp rebuild(%{"locked" => true} = old, params) do
+  defp rebuild(%{"locked" => true} = old, params, attrs) do
     old
-    |> field_params()
+    |> field_params(attrs)
     |> Map.merge(Map.take(params, ~w(required hint)))
-    |> build_field(old["id"])
+    |> build_field(old["id"], attrs)
     |> lock()
   end
 
-  defp rebuild(old, params),
-    do: build_field(Map.put_new(params, "scope", scope(old)), old["id"])
+  # an app attribute not sent keeps the field's
+  defp rebuild(old, params, attrs) do
+    kept = for {name, _allowed} <- attrs, into: %{}, do: {name, attr(old, name, attrs)}
+    build_field(Map.merge(kept, params), old["id"], attrs)
+  end
 
   defp lock({:ok, field}), do: {:ok, Map.put(field, "locked", true)}
   defp lock(error), do: error
@@ -219,10 +204,10 @@ defmodule Core.Forms do
   The definition with the app's locked fields in front, in the given
   order - for reading a stored definition (even an empty one). Each
   locked field keeps its stored "required" and "hint"; its id, type,
-  label, options and scope are the app's. The other stored fields
-  follow, unlocked, each with its scope ("both" when it has none).
+  label and options are the app's. The other stored fields follow,
+  unlocked.
   """
-  def with_locked(definition, locked) when is_list(locked) do
+  def with_locked(definition, locked, attrs \\ %{}) when is_list(locked) do
     definition = if is_list(definition), do: definition, else: []
     locked_ids = Enum.map(locked, & &1["id"])
 
@@ -232,16 +217,28 @@ defmodule Core.Forms do
 
         default
         |> Map.merge(Map.take(stored, ~w(required hint)))
-        |> Map.put("scope", scope(default))
+        |> put_attrs(default, attrs)
         |> Map.put("locked", true)
       end
 
     rest =
       for field <- definition, field["id"] not in locked_ids do
-        field |> Map.put("scope", scope(field)) |> Map.put("locked", false)
+        field |> put_attrs(field, attrs) |> Map.put("locked", false)
       end
 
     fixed ++ rest
+  end
+
+  @doc "A field's value of an app attribute: its stored one if allowed, else the default."
+  def attr(field, name, attrs) do
+    {allowed, default} = Map.fetch!(attrs, name)
+    if is_map(field) and field[name] in allowed, do: field[name], else: default
+  end
+
+  defp put_attrs(field, source, attrs) do
+    Enum.reduce(attrs, field, fn {name, _allowed}, acc ->
+      Map.put(acc, name, attr(source, name, attrs))
+    end)
   end
 
   @doc """
@@ -251,18 +248,19 @@ defmodule Core.Forms do
   Fields without an id get one; duplicate ids are refused. `locked`
   are the app's locked fields (as for `with_locked/2`): each must come
   at its own place, first (`:locked_removed` / `:locked_moved`), and
-  takes only "required" and "hint" from what was sent.
+  takes only "required" and "hint" from what was sent. `attrs` are
+  the app's attributes, checked like the editor's.
   """
-  def normalize(definition, locked \\ [])
+  def normalize(definition, locked \\ [], attrs \\ %{})
 
-  def normalize(definition, locked) when is_list(definition) do
+  def normalize(definition, locked, attrs) when is_list(definition) do
     case locked_place(definition, locked) do
-      :ok -> normalize_fields(definition, locked)
+      :ok -> normalize_fields(definition, locked, attrs)
       code -> {:error, %{form: code}}
     end
   end
 
-  def normalize(_definition, _locked), do: {:error, %{form: :not_a_list}}
+  def normalize(_definition, _locked, _attrs), do: {:error, %{form: :not_a_list}}
 
   defp locked_place(definition, locked) do
     ids = Enum.map(definition, &(is_map(&1) && &1["id"]))
@@ -278,7 +276,7 @@ defmodule Core.Forms do
     end)
   end
 
-  defp normalize_fields(definition, locked) do
+  defp normalize_fields(definition, locked, attrs) do
     {fields, errors} =
       definition
       |> Enum.with_index()
@@ -288,8 +286,8 @@ defmodule Core.Forms do
 
         built =
           case field(locked, id) do
-            nil -> build_field(field_params(raw), id)
-            default -> rebuild(Map.put(default, "locked", true), field_params(raw))
+            nil -> build_field(sent_params(raw, attrs), id, attrs)
+            default -> rebuild(Map.put(default, "locked", true), field_params(raw, attrs), attrs)
           end
 
         case built do
@@ -315,35 +313,51 @@ defmodule Core.Forms do
     end
   end
 
-  @doc "A field as the editor's params (the edit form's starting values)."
-  def field_params(nil), do: %{"type" => "text", "required" => "no", "scope" => "both"}
+  # a sent field as the editor's params, its app attributes as sent
+  # (so a value outside the allowed ones is refused, not replaced)
+  defp sent_params(raw, attrs),
+    do: Map.merge(field_params(raw, attrs), Map.take(raw, Map.keys(attrs)))
 
-  def field_params(field) when is_map(field) do
+  @doc "A field as the editor's params (the edit form's starting values)."
+  def field_params(field, attrs \\ %{})
+
+  def field_params(nil, attrs),
+    do: put_attrs(%{"type" => "text", "required" => "no"}, nil, attrs)
+
+  def field_params(field, attrs) when is_map(field) do
     %{
       "label" => field["label"],
       "hint" => field["hint"],
       "type" => field["type"],
       "required" => if(field["required"] in [true, "yes", "true"], do: "yes", else: "no"),
-      "scope" => field["scope"] || "both",
       "options" => field["options"] |> List.wrap() |> Enum.join("\n")
     }
+    |> put_attrs(field, attrs)
   end
 
   @doc "The editor's params as a field with this id: `{:ok, field}` or `{:error, errors}`."
-  def build_field(params, id) when is_map(params) do
+  def build_field(params, id, attrs \\ %{})
+
+  def build_field(params, id, attrs) when is_map(params) do
     label = Core.Text.clean(params["label"], required: true, max: @label_max)
     hint = Core.Text.clean(params["hint"], max: @hint_max)
     type = params["type"]
     options = if choice_type?(type), do: options(params["options"]), else: []
-    scope = params["scope"] || "both"
 
     errors =
       %{}
       |> put_error(:label, match?({:error, _}, label), elem(label, 1))
       |> put_error(:hint, match?({:error, _}, hint), elem(hint, 1))
       |> put_error(:type, type not in @types, :unknown_type)
-      |> put_error(:scope, scope not in @scopes, :unknown_scope)
       |> put_error(:options, choice_type?(type) && options_error(options), options_error(options))
+
+    # the app's attributes: the value sent (the default when none)
+    values = for {name, {_allowed, default}} <- attrs, into: %{}, do: {name, params[name] || default}
+
+    errors =
+      Enum.reduce(attrs, errors, fn {name, {allowed, _default}}, acc ->
+        put_error(acc, name, values[name] not in allowed, :not_allowed)
+      end)
 
     if errors == %{} do
       {:ok,
@@ -354,15 +368,15 @@ defmodule Core.Forms do
          "hint" => elem(hint, 1),
          "required" => params["required"] in ["yes", "true", true],
          "options" => options,
-         "scope" => scope,
          "locked" => false
-       }}
+       }
+       |> Map.merge(values)}
     else
       {:error, errors}
     end
   end
 
-  def build_field(_params, id), do: build_field(%{}, id)
+  def build_field(_params, id, attrs), do: build_field(%{}, id, attrs)
 
   defp new_id, do: :crypto.strong_rand_bytes(6) |> Base.url_encode64(padding: false)
 
