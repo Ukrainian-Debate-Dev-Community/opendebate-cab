@@ -434,15 +434,16 @@ msgid "Adjudicator: %{name}"
 msgstr "Суддя: %{name}"
 
 #: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Adjudicator: {name}"
-msgstr "Суддя: {name}"
-
 #: lib/cab_web/controllers/standings_html.ex
 #: lib/cab_web/controllers/standings_html/standings_tabs.html.heex
 #, elixir-autogen, elixir-format
 msgid "Adjudicators"
 msgstr "Судді"
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Adjudicators: {names}"
+msgstr "Судді: {names}"
 
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/admin_controller.ex
@@ -858,11 +859,6 @@ msgstr "ЗЛО"
 msgid "DPM"
 msgstr "ЗПМ"
 
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "DRAW"
-msgstr "СІТКА"
-
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Data & privacy"
@@ -932,11 +928,6 @@ msgstr "Спершу розподіліть людей по кімнатах. А
 #, elixir-autogen, elixir-format
 msgid "Draw"
 msgstr "Сітка"
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Draw:"
-msgstr "Сітка:"
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
@@ -1347,11 +1338,6 @@ msgstr "Мова:"
 #, elixir-autogen, elixir-format
 msgid "Linking lets you sign in to this same account with either. Separate accounts are fine too: link only if you want them to be one. If the method you link already has its own cab account, you can merge the two."
 msgstr "Прив'язка дає змогу входити в цей самий акаунт будь-яким із цих способів. Окремі акаунти теж нормально: прив'язуйте, лише якщо хочете, щоб це був один акаунт. Якщо спосіб, який ви прив'язуєте, вже має власний акаунт у cab, ці два акаунти можна об'єднати."
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Live: {link}"
-msgstr "Наживо: {link}"
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format

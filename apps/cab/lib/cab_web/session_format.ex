@@ -80,6 +80,32 @@ defmodule CabWeb.SessionFormat do
     end
   end
 
+  @doc """
+  The room's adjudicators, the chair first: `%{name, chair}` each,
+  names resolved through the signups list like `judge_name/2`.
+  """
+  def judges(room, signups) do
+    (room["RoomAdjudicators"] || [])
+    |> Enum.sort_by(&(&1["role"] != "chair"))
+    |> Enum.map(fn adjudicator ->
+      id = get_in(adjudicator, ["EventParticipant", "id"])
+
+      name =
+        get_in(adjudicator, ["EventParticipant", "display_name"]) ||
+          Enum.find_value(signups, &(&1["id"] == id && &1["display_name"])) || "—"
+
+      %{name: name, chair: adjudicator["role"] == "chair"}
+    end)
+  end
+
+  @doc "The people speaking for a room team, each once (an iron speaker too)."
+  def speaker_list(room_team) do
+    (room_team["RoomSpeakers"] || [])
+    |> Enum.map(&get_in(&1, ["EventParticipant", "display_name"]))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+  end
+
   @doc "A room's teams in table (og/oo/cg/co) order."
   def sorted_teams(room), do: Enum.sort_by(room["RoomTeams"] || [], & &1["position"])
 

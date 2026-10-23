@@ -427,14 +427,15 @@ msgid "Adjudicator: %{name}"
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Adjudicator: {name}"
-msgstr ""
-
 #: lib/cab_web/controllers/standings_html.ex
 #: lib/cab_web/controllers/standings_html/standings_tabs.html.heex
 #, elixir-autogen, elixir-format
 msgid "Adjudicators"
+msgstr ""
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Adjudicators: {names}"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex
@@ -849,11 +850,6 @@ msgstr ""
 msgid "DPM"
 msgstr ""
 
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "DRAW"
-msgstr ""
-
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Data & privacy"
@@ -922,11 +918,6 @@ msgstr ""
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Draw"
-msgstr ""
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Draw:"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
@@ -1337,11 +1328,6 @@ msgstr ""
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Linking lets you sign in to this same account with either. Separate accounts are fine too: link only if you want them to be one. If the method you link already has its own cab account, you can merge the two."
-msgstr ""
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Live: {link}"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex

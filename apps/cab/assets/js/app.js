@@ -350,23 +350,17 @@ const wrapLines = (ctx, text, width) => {
   return lines
 }
 
-// the room card, landscape: the header band; the session and motion on
-// the left, the draw on the right; the QR and the short link below
+// the room card, landscape: the header band; the session and the
+// motion; the draw as one row - a column per side with the people who
+// speak there, then the adjudicators (the chair marked); the QR and
+// the short link below
 const drawCard = (canvas, d, draw = true) => {
   const ctx = canvas.getContext("2d")
-  const {w, pad, gap} = CARD
-  const colL = Math.round((w - pad * 2 - gap) * 0.56)
-  const colR = w - pad * 2 - gap - colL
-  const xL = pad, xR = pad + colL + gap
+  const {w, pad} = CARD
+  const inner = w - pad * 2
   const font = (weight, size, family = CARD.sans) => { ctx.font = `${weight} ${size}px ${family}` }
   const text = (s, x, yy, color) => { if (draw) { ctx.fillStyle = color; ctx.fillText(s, x, yy) } }
-  // one line that fits the width, cut with an ellipsis when it does not
-  const fit = (s, width) => {
-    let out = String(s)
-    if (ctx.measureText(out).width <= width) return out
-    while (out.length > 1 && ctx.measureText(out + "\u2026").width > width) out = out.slice(0, -1)
-    return out + "\u2026"
-  }
+  const rule = (x, yy, width) => { if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(x, yy, width, 2) } }
 
   if (draw) { ctx.fillStyle = CARD.paper; ctx.fillRect(0, 0, canvas.width, canvas.height) }
 
@@ -374,48 +368,52 @@ const drawCard = (canvas, d, draw = true) => {
   if (draw) { ctx.fillStyle = CARD.brand; ctx.fillRect(0, 0, w, 132) }
   font(400, 60, '"Cedarville Cursive", cursive'); text("cab", pad, 88, CARD.paper)
   font(800, 56); ctx.textAlign = "right"; text(d.room, w - pad, 88, CARD.paper); ctx.textAlign = "left"
-  const top = 132 + 64
+  let y = 132 + 64
 
-  // left: the session and the motion
-  let y = top
+  // the session and the motion
   font(800, 40)
-  for (const l of wrapLines(ctx, d.session || "", colL)) { text(l, xL, y, CARD.ink); y += 50 }
-  font(500, 30); text(fit(`${d.club}, ${formatWhen(d.date, "date")}`, colL), xL, y, CARD.muted); y += 44
-  if (d.starts) { font(700, 30); text(t("card_starts", "Starts at {time}", {time: clock(d.starts)}), xL, y, CARD.ink); y += 44 }
-  y += 20
+  for (const l of wrapLines(ctx, d.session || "", inner)) { text(l, pad, y, CARD.ink); y += 50 }
+  font(500, 30)
+  const when = d.starts
+    ? t("card_starts", "Starts at {time}", {time: formatWhen(d.starts, "short")})
+    : formatWhen(d.date, "date")
+  text(`${d.club}, ${when}`, pad, y, CARD.muted); y += 64
   if (d.motion) {
-    font(800, 22); text(t("card_motion", "MOTION"), xL, y, CARD.gold); y += 44
+    font(800, 22); text(t("card_motion", "MOTION"), pad, y, CARD.gold); y += 44
     font(700, 36)
-    for (const l of wrapLines(ctx, d.motion, colL)) { text(l, xL, y, CARD.ink); y += 46 }
+    for (const l of wrapLines(ctx, d.motion, inner)) { text(l, pad, y, CARD.ink); y += 46 }
     if (d.infoslide) {
       y += 6; font(400, 26)
-      for (const l of wrapLines(ctx, d.infoslide, colL)) { text(l, xL, y, CARD.muted); y += 34 }
+      for (const l of wrapLines(ctx, d.infoslide, inner)) { text(l, pad, y, CARD.muted); y += 34 }
     }
     if (d.prep_until) {
       y += 8; font(600, 26)
-      text(t("card_prep", "Prep until {time}", {time: clock(d.prep_until)}), xL, y, CARD.brand); y += 34
+      text(t("card_prep", "Prep until {time}", {time: clock(d.prep_until)}), pad, y, CARD.brand); y += 34
     }
   } else {
-    font(500, 28); text(t("card_no_motion", "Motion: not published yet"), xL, y, CARD.muted); y += 34
+    font(500, 28); text(t("card_no_motion", "Motion: not published yet"), pad, y, CARD.muted); y += 34
   }
+  y += 40
 
-  // right: the draw and the adjudicator
-  let r = top - 30
-  font(800, 22); text(t("card_draw", "DRAW"), xR, r, CARD.gold); r += 22
-  for (const team of d.teams) {
-    if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(xR, r, colR, 2) }
-    font(800, 26); text(team.side, xR, r + 48, CARD.brand)
-    const named = team.speakers && team.speakers !== team.team
-    font(700, 30); text(fit(team.team, colR - 90), xR + 90, named ? r + 34 : r + 48, CARD.ink)
-    if (named) { font(400, 24); text(fit(team.speakers, colR - 90), xR + 90, r + 64, CARD.muted) }
-    r += 76
-  }
-  if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(xR, r, colR, 2) }
-  font(600, 28)
-  text(fit(t("card_adjudicator", "Adjudicator: {name}", {name: d.judge}), colR), xR, r + 48, CARD.ink)
-  r += 72
-
-  y = Math.max(y, r) + 40
+  // the draw: OG | OO | CG | CO | Adjudicators
+  const cols = [...d.sides.map(s => ({head: s.side, lines: s.people.map(p => ({s: p, bold: true}))})),
+    {head: t("card_adjudicators", "Adjudicators"),
+     lines: d.judges.map(j => ({s: j.chair ? `${j.name} \u00A9` : j.name, bold: j.chair}))}]
+  const colW = inner / cols.length
+  font(800, 24)
+  cols.forEach((c, k) => text(c.head, pad + k * colW, y, CARD.brand))
+  y += 22; rule(pad, y, inner); y += 46
+  let tallest = 1
+  cols.forEach((c, k) => {
+    let cy = y
+    const lines = c.lines.length ? c.lines : [{s: "\u2014", bold: false}]
+    for (const l of lines) {
+      font(l.bold ? 700 : 400, 30)
+      for (const part of wrapLines(ctx, l.s, colW - 24)) { text(part, pad + k * colW, cy, l.bold ? CARD.ink : CARD.muted); cy += 40 }
+    }
+    tallest = Math.max(tallest, (cy - y) / 40)
+  })
+  y += tallest * 40; rule(pad, y - 18, inner); y += 30
 
   // footer: the QR and the short link
   const qr = d.qr || []
@@ -436,22 +434,15 @@ const drawCard = (canvas, d, draw = true) => {
   return y
 }
 
-// the same room as plain text, for a chat that takes no pictures
+// the same room as short plain text, for a chat that takes no pictures
 const cardText = (d) => {
-  const lines = [`${d.room} - ${d.session}`, `${d.club}, ${formatWhen(d.date, "date")}`]
-  if (d.starts) lines.push(t("card_starts", "Starts at {time}", {time: clock(d.starts)}))
-  lines.push("")
-  if (d.motion) {
-    lines.push(t("text_motion", "Motion: {motion}", {motion: d.motion}))
-    if (d.infoslide) lines.push(t("text_infoslide", "Infoslide: {text}", {text: d.infoslide}))
-    if (d.prep_until) lines.push(t("card_prep", "Prep until {time}", {time: clock(d.prep_until)}))
-  } else lines.push(t("card_no_motion", "Motion: not published yet"))
-  lines.push("", t("text_draw", "Draw:"))
-  for (const team of d.teams) {
-    const named = team.speakers && team.speakers !== team.team
-    lines.push(`${team.side}  ${team.team}${named ? ` (${team.speakers})` : ""}`)
-  }
-  lines.push(t("card_adjudicator", "Adjudicator: {name}", {name: d.judge}), "", t("text_live", "Live: {link}", {link: d.link}))
+  const when = d.starts ? formatWhen(d.starts, "short") : formatWhen(d.date, "date")
+  const lines = [`${d.room} - ${d.session}, ${when}`]
+  lines.push(d.motion ? t("text_motion", "Motion: {motion}", {motion: d.motion}) : t("card_no_motion", "Motion: not published yet"))
+  if (d.infoslide) lines.push(t("text_infoslide", "Infoslide: {text}", {text: d.infoslide}))
+  for (const s of d.sides) lines.push(`${s.side}: ${s.people.join(", ") || "\u2014"}`)
+  const judges = d.judges.map(j => (j.chair ? `${j.name} \u00A9` : j.name)).join(", ")
+  lines.push(t("text_adjudicators", "Adjudicators: {names}", {names: judges || "\u2014"}), d.link_text)
   return lines.join("\n")
 }
 

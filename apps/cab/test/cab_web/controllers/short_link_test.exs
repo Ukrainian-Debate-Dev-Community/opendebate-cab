@@ -82,6 +82,10 @@ defmodule CabWeb.ShortLinkTest do
     [json] = Regex.run(~r/data-card="([^"]*)"/, html, capture: :all_but_first)
     card = json |> String.replace("&quot;", "\"") |> Jason.decode!()
     assert card["room"] == "R1"
+    # people by side and the adjudicators; team names stay internal
+    assert is_list(card["sides"])
+    assert is_list(card["judges"])
+    refute Map.has_key?(card, "teams")
     assert card["link"] =~ "/#{code(session)}/1"
 
     assert card["qr"] ==
