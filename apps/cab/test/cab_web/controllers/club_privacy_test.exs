@@ -45,6 +45,12 @@ defmodule CabWeb.ClubPrivacyTest do
         "/api/events/11/standings/calculated/speakers" ->
           ok(conn, [%{"id" => 7, "name" => "Anna", "total_points" => 101.5}])
 
+        "/api/events/11/standings/calculated/teams" ->
+          ok(conn, [%{"id" => 3, "name" => "Anna", "total_points" => 3}])
+
+        "/api/organisations/3/standings/speakers" ->
+          ok(conn, [%{"user_id" => 7, "name" => "Anna", "total_points" => 101.5}])
+
         "/api/events/11/participants" ->
           ok(conn, participants)
 
@@ -118,12 +124,15 @@ defmodule CabWeb.ClubPrivacyTest do
     guest = user_fixture(%{node_user_id: 777})
     stub_finished([%{"id" => 41, "user_id" => 777, "role" => "speaker"}])
 
-    html = conn |> log_in(guest) |> get(~p"/c/#{club.uuid}/standings/speakers")
+    html = conn |> log_in(guest) |> get(~p"/c/#{club.uuid}/standings/teams")
     assert html_response(html, 200) =~ "Anna"
+
+    # the club-wide tabs span every night: members only
+    assert conn |> log_in(guest) |> get(~p"/c/#{club.uuid}/standings/speakers") |> response(403)
 
     # a different session's player stays out (not in this one's list)
     other = user_fixture(%{node_user_id: 778})
-    denied = conn |> log_in(other) |> get(~p"/c/#{club.uuid}/standings/speakers")
+    denied = conn |> log_in(other) |> get(~p"/c/#{club.uuid}/standings/teams")
     assert response(denied, 403)
   end
 
@@ -141,7 +150,7 @@ defmodule CabWeb.ClubPrivacyTest do
     stub_finished([%{"id" => 41, "user_id" => 777, "role" => "speaker"}])
 
     html =
-      conn |> log_in(guest) |> get(~p"/c/#{club.uuid}/standings/speakers") |> html_response(200)
+      conn |> log_in(guest) |> get(~p"/c/#{club.uuid}/standings/teams") |> html_response(200)
 
     assert html =~ "Quiet night"
     assert html =~ "Anna"

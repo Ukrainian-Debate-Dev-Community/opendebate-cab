@@ -237,6 +237,30 @@ defmodule CabWeb.EightPagesTest do
             %{"id" => 90, "name" => "Petro", "rooms_adjudicated" => 2, "avg_feedback" => 8.5}
           ])
 
+        # the club tabs for speakers and adjudicators: every finished
+        # session at once, the engine's organisation figures
+        "/api/organisations/3/standings/speakers" ->
+          ok(conn, [
+            %{
+              "user_id" => 70,
+              "name" => "Anna Kovalenko",
+              "total_points" => 233,
+              "average_score" => 77.67,
+              "speeches" => 3
+            }
+          ])
+
+        "/api/organisations/3/stats/adjudicators" ->
+          ok(conn, [
+            %{
+              "user_id" => 90,
+              "name" => "Petro",
+              "rooms_adjudicated" => 2,
+              "feedback_count" => 4,
+              "avg_feedback" => 8.5
+            }
+          ])
+
         # the scope card's archive selector peeks at winners
         "/api/events/11/rounds" ->
           ok(conn, [%{"id" => 21, "sequence" => 1}])
@@ -283,7 +307,11 @@ defmodule CabWeb.EightPagesTest do
       assert html =~ ~r/>\s*233\s*</
       assert html =~ "77.67"
       assert html =~ ~r/>\s*3\s*</
-      assert html =~ "Walk night"
+      assert html =~ "Total points"
+      assert html =~ "Avg points"
+      # every finished session at once, no session stepper
+      assert html =~ "All finished sessions of"
+      refute html =~ ~s(class="stepper")
 
       # NO wins/winrate/played strings anywhere on standings pages
       refute html =~ "wins"
@@ -313,6 +341,8 @@ defmodule CabWeb.EightPagesTest do
       assert judges =~ "Rooms adjudicated"
       assert judges =~ "Avg feedback"
       assert judges =~ "8.5"
+      assert judges =~ "Feedback"
+      assert judges =~ ~r/>\s*4\s*</
 
       assert conn |> get(~p"/c/#{club.uuid}/standings/clubs") |> response(404)
     end
@@ -346,6 +376,9 @@ defmodule CabWeb.EightPagesTest do
 
           "/api/events/11/standings/calculated/teams" ->
             ok(conn, [%{"id" => 7, "name" => "Anna Kovalenko", "total_points" => 2}])
+
+          "/api/organisations/3/standings/speakers" ->
+            ok(conn, [])
 
           "/api/events/10/standings/calculated/speakers" ->
             ok(conn, [%{"id" => 8, "name" => "Newer Winner", "total_points" => 99.0}])
