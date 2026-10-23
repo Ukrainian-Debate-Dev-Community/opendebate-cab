@@ -104,6 +104,40 @@ defmodule Cab.Standings do
   end
 
   @doc """
+  A club's speakers over ALL its finished sessions - the engine's
+  organisation standings verbatim (rule 0): total points, average,
+  speeches per person.
+  """
+  def club_speakers(%Club{} = club) do
+    with {:ok, actor} <- Clubs.club_actor(club),
+         {:ok, rows} <-
+           EngineApi.organisation_speaker_standings(actor, club.engine_organisation_id) do
+      rows
+    else
+      _ -> []
+    end
+  end
+
+  @doc """
+  A club's adjudicators over ALL its finished sessions - the engine's
+  organisation stats verbatim: rooms adjudicated, feedback count and
+  the average feedback with the base vote.
+  """
+  def club_adjudicators(%Club{} = club) do
+    with {:ok, actor} <- Clubs.club_actor(club),
+         {:ok, rows} <-
+           EngineApi.organisation_adjudicator_stats(
+             actor,
+             club.engine_organisation_id,
+             Cab.Feedback.base()
+           ) do
+      rows
+    else
+      _ -> []
+    end
+  end
+
+  @doc """
   The clubs tab: plain counts per public club from cab's records -
   members, sessions and rooms made. Most members first.
   """

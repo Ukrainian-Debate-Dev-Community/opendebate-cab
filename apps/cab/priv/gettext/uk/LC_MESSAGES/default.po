@@ -245,11 +245,6 @@ msgstr "(5 рахується як один голос)"
 msgid "(iron)"
 msgstr "(айрон)"
 
-#: lib/cab_web/controllers/standings_html/standings_body.html.heex
-#, elixir-autogen, elixir-format
-msgid "(latest finished)"
-msgstr "(остання завершена)"
-
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex
 #, elixir-autogen, elixir-format
 msgid ", a guest at %{session} in %{club}."
@@ -451,6 +446,11 @@ msgstr "Судді"
 msgid "Admin"
 msgstr "Адміністрування"
 
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "All finished sessions of %{club}"
+msgstr "Усі завершені сесії клубу %{club}"
+
 #: lib/cab_web/controllers/owner_html.ex
 #, elixir-autogen, elixir-format
 msgid "Allocation — %{count} room(s), count automatic"
@@ -549,8 +549,12 @@ msgstr "Сер. відгук"
 msgid "Avg feedback counts a base of 5 as one vote: (5 + every feedback score) / (feedback count + 1)."
 msgstr "Сер. відгук рахує базову 5 як один голос: (5 + усі оцінки з відгуків) / (кількість відгуків + 1)."
 
-#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Avg points"
+msgstr "Середній бал"
+
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Avg score"
 msgstr "Сер. бал"
@@ -933,6 +937,11 @@ msgstr "Адреса e-mail"
 msgid "Each field is asked of guests, of members, or of both. Guests answer theirs when they register for a session of the club without an account."
 msgstr "Кожне поле адресоване гостям, членам клубу або всім. Гості заповнюють свої поля, коли реєструються на сесію клубу без акаунта."
 
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Earlier session"
+msgstr "Попередня сесія"
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Edit"
@@ -1008,6 +1017,7 @@ msgstr "Поясніть свій відгук."
 #: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Feedback"
 msgstr "Відгук"
@@ -1323,6 +1333,11 @@ msgstr "Мова"
 msgid "Language:"
 msgstr "Мова:"
 
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Later session"
+msgstr "Наступна сесія"
+
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Linking lets you sign in to this same account with either. Separate accounts are fine too: link only if you want them to be one. If the method you link already has its own cab account, you can merge the two."
@@ -1583,6 +1598,11 @@ msgstr "Заявок, що чекають, немає."
 #, elixir-autogen, elixir-format
 msgid "No results for this session yet."
 msgstr "Результатів цієї сесії ще немає."
+
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "No results yet."
+msgstr "Результатів ще немає."
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -2753,6 +2773,11 @@ msgstr[0] "Забагато спроб. Спробуйте знову через
 msgstr[1] "Забагато спроб. Спробуйте знову через %{count} хвилини."
 msgstr[2] "Забагато спроб. Спробуйте знову через %{count} хвилин."
 
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Total points"
+msgstr "Сума балів"
+
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
 msgid "Two teams share a total. BP allows no ties, so adjust the scores."
@@ -3156,11 +3181,6 @@ msgstr "нижче"
 #, elixir-autogen, elixir-format
 msgid "e-mail"
 msgstr "e-mail"
-
-#: lib/cab_web/controllers/standings_html/standings_body.html.heex
-#, elixir-autogen, elixir-format
-msgid "earlier:"
-msgstr "раніше:"
 
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
