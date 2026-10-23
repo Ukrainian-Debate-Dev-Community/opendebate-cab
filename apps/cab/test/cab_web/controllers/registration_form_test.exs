@@ -398,7 +398,7 @@ defmodule CabWeb.RegistrationFormTest do
         |> html_response(422)
 
       assert html =~ "Fill this in."
-      assert html =~ "Enter a phone number"
+      assert html =~ "Enter a full phone number for its country"
       assert html =~ ~s(value="Greta Guest")
       assert html =~ ~s(value="12")
       assert html =~ ~r/value="Thursday"\s+checked/
@@ -469,6 +469,30 @@ defmodule CabWeb.RegistrationFormTest do
       assert_no_email_sent()
     end
 
+    test "a phone is checked for its country; without a +code it needs the deploy's country",
+         %{conn: conn, club: club} do
+      {club, ids} = with_form(club)
+      session = session_fixture(club, engine_event_id: 11)
+      stub_stage([])
+
+      # no :default_phone_country in tests: a number without its +code
+      # cannot be read, a short one is no number at all
+      for typed <- ["050 123 45 67", "+380 50 12"] do
+        html =
+          conn
+          |> anon()
+          |> post(~p"/r/#{session.uuid}", %{
+            name: "Greta Guest",
+            answers: %{"email" => "greta@example.com", ids["Phone"] => typed}
+          })
+          |> html_response(422)
+
+        assert html =~ "Enter a full phone number for its country", typed
+      end
+
+      assert Repo.all(Link) == []
+    end
+
     test "answers are kept on the guest's link and the personal link is e-mailed",
          %{conn: conn, club: club} do
       {club, ids} = with_form(club)
@@ -499,7 +523,7 @@ defmodule CabWeb.RegistrationFormTest do
 
       assert Enum.map(link.answers, &{&1["label"], &1["type"], &1["value"]}) == [
                {"Your e-mail", "email", "greta@example.com"},
-               {"Phone", "phone", "+380 44 123 45 67"},
+               {"Phone", "phone", "+380441234567"},
                {"First time?", "yesno", false},
                {"Days", "multi", ["Monday", "Thursday"]}
              ]
@@ -621,6 +645,8 @@ defmodule CabWeb.RegistrationFormTest do
 
       assert html =~ "greta@example.com"
       assert html =~ ~s(href="tel:+380507654321")
+      # stored as E.164, shown the way people read numbers
+      assert html =~ "+380 50 765 4321"
 
       body =
         conn
@@ -637,7 +663,7 @@ defmodule CabWeb.RegistrationFormTest do
                "value" => "greta@example.com"
              }
 
-      assert phone["value"] == "+380 50 765 43 21"
+      assert phone["value"] == "+380507654321"
       assert first_time["value"] == false
 
       form =

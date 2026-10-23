@@ -110,6 +110,10 @@ if config_env() == :prod do
     anonymous: {per_minute.("RATE_LIMIT_ANONYMOUS", "20"), 20},
     trust_cf_ip: true
 
+  if country = System.get_env("DEFAULT_PHONE_COUNTRY") do
+    config :cab, :default_phone_country, String.upcase(country)
+  end
+
   # the public forms' rate limit, independent of the API's: opt-in
   if form_rate_limit = System.get_env("FORM_RATE_LIMIT") do
     config :cab, CabWeb.BotGuard, rate_limit: form_rate_limit == "true"

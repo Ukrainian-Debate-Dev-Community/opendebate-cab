@@ -429,14 +429,19 @@ defmodule Core.Forms do
   Checks answers (`params` keyed by field id, as `form_fields` posts
   them) against the definition: `{:ok, answers}` or
   `{:error, %{field_id => message}}`. Params for ids the definition
-  does not have are ignored.
+  does not have are ignored. Options: `phone_region:` the ISO country
+  ("UA") a phone number without its own +code is read in (none: such
+  a number is refused). Phones are stored as E.164, Telegram usernames
+  without the @, e-mails with the domain in lowercase.
   """
-  def validate_answers(definition, params) when is_list(definition) do
+  def validate_answers(definition, params, opts \\ [])
+
+  def validate_answers(definition, params, opts) when is_list(definition) do
     params = if is_map(params), do: params, else: %{}
 
     {answers, errors} =
       Enum.reduce(definition, {[], %{}}, fn field, {ok, bad} ->
-        case answer(field, params[field["id"]]) do
+        case answer(field, params[field["id"]], opts) do
           {:ok, nil} ->
             {ok, bad}
 
@@ -451,7 +456,73 @@ defmodule Core.Forms do
     if errors == %{}, do: {:ok, Enum.reverse(answers)}, else: {:error, errors}
   end
 
-  def validate_answers(_definition, _params), do: {:ok, []}
+  def validate_answers(_definition, _params, _opts), do: {:ok, []}
+
+  @doc """
+  A phone number as E.164, read in `region` (an ISO country code) when
+  it carries no +code of its own: `{:ok, e164}` or `:error` (not a
+  valid number for its country).
+
+      iex> Core.Forms.phone("050 123 45 67", "UA")
+      {:ok, "+380501234567"}
+      iex> Core.Forms.phone("+48 601 234 567")
+      {:ok, "+48601234567"}
+      iex> Core.Forms.phone("050 123 45 67")
+      :error
+  """
+  def phone(value, region \\ nil)
+
+  def phone(value, region) when is_binary(value) do
+    text = String.trim(value)
+    region = if is_binary(region) and region =~ ~r/^[A-Za-z]{2}$/, do: String.upcase(region), else: ""
+
+    with true <- text =~ ~r/^\+?[0-9 ().\-]+$/,
+         true <- String.starts_with?(text, "+") or region != "",
+         {:ok, number} <- ExPhoneNumber.parse(text, region),
+         true <- ExPhoneNumber.is_valid_number?(number) do
+      {:ok, ExPhoneNumber.format(number, :e164)}
+    else
+      _ -> :error
+    end
+  end
+
+  def phone(_value, _region), do: :error
+
+  @doc """
+  A stored phone number as people read it ("+380 50 123 4567"); a value
+  that is not E.164 (an older answer) comes back as it is.
+  """
+  def phone_display(value) when is_binary(value) do
+    with "+" <> _ <- value,
+         {:ok, number} <- ExPhoneNumber.parse(value, "") do
+      ExPhoneNumber.format(number, :international)
+    else
+      _ -> value
+    end
+  end
+
+  def phone_display(value), do: value
+
+  @doc """
+  A Telegram username from what people type - "@name", "name",
+  "t.me/name", "https://t.me/name": `{:ok, name}` (5-32 letters,
+  digits or _) or `:error`.
+
+      iex> Core.Forms.telegram("https://t.me/debate_ua")
+      {:ok, "debate_ua"}
+  """
+  def telegram(value) when is_binary(value) do
+    name =
+      value
+      |> String.trim()
+      |> String.replace(~r{^(https?://)?(www\.)?(t|telegram)\.me/}i, "")
+      |> String.trim_trailing("/")
+      |> String.replace_prefix("@", "")
+
+    if name =~ ~r/^[A-Za-z0-9_]{5,32}$/, do: {:ok, name}, else: :error
+  end
+
+  def telegram(_value), do: :error
 
   @doc """
   Answers as the values a form shows again, keyed by field id - to
@@ -475,7 +546,7 @@ defmodule Core.Forms do
 
   def first_value(_answers, _type), do: nil
 
-  defp answer(%{"type" => "yesno"} = field, raw) do
+  defp answer(%{"type" => "yesno"} = field, raw, _opts) do
     yes = raw in ["yes", "true", "on", true]
 
     if field["required"] == true and not yes,
@@ -483,7 +554,7 @@ defmodule Core.Forms do
       else: {:ok, yes}
   end
 
-  defp answer(%{"type" => "multi"} = field, raw) do
+  defp answer(%{"type" => "multi"} = field, raw, _opts) do
     picked = raw |> List.wrap() |> Enum.filter(&is_binary/1) |> Enum.uniq()
 
     cond do
@@ -502,14 +573,23 @@ defmodule Core.Forms do
     end
   end
 
-  defp answer(field, raw) do
+  defp answer(field, raw, opts) do
     case {Core.Text.clean(raw, multiline: field["type"] == "longtext"), field["required"]} do
       {{:ok, nil}, true} -> {:error, :required}
       {{:ok, nil}, _optional} -> {:ok, nil}
-      {{:ok, value}, _required} -> check(field, value)
+      {{:ok, value}, _required} -> check(field, value, opts)
       {{:error, code}, _required} -> {:error, code}
     end
   end
+
+  defp check(%{"type" => "phone"}, value, opts) do
+    case phone(value, opts[:phone_region]) do
+      {:ok, e164} -> {:ok, e164}
+      :error -> {:error, {:invalid, :phone}}
+    end
+  end
+
+  defp check(field, value, _opts), do: check(field, value)
 
   defp check(%{"type" => "text"}, value), do: length_ok(value, @text_max)
   defp check(%{"type" => "longtext"}, value), do: length_ok(value, @longtext_max)
@@ -520,26 +600,22 @@ defmodule Core.Forms do
       else: {:error, {:invalid, :number}}
   end
 
+  # the address as typed, its domain in lowercase (mailboxes may care
+  # about case; domains never do)
   defp check(%{"type" => "email"}, value) do
-    if email?(value), do: {:ok, value}, else: {:error, {:invalid, :email}}
-  end
-
-  # an optional + in front, then digits with spaces, dashes or brackets
-  # between them; 7 to 20 digits in all
-  defp check(%{"type" => "phone"}, value) do
-    digits = value |> String.replace(~r/\D/, "") |> String.length()
-
-    if value =~ ~r/^\+?[0-9 ()\-]+$/ and digits in 7..20,
-      do: {:ok, String.replace(value, ~r/\s+/, " ")},
-      else: {:error, {:invalid, :phone}}
+    if email?(value) do
+      [local, domain] = String.split(value, "@")
+      {:ok, local <> "@" <> String.downcase(domain)}
+    else
+      {:error, {:invalid, :email}}
+    end
   end
 
   defp check(%{"type" => "telegram"}, value) do
-    name = String.replace_prefix(value, "@", "")
-
-    if name =~ ~r/^[A-Za-z0-9_]{5,32}$/,
-      do: {:ok, name},
-      else: {:error, {:invalid, :telegram}}
+    case telegram(value) do
+      {:ok, name} -> {:ok, name}
+      :error -> {:error, {:invalid, :telegram}}
+    end
   end
 
   defp check(%{"type" => "choice"} = field, value) do

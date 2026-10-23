@@ -321,7 +321,8 @@ defmodule Cab.Links do
     answers =
       case Core.Forms.validate_answers(
              Cab.Clubs.guest_fields(session_club(session)),
-             answer_params
+             answer_params,
+             Cab.Clubs.answer_opts()
            ) do
         {:ok, answers} -> {:ok, answers}
         {:error, errors} -> {:error, Map.new(errors, fn {id, msg} -> {{:answer, id}, msg} end)}

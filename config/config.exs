@@ -48,6 +48,12 @@ config :cab, :legal_dir, Path.expand("../../opendebate-server/legal", __DIR__)
 # (SHORT_LINK_HOSTS in production); none by default
 config :cab, :short_link_hosts, []
 
+# the country (ISO code, e.g. "UA") a phone number typed without its
+# +code is read in, and the phone field's preselected country
+# (DEFAULT_PHONE_COUNTRY in production); nil: the visitor's own region
+# in the browser, and the server asks for a +code
+config :cab, :default_phone_country, nil
+
 # Configure the endpoint
 # English by default; Ukrainian when the browser or the footer asks
 config :cab, CabWeb.Gettext, default_locale: "en", locales: ~w(en uk)
