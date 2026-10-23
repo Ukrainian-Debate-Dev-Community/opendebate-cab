@@ -14,8 +14,8 @@
   <%= if @scope do %>
     <.section title={tab_label(@tab)}>
       <div class="pad scope-card">
-        <%= if assigns[:archive] do %>
-          <%!-- the club's finished sessions: < earlier | this one | later > --%>
+        <%= if assigns[:archive] && @tab == "teams" do %>
+          <%!-- teams go session by session: < earlier | this one | later > --%>
           <.stepper
             prev={step_href(assigns, 1)}
             next={step_href(assigns, -1)}
