@@ -63,7 +63,8 @@ defmodule CabWeb.BallotForm do
 
       %{
         side: side,
-        name: get_in(room_team, ["Team", "name"]),
+        # the people at this side; team names stay internal
+        name: CabWeb.SessionFormat.speaker_names(room_team),
         rows: rows,
         tied: side in tied
       }

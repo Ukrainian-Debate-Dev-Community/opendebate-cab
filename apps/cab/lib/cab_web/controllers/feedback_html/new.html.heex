@@ -24,9 +24,9 @@
     <.flash_banners flash={@flash} />
 
     <.banner kind={:info}>
-      {gettext("Your team: %{team} (%{side}). One feedback per team; the first one sent stays.",
-        team: get_in(@room_team, ["Team", "name"]),
-        side: side_code(@room_team["position"])
+      {gettext("Your side: %{side} (%{people}). One feedback per side; the first one sent stays.",
+        side: side_code(@room_team["position"]),
+        people: speaker_names(@room_team)
       )}
     </.banner>
 

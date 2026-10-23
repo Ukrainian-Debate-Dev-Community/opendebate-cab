@@ -1756,19 +1756,32 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Each room's winning team, in room order: `[{room, team_name}]` from
-  the rank-1 team of every completed or confirmed ballot.
+  Each room's winners, in room order: `[{room, names}]` - the people of
+  the rank-1 side of every completed or confirmed ballot ("A & B");
+  team names stay internal.
   """
   def winners_by_room(rooms) do
     for room <- Enum.sort_by(rooms, &(&1["no"] || &1["id"])),
         room["status"] in ["completed", "confirmed"],
         team = Enum.find(room["RoomTeams"] || [], &(&1["rank"] == 1)),
-        do: {room, get_in(team, ["Team", "name"])}
+        do: {room, winning_people(team)}
+  end
+
+  # the side's people; the team's name only when the engine names none
+  defp winning_people(room_team) do
+    (room_team["RoomSpeakers"] || [])
+    |> Enum.map(&get_in(&1, ["EventParticipant", "display_name"]))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> case do
+      [] -> get_in(room_team, ["Team", "name"])
+      names -> Enum.join(names, " & ")
+    end
   end
 
   @doc """
-  The session's winners in one line: the team name for one room,
-  "Team A (R1), Team B (R2)" for several, or `nil` while no ballot is in.
+  The session's winners in one line: the people for one room,
+  "A & B (R1), C & D (R2)" for several, or `nil` while no ballot is in.
   """
   def winner_from_rooms(rooms) do
     case winners_by_room(rooms) do

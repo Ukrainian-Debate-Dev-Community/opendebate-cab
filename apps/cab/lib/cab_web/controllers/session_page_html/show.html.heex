@@ -150,9 +150,6 @@
               <:col :let={room_team} label={gettext("Side")} code>
                 {side_code(room_team["position"])}
               </:col>
-              <:col :let={room_team} label={gettext("Team")}>
-                {get_in(room_team, ["Team", "name"])}
-              </:col>
               <:col :let={room_team} label={gettext("Speakers")}>{speaker_names(room_team)}</:col>
               <:col :let={room_team} label={gettext("Result")} class="st">
                 <%= if room["status"] in ["completed", "confirmed"] && room_team["rank"] do %>

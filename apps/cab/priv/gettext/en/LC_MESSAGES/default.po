@@ -2471,8 +2471,6 @@ msgid "Support"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Team"
@@ -3035,6 +3033,11 @@ msgstr ""
 msgid "Your personal link"
 msgstr ""
 
+#: lib/cab_web/controllers/feedback_html/new.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your side: %{side} (%{people}). One feedback per side; the first one sent stays."
+msgstr ""
+
 #: lib/cab/feedback.ex
 #: lib/cab_web/controllers/feedback_html/new.html.heex
 #, elixir-autogen, elixir-format
@@ -3044,11 +3047,6 @@ msgstr ""
 #: lib/cab_web/controllers/feedback_html/new.html.heex
 #, elixir-autogen, elixir-format
 msgid "Your team sees it now; %{adjudicator} sees it, without your team's name, once the session is finished."
-msgstr ""
-
-#: lib/cab_web/controllers/feedback_html/new.html.heex
-#, elixir-autogen, elixir-format
-msgid "Your team: %{team} (%{side}). One feedback per team; the first one sent stays."
 msgstr ""
 
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex
