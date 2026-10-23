@@ -73,8 +73,11 @@ defmodule CabWeb.ShortLinkTest do
        %{conn: conn, club: club, session: session} do
     html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/72") |> html_response(200)
     assert html =~ ~s(phx-hook="RoomCard")
-    assert html =~ "Copy image"
-    assert html =~ "Save image"
+    # two columns, picture and text, each copied by a click; no buttons
+    assert html =~ ~s(data-card-image)
+    assert html =~ ~s(data-card-text)
+    assert html =~ "Click the picture or the text to copy it"
+    refute html =~ "Save image"
 
     [json] = Regex.run(~r/data-card="([^"]*)"/, html, capture: :all_but_first)
     card = json |> String.replace("&quot;", "\"") |> Jason.decode!()
