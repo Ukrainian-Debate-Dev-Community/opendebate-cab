@@ -164,12 +164,12 @@ defmodule CabWeb.ClubPublicController do
   def register_path(%Session{} = session),
     do: ~p"/c/#{session.club.uuid}?#{[session: session.uuid]}" <> "#register"
 
-  # the registration section, or nil: every session taking sign-ups to
-  # choose from (params["session"], else the nearest one the viewer is
-  # not registered for) and what this viewer sees of the chosen one -
-  # :guest, :member or :account (a form), :registered; with none open,
-  # the current session's :closed or :running. `params`/`errors`
-  # refill a form
+  # the registration section, or nil: a form for a session taking
+  # sign-ups the viewer is not registered for (params["session"], else
+  # the nearest) - :guest, :member or :account - with a one-line
+  # `notice` when the link named one they already have; :all_registered
+  # when they have every open one; with none open, the current
+  # session's :closed or :running. `params`/`errors` refill a form
   defp registration(conn, params, errors) do
     club = conn.assigns.club
 
@@ -187,11 +187,22 @@ defmodule CabWeb.ClubPublicController do
             %{session: session, participant: id, registered: id != nil}
           end
 
-        chosen =
-          Enum.find(open, &(&1.uuid == params["session"])) ||
-            Enum.find_value(choices, hd(open), &(!&1.registered && &1.session))
+        # a link to a session the viewer already has: said in one line,
+        # the form moves on to the nearest one they do not have
+        requested = Enum.find(choices, &(&1.session.uuid == params["session"]))
+        free = for choice <- choices, !choice.registered, do: choice.session
+        notice = requested && requested.registered && requested.session
 
-        %{section(conn, chosen, params, errors) | choices: choices}
+        chosen =
+          if requested && !requested.registered, do: requested.session, else: List.first(free)
+
+        case chosen do
+          nil ->
+            %{blank_section(hd(open), params, errors) | kind: :all_registered, choices: choices}
+
+          session ->
+            %{section(conn, session, params, errors) | choices: choices, notice: notice}
+        end
     end
   end
 
@@ -208,8 +219,8 @@ defmodule CabWeb.ClubPublicController do
     end
   end
 
-  defp section(conn, session, params, errors) do
-    base = %{
+  defp blank_section(session, params, errors) do
+    %{
       session: session,
       kind: nil,
       fields: [],
@@ -218,9 +229,13 @@ defmodule CabWeb.ClubPublicController do
       errors: errors,
       signup: nil,
       done: nil,
-      choices: []
+      choices: [],
+      notice: nil
     }
+  end
 
+  defp section(conn, session, params, errors) do
+    base = blank_section(session, params, errors)
     viewer = conn.assigns.current_user
 
     case Sessions.stage_of(session) do

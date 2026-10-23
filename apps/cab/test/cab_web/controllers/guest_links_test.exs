@@ -113,6 +113,50 @@ defmodule CabWeb.GuestLinksTest do
       assert chosen =~ ~s(href="/c/#{club.uuid}?session=#{nearer.uuid}#register")
     end
 
+    test "a link to a session the viewer has: one line, then the next form",
+         %{conn: conn, club: club} do
+      member = user_fixture(%{node_user_id: 44})
+      membership_fixture(member, club)
+      mine = session_fixture(club, name: "Mine", scheduled_at: ~U[2026-11-01 18:00:00Z])
+
+      next =
+        session_fixture(club,
+          name: "Next",
+          engine_event_id: 12,
+          scheduled_at: ~U[2026-11-05 18:00:00Z]
+        )
+
+      # the member has a seat in event 11 ("Mine") only
+      stub(fn conn, _params ->
+        case conn.request_path do
+          "/api/events/11/participants" ->
+            ok(conn, [%{"id" => 41, "user_id" => 44}])
+
+          "/api/events/12/participants" ->
+            ok(conn, [])
+
+          "/api/events/" <> _ = path ->
+            if String.ends_with?(path, "/rounds"),
+              do: ok(conn, [%{"id" => 21, "sequence" => 1}]),
+              else: ok(conn, %{"id" => 11, "status" => "scheduled"})
+
+          _other ->
+            ok(conn, [])
+        end
+      end)
+
+      html =
+        conn
+        |> log_in(member)
+        |> get(~p"/c/#{club.uuid}?session=#{mine.uuid}")
+        |> html_response(200)
+
+      assert html =~ "You are registered for"
+      assert html =~ ~s(name="session" value="#{next.uuid}")
+      # the menu offers only sessions the viewer is not registered for
+      refute html =~ ~s(class="dd-more")
+    end
+
     test "one open session: no choice to make", %{conn: conn, club: club} do
       _session = session_fixture(club, engine_event_id: 11)
       stub_stage([])
@@ -131,7 +175,7 @@ defmodule CabWeb.GuestLinksTest do
       stub_stage([])
 
       html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
-      assert html =~ "Registration is closed for this session."
+      assert html =~ "No sessions are open for registration right now."
       refute html =~ ~s(id="guest-register-form")
     end
 

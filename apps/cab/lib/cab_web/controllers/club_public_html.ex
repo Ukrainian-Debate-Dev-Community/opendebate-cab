@@ -27,26 +27,19 @@ defmodule CabWeb.ClubPublicHTML do
   defp form_open?(%{kind: kind, done: nil}) when kind in [:guest, :member, :account], do: true
   defp form_open?(_registration), do: false
 
-  # the viewer's participant id in the chosen session (cancelling it)
-  defp my_participant(%{choices: choices, session: session, signup: signup}) do
-    Enum.find_value(choices, &(&1.session.id == session.id && &1.participant)) ||
-      (signup && signup["id"])
-  end
+  # the session line shows above a form (and a running session)
+  defp header?(%{done: %{}}), do: false
+  defp header?(%{kind: kind}), do: kind in [:guest, :member, :account, :running]
 
-  # the Register button's menu: the other sessions taking sign-ups,
+  # the Register button's menu: the other sessions taking sign-ups the
+  # viewer is not registered for,
   # each opening this section for itself
   defp session_menu(club, %{choices: choices, session: session}) do
-    for %{session: other, registered: registered} <- choices, other.id != session.id do
-      label =
-        if registered,
-          do: gettext("%{session} (you are registered)", session: session_title(other)),
-          else: session_title(other)
-
+    for %{session: other, registered: false} <- choices, other.id != session.id do
       %{
-        label: label,
+        label: session_title(other),
         href: ~p"/c/#{club.uuid}?#{[session: other.uuid]}" <> "#register",
-        at: other.scheduled_at,
-        registered: registered
+        at: other.scheduled_at
       }
     end
   end
@@ -67,7 +60,13 @@ defmodule CabWeb.ClubPublicHTML do
     ~H"""
     <div id="register">
       <.section title={gettext("Registration")}>
-        <div class="pad scope-card">
+        <div :if={@registration.notice && !@registration.done} class="pad">
+          <.banner kind={:good}>
+            {gettext("You are registered for")}
+            <b>{session_title(@registration.notice)}</b><span :if={@registration.notice.scheduled_at}>, <.local_time at={@registration.notice.scheduled_at} as={:short} /></span>.
+          </.banner>
+        </div>
+        <div :if={header?(@registration)} class="pad scope-card">
           <p>
             <b>{session_title(@registration.session)}</b><span :if={
               @registration.session.scheduled_at
@@ -79,7 +78,7 @@ defmodule CabWeb.ClubPublicHTML do
           </p>
         </div>
         <%= case {@registration.kind, @registration.done} do %>
-          <% {:guest, %{} = done} -> %>
+          <% {_kind, %{} = done} -> %>
             <div class="pad">
               <.banner kind={:good}>
                 {gettext("You are registered as %{name}.", name: done.link.user.name)}
@@ -170,39 +169,26 @@ defmodule CabWeb.ClubPublicHTML do
             </.form_for>
           <% {:registered, _done} -> %>
             <div class="pad">
-              <p>{gettext("You are registered.")}</p>
-              <div class="sharebtns">
-                <.link
-                  :if={id = my_participant(@registration)}
-                  href={
-                    ~p"/c/#{@club.uuid}/s/#{@registration.session.uuid}/signups/#{id}/remove?from=club"
-                  }
-                  method="post"
-                  class="btn-quiet btn-sm"
-                >
-                  {gettext("Cancel registration")}
-                </.link>
-                <.link
-                  href={~p"/c/#{@club.uuid}/s/#{@registration.session.uuid}"}
-                  class="btn-quiet btn-sm"
-                >
-                  {gettext("Open")}
-                </.link>
-                <.dropdown_button
-                  :if={
-                    (others = Enum.sort_by(session_menu(@club, @registration), & &1.registered)) != []
-                  }
-                  quiet
-                  href={hd(others).href}
-                  items={tl(others)}
-                >
-                  {gettext("Register for another session")}
-                </.dropdown_button>
-              </div>
+              <p>
+                {gettext("You are registered for this session.")}
+                {gettext("Cancel or open it in Club Sessions below.")}
+              </p>
+            </div>
+          <% {:all_registered, _done} -> %>
+            <div class="pad">
+              <p>{gettext("You are registered for every session open for registration:")}</p>
+              <p :for={choice <- @registration.choices}>
+                <b>{session_title(choice.session)}</b><span :if={choice.session.scheduled_at}>,
+                <.local_time
+                  at={choice.session.scheduled_at}
+                  as={:short}
+                /></span>
+              </p>
+              <p>{gettext("Cancel or open them in Club Sessions below.")}</p>
             </div>
           <% {:closed, _done} -> %>
             <div class="pad">
-              {gettext("Registration is closed for this session.")}
+              {gettext("No sessions are open for registration right now.")}
               {gettext("Ask the club head about the next session.")}
             </div>
           <% {:running, _done} -> %>
@@ -211,6 +197,7 @@ defmodule CabWeb.ClubPublicHTML do
               <.link href={~p"/c/#{@club.uuid}/s/#{@registration.session.uuid}"}>
                 {gettext("watch rooms")}
               </.link>
+              <p>{gettext("No sessions are open for registration right now.")}</p>
             </div>
           <% _other -> %>
         <% end %>

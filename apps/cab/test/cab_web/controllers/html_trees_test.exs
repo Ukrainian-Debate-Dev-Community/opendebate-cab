@@ -546,7 +546,11 @@ defmodule CabWeb.HtmlTreesTest do
     end)
 
     html = conn |> log_in(member) |> get(~p"/c/#{club.uuid}") |> html_response(200)
-    assert html =~ "You are registered."
+    # registered for the only open session: the section says so, no
+    # buttons - cancelling and opening are the table's
+    assert html =~ "You are registered for every session open for registration:"
+    assert html =~ "Cancel or open them in Club Sessions below."
+    refute html =~ "Register for another session"
     assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove?from=club"
     refute html =~ ~s(id="register-form")
     # the Club Sessions table: status in words, the viewer's action

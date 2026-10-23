@@ -208,11 +208,6 @@ msgstr ""
 msgid "%{sent} of %{teams} teams"
 msgstr ""
 
-#: lib/cab_web/controllers/club_public_html.ex
-#, elixir-autogen, elixir-format
-msgid "%{session} (you are registered)"
-msgstr ""
-
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "%{team} (iron)"
@@ -640,6 +635,15 @@ msgid "Cancel my registration"
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "Cancel or open it in Club Sessions below."
+msgstr ""
+
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "Cancel or open them in Club Sessions below."
+msgstr ""
+
 #: lib/cab_web/controllers/member_html/archive_section.html.heex
 #, elixir-autogen, elixir-format
 msgid "Cancel registration"
@@ -1638,6 +1642,11 @@ msgstr ""
 msgid "No results yet."
 msgstr ""
 
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "No sessions are open for registration right now."
+msgstr ""
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "No sessions played yet."
@@ -1758,7 +1767,6 @@ msgstr ""
 msgid "Only you see the answers, on each session's People list. If a guest gives an e-mail address, we send them their personal link there."
 msgstr ""
 
-#: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/member_html/archive_section.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
@@ -1983,11 +1991,6 @@ msgstr ""
 msgid "Register for %{session}"
 msgstr ""
 
-#: lib/cab_web/controllers/club_public_html.ex
-#, elixir-autogen, elixir-format
-msgid "Register for another session"
-msgstr ""
-
 #: lib/cab_web/controllers/owner_html/responses.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registered"
@@ -2034,7 +2037,6 @@ msgid "Registration form"
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_controller.ex
-#: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registration is closed for this session."
@@ -3014,13 +3016,23 @@ msgstr ""
 msgid "You are registered as %{name}."
 msgstr ""
 
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "You are registered for"
+msgstr ""
+
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "You are registered for every session open for registration:"
+msgstr ""
+
+#: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "You are registered for this session."
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_controller.ex
-#: lib/cab_web/controllers/club_public_html.ex
 #, elixir-autogen, elixir-format
 msgid "You are registered."
 msgstr ""
