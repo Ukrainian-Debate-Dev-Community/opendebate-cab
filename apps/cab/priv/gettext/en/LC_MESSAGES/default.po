@@ -3531,11 +3531,6 @@ msgstr ""
 msgid "their e-mail address"
 msgstr ""
 
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "this room's draw and motion, live"
-msgstr ""
-
 #: lib/cab_web/controllers/owner_html/delete_session.html.heex
 #, elixir-autogen, elixir-format
 msgid "this session"

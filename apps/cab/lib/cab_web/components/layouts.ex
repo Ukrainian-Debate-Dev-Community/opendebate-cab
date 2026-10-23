@@ -54,7 +54,6 @@ defmodule CabWeb.Layouts do
       "card_adjudicators" => gettext("Adjudicators"),
       "text_adjudicators" => gettext("Adjudicators: {names}"),
       "card_scan" => gettext("Scan or open"),
-      "card_live" => gettext("this room's draw and motion, live"),
       "card_copied" => gettext("Copied. Paste it into the chat."),
       "card_no_copy" =>
         gettext("This browser cannot copy pictures. Right-click or hold the picture to save it."),

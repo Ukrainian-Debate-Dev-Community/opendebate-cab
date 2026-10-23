@@ -350,88 +350,92 @@ const wrapLines = (ctx, text, width) => {
   return lines
 }
 
-// the room card, landscape: the header band; the session and the
-// motion; the draw as one row - a column per side with the people who
-// speak there, then the adjudicators (the chair marked); the QR and
-// the short link below
+// the room card, landscape and slim: one header band - the mark and
+// the room, the session, the QR with the short link; then the motion
+// and the draw as one row - a column per side with the people who
+// speak there, then the adjudicators (the chair marked)
 const drawCard = (canvas, d, draw = true) => {
   const ctx = canvas.getContext("2d")
-  const {w, pad} = CARD
+  const {w} = CARD
+  const pad = 44
   const inner = w - pad * 2
   const font = (weight, size, family = CARD.sans) => { ctx.font = `${weight} ${size}px ${family}` }
   const text = (s, x, yy, color) => { if (draw) { ctx.fillStyle = color; ctx.fillText(s, x, yy) } }
   const rule = (x, yy, width) => { if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(x, yy, width, 2) } }
+  const soft = "rgba(255,255,255,.78)"
 
   if (draw) { ctx.fillStyle = CARD.paper; ctx.fillRect(0, 0, canvas.width, canvas.height) }
 
-  // header band: the mark and the room
-  if (draw) { ctx.fillStyle = CARD.brand; ctx.fillRect(0, 0, w, 132) }
-  font(400, 60, '"Cedarville Cursive", cursive'); text("cab", pad, 88, CARD.paper)
-  font(800, 56); ctx.textAlign = "right"; text(d.room, w - pad, 88, CARD.paper); ctx.textAlign = "left"
-  let y = 132 + 64
+  // header band: mark + room | session, club, time | link + QR
+  const qrSize = 148, bandH = qrSize + 40
+  if (draw) { ctx.fillStyle = CARD.brand; ctx.fillRect(0, 0, w, bandH) }
+  font(400, 44, '"Cedarville Cursive", cursive'); text("cab", pad, 62, CARD.paper)
+  font(800, 64); text(d.room, pad, 150, CARD.paper)
 
-  // the session and the motion
-  font(800, 40)
-  for (const l of wrapLines(ctx, d.session || "", inner)) { text(l, pad, y, CARD.ink); y += 50 }
-  font(500, 30)
-  const when = d.starts
-    ? t("card_starts", "Starts at {time}", {time: formatWhen(d.starts, "short")})
-    : formatWhen(d.date, "date")
-  text(`${d.club}, ${when}`, pad, y, CARD.muted); y += 64
+  const qrX = w - pad - qrSize, qrY = 20
+  const qr = d.qr || []
+  if (draw) { ctx.fillStyle = CARD.paper; ctx.fillRect(qrX, qrY, qrSize, qrSize) }
+  if (qr.length && draw) {
+    const n = qr.length, quiet = 2, cell = Math.floor(qrSize / (n + quiet * 2))
+    const off = Math.floor((qrSize - cell * n) / 2)
+    ctx.fillStyle = CARD.ink
+    qr.forEach((row, rr) => { for (let c = 0; c < n; c++) if (row[c] === "1") ctx.fillRect(qrX + off + c * cell, qrY + off + rr * cell, cell, cell) })
+  }
+  ctx.textAlign = "right"
+  font(600, 20); text(t("card_scan", "Scan or open"), qrX - 24, 92, soft)
+  font(800, 28); text(d.link_text, qrX - 24, 128, CARD.paper)
+  ctx.textAlign = "left"
+
+  // the session in the middle of the band
+  const midX = pad + 220
+  font(800, 28); const linkW = ctx.measureText(d.link_text).width
+  const midW = qrX - 24 - linkW - 40 - midX
+  font(800, 32)
+  const title = wrapLines(ctx, d.session || "", midW).slice(0, 2)
+  let by = title.length > 1 ? 70 : 88
+  for (const l of title) { text(l, midX, by, CARD.paper); by += 38 }
+  const when = d.starts ? formatWhen(d.starts, "short") : formatWhen(d.date, "date")
+  font(500, 24); text(`${d.club}, ${when}`, midX, by + 2, soft)
+
+  // the motion
+  let y = bandH + 50
   if (d.motion) {
-    font(800, 22); text(t("card_motion", "MOTION"), pad, y, CARD.gold); y += 44
-    font(700, 36)
-    for (const l of wrapLines(ctx, d.motion, inner)) { text(l, pad, y, CARD.ink); y += 46 }
+    font(800, 18); text(t("card_motion", "MOTION"), pad, y, CARD.gold); y += 36
+    font(700, 32)
+    for (const l of wrapLines(ctx, d.motion, inner)) { text(l, pad, y, CARD.ink); y += 40 }
     if (d.infoslide) {
-      y += 6; font(400, 26)
-      for (const l of wrapLines(ctx, d.infoslide, inner)) { text(l, pad, y, CARD.muted); y += 34 }
+      y += 2; font(400, 22)
+      for (const l of wrapLines(ctx, d.infoslide, inner)) { text(l, pad, y, CARD.muted); y += 30 }
     }
     if (d.prep_until) {
-      y += 8; font(600, 26)
-      text(t("card_prep", "Prep until {time}", {time: clock(d.prep_until)}), pad, y, CARD.brand); y += 34
+      y += 4; font(600, 22)
+      text(t("card_prep", "Prep until {time}", {time: clock(d.prep_until)}), pad, y, CARD.brand); y += 30
     }
   } else {
-    font(500, 28); text(t("card_no_motion", "Motion: not published yet"), pad, y, CARD.muted); y += 34
+    font(500, 24); text(t("card_no_motion", "Motion: not published yet"), pad, y, CARD.muted); y += 30
   }
-  y += 40
+  y += 30
 
   // the draw: OG | OO | CG | CO | Adjudicators
   const cols = [...d.sides.map(s => ({head: s.side, lines: s.people.map(p => ({s: p, bold: true}))})),
     {head: t("card_adjudicators", "Adjudicators"),
      lines: d.judges.map(j => ({s: j.chair ? `${j.name} \u00A9` : j.name, bold: j.chair}))}]
   const colW = inner / cols.length
-  font(800, 24)
+  font(800, 20)
   cols.forEach((c, k) => text(c.head, pad + k * colW, y, CARD.brand))
-  y += 22; rule(pad, y, inner); y += 46
+  y += 16; rule(pad, y, inner); y += 38
   let tallest = 1
   cols.forEach((c, k) => {
     let cy = y
     const lines = c.lines.length ? c.lines : [{s: "\u2014", bold: false}]
     for (const l of lines) {
-      font(l.bold ? 700 : 400, 30)
-      for (const part of wrapLines(ctx, l.s, colW - 24)) { text(part, pad + k * colW, cy, l.bold ? CARD.ink : CARD.muted); cy += 40 }
+      font(l.bold ? 700 : 400, 26)
+      for (const part of wrapLines(ctx, l.s, colW - 20)) { text(part, pad + k * colW, cy, l.bold ? CARD.ink : CARD.muted); cy += 34 }
     }
-    tallest = Math.max(tallest, (cy - y) / 40)
+    tallest = Math.max(tallest, (cy - y) / 34)
   })
-  y += tallest * 40; rule(pad, y - 18, inner); y += 30
-
-  // footer: the QR and the short link
-  const qr = d.qr || []
-  const qrSize = 240
-  if (draw) { ctx.fillStyle = CARD.tint; ctx.fillRect(0, y, w, qrSize + pad * 2) }
-  if (qr.length && draw) {
-    const n = qr.length, quiet = 3, cell = Math.floor(qrSize / (n + quiet * 2))
-    const ox = pad, oy = y + pad
-    ctx.fillStyle = CARD.paper; ctx.fillRect(ox, oy, cell * (n + quiet * 2), cell * (n + quiet * 2))
-    ctx.fillStyle = CARD.ink
-    qr.forEach((row, rr) => { for (let c = 0; c < n; c++) if (row[c] === "1") ctx.fillRect(ox + (c + quiet) * cell, oy + (rr + quiet) * cell, cell, cell) })
-  }
-  const tx = pad + qrSize + 40
-  font(600, 26); text(t("card_scan", "Scan or open"), tx, y + pad + 70, CARD.muted)
-  font(800, 34); text(d.link_text, tx, y + pad + 120, CARD.ink)
-  font(500, 24); text(t("card_live", "this room's draw and motion, live"), tx, y + pad + 162, CARD.muted)
-  y += qrSize + pad * 2
-  return y
+  y += tallest * 34 - 8
+  return y + pad - 10
 }
 
 // the same room as short plain text, for a chat that takes no pictures
