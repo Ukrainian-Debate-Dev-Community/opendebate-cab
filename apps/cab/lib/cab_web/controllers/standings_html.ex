@@ -30,6 +30,7 @@ defmodule CabWeb.StandingsHTML do
   attr :club, :any, default: nil
   attr :archive, :list, default: nil
   attr :base, :string, default: nil
+  attr :whole_club, :boolean, default: false, doc: "every finished session of the club at once"
 
   def standings_body(assigns)
 

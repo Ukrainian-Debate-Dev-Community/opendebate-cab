@@ -446,6 +446,11 @@ msgstr "Судді"
 msgid "Admin"
 msgstr "Адміністрування"
 
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "All finished sessions of %{club}"
+msgstr "Усі завершені сесії клубу %{club}"
+
 #: lib/cab_web/controllers/owner_html.ex
 #, elixir-autogen, elixir-format
 msgid "Allocation — %{count} room(s), count automatic"
@@ -544,8 +549,12 @@ msgstr "Сер. відгук"
 msgid "Avg feedback counts a base of 5 as one vote: (5 + every feedback score) / (feedback count + 1)."
 msgstr "Сер. відгук рахує базову 5 як один голос: (5 + усі оцінки з відгуків) / (кількість відгуків + 1)."
 
-#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Avg points"
+msgstr "Середній бал"
+
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Avg score"
 msgstr "Сер. бал"
@@ -1008,6 +1017,7 @@ msgstr "Поясніть свій відгук."
 #: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Feedback"
 msgstr "Відгук"
@@ -1588,6 +1598,11 @@ msgstr "Заявок, що чекають, немає."
 #, elixir-autogen, elixir-format
 msgid "No results for this session yet."
 msgstr "Результатів цієї сесії ще немає."
+
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "No results yet."
+msgstr "Результатів ще немає."
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -2757,6 +2772,11 @@ msgid_plural "Too many attempts. Please try again in %{count} minutes."
 msgstr[0] "Забагато спроб. Спробуйте знову через %{count} хвилину."
 msgstr[1] "Забагато спроб. Спробуйте знову через %{count} хвилини."
 msgstr[2] "Забагато спроб. Спробуйте знову через %{count} хвилин."
+
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#, elixir-autogen, elixir-format
+msgid "Total points"
+msgstr "Сума балів"
 
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format

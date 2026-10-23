@@ -27,7 +27,28 @@ defmodule CabWeb.ClubPublicController do
     club = conn.assigns.club
 
     case params["tab"] || "teams" do
-      tab when tab in ~w(teams speakers adjudicators) ->
+      # speakers and adjudicators: every finished session of the club at
+      # once - only for whoever sees the whole club (a private club's
+      # members); someone who played some nights steps through teams
+      tab when tab in ~w(speakers adjudicators) ->
+        if whole_club?(club, conn) do
+          scope = Standings.latest_finished(club)
+
+          conn
+          |> CabWeb.Caching.no_store()
+          |> render(:standings,
+            tab: tab,
+            scope: scope,
+            whole_club: true,
+            rows: if(scope, do: club_rows(tab, club), else: []),
+            archive: nil,
+            page_title: gettext("%{club} — Standings", club: club.name)
+          )
+        else
+          deny_private_standings(conn, club)
+        end
+
+      "teams" = tab ->
         own = own_sessions(club, conn)
 
         scope =
@@ -136,6 +157,12 @@ defmodule CabWeb.ClubPublicController do
         |> CabWeb.ErrorHTML.respond(403, gettext("This club's standings are for its members."))
     end
   end
+
+  defp whole_club?(%{is_private: false}, _conn), do: true
+  defp whole_club?(_club, conn), do: Clubs.covers?(conn.assigns.club_role, :member)
+
+  defp club_rows("speakers", club), do: Standings.club_speakers(club)
+  defp club_rows("adjudicators", club), do: Standings.club_adjudicators(club)
 
   defp standings_rows(_tab, nil), do: []
   defp standings_rows("teams", scope), do: Standings.teams(scope)
