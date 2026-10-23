@@ -48,7 +48,10 @@ defmodule Cab.Fixtures do
   def form_fields_fixture(%Club{} = club, fields) do
     Enum.reduce(fields, club, fn params, club ->
       {:ok, club} =
-        Cab.Clubs.edit_registration_form(club, &Core.Forms.add_field(&1, params))
+        Cab.Clubs.edit_registration_form(
+          club,
+          &Core.Forms.add_field(&1, params, Cab.Clubs.Club.form_attrs())
+        )
 
       club
     end)

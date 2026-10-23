@@ -116,7 +116,8 @@ defmodule Cab.Clubs do
     do: Enum.reject(guest_form(club), &(Club.scope(&1) == "members"))
 
   @doc "The registration form's fields a member is asked (scope members or both)."
-  def member_fields(%Club{} = club), do: Core.Forms.for_audience(guest_form(club), :member)
+  def member_fields(%Club{} = club),
+    do: Enum.reject(guest_form(club), &(Club.scope(&1) == "guests"))
 
   @doc """
   The head edits the club's guest registration form: `edit` gets the
