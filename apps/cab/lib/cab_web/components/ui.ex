@@ -102,7 +102,7 @@ defmodule CabWeb.Ui do
   attr :current_user, :any, default: nil
   attr :club, :any, default: nil, doc: "club context; nil = global"
   attr :club_role, :atom, default: :public
-  attr :nav_session, :any, default: nil, doc: "the club's newest session row (Rooms target)"
+  attr :nav_session, :any, default: nil, doc: "the club's current session row (Rooms target)"
   attr :active, :string, default: nil, doc: "the lit item key"
 
   def sidenav(assigns) do
@@ -148,13 +148,6 @@ defmodule CabWeb.Ui do
             key="members"
             href={members_href(@club, @club_role)}
             label={gettext("Members")}
-          />
-          <.nav_item
-            :if={@nav_session}
-            active={@active}
-            key="register"
-            href={~p"/r/#{@nav_session.uuid}"}
-            label={gettext("Register")}
           />
         <% else %>
           <.nav_item active={@active} key="clubs" href={~p"/"} label={gettext("Clubs")} />

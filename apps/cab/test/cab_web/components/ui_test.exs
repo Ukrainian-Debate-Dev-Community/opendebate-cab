@@ -93,7 +93,7 @@ defmodule CabWeb.UiTest do
   test "sidenav club context: place items, role-scoped targets" do
     assigns = %{
       club: %{uuid: "abc", name: "Kyiv Debate Club", is_private: false},
-      session: %{uuid: "s1"}
+      session: %Cab.Sessions.Session{uuid: "s1"}
     }
 
     member_html =
@@ -103,7 +103,7 @@ defmodule CabWeb.UiTest do
 
     assert member_html =~ "Kyiv Debate Club"
 
-    for item <- ~w(Club Rooms Standings Members Register) do
+    for item <- ~w(Club Rooms Standings Members) do
       assert member_html =~ ">#{item}<"
     end
 
@@ -114,7 +114,9 @@ defmodule CabWeb.UiTest do
     assert member_html =~ ~s(href="/c/abc/s/s1")
     assert member_html =~ ~s(href="/c/abc/standings/teams")
     assert member_html =~ ~s(href="/c/abc/members")
-    assert member_html =~ ~s(href="/r/s1")
+    # registration lives on the club page, not in the sidebar
+    refute member_html =~ ">Register<"
+    refute member_html =~ ~s(href="/r/s1")
 
     owner_html =
       rendered_to_string(~H"""
@@ -125,14 +127,27 @@ defmodule CabWeb.UiTest do
     assert owner_html =~ ~s(href="/c/abc/owner/s/s1")
     assert owner_html =~ ~s(href="/c/abc/owner/members")
 
-    # with no session yet the Rooms item falls back and Register hides
+    # with no session yet the Rooms item falls back to the club page
     no_session =
       rendered_to_string(~H"""
       <.sidenav club={@club} club_role={:member} nav_session={nil} />
       """)
 
     refute no_session =~ "/c/abc/s/"
-    refute no_session =~ ">Register<"
+
+    # a finished session keeps Rooms (its results)
+    assigns =
+      Map.put(assigns, :done, %Cab.Sessions.Session{
+        uuid: "s0",
+        finished_at: ~U[2026-10-08 20:00:00Z]
+      })
+
+    done_html =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:member} nav_session={@done} />
+      """)
+
+    assert done_html =~ ~s(href="/c/abc/s/s0")
 
     # a private club's roster is members-only, so outsiders lose the item
     assigns = %{assigns | club: %{assigns.club | is_private: true}}

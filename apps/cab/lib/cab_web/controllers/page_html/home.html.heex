@@ -54,12 +54,16 @@
             <% nil -> %>
               {gettext("not planned yet")}
             <% {session, :signup, _rooms} -> %>
-              <%= if session.scheduled_at do %>
-                <.local_time at={session.scheduled_at} as={:weekday_time} />
-              <% else %>
-                {gettext("registration open")}
-              <% end %>
-              — <.link href={~p"/r/#{session.uuid}"}>{gettext("register")}</.link>
+              <span class="next-reg">
+                <.local_time
+                  :if={session.scheduled_at}
+                  at={session.scheduled_at}
+                  as={:weekday_time}
+                />
+                <.link href={~p"/r/#{session.uuid}"} class="btn-quiet btn-sm">
+                  {gettext("Register")}
+                </.link>
+              </span>
             <% {_session, :closed, _rooms} -> %>
               {gettext("registration closed")}
             <% {session, :running, _rooms} -> %>

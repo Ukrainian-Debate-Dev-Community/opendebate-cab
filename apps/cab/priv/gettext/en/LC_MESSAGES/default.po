@@ -1886,7 +1886,7 @@ msgstr ""
 msgid "Refused when both took part in the same session."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex
+#: lib/cab_web/controllers/page_html/home.html.heex
 #: lib/cab_web/controllers/registration_html.ex
 #: lib/cab_web/controllers/registration_html/new.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -3372,11 +3372,6 @@ msgstr ""
 msgid "ready, %{count} iron"
 msgstr ""
 
-#: lib/cab_web/controllers/page_html/home.html.heex
-#, elixir-autogen, elixir-format
-msgid "register"
-msgstr ""
-
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "register for a club session with one link"
@@ -3402,7 +3397,6 @@ msgstr ""
 #: lib/cab_web/controllers/me_html.ex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/member_html/archive_section.html.heex
-#: lib/cab_web/controllers/page_html/home.html.heex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "registration open"

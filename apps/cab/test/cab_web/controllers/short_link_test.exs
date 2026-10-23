@@ -3,7 +3,13 @@ defmodule CabWeb.ShortLinkTest do
 
   import Cab.Fixtures
 
-  alias Cab.Sessions.Session
+  alias Cab.ShortLinks
+  alias Cab.ShortLinks.ShortLink
+
+  defp code(session) do
+    {:ok, link} = ShortLinks.link(session)
+    link.code
+  end
 
   defp ok(conn, data), do: Req.Test.json(conn, %{"status" => "success", "data" => data})
 
@@ -31,33 +37,22 @@ defmodule CabWeb.ShortLinkTest do
     %{club: club, session: session}
   end
 
-  test "every session gets a six-character code with a digit" do
-    for _ <- 1..200 do
-      code = Session.generate_short_code()
-      assert Session.short_code?(code)
-    end
-
-    refute Session.short_code?("signin")
-    refute Session.short_code?("admin1")
-    refute Session.short_code?("abcdef")
-  end
-
   test "/<code> opens the session; /<code>/<n> opens room n", %{
     conn: conn,
     club: club,
     session: session
   } do
-    assert redirected_to(get(conn, "/#{session.short_code}")) ==
+    assert redirected_to(get(conn, "/#{code(session)}")) ==
              "/c/#{club.uuid}/s/#{session.uuid}"
 
     # rooms are numbered in creation order: engine room 72 is R1
-    assert redirected_to(get(conn, "/#{session.short_code}/1")) ==
+    assert redirected_to(get(conn, "/#{code(session)}/1")) ==
              "/c/#{club.uuid}/s/#{session.uuid}/rooms/72"
 
-    assert redirected_to(get(conn, "/#{session.short_code}/2")) ==
+    assert redirected_to(get(conn, "/#{code(session)}/2")) ==
              "/c/#{club.uuid}/s/#{session.uuid}/rooms/90"
 
-    missing = get(conn, "/#{session.short_code}/7")
+    missing = get(conn, "/#{code(session)}/7")
     assert redirected_to(missing) == "/c/#{club.uuid}/s/#{session.uuid}"
     assert Phoenix.Flash.get(missing.assigns.flash, :info) =~ "Room 7 is not open yet"
   end
@@ -71,7 +66,7 @@ defmodule CabWeb.ShortLinkTest do
   test "the session page shows its short link", %{conn: conn, club: club, session: session} do
     html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
     assert html =~ ~s(id="session-short-link")
-    assert html =~ "/#{session.short_code}"
+    assert html =~ "/#{code(session)}"
   end
 
   test "the room page offers its card: the room's data and the short link's QR",
@@ -84,7 +79,7 @@ defmodule CabWeb.ShortLinkTest do
     [json] = Regex.run(~r/data-card="([^"]*)"/, html, capture: :all_but_first)
     card = json |> String.replace("&quot;", "\"") |> Jason.decode!()
     assert card["room"] == "R1"
-    assert card["link"] =~ "/#{session.short_code}/1"
+    assert card["link"] =~ "/#{code(session)}/1"
 
     assert card["qr"] ==
              CabWeb.QR.matrix(card["link"])
@@ -99,7 +94,30 @@ defmodule CabWeb.ShortLinkTest do
 
     Req.Test.stub(Core.Engine, fn _conn -> raise "the engine must not be asked" end)
 
-    assert redirected_to(get(conn, "/#{session.short_code}/2")) ==
+    assert redirected_to(get(conn, "/#{code(session)}/2")) ==
              "/c/#{club.uuid}/s/#{session.uuid}/rooms/56"
+  end
+
+  test "a code moved over from before keeps opening its session", %{conn: conn, club: club} do
+    session = session_fixture(club, engine_event_id: 13)
+    Cab.Repo.insert!(%ShortLink{code: "k7m2q9", session_id: session.id})
+
+    assert code(session) == "k7m2q9"
+    assert redirected_to(get(conn, "/k7m2q9")) == "/c/#{club.uuid}/s/#{session.uuid}"
+  end
+
+  test "paths and own-host URLs shorten to one link each", %{conn: conn, club: club} do
+    path = "/c/#{club.uuid}/standings/teams?session=abc#top"
+    url = ShortLinks.short_url(path)
+    assert url == ShortLinks.short_url(path)
+    assert url == ShortLinks.short_url(CabWeb.Endpoint.url() <> path)
+
+    "/" <> code = String.replace_prefix(url, CabWeb.Endpoint.url(), "")
+    assert redirected_to(get(conn, "/" <> code)) == path
+  end
+
+  test "room numbers only follow session links", %{conn: conn} do
+    {:ok, link} = ShortLinks.link("/standings/teams")
+    assert get(conn, "/#{link.code}/1") |> response(404)
   end
 end

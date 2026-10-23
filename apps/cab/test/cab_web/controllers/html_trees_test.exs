@@ -311,7 +311,7 @@ defmodule CabWeb.HtmlTreesTest do
         time: "18:30"
       })
 
-    assert [session, _done] = Cab.Sessions.list_for_club(club)
+    assert [session] = Enum.reject(Cab.Sessions.list_for_club(club), & &1.finished_at)
     assert redirected_to(opened) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
     assert session.engine_event_id == 12
     assert session.scheduled_at == ~U[2026-10-09 18:30:00Z]
@@ -393,9 +393,9 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(id="register-form")
     assert html =~ "Registering as"
     # the sidenav follows the viewer's real role here too: a member
-    # sees the member roster link, Register is lit
+    # sees the member roster link; registration is not a sidebar item
     assert html =~ ~s(href="/c/#{club.uuid}/members")
-    assert html =~ ~s(class="item on">Register<)
+    refute html =~ ">Register<"
 
     head_html =
       conn

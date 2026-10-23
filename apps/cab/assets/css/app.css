@@ -304,6 +304,9 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
              border-radius:7px; border:1px solid var(--line); background:var(--surface);
              color:var(--ink); }
 .btn-quiet:hover { border-color:var(--brand); color:var(--brand); }
+a.btn-quiet { display:inline-block; text-decoration:none; }
+.btn-sm { padding:4px 12px; font-size:.76rem; }
+.next-reg { display:inline-flex; flex-wrap:wrap; align-items:center; gap:8px; }
 .f-submit .note { font-size:.74rem; color:var(--muted); }
 
 /* ================================================================
