@@ -157,21 +157,22 @@ defmodule CabWeb.Ui do
             href={~p"/standings/teams"}
             label={gettext("Standings")}
           />
-          <.nav_item
-            :if={@current_user && !guest?(@current_user)}
-            active={@active}
-            key="me"
-            href={~p"/me"}
-            label={gettext("My page")}
-          />
-          <.nav_item
-            :if={@current_user && @current_user.is_admin}
-            active={@active}
-            key="admin"
-            href={~p"/admin"}
-            label={gettext("Admin")}
-          />
         <% end %>
+        <%!-- the signed-in person's own pages, in every context --%>
+        <.nav_item
+          :if={@current_user && !guest?(@current_user)}
+          active={@active}
+          key="me"
+          href={~p"/me"}
+          label={gettext("My page")}
+        />
+        <.nav_item
+          :if={@current_user && @current_user.is_admin}
+          active={@active}
+          key="admin"
+          href={~p"/admin"}
+          label={gettext("Admin")}
+        />
         <div class="profile" id="sidenav-profile">
           <div class="me">
             <%= if @current_user do %>
