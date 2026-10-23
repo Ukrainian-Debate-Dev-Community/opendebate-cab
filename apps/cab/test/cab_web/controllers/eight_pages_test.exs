@@ -191,7 +191,9 @@ defmodule CabWeb.EightPagesTest do
       html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
 
       assert html =~ "finished"
-      assert html =~ "Winner: <b>Team 1</b>"
+      # the winners are the people who played; team names stay internal
+      assert html =~ "Winner: <b>Speaker 1.1 &amp; Speaker 1.2</b>"
+      refute html =~ "Team 2"
       assert html =~ "THW show the draw"
       assert html =~ "won"
       assert html =~ "2nd"

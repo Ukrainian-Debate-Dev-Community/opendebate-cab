@@ -47,15 +47,18 @@ defmodule CabWeb.SessionFormat do
       else: gettext("motion pending, %{status}", status: status)
   end
 
-  @doc "The team at a side position; a 1-speaker team is marked (iron)."
+  @doc """
+  The people speaking at a side position (team names stay internal);
+  one person speaking twice is marked (iron).
+  """
   def team_label(room, position) do
     case Enum.find(room["RoomTeams"] || [], &(&1["position"] == position)) do
       nil ->
         "—"
 
       room_team ->
-        name = get_in(room_team, ["Team", "name"]) || "—"
-        if iron_team?(room_team), do: gettext("%{team} (iron)", team: name), else: name
+        names = if (n = speaker_names(room_team)) == "", do: "—", else: n
+        if iron_team?(room_team), do: gettext("%{team} (iron)", team: names), else: names
     end
   end
 

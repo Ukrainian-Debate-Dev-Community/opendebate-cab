@@ -2457,8 +2457,6 @@ msgid "Support"
 msgstr "Підтримка"
 
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Team"
@@ -3002,6 +3000,11 @@ msgstr "Ваше ім'я"
 msgid "Your personal link"
 msgstr "Ваше персональне посилання"
 
+#: lib/cab_web/controllers/feedback_html/new.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your side: %{side} (%{people}). One feedback per side; the first one sent stays."
+msgstr "Ваша сторона: %{side} (%{people}). Один відгук на сторону; зберігається перший надісланий."
+
 #: lib/cab/feedback.ex
 #: lib/cab_web/controllers/feedback_html/new.html.heex
 #, elixir-autogen, elixir-format
@@ -3012,11 +3015,6 @@ msgstr "Ваша команда вже надіслала відгук."
 #, elixir-autogen, elixir-format
 msgid "Your team sees it now; %{adjudicator} sees it, without your team's name, once the session is finished."
 msgstr "Ваша команда бачить його вже зараз; %{adjudicator} побачить його без назви вашої команди, щойно сесію буде завершено."
-
-#: lib/cab_web/controllers/feedback_html/new.html.heex
-#, elixir-autogen, elixir-format
-msgid "Your team: %{team} (%{side}). One feedback per team; the first one sent stays."
-msgstr "Ваша команда: %{team} (%{side}). Один відгук на команду; зберігається перший надісланий."
 
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex
 #: lib/cab_web/emails.ex
