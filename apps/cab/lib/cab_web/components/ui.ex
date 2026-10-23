@@ -413,9 +413,14 @@ defmodule CabWeb.Ui do
   `:select` (pills at 2-4 options, dropdown at 5+), `:multi` (stacked
   checks), `:check` (one yes box), `:datetime` (half-split pair, pass
   `names`), `:file` (an image picker with the current one's `preview`
-  and a `remove` box; pass `enctype="multipart/form-data"`). A `:text`
-  block may name its input type (`input`: email, tel); a `:select`
-  dropdown may lead with an empty `prompt` option.
+  and a `remove` box; pass `enctype="multipart/form-data"`), `:phone`
+  (a number with a country picker, formatted as it is typed; the
+  picker opens on `:default_phone_country`, else the visitor's region;
+  without JS a plain field taking a +code), `:email` (the e-mail
+  keyboard, spaces dropped, the domain lowercased), `:telegram` (a
+  username: the @ added, t.me links read). A `:text` block may name its
+  input type (`input`: email, tel); a `:select` dropdown may lead with
+  an empty `prompt` option.
 
   Server errors render per block: pass `errors` as a map of
   block-name => message; the failing block gets the amber border +
@@ -568,6 +573,56 @@ defmodule CabWeb.Ui do
           placeholder={@b[:placeholder]}
           maxlength={@b[:maxlength]}
           list={@b[:list]}
+        />
+        """
+
+      :phone ->
+        assigns =
+          Map.merge(assigns, %{
+            id: "phone-" <> String.replace(assigns.name, ~r/[^A-Za-z0-9_-]/, "-"),
+            country: Application.get_env(:cab, :default_phone_country)
+          })
+
+        ~H"""
+        <div class="phonefield" id={@id} phx-hook="PhoneField" data-country={@country}>
+          <input
+            type="tel"
+            name={@name}
+            value={@b[:value] && Core.Forms.phone_display(@b[:value])}
+            placeholder={@b[:placeholder] || "+380 50 123 4567"}
+            autocomplete="tel"
+            inputmode="tel"
+          />
+          <div class="phonehint hint" aria-live="polite" hidden></div>
+        </div>
+        """
+
+      :email ->
+        ~H"""
+        <input
+          type="email"
+          name={@name}
+          value={@b[:value]}
+          placeholder={@b[:placeholder] || "name@example.com"}
+          maxlength={@b[:maxlength]}
+          autocomplete="email"
+          inputmode="email"
+          data-email
+        />
+        """
+
+      :telegram ->
+        ~H"""
+        <input
+          type="text"
+          name={@name}
+          value={@b[:value] && "@" <> String.replace_prefix(to_string(@b[:value]), "@", "")}
+          placeholder={@b[:placeholder] || "@username"}
+          maxlength="33"
+          autocomplete="off"
+          autocapitalize="none"
+          spellcheck="false"
+          data-telegram
         />
         """
 

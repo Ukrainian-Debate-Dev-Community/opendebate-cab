@@ -291,6 +291,9 @@ defmodule CabWeb.FormComponents do
   def block_type(%{"type" => "yesno"}), do: :check
   def block_type(%{"type" => "choice"}), do: :select
   def block_type(%{"type" => "multi"}), do: :multi
+  def block_type(%{"type" => "phone"}), do: :phone
+  def block_type(%{"type" => "email"}), do: :email
+  def block_type(%{"type" => "telegram"}), do: :telegram
   def block_type(_field), do: :text
 
   @doc "A :text block's input type."

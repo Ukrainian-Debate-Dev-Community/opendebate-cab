@@ -94,8 +94,13 @@ msgstr "Варіанти мають бути різними."
 
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
-msgid "Enter a Telegram username: 5 to 32 letters, digits or _, like @name."
-msgstr "Введіть ім'я користувача в Telegram: від 5 до 32 латинських літер, цифр або _, наприклад @name."
+msgid "Enter a Telegram username: 5 to 32 letters, digits or _, like @name or t.me/name."
+msgstr "Введіть ім'я користувача Telegram: від 5 до 32 літер, цифр або _, наприклад @name чи t.me/name."
+
+#: lib/cab_web/components/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter a full phone number for its country, like +380 50 123 4567."
+msgstr "Введіть повний номер телефону для його країни, наприклад +380 50 123 4567."
 
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
@@ -111,11 +116,6 @@ msgstr "Введіть ім'я."
 #, elixir-autogen, elixir-format
 msgid "Enter a number, like 12 or 3.5."
 msgstr "Введіть число, наприклад 12 або 3.5."
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Enter a phone number: 7 to 20 digits, + in front if needed."
-msgstr "Введіть номер телефону: від 7 до 20 цифр, за потреби з + на початку."
 
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
