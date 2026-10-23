@@ -42,6 +42,39 @@ defmodule CabWeb.UiTest do
     refute html =~ ~s(href="/motion" data-method)
   end
 
+  test "sidenav: My page and Admin in every context for the signed-in" do
+    assigns = %{
+      club: %{uuid: "abc", name: "Kyiv Debate Club", is_private: false},
+      admin: %{username: "root", name: nil, is_admin: true},
+      user: %{username: "anna", name: "Anna Kovalenko", is_admin: false}
+    }
+
+    member =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:member} current_user={@user} active="club" />
+      """)
+
+    assert member =~ ~s(href="/me")
+    assert member =~ ">My page<"
+    refute member =~ ">Admin<"
+
+    admin =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:admin} current_user={@admin} active="club" />
+      """)
+
+    assert admin =~ ">My page<"
+    assert admin =~ ~s(href="/admin")
+
+    anonymous =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:public} current_user={nil} active="club" />
+      """)
+
+    refute anonymous =~ ">My page<"
+    refute anonymous =~ ">Admin<"
+  end
+
   test "sidenav global context: cap, Clubs/Standings, Admin for admins only" do
     assigns = %{
       admin: %{username: "root", name: nil, is_admin: true},
