@@ -27,16 +27,29 @@ defmodule CabWeb.ClubPublicHTML do
   defp form_open?(%{kind: kind, done: nil}) when kind in [:guest, :member, :account], do: true
   defp form_open?(_registration), do: false
 
-  # the other open sessions, linked like the standings' session selector
-  defp other_choices(%{choices: choices, session: session}),
-    do: Enum.reject(choices, &(&1.session.id == session.id))
+  # the Register button's menu: the other sessions taking sign-ups,
+  # each opening this section for itself
+  defp session_menu(club, %{choices: choices, session: session}) do
+    for %{session: other, registered: registered} <- choices, other.id != session.id do
+      label =
+        if registered,
+          do: gettext("%{session} (you are registered)", session: session_title(other)),
+          else: session_title(other)
+
+      %{
+        label: label,
+        href: ~p"/c/#{club.uuid}?#{[session: other.uuid]}" <> "#register",
+        at: other.scheduled_at
+      }
+    end
+  end
 
   defp session_title(session), do: session.name || gettext("The next session")
 
   @doc """
   The club page's registration section (#register) for the chosen
-  session (with several taking sign-ups, the others are linked as in
-  the standings' session selector): a form while it takes sign-ups (the guest form,
+  session (with several taking sign-ups, Register's menu switches to
+  another): a form while it takes sign-ups (the guest form,
   or the member's / account's fields as themselves), the guest's
   personal link once registered, else where things stand.
   """
@@ -54,19 +67,6 @@ defmodule CabWeb.ClubPublicHTML do
               — <.local_time at={@registration.session.scheduled_at} as={:weekday_time} />
             </span>
           </p>
-          <div :if={other_choices(@registration) != []} class="flinks">
-            <span class="mut">{gettext("also open:")}</span>
-            <.link
-              :for={choice <- other_choices(@registration)}
-              href={~p"/c/#{@club.uuid}?#{[session: choice.session.uuid]}" <> "#register"}
-            >
-              {session_title(choice.session)}<span :if={choice.session.scheduled_at}>,
-              <.local_time
-                at={choice.session.scheduled_at}
-                as={:weekday_time}
-              /></span><span :if={choice.registered}> ({gettext("you are registered")})</span>
-            </.link>
-          </div>
         </div>
         <%= case {@registration.kind, @registration.done} do %>
           <% {:guest, %{} = done} -> %>
@@ -101,6 +101,7 @@ defmodule CabWeb.ClubPublicHTML do
               }
               fields={@registration.fields}
               logo={CabWeb.ClubProfile.logo_path(@club)}
+              menu={session_menu(@club, @registration)}
               name={@registration.name}
               answers={@registration.values}
               errors={@registration.errors}
@@ -146,11 +147,14 @@ defmodule CabWeb.ClubPublicHTML do
                 placeholder={placeholder(field)}
                 prompt={prompt(field)}
               />
-              <:submit note={
-                gettext(
-                  "You appear in this session's list right away; the club head seats you as a speaker or the adjudicator."
-                )
-              }>
+              <:submit
+                menu={session_menu(@club, @registration)}
+                note={
+                  gettext(
+                    "You appear in this session's list right away; the club head seats you as a speaker or the adjudicator."
+                  )
+                }
+              >
                 {gettext("Register")}
               </:submit>
             </.form_for>

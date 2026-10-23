@@ -191,16 +191,12 @@ defmodule CabWeb.Router do
     get "/owner/sessions/:session_uuid/responses/csv", OwnerController, :responses_csv
   end
 
-  # /r/:session_uuid, the registration URL heads shared before, leads
-  # to the club page's registration section; /l/:code is a
-  # guest's permanent personal link - the code IS the identity:
+  # /l/:code is a guest's permanent personal link - the code IS the identity:
   # opening it signs the browser session in as the guest and lands
   # on the session page, where their cancel/ballot actions work by
   # that identity.
   scope "/", CabWeb do
     pipe_through :browser
-
-    get "/r/:session_uuid", RegistrationController, :show
 
     get "/l/:code", GuestLinkController, :show
     post "/l/:code/claim", GuestLinkController, :claim

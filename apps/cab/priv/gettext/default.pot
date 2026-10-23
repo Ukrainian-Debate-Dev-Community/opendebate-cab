@@ -208,6 +208,11 @@ msgstr ""
 msgid "%{sent} of %{teams} teams"
 msgstr ""
 
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "%{session} (you are registered)"
+msgstr ""
+
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "%{team} (iron)"
@@ -1462,6 +1467,11 @@ msgid "Method"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex
+#, elixir-autogen, elixir-format
+msgid "More options"
+msgstr ""
+
+#: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
@@ -2440,18 +2450,12 @@ msgid "Speeches"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/club_public_html/show.html.heex
 #: lib/cab_web/controllers/club_public_html/standings.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #: lib/cab_web/controllers/standings_controller.ex
 #: lib/cab_web/controllers/standings_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Standings"
-msgstr ""
-
-#: lib/cab_web/controllers/club_public_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Standings for each session are under"
 msgstr ""
 
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
@@ -3118,11 +3122,6 @@ msgstr ""
 msgid "adjudicators fill the ballot right in their room"
 msgstr ""
 
-#: lib/cab_web/controllers/club_public_html.ex
-#, elixir-autogen, elixir-format
-msgid "also open:"
-msgstr ""
-
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "always asked"
@@ -3666,11 +3665,6 @@ msgstr ""
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "you"
-msgstr ""
-
-#: lib/cab_web/controllers/club_public_html.ex
-#, elixir-autogen, elixir-format
-msgid "you are registered"
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex

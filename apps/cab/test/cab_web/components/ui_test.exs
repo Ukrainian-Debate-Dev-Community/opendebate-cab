@@ -585,4 +585,34 @@ defmodule CabWeb.UiTest do
     assert events =~ ~s(phx-value-rooms="2")
     assert events =~ "disabled"
   end
+
+  test "dropdown_button: the main action and a menu of alternatives" do
+    assigns = %{
+      items: [
+        %{label: "Practice", href: "/c/abc?session=s2", at: ~U[2026-11-01 18:00:00Z]},
+        %{label: "Mini", href: "/c/abc?session=s3", current: true}
+      ]
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.dropdown_button items={@items}>Register</.dropdown_button>
+      """)
+
+    assert html =~ ~s(class="dd-btn go split")
+    assert html =~ ~s(<button type="submit" class="dd-main">)
+    assert html =~ ~s(<details class="dd-more" data-menu>)
+    assert html =~ ~s(href="/c/abc?session=s2")
+    assert html =~ ~s(aria-current="true")
+    assert html =~ ~s(class="at")
+
+    plain =
+      rendered_to_string(~H"""
+      <.dropdown_button quiet href="/somewhere">Open</.dropdown_button>
+      """)
+
+    assert plain =~ ~s(class="dd-btn quiet")
+    assert plain =~ ~s(href="/somewhere")
+    refute plain =~ "<details"
+  end
 end

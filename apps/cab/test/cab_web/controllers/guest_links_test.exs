@@ -97,8 +97,9 @@ defmodule CabWeb.GuestLinksTest do
 
       html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
 
-      assert html =~ "also open:"
-      # the chosen one in bold, the others linked (the standings' selector)
+      # Register with a menu of the other open sessions
+      assert html =~ ~s(class="dd-btn go split")
+      # the form registers for the nearest; the menu offers the others
       assert html =~ ~s(href="/c/#{club.uuid}?session=#{later.uuid}#register")
       refute html =~ ~s(href="/c/#{club.uuid}?session=#{nearer.uuid}#register")
       assert html =~ ~s(name="session" value="#{nearer.uuid}")
@@ -116,19 +117,12 @@ defmodule CabWeb.GuestLinksTest do
       stub_stage([])
 
       html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
-      refute html =~ "also open:"
+      refute html =~ ~s(class="dd-more")
     end
 
-    test "the old shared URL leads to the club page's section", %{conn: conn, club: club} do
+    test "the old /r registration URL is gone", %{conn: conn, club: club} do
       session = session_fixture(club, engine_event_id: 11)
-
-      assert redirected_to(get(conn, ~p"/r/#{session.uuid}")) ==
-               "/c/#{club.uuid}?session=#{session.uuid}#register"
-    end
-
-    test "unknown session is 404", %{conn: conn} do
-      assert conn |> get(~p"/r/#{Ecto.UUID.generate()}") |> response(404)
-      assert conn |> get("/r/not-a-uuid") |> response(404)
+      assert conn |> get("/r/#{session.uuid}") |> response(404)
     end
 
     test "any stage but :signup serves the closed notice", %{conn: conn, club: club} do

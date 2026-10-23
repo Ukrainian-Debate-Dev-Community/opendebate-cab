@@ -68,10 +68,5 @@
     </.section>
 
     <CabWeb.MemberHTML.archive_section club={@club} archive={@recent} />
-
-    <.section title={gettext("Standings")} pad>
-      {gettext("Standings for each session are under")}
-      <.link href={~p"/c/#{@club.uuid}/standings/teams"}>{gettext("Standings")}</.link>.
-    </.section>
   </div>
 </Layouts.app>

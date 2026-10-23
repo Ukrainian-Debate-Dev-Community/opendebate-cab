@@ -214,6 +214,11 @@ msgstr "%{room}, суддя"
 msgid "%{sent} of %{teams} teams"
 msgstr "%{sent} з %{teams} команд"
 
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "%{session} (you are registered)"
+msgstr "%{session} (ви зареєстровані)"
+
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "%{team} (iron)"
@@ -1471,6 +1476,11 @@ msgid "Method"
 msgstr "Спосіб"
 
 #: lib/cab_web/components/ui.ex
+#, elixir-autogen, elixir-format
+msgid "More options"
+msgstr "Інші варіанти"
+
+#: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
@@ -2452,7 +2462,6 @@ msgid "Speeches"
 msgstr "Промови"
 
 #: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/club_public_html/show.html.heex
 #: lib/cab_web/controllers/club_public_html/standings.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #: lib/cab_web/controllers/standings_controller.ex
@@ -2460,11 +2469,6 @@ msgstr "Промови"
 #, elixir-autogen, elixir-format
 msgid "Standings"
 msgstr "Рейтинг"
-
-#: lib/cab_web/controllers/club_public_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Standings for each session are under"
-msgstr "Рейтинг кожної сесії є в розділі"
 
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
@@ -3131,11 +3135,6 @@ msgstr "суддя"
 msgid "adjudicators fill the ballot right in their room"
 msgstr "судді заповнюють белот просто у своїй кімнаті"
 
-#: lib/cab_web/controllers/club_public_html.ex
-#, elixir-autogen, elixir-format
-msgid "also open:"
-msgstr "також відкриті:"
-
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "always asked"
@@ -3680,11 +3679,6 @@ msgstr "так/ні"
 #, elixir-autogen, elixir-format
 msgid "you"
 msgstr "ви"
-
-#: lib/cab_web/controllers/club_public_html.ex
-#, elixir-autogen, elixir-format
-msgid "you are registered"
-msgstr "ви зареєстровані"
 
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format

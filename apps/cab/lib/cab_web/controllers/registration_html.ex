@@ -29,6 +29,7 @@ defmodule CabWeb.RegistrationHTML do
   attr :preview, :boolean, default: false
   attr :logo, :string, default: nil, doc: "the club's logo beside the title"
   attr :hidden, :list, default: [], doc: "extra hidden inputs as {name, value}"
+  attr :menu, :list, default: [], doc: "other choices beside Register (dropdown_button/1 items)"
 
   def guest_form(assigns) do
     ~H"""
@@ -67,6 +68,7 @@ defmodule CabWeb.RegistrationHTML do
       />
       <:submit
         disabled={@preview}
+        menu={@menu}
         note={
           gettext(
             "You appear in this session's list right away; the club head seats you as a speaker or the adjudicator."
