@@ -95,6 +95,7 @@ bin/cab eval "Cab.Release.migrate()"
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` | for mail | without `SMTP_HOST` mail is kept in memory and not sent |
 | `MAIL_FROM` | for mail | `Name <address>`, e.g. `cab <noreply@example.org>` |
 | `SESSION_COOKIE_DOMAIN` | no | e.g. `.example.org`, so sibling sites can read the sign-in |
+| `SHORT_LINK_HOSTS` | no | e.g. `example.org,www.example.org`: hosts besides cab's own that short links may point to |
 | `RATE_LIMIT_ENABLED` | no | the JSON API's rate limit, `true` by default |
 | `RATE_LIMIT_SIGNED_IN`, `RATE_LIMIT_ANONYMOUS` | no | requests per minute, 60 and 20 by default |
 | `FORM_RATE_LIMIT` | no | `true` turns on the public forms' rate limit (off by default, independent of `RATE_LIMIT_ENABLED`) |

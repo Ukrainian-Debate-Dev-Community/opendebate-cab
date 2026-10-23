@@ -4,7 +4,6 @@ defmodule Cab.Sessions.Session do
 
   schema "sessions" do
     field :uuid, Ecto.UUID
-    field :short_code, :string
     # engine owns the debate data; the gateway owns the registration
     # window (scheduled_at, signups_closed_at) and the lifecycle facts
     # it performs itself (below).
@@ -39,38 +38,7 @@ defmodule Cab.Sessions.Session do
     |> change()
     |> validate_required([:engine_event_id])
     |> put_uuid()
-    |> put_short_code()
     |> unique_constraint(:uuid)
-    |> unique_constraint(:short_code)
-  end
-
-  @alphabet ~c"abcdefghjkmnpqrstuvwxyz23456789"
-  @digits ~c"23456789"
-
-  @doc """
-  A fresh short code: six characters without look-alikes (no 0/o,
-  1/l/i), always holding a digit so it never spells a page address.
-  """
-  def generate_short_code do
-    code = for _ <- 1..6, into: "", do: <<Enum.random(@alphabet)>>
-
-    if String.contains?(code, Enum.map(@digits, &<<&1>>)),
-      do: code,
-      else: generate_short_code()
-  end
-
-  @doc "Whether a path segment can be a short code at all."
-  def short_code?(segment) when is_binary(segment) do
-    String.match?(segment, ~r/^[a-hjkmnp-z2-9]{6}$/) and String.match?(segment, ~r/[2-9]/)
-  end
-
-  def short_code?(_segment), do: false
-
-  defp put_short_code(changeset) do
-    case get_field(changeset, :short_code) do
-      nil -> put_change(changeset, :short_code, generate_short_code())
-      _ -> changeset
-    end
   end
 
   defp put_uuid(changeset) do

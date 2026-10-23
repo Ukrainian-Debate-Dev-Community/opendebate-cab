@@ -1,8 +1,9 @@
 defmodule CabWeb.ShortLinkController do
   @moduledoc """
-  Short links: `/<code>` opens the session, `/<code>/<n>` its room n
-  (rooms are numbered inside the session). Anything that is not a
-  live code is a plain 404.
+  Short links (`Cab.ShortLinks`): `/<code>` opens its target - a cab
+  path, a URL on an allowed host, or a session's page; `/<code>/<n>`
+  opens room n of a session (rooms are numbered inside the session).
+  Anything that is not a live code is a plain 404.
   """
   use CabWeb, :controller
 
@@ -11,10 +12,16 @@ defmodule CabWeb.ShortLinkController do
 
   # GET /:short
   def session(conn, %{"short" => short}) do
-    with_session(conn, short, fn session ->
-      redirect(conn, to: ~p"/c/#{session.club.uuid}/s/#{session.uuid}")
-    end)
+    case Cab.ShortLinks.resolve(short) do
+      {:path, path} -> redirect(conn, to: path)
+      {:url, url} -> redirect(conn, external: url)
+      {:session, %Session{club: %{archived_at: nil}} = session} -> open_session(conn, session)
+      _ -> CabWeb.ErrorHTML.respond(conn, 404)
+    end
   end
+
+  defp open_session(conn, session),
+    do: redirect(conn, to: ~p"/c/#{session.club.uuid}/s/#{session.uuid}")
 
   # GET /:short/:room
   def room(conn, %{"short" => short, "room" => room}) do
@@ -36,11 +43,10 @@ defmodule CabWeb.ShortLinkController do
     end)
   end
 
+  # room links exist for sessions only
   defp with_session(conn, short, fun) do
-    with true <- Session.short_code?(short),
-         %Session{club: %{archived_at: nil}} = session <- Sessions.get_by_short_code(short) do
-      fun.(session)
-    else
+    case Cab.ShortLinks.resolve(short) do
+      {:session, %Session{club: %{archived_at: nil}} = session} -> fun.(session)
       _ -> CabWeb.ErrorHTML.respond(conn, 404)
     end
   end

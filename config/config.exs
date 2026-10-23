@@ -44,6 +44,10 @@ config :cab, CabWeb.BotGuard,
 # and without the documents the pages answer 404
 config :cab, :legal_dir, Path.expand("../../opendebate-server/legal", __DIR__)
 
+# hosts besides cab's own whose addresses Cab.ShortLinks may shorten
+# (SHORT_LINK_HOSTS in production); none by default
+config :cab, :short_link_hosts, []
+
 # Configure the endpoint
 # English by default; Ukrainian when the browser or the footer asks
 config :cab, CabWeb.Gettext, default_locale: "en", locales: ~w(en uk)
