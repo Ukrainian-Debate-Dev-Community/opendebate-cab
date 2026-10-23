@@ -112,16 +112,9 @@ defmodule Cab.Sessions do
     result
   end
 
-  @doc "The session behind a short link code, with its club, or nil."
-  def get_by_short_code(code) when is_binary(code) do
-    Repo.one(from s in Session, where: s.short_code == ^code, preload: :club)
-  end
-
   @doc "The session's short link, e.g. https://cab.example.org/k7m2q9 (room n appended)."
-  def short_url(%Session{short_code: code}, room_no \\ nil) do
-    base = CabWeb.Endpoint.url() <> "/" <> code
-    if room_no, do: "#{base}/#{room_no}", else: base
-  end
+  def short_url(%Session{} = session, room_no \\ nil),
+    do: Cab.ShortLinks.short_url(session, room_no)
 
   @doc """
   The engine id of room number `no` (rooms are numbered by creation
@@ -235,9 +228,18 @@ defmodule Cab.Sessions do
       }
       |> Session.changeset()
       |> Repo.insert()
+      |> with_short_link()
       |> with_feedback_form(club)
     end
   end
+
+  # the session's short link exists from the start (shared, printed)
+  defp with_short_link({:ok, session} = result) do
+    {:ok, _link} = Cab.ShortLinks.link(session)
+    result
+  end
+
+  defp with_short_link(error), do: error
 
   # the club-night feedback form goes onto the new event; should the
   # engine refuse now, it is added when feedback is first needed

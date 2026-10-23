@@ -96,6 +96,14 @@ defmodule Cab.SessionsTest do
     assert session.engine_round_id == 21
     assert session.opened_by_user_id == head.id
     assert Sessions.get_for_club(club, session.uuid).id == session.id
+
+    # its short link exists from the start, and asking again gives the same
+    assert %Cab.ShortLinks.ShortLink{code: code} =
+             Cab.Repo.get_by(Cab.ShortLinks.ShortLink, session_id: session.id)
+
+    assert Sessions.short_url(session) == CabWeb.Endpoint.url() <> "/" <> code
+    assert Sessions.short_url(session, 3) == CabWeb.Endpoint.url() <> "/" <> code <> "/3"
+    assert Cab.Repo.aggregate(Cab.ShortLinks.ShortLink, :count) == 1
   end
 
   test "state with a stamped round id fans the reads out and skips no data",
