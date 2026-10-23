@@ -775,8 +775,8 @@ defmodule CabWeb.GuestLinksTest do
         |> html_response(200)
 
       assert html =~ ~s(id="shared-registration-url")
-      assert html =~ "/c/#{club.uuid}?session=#{session.uuid}#register"
-      assert html =~ ~s(data-copy=)
+      # the head shares the session's short link
+      assert html =~ ~s(data-copy="#{Cab.Sessions.short_url(session)}")
 
       # guests and everyone else share one table: kind, seat, link, remove
       assert html =~ ~s(id="session-people")

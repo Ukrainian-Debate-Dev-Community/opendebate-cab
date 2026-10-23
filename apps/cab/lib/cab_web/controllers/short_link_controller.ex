@@ -1,7 +1,8 @@
 defmodule CabWeb.ShortLinkController do
   @moduledoc """
   Short links (`Cab.ShortLinks`): `/<code>` opens its target - a cab
-  path, a URL on an allowed host, or a session's page; `/<code>/<n>`
+  path, a URL on an allowed host, or a session (the club page's
+  registration section while it takes sign-ups, else its page); `/<code>/<n>`
   opens room n of a session (rooms are numbered inside the session).
   Anything that is not a live code is a plain 404.
   """
@@ -20,8 +21,13 @@ defmodule CabWeb.ShortLinkController do
     end
   end
 
-  defp open_session(conn, session),
-    do: redirect(conn, to: ~p"/c/#{session.club.uuid}/s/#{session.uuid}")
+  # while it takes sign-ups a session's link opens the club page's
+  # registration section for it; after that, the session page
+  defp open_session(conn, session) do
+    if Sessions.stage_of(session) == :signup,
+      do: redirect(conn, to: CabWeb.ClubPublicController.register_path(session)),
+      else: redirect(conn, to: ~p"/c/#{session.club.uuid}/s/#{session.uuid}")
+  end
 
   # GET /:short/:room
   def room(conn, %{"short" => short, "room" => room}) do

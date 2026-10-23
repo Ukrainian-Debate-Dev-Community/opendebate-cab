@@ -42,6 +42,13 @@ defmodule CabWeb.ShortLinkTest do
     club: club,
     session: session
   } do
+    # while it takes sign-ups: the club page's registration section
+    assert redirected_to(get(conn, "/#{code(session)}")) ==
+             "/c/#{club.uuid}?session=#{session.uuid}#register"
+
+    # once it runs: the session page
+    Cab.Repo.update!(Ecto.Changeset.change(session, started_at: ~U[2026-10-22 18:00:00Z]))
+
     assert redirected_to(get(conn, "/#{code(session)}")) ==
              "/c/#{club.uuid}/s/#{session.uuid}"
 
@@ -110,7 +117,9 @@ defmodule CabWeb.ShortLinkTest do
     Cab.Repo.insert!(%ShortLink{code: "k7m2q9", session_id: session.id})
 
     assert code(session) == "k7m2q9"
-    assert redirected_to(get(conn, "/k7m2q9")) == "/c/#{club.uuid}/s/#{session.uuid}"
+
+    assert redirected_to(get(conn, "/k7m2q9")) ==
+             "/c/#{club.uuid}?session=#{session.uuid}#register"
   end
 
   test "paths and own-host URLs shorten to one link each", %{conn: conn, club: club} do
