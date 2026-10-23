@@ -169,6 +169,18 @@ defmodule CabWeb.SessionFormat do
     if points == [], do: nil, else: Enum.sum(points)
   end
 
+  @doc """
+  The team points a side earns in a room by the engine's own standings
+  rule (N - rank, N the teams in the room: 3/2/1/0 in BP), or nil
+  before the ballot.
+  """
+  def rank_points(room, room_team) do
+    case room_team["rank"] do
+      rank when is_integer(rank) -> length(room["RoomTeams"] || []) - rank
+      _ -> nil
+    end
+  end
+
   @doc "Points as people write them: 76, 75.5."
   def points_words(nil), do: "—"
   def points_words(points) when points == trunc(points), do: Integer.to_string(trunc(points))

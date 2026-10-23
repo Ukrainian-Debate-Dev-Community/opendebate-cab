@@ -152,36 +152,10 @@
     </.section>
 
     <.section title={gettext("Share this room")}>
-      <div
-        class="pad sharecard"
+      <.share_card
         id={"room-card-#{@room["id"]}"}
-        phx-hook="RoomCard"
-        data-card={room_card(@state, @room, @session, @club)}
-      >
-        <p class="sharehint">
-          {gettext("Click the picture or the text to copy it, then paste it into the chat.")}
-          <span class="sharemsg" aria-live="polite"></span>
-        </p>
-        <div class="sharecols">
-          <canvas
-            id={"room-card-canvas-#{@room["id"]}"}
-            data-card-image
-            role="button"
-            tabindex="0"
-            aria-label={gettext("The room as a picture: copy it")}
-            title={gettext("Copy the picture")}
-          ></canvas>
-          <pre
-            id={"room-card-text-#{@room["id"]}"}
-            class="sharetext"
-            data-card-text
-            role="button"
-            tabindex="0"
-            aria-label={gettext("The room as text: copy it")}
-            title={gettext("Copy the text")}
-          ></pre>
-        </div>
-      </div>
+        card={room_card(@state, @room, @session, @club)}
+      />
     </.section>
   </div>
 </Layouts.app>

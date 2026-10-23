@@ -24,4 +24,11 @@ defmodule CabWeb.SessionFormatTest do
     assert SessionFormat.speaker_list(%{"RoomSpeakers" => [iron, iron]}) == ["Anna"]
     assert SessionFormat.speaker_list(%{}) == []
   end
+
+  test "rank_points: N - rank, as the engine's standings count it" do
+    room = %{"RoomTeams" => [%{}, %{}, %{}, %{}]}
+    assert SessionFormat.rank_points(room, %{"rank" => 1}) == 3
+    assert SessionFormat.rank_points(room, %{"rank" => 4}) == 0
+    assert SessionFormat.rank_points(room, %{}) == nil
+  end
 end

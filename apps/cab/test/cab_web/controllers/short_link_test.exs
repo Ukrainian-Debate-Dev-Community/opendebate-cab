@@ -72,7 +72,7 @@ defmodule CabWeb.ShortLinkTest do
   test "the room page offers its card: the room's data and the short link's QR",
        %{conn: conn, club: club, session: session} do
     html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/72") |> html_response(200)
-    assert html =~ ~s(phx-hook="RoomCard")
+    assert html =~ ~s(phx-hook="ShareCard")
     # two columns, picture and text, each copied by a click; no buttons
     assert html =~ ~s(data-card-image)
     assert html =~ ~s(data-card-text)

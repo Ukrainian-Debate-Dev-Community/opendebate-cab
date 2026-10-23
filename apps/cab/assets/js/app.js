@@ -350,27 +350,20 @@ const wrapLines = (ctx, text, width) => {
   return lines
 }
 
-// the room card, landscape and slim: one header band - the mark and
-// the room, the session, the QR with the short link; then the motion
-// and the draw as one row - a column per side with the people who
-// speak there, then the adjudicators (the chair marked)
-const drawCard = (canvas, d, draw = true) => {
-  const ctx = canvas.getContext("2d")
+// a card's header band: the mark and `big` (the room, or the word for
+// results) | the session, club and time | the short link and its QR.
+// Returns its height.
+const drawBand = (ctx, d, big, draw) => {
   const {w} = CARD
   const pad = 44
-  const inner = w - pad * 2
   const font = (weight, size, family = CARD.sans) => { ctx.font = `${weight} ${size}px ${family}` }
   const text = (s, x, yy, color) => { if (draw) { ctx.fillStyle = color; ctx.fillText(s, x, yy) } }
-  const rule = (x, yy, width) => { if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(x, yy, width, 2) } }
   const soft = "rgba(255,255,255,.78)"
-
-  if (draw) { ctx.fillStyle = CARD.paper; ctx.fillRect(0, 0, canvas.width, canvas.height) }
-
   // header band: mark + room | session, club, time | link + QR
   const qrSize = 148, bandH = qrSize + 40
   if (draw) { ctx.fillStyle = CARD.brand; ctx.fillRect(0, 0, w, bandH) }
   font(400, 44, '"Cedarville Cursive", cursive'); text("cab", pad, 62, CARD.paper)
-  font(800, 64); text(d.room, pad, 150, CARD.paper)
+  font(800, big.length > 4 ? 44 : 64); text(big, pad, 150, CARD.paper)
 
   const qrX = w - pad - qrSize, qrY = 20
   const qr = d.qr || []
@@ -396,6 +389,26 @@ const drawCard = (canvas, d, draw = true) => {
   for (const l of title) { text(l, midX, by, CARD.paper); by += 38 }
   const when = d.starts ? formatWhen(d.starts, "short") : formatWhen(d.date, "date")
   font(500, 24); text(`${d.club}, ${when}`, midX, by + 2, soft)
+
+  return bandH
+}
+
+// the room card, landscape and slim: one header band - the mark and
+// the room, the session, the QR with the short link; then the motion
+// and the draw as one row - a column per side with the people who
+// speak there, then the adjudicators (the chair marked)
+const drawCard = (canvas, d, draw = true) => {
+  const ctx = canvas.getContext("2d")
+  const {w} = CARD
+  const pad = 44
+  const inner = w - pad * 2
+  const font = (weight, size, family = CARD.sans) => { ctx.font = `${weight} ${size}px ${family}` }
+  const text = (s, x, yy, color) => { if (draw) { ctx.fillStyle = color; ctx.fillText(s, x, yy) } }
+  const rule = (x, yy, width) => { if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(x, yy, width, 2) } }
+
+  if (draw) { ctx.fillStyle = CARD.paper; ctx.fillRect(0, 0, canvas.width, canvas.height) }
+
+  const bandH = drawBand(ctx, d, d.room, draw)
 
   // the motion
   let y = bandH + 50
@@ -450,22 +463,111 @@ const cardText = (d) => {
   return lines.join("\n")
 }
 
-// the room card: the picture and the text side by side; clicking (or
-// Enter/Space on) either copies it
-const RoomCard = {
+// a finished session's results card: the band, then every room as a
+// table - its keyword and motion above, a header row, one row per side
+// in place order (one speaker per line, their points beside the name;
+// the side's speaker points; its team points), the winner tinted
+const drawResults = (canvas, d, draw = true) => {
+  const ctx = canvas.getContext("2d")
+  const {w} = CARD
+  const pad = 44
+  const inner = w - pad * 2
+  const font = (weight, size, family = CARD.sans) => { ctx.font = `${weight} ${size}px ${family}` }
+  const text = (s, x, yy, color) => { if (draw) { ctx.fillStyle = color; ctx.fillText(s, x, yy) } }
+  const right = (s, x, yy, color) => { ctx.textAlign = "right"; text(s, x, yy, color); ctx.textAlign = "left" }
+  const box = (x, yy, bw, bh, color) => { if (draw) { ctx.fillStyle = color; ctx.fillRect(x, yy, bw, bh) } }
+  const pts = (p) => (p == null ? "\u2014" : String(Math.round(p * 10) / 10))
+
+  if (draw) { ctx.fillStyle = CARD.paper; ctx.fillRect(0, 0, canvas.width, canvas.height) }
+  let y = drawBand(ctx, d, t("card_results", "Results"), draw) + 46
+
+  const xPlace = pad + 16, xSide = pad + 120, xPeople = pad + 220
+  const xTeam = w - pad - 16, xSpk = xTeam - 230
+  const lineH = 36
+
+  for (const room of d.rooms) {
+    // the room: keyword and motion
+    font(800, 28); text(room.keyword ? `${room.room}  ${room.keyword}` : room.room, pad, y, CARD.brand); y += 36
+    if (room.motion) {
+      font(600, 24)
+      for (const l of wrapLines(ctx, room.motion, inner)) { text(l, pad, y, CARD.ink); y += 32 }
+    }
+    if (room.infoslide) {
+      font(400, 20)
+      for (const l of wrapLines(ctx, room.infoslide, inner)) { text(l, pad, y, CARD.muted); y += 27 }
+    }
+    y += 16
+
+    // header row
+    box(pad, y, inner, 44, CARD.tint)
+    font(800, 17)
+    text(t("card_place", "PLACE"), xPlace, y + 29, CARD.muted)
+    text(t("card_side", "SIDE"), xSide, y + 29, CARD.muted)
+    text(t("card_speakers", "SPEAKERS"), xPeople, y + 29, CARD.muted)
+    right(t("card_speaker_points", "SPEAKER POINTS"), xSpk, y + 29, CARD.muted)
+    right(t("card_team_points", "TEAM POINTS"), xTeam, y + 29, CARD.muted)
+    y += 44
+
+    for (const row of room.rows) {
+      const people = row.speakers.length ? row.speakers : [{name: "\u2014", points: null}]
+      const rowH = people.length * lineH + 22
+      if (row.winner) box(pad, y, inner, rowH, "#FBF3E2")
+      box(pad, y + rowH - 2, inner, 2, CARD.line)
+      const base = y + 12 + 26
+      const weight = row.winner ? 800 : 600
+      font(weight, 26); text(row.place || "\u2014", xPlace, base, CARD.ink)
+      font(800, 26); text(row.side, xSide, base, CARD.brand)
+      people.forEach((sp, n) => {
+        const yy = base + n * lineH
+        font(weight, 26); text(sp.name, xPeople, yy, CARD.ink)
+        const nameW = ctx.measureText(sp.name).width
+        font(600, 24); text(pts(sp.points), xPeople + nameW + 14, yy, row.winner ? CARD.ink : CARD.muted)
+      })
+      font(weight, 26); right(pts(row.points), xSpk, base, CARD.ink)
+      font(800, 28); right(pts(row.team_points), xTeam, base, row.winner ? CARD.brand : CARD.ink)
+      y += rowH
+    }
+    y += 40
+  }
+  return y + pad - 40
+}
+
+// the results as short plain text
+const resultsText = (d) => {
+  const pts = (p) => (p == null ? "\u2014" : String(Math.round(p * 10) / 10))
+  const when = d.starts ? formatWhen(d.starts, "short") : formatWhen(d.date, "date")
+  const lines = [`${d.session}, ${when} - ${t("card_results", "Results")}`]
+  for (const room of d.rooms) {
+    lines.push("", room.keyword ? `${room.room} - ${room.keyword}` : room.room)
+    if (room.motion) lines.push(t("text_motion", "Motion: {motion}", {motion: room.motion}))
+    if (room.infoslide) lines.push(t("text_infoslide", "Infoslide: {text}", {text: room.infoslide}))
+    for (const row of room.rows) {
+      const people = row.speakers.map(s => `${s.name} ${pts(s.points)}`).join(", ")
+      lines.push(`${row.place || "\u2014"} ${row.side}: ${people} - ${pts(row.points)} (${t("text_team_points", "team points: {points}", {points: pts(row.team_points)})})`)
+    }
+  }
+  lines.push("", d.link_text)
+  return lines.join("\n")
+}
+
+// a share card (a room, or a session's results): the picture and the
+// text side by side; clicking (or Enter/Space on) either copies it
+const CARDS = {room: [drawCard, cardText], results: [drawResults, resultsText]}
+const ShareCard = {
   mounted() {
     this.canvas = this.el.querySelector("canvas")
     this.textBox = this.el.querySelector("[data-card-text]")
     this.msg = this.el.querySelector(".sharemsg")
     this.render = async () => {
       const d = JSON.parse(this.el.dataset.card)
+      const [draw, asText] = CARDS[d.kind] || CARDS.room
       try { await document.fonts.load('60px "Cedarville Cursive"') } catch (_e) { /* fallback face */ }
       const probe = document.createElement("canvas")
       probe.width = CARD.w; probe.height = 10
-      const h = drawCard(probe, d, false)
+      const h = draw(probe, d, false)
       this.canvas.width = CARD.w; this.canvas.height = h
-      drawCard(this.canvas, d)
-      if (this.textBox) this.textBox.textContent = cardText(d)
+      draw(this.canvas, d)
+      if (this.textBox) this.textBox.textContent = asText(d)
     }
     this.say = (s) => { if (this.msg) { this.msg.textContent = s; setTimeout(() => { this.msg.textContent = "" }, 2500) } }
     const copyImage = () => {
@@ -523,7 +625,7 @@ const CopyLinks = {
   },
 }
 
-const Hooks = {BallotMath, PrepClock, Allocator, RoomCard, CopyLinks}
+const Hooks = {BallotMath, PrepClock, Allocator, ShareCard, CopyLinks}
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {

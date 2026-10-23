@@ -140,27 +140,49 @@
           {gettext("This session finished without rooms.")}
         </.section>
 
+        <.section :if={@state.rooms != []} title={gettext("Share the results")}>
+          <.share_card
+            id={"results-card-#{@session.uuid}"}
+            card={results_card(@state, @session, @club)}
+          />
+        </.section>
+
         <%= for room <- @state.rooms do %>
           <.section title={gettext("Room %{room}", room: room_label(room))}>
-            <div class="pad">
-              {gettext("Motion:")}
-              <b>{(room["Motion"] && room["Motion"]["motion_text"]) || "—"}</b>
+            <div class="pad motion-box">
+              <p :if={keyword = get_in(room, ["Motion", "keyword"])} class="kw">{keyword}</p>
+              <p>
+                {gettext("Motion:")}
+                <b>{(room["Motion"] && room["Motion"]["motion_text"]) || "—"}</b>
+              </p>
+              <p :if={infoslide = get_in(room, ["Motion", "infoslide"])} class="mut">
+                {gettext("Infoslide:")} {infoslide}
+              </p>
             </div>
-            <.table id={"room-#{room["id"]}-teams"} rows={sorted_teams(room)}>
+            <.table
+              id={"room-#{room["id"]}-teams"}
+              rows={result_rows(room)}
+              row_class={fn room_team -> room_team["rank"] == 1 && "win" end}
+            >
+              <:col :let={room_team} label={gettext("Place")} class="st">
+                {(ballot_in?(room) && room_team["rank"] && ordinal(room_team["rank"])) || "—"}
+              </:col>
               <:col :let={room_team} label={gettext("Side")} code>
                 {side_code(room_team["position"])}
               </:col>
-              <:col :let={room_team} label={gettext("Speakers")}>{speaker_names(room_team)}</:col>
-              <:col :let={room_team} label={gettext("Result")} class="st">
-                <%= if room["status"] in ["completed", "confirmed"] && room_team["rank"] do %>
-                  <%= if room_team["rank"] == 1 do %>
-                    <b>{gettext("won")}</b>
-                  <% else %>
-                    {ordinal(room_team["rank"])}
-                  <% end %>
-                <% else %>
-                  —
-                <% end %>
+              <:col :let={room_team} label={gettext("Speakers")}>
+                <div :for={speech <- speeches(room_team)} class="rspk">
+                  <span>
+                    {speech.name}<span :if={speech.iron} class="mut">{gettext("(iron)")}</span>
+                  </span>
+                  <span :if={ballot_in?(room)} class="pts">{points_words(speech.points)}</span>
+                </div>
+              </:col>
+              <:col :let={room_team} label={gettext("Speaker points")} num>
+                {points_words(team_points(room_team))}
+              </:col>
+              <:col :let={room_team} label={gettext("Team points")} num>
+                {points_words(rank_points(room, room_team))}
               </:col>
             </.table>
           </.section>

@@ -195,9 +195,29 @@ defmodule CabWeb.EightPagesTest do
       assert html =~ "Winner: <b>Speaker 1.1 &amp; Speaker 1.2</b>"
       refute html =~ "Team 2"
       assert html =~ "THW show the draw"
-      assert html =~ "won"
+      # place order, the winning side's row in bold; points per speaker
+      assert html =~ "1st"
       assert html =~ "2nd"
       assert html =~ "4th"
+      assert html =~ ~s(class="win")
+      refute html =~ ">won<"
+      # the results share like a room: picture and text, kind "results"
+      assert html =~ ~s(phx-hook="ShareCard")
+
+      [json] =
+        Regex.run(~r/id="results-card-[^"]+"[^>]*data-card="([^"]*)"/, html,
+          capture: :all_but_first
+        )
+
+      card = json |> String.replace("&quot;", "\"") |> Jason.decode!()
+      assert card["kind"] == "results"
+
+      assert [%{"rows" => [%{"place" => "1st", "winner" => true, "team_points" => 3} | _]}] =
+               card["rooms"]
+
+      # team points by the engine's rule (N - rank): 3/2/1/0
+      assert html =~ "Speaker points"
+      assert html =~ "Team points"
     end
 
     test "a foreign session uuid under this club is 404", %{conn: conn, club: club} do
