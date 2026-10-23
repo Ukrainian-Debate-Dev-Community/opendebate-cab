@@ -43,15 +43,12 @@ defmodule CabWeb.SessionPageHTML do
       motion: motion && motion["motion_text"],
       infoslide: motion && motion["infoslide"],
       prep_until: prep_deadline(room),
-      teams:
+      # the people who play, by side; team names stay internal
+      sides:
         for room_team <- sorted_teams(room) do
-          %{
-            side: side_code(room_team["position"]),
-            team: get_in(room_team, ["Team", "name"]) || "—",
-            speakers: speaker_names(room_team)
-          }
+          %{side: side_code(room_team["position"]), people: speaker_list(room_team)}
         end,
-      judge: judge_name(room, state.signups),
+      judges: judges(room, state.signups),
       link: link,
       link_text: bare_url(link),
       qr: qr
