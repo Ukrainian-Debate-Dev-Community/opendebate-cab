@@ -241,6 +241,7 @@ msgid "(5 counts as one vote)"
 msgstr "(5 рахується як один голос)"
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "(iron)"
 msgstr "(айрон)"
@@ -497,6 +498,16 @@ msgstr "Відповіді"
 msgid "As"
 msgstr "Роль"
 
+#: lib/cab_web/controllers/session_page_html.ex
+#, elixir-autogen, elixir-format
+msgid "As a picture: copy it"
+msgstr "Зображенням: скопіювати"
+
+#: lib/cab_web/controllers/session_page_html.ex
+#, elixir-autogen, elixir-format
+msgid "As text: copy it"
+msgstr "Текстом: скопіювати"
+
 #: lib/cab_web/controllers/head_invitation_html/invalid.html.heex
 #, elixir-autogen, elixir-format
 msgid "Ask the admin who invited you to send a new link."
@@ -674,7 +685,7 @@ msgstr "Місто"
 msgid "Clear"
 msgstr "Скасувати вибір"
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html.ex
 #, elixir-autogen, elixir-format
 msgid "Click the picture or the text to copy it, then paste it into the chat."
 msgstr "Натисніть на зображення або текст, щоб скопіювати, і вставте в чат."
@@ -813,12 +824,12 @@ msgstr "Копіювати"
 msgid "Copy links"
 msgstr "Копіювати посилання"
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html.ex
 #, elixir-autogen, elixir-format
 msgid "Copy the picture"
 msgstr "Скопіювати зображення"
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html.ex
 #, elixir-autogen, elixir-format
 msgid "Copy the text"
 msgstr "Скопіювати текст"
@@ -1234,6 +1245,11 @@ msgstr "Якщо цим гостем були ви, додайте його ре
 #, elixir-autogen, elixir-format
 msgid "Infoslide"
 msgstr "Інфослайд"
+
+#: lib/cab_web/controllers/session_page_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Infoslide:"
+msgstr "Інфослайд:"
 
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
@@ -1819,6 +1835,7 @@ msgid "Pick a member, or type a name, a user's username or email"
 msgstr "Оберіть члена клубу або введіть ім'я, ім'я користувача чи e-mail"
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Place"
 msgstr "Місце"
@@ -1844,6 +1861,7 @@ msgid "Please sign in."
 msgstr "Будь ласка, увійдіть."
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Points"
@@ -2115,10 +2133,14 @@ msgstr[1] ""
 msgstr[2] ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
-#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Result"
 msgstr "Результат"
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Results"
+msgstr "Результати"
 
 #: lib/cab_web/controllers/member_html/members.html.heex
 #: lib/cab_web/controllers/owner_html/members.html.heex
@@ -2295,6 +2317,11 @@ msgstr "Сесії"
 #, elixir-autogen, elixir-format
 msgid "Set to 15 minutes from publishing, or type a time."
 msgstr "15 хвилин від публікації, або введіть час."
+
+#: lib/cab_web/controllers/session_page_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Share the results"
+msgstr "Поділитися результатами"
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
@@ -2633,16 +2660,6 @@ msgstr "Об'єднаний акаунт:"
 #, elixir-autogen, elixir-format
 msgid "The new head takes over; the old head retires."
 msgstr "Новий голова бере справи на себе; попередній складає повноваження."
-
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#, elixir-autogen, elixir-format
-msgid "The room as a picture: copy it"
-msgstr "Кімната зображенням: скопіювати"
-
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#, elixir-autogen, elixir-format
-msgid "The room as text: copy it"
-msgstr "Кімната текстом: скопіювати"
 
 #: lib/cab_web/live/room_live.ex
 #, elixir-autogen, elixir-format
@@ -3608,7 +3625,6 @@ msgid "watch rooms"
 msgstr "дивитися кімнати"
 
 #: lib/cab_web/controllers/me_html/show.html.heex
-#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "won"
 msgstr "переміг"

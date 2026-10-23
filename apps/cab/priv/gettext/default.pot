@@ -235,6 +235,7 @@ msgid "(5 counts as one vote)"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "(iron)"
 msgstr ""
@@ -490,6 +491,16 @@ msgstr ""
 msgid "As"
 msgstr ""
 
+#: lib/cab_web/controllers/session_page_html.ex
+#, elixir-autogen, elixir-format
+msgid "As a picture: copy it"
+msgstr ""
+
+#: lib/cab_web/controllers/session_page_html.ex
+#, elixir-autogen, elixir-format
+msgid "As text: copy it"
+msgstr ""
+
 #: lib/cab_web/controllers/head_invitation_html/invalid.html.heex
 #, elixir-autogen, elixir-format
 msgid "Ask the admin who invited you to send a new link."
@@ -667,7 +678,7 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html.ex
 #, elixir-autogen, elixir-format
 msgid "Click the picture or the text to copy it, then paste it into the chat."
 msgstr ""
@@ -804,12 +815,12 @@ msgstr ""
 msgid "Copy links"
 msgstr ""
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html.ex
 #, elixir-autogen, elixir-format
 msgid "Copy the picture"
 msgstr ""
 
-#: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html.ex
 #, elixir-autogen, elixir-format
 msgid "Copy the text"
 msgstr ""
@@ -1224,6 +1235,11 @@ msgstr ""
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Infoslide"
+msgstr ""
+
+#: lib/cab_web/controllers/session_page_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Infoslide:"
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex
@@ -1810,6 +1826,7 @@ msgid "Pick a member, or type a name, a user's username or email"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Place"
 msgstr ""
@@ -1835,6 +1852,7 @@ msgid "Please sign in."
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Points"
@@ -2103,9 +2121,13 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
-#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Result"
+msgstr ""
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Results"
 msgstr ""
 
 #: lib/cab_web/controllers/member_html/members.html.heex
@@ -2282,6 +2304,11 @@ msgstr ""
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Set to 15 minutes from publishing, or type a time."
+msgstr ""
+
+#: lib/cab_web/controllers/session_page_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Share the results"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
@@ -2620,16 +2647,6 @@ msgstr ""
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "The new head takes over; the old head retires."
-msgstr ""
-
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#, elixir-autogen, elixir-format
-msgid "The room as a picture: copy it"
-msgstr ""
-
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#, elixir-autogen, elixir-format
-msgid "The room as text: copy it"
 msgstr ""
 
 #: lib/cab_web/live/room_live.ex
@@ -3595,7 +3612,6 @@ msgid "watch rooms"
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
-#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "won"
 msgstr ""

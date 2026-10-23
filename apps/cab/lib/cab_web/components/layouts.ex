@@ -52,6 +52,7 @@ defmodule CabWeb.Layouts do
       "card_prep" => gettext("Prep until {time}"),
       "card_no_motion" => gettext("Motion: not published yet"),
       "card_adjudicators" => gettext("Adjudicators"),
+      "card_results" => gettext("Results"),
       "text_adjudicators" => gettext("Adjudicators: {names}"),
       "card_scan" => gettext("Scan or open"),
       "card_copied" => gettext("Copied. Paste it into the chat."),
