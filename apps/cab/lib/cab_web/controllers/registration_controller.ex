@@ -129,9 +129,9 @@ defmodule CabWeb.RegistrationController do
       session: session,
       state: state,
       name: params["name"],
-      fields: Cab.Clubs.guest_form(session.club),
+      fields: Cab.Clubs.guest_fields(session.club),
       answers: answer_params(params),
-      errors: form_errors(Cab.Clubs.guest_form(session.club), errors),
+      errors: form_errors(Cab.Clubs.guest_fields(session.club), errors),
       page_title: gettext("%{club} — Register", club: session.club.name)
     )
   end

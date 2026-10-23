@@ -109,7 +109,11 @@ defmodule Cab.Clubs do
 
   @doc "The club's guest registration form, its locked fields (Club.guest_form_locked/0) first."
   def guest_form(%Club{} = club),
-    do: Core.Forms.with_locked(club.guest_form, Club.guest_form_locked())
+    do: Core.Forms.with_locked(club.guest_form, Club.guest_form_locked(), Club.form_attrs())
+
+  @doc "The registration form's fields a guest is asked (scope guests or both)."
+  def guest_fields(%Club{} = club),
+    do: Enum.reject(guest_form(club), &(Club.scope(&1) == "members"))
 
   @doc """
   The head edits the club's guest registration form: `edit` gets the

@@ -454,4 +454,49 @@ defmodule Core.FormsTest do
       assert {:ok, [%{"value" => "a@x.com"}]} = Forms.validate_answers(form, %{id => " a@x.com "})
     end
   end
+
+  describe "app attributes" do
+    @attrs %{"audience" => {~w(a b c), "c"}}
+
+    test "a field gets the value sent, else the default; others are refused" do
+      {:ok, [added]} = Forms.add_field([], %{"label" => "Phone", "type" => "phone"}, @attrs)
+      assert added["audience"] == "c"
+
+      {:ok, [chosen]} =
+        Forms.add_field([], %{"label" => "Phone", "type" => "phone", "audience" => "a"}, @attrs)
+
+      assert chosen["audience"] == "a"
+
+      assert {:error, %{"audience" => :not_allowed}} =
+               Forms.add_field([], %{"label" => "X", "type" => "text", "audience" => "z"}, @attrs)
+    end
+
+    test "an edit that sends none keeps the field's" do
+      {:ok, [field] = form} =
+        Forms.add_field([], %{"label" => "Phone", "type" => "phone", "audience" => "b"}, @attrs)
+
+      {:ok, [kept]} = Forms.update_field(form, field["id"], %{"label" => "Mobile", "type" => "phone"}, @attrs)
+      assert kept["audience"] == "b"
+      assert Forms.field_params(kept, @attrs)["audience"] == "b"
+    end
+
+    test "stored fields without one read the default; core knows no meaning" do
+      [stored] = Forms.with_locked([%{"id" => "x", "label" => "Old", "type" => "text"}], [], @attrs)
+      assert stored["audience"] == "c"
+      assert Forms.attr(%{"audience" => "z"}, "audience", @attrs) == "c"
+      assert Forms.field_params(nil, @attrs)["audience"] == "c"
+
+      # no attributes: fields carry none
+      {:ok, [plain]} = Forms.add_field([], %{"label" => "Phone", "type" => "phone"})
+      refute Map.has_key?(plain, "audience")
+    end
+
+    test "normalize checks them like the editor" do
+      assert {:error, %{0 => %{"audience" => :not_allowed}}} =
+               Forms.normalize([%{"label" => "X", "type" => "text", "audience" => "z"}], [], @attrs)
+
+      assert {:ok, [%{"audience" => "a"}]} =
+               Forms.normalize([%{"label" => "X", "type" => "text", "audience" => "a"}], [], @attrs)
+    end
+  end
 end

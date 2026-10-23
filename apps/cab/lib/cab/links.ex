@@ -199,8 +199,8 @@ defmodule Cab.Links do
   which enforces the `:signup` stage gate), and the personal link row
   keeping the participant and its claim token. `answer_params` are
   the shared URL's answers to the club's registration form (keyed by
-  field id, `Core.Forms.validate_answers/2` against the club's
-  `guest_form`), checked with the name and kept
+  field id, `Core.Forms.validate_answers/2` against the fields of the
+  club's form asked of guests), checked with the name and kept
   on the link; nil (the head adding a guest by hand) asks nothing.
   Returns `{:ok, link}` with the user preloaded,
   `{:error, :conflict, message}` once sign-ups closed,
@@ -300,7 +300,7 @@ defmodule Cab.Links do
   defp validate_guest(session, name, answer_params) do
     answers =
       case Core.Forms.validate_answers(
-             Cab.Clubs.guest_form(session_club(session)),
+             Cab.Clubs.guest_fields(session_club(session)),
              answer_params
            ) do
         {:ok, answers} -> {:ok, answers}

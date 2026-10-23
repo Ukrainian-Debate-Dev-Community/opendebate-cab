@@ -84,7 +84,11 @@ defmodule CabWeb.Api.ClubController do
   # kept when given, new ones for new fields; the locked e-mail field
   # stays first and takes only required and hint), twin of the editor
   def replace_registration_form(conn, params) do
-    case Core.Forms.normalize(params["fields"], Cab.Clubs.Club.guest_form_locked()) do
+    case Core.Forms.normalize(
+           params["fields"],
+           Cab.Clubs.Club.guest_form_locked(),
+           Cab.Clubs.Club.form_attrs()
+         ) do
       {:ok, definition} ->
         with {:ok, club} <-
                Clubs.edit_registration_form(conn.assigns.club, fn _old -> {:ok, definition} end) do

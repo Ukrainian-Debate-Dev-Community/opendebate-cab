@@ -241,6 +241,108 @@ defmodule CabWeb.RegistrationFormTest do
   end
 
   # ---------------------------------------------------------------
+  # Scopes: who is asked a field
+  # ---------------------------------------------------------------
+
+  describe "scopes" do
+    test "the head picks who is asked a field; the built-in e-mail stays for guests",
+         %{conn: conn, club: club, head: head} do
+      fields = ~p"/c/#{club.uuid}/owner/form/fields"
+
+      conn
+      |> log_in(head)
+      |> post(fields, %{label: "Student card", type: "text", required: "yes", scope: "members"})
+
+      assert [%{"id" => "email", "scope" => "guests"}, %{"id" => id, "scope" => "members"}] =
+               Cab.Clubs.guest_form(Repo.reload!(club))
+
+      page = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner/form") |> html_response(200)
+      assert page =~ "Asked of"
+      assert page =~ "Members only"
+      assert page =~ "Guests only"
+      assert page =~ ~s(name="scope")
+
+      edit =
+        conn
+        |> log_in(head)
+        |> get(~p"/c/#{club.uuid}/owner/form?edit=#{id}")
+        |> html_response(200)
+
+      assert edit =~ ~r/type="radio" name="scope" value="members"\s+checked/
+
+      conn
+      |> log_in(head)
+      |> post("#{fields}/#{id}", %{label: "Student card", type: "text", scope: "both"})
+
+      conn |> log_in(head) |> post("#{fields}/email", %{required: "no", scope: "members"})
+
+      assert [%{"id" => "email", "scope" => "guests", "required" => false}, %{"scope" => "both"}] =
+               Cab.Clubs.guest_form(Repo.reload!(club))
+
+      email_edit =
+        conn
+        |> log_in(head)
+        |> get(~p"/c/#{club.uuid}/owner/form?edit=email")
+        |> html_response(200)
+
+      refute email_edit =~ ~s(name="scope")
+
+      refused =
+        conn
+        |> log_in(head)
+        |> post(fields, %{label: "X", type: "text", scope: "everyone"})
+        |> html_response(422)
+
+      assert refused =~ "Choose who is asked."
+    end
+
+    test "guests are never asked a members-only field, even a required one",
+         %{conn: conn, club: club, head: head} do
+      {club, ids} = with_form(club)
+
+      {:ok, club} =
+        Cab.Clubs.edit_registration_form(
+          club,
+          &Core.Forms.add_field(
+            &1,
+            %{
+              "label" => "Student card",
+              "type" => "text",
+              "required" => "yes",
+              "scope" => "members"
+            },
+            Cab.Clubs.Club.form_attrs()
+          )
+        )
+
+      card = Map.new(Cab.Clubs.guest_form(club), &{&1["label"], &1["id"]})["Student card"]
+      session = session_fixture(club, engine_event_id: 11)
+      stub_stage([])
+
+      html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
+      assert html =~ ~s(name="answers[#{ids["Phone"]}]")
+      refute html =~ "Student card"
+      refute html =~ card
+
+      preview =
+        conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner/form/preview") |> html_response(200)
+
+      refute preview =~ "Student card"
+
+      conn
+      |> anon()
+      |> post(~p"/r/#{session.uuid}", %{
+        name: "Greta Guest",
+        answers: %{"email" => "greta@example.com", card => "should be ignored"}
+      })
+      |> html_response(200)
+
+      assert [%Link{answers: answers}] = Repo.all(Link)
+      refute Enum.any?(answers, &(&1["label"] == "Student card"))
+    end
+  end
+
+  # ---------------------------------------------------------------
   # The guest form on /r/:sess
   # ---------------------------------------------------------------
 

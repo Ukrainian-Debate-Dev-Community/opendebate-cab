@@ -30,6 +30,11 @@ defmodule CabWeb.FormComponents do
   def type_name("multi"), do: gettext("multiple choice")
   def type_name(other), do: to_string(other)
 
+  @doc "A field scope's name, as the editor shows it."
+  def scope_name("guests"), do: gettext("Guests only")
+  def scope_name("members"), do: gettext("Members only")
+  def scope_name(_both), do: gettext("Guests and members")
+
   @doc "A `Core.Forms` editing error code as a message."
   def editor_error(:required), do: dgettext("errors", "Enter a label.")
 
@@ -37,6 +42,7 @@ defmodule CabWeb.FormComponents do
     do: dgettext("errors", "%{count} characters at most.", count: max)
 
   def editor_error(:unknown_type), do: dgettext("errors", "Choose a type.")
+  def editor_error(:not_allowed), do: dgettext("errors", "Choose who is asked.")
 
   def editor_error({:options_count, min, max}),
     do: dgettext("errors", "Give %{min} to %{max} options, one per line.", min: min, max: max)
@@ -93,6 +99,7 @@ defmodule CabWeb.FormComponents do
   are the field form's posted params, `errors` the `Core.Forms` codes
   by param. `fixed` lists the labels the app asks before the form
   (shown first, not editable); locked fields can only be edited.
+  `scoped` shows and edits each field's scope (who is asked it).
   """
   attr :id, :string, default: "form-editor"
   attr :definition, :list, required: true
@@ -103,9 +110,12 @@ defmodule CabWeb.FormComponents do
   attr :errors, :map, default: %{}
   attr :fixed, :list, default: []
   attr :form_id, :string, default: "field-form"
+  attr :scoped, :boolean, default: false
 
   def form_editor(assigns) do
     definition = assigns.definition
+    # the registration form's own attribute (scope) only where it is shown
+    attrs = if assigns.scoped, do: Cab.Clubs.Club.form_attrs(), else: %{}
 
     rows =
       Enum.map(assigns.fixed, &{:fixed, %{"id" => "fixed", "label" => &1}, nil}) ++
@@ -117,7 +127,7 @@ defmodule CabWeb.FormComponents do
 
     assigns =
       assigns
-      |> assign(:values, Map.merge(Forms.field_params(assigns.editing), assigns.values))
+      |> assign(:values, Map.merge(Forms.field_params(assigns.editing, attrs), assigns.values))
       |> assign(
         :messages,
         Map.new(assigns.errors, fn {key, code} -> {key, editor_error(code)} end)
@@ -141,6 +151,9 @@ defmodule CabWeb.FormComponents do
         <:col :let={{kind, field, _moves}} label={gettext("Type")}>
           {if kind == :fixed, do: type_name("text"), else: type_name(field["type"])}
           <.sub :if={field["options"] not in [nil, []]}>{Enum.join(field["options"], ", ")}</.sub>
+        </:col>
+        <:col :let={{kind, field, _moves}} :if={@scoped} label={gettext("Asked of")}>
+          {scope_name(if kind == :fixed, do: "guests", else: Cab.Clubs.Club.scope(field))}
         </:col>
         <:col :let={{kind, field, _moves}} label={gettext("Answer")}>
           {if kind == :fixed or field["required"],
@@ -202,6 +215,14 @@ defmodule CabWeb.FormComponents do
           label={gettext("Type")}
           value={@values["type"]}
           options={Enum.map(Forms.types(), &{type_name(&1), &1})}
+        />
+        <:block
+          :if={@scoped and not @locked}
+          name="scope"
+          type={:select}
+          label={gettext("Asked of")}
+          value={@values["scope"]}
+          options={Enum.map(Cab.Clubs.Club.scopes(), &{scope_name(&1), &1})}
         />
         <:block
           :if={not @locked}

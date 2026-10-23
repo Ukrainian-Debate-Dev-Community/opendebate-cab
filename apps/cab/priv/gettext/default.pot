@@ -499,6 +499,11 @@ msgstr ""
 msgid "Ask the club head about the next session."
 msgstr ""
 
+#: lib/cab_web/components/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Asked of"
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Audience"
@@ -919,6 +924,11 @@ msgstr ""
 msgid "E-mail address"
 msgstr ""
 
+#: lib/cab_web/controllers/owner_html/guest_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Each field is asked of guests, of members, or of both. Guests answer theirs when they register for a session of the club without an account."
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Edit"
@@ -1123,14 +1133,14 @@ msgstr ""
 msgid "Guest history"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/guest_form.html.heex
+#: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
-msgid "Guest registration form"
+msgid "Guests and members"
 msgstr ""
 
-#: lib/cab_web/controllers/owner_html/guest_form.html.heex
+#: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
-msgid "Guests answer these fields when they register for any session of the club without an account. Members who sign in are not asked."
+msgid "Guests only"
 msgstr ""
 
 #: lib/cab_web/components/form_components.ex
@@ -1384,6 +1394,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/members.html.heex
 #, elixir-autogen, elixir-format
 msgid "Members (%{count})"
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Members only"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex

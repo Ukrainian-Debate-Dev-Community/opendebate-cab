@@ -31,11 +31,11 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title={gettext("Guest registration form")}>
+    <.section title={gettext("Registration form")}>
       <div class="pad">
         <p>
           {gettext(
-            "Guests answer these fields when they register for any session of the club without an account. Members who sign in are not asked."
+            "Each field is asked of guests, of members, or of both. Guests answer theirs when they register for a session of the club without an account."
           )}
         </p>
         <p>
@@ -53,6 +53,7 @@
         values={@values}
         errors={@errors}
         fixed={[gettext("Your name")]}
+        scoped
       />
     </.section>
   </div>

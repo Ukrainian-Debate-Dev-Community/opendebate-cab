@@ -2,7 +2,7 @@ defmodule CabWeb.OwnerController do
   use CabWeb, :controller
 
   alias Cab.{Clubs, Links, Sessions}
-  alias Cab.Clubs.Membership
+  alias Cab.Clubs.{Club, Membership}
   alias Core.Forms
   alias Cab.Sessions.Session
 
@@ -79,7 +79,7 @@ defmodule CabWeb.OwnerController do
   # this club, with nothing to send
   def preview_form(conn, _params) do
     render(conn, :guest_form_preview,
-      fields: Clubs.guest_form(conn.assigns.club),
+      fields: Clubs.guest_fields(conn.assigns.club),
       page_title: gettext("%{club} - Registration form", club: conn.assigns.club.name)
     )
   end
@@ -87,14 +87,14 @@ defmodule CabWeb.OwnerController do
   # POST /c/:club_uuid/owner/form/fields
   def add_field(conn, params) do
     conn
-    |> edit_form(&Forms.add_field(&1, params), gettext("Field added."))
+    |> edit_form(&Forms.add_field(&1, params, Club.form_attrs()), gettext("Field added."))
     |> on_field_error(nil, params)
   end
 
   # POST /c/:club_uuid/owner/form/fields/:field_id
   def update_field(conn, %{"field_id" => id} = params) do
     conn
-    |> edit_form(&Forms.update_field(&1, id, params), gettext("Field saved."))
+    |> edit_form(&Forms.update_field(&1, id, params, Club.form_attrs()), gettext("Field saved."))
     |> on_field_error(Forms.field(Clubs.guest_form(conn.assigns.club), id), params)
   end
 
@@ -146,7 +146,7 @@ defmodule CabWeb.OwnerController do
     render(conn, :guest_form,
       definition: Clubs.guest_form(conn.assigns.club),
       editing: editing,
-      values: Map.take(values, ~w(label hint type required options)),
+      values: Map.take(values, ~w(label hint type required options scope)),
       errors: errors,
       page_title: gettext("%{club} - Registration form", club: conn.assigns.club.name)
     )
