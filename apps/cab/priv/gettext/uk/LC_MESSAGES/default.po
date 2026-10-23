@@ -1807,6 +1807,11 @@ msgstr "Варіанти"
 msgid "Our organisation"
 msgstr "Наша організація"
 
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "PLACE"
+msgstr "МІСЦЕ"
+
 #: lib/cab_web/ballot_form.ex
 #, elixir-autogen, elixir-format
 msgid "PM"
@@ -1861,7 +1866,6 @@ msgid "Please sign in."
 msgstr "Будь ласка, увійдіть."
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
-#: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Points"
@@ -2198,6 +2202,21 @@ msgstr "Суддівства"
 msgid "Rooms deleted. Registration is open again."
 msgstr "Кімнати видалено. Реєстрація знову відкрита."
 
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "SIDE"
+msgstr "СТОРОНА"
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "SPEAKER POINTS"
+msgstr "БАЛИ СПІКЕРІВ"
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "SPEAKERS"
+msgstr "СПІКЕРИ"
+
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
 msgid "SPK"
@@ -2438,6 +2457,11 @@ msgstr "Щось пішло не так, спробуйте ще раз."
 msgid "Speaker"
 msgstr "Спікер"
 
+#: lib/cab_web/controllers/session_page_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Speaker points"
+msgstr "Бали спікерів"
+
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html.ex
@@ -2509,11 +2533,21 @@ msgstr "Подати белот"
 msgid "Support"
 msgstr "Підтримка"
 
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "TEAM POINTS"
+msgstr "КОМАНДНІ БАЛИ"
+
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Team"
 msgstr "Команда"
+
+#: lib/cab_web/controllers/session_page_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Team points"
+msgstr "Командні бали"
 
 #: lib/cab_web/controllers/standings_html.ex
 #: lib/cab_web/controllers/standings_html/standings_tabs.html.heex
@@ -3553,6 +3587,11 @@ msgstr "один варіант"
 #, elixir-autogen, elixir-format
 msgid "speaker"
 msgstr "спікер"
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "team points: {points}"
+msgstr "командні бали: {points}"
 
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format

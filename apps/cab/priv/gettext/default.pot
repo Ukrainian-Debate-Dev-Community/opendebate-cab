@@ -1798,6 +1798,11 @@ msgstr ""
 msgid "Our organisation"
 msgstr ""
 
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "PLACE"
+msgstr ""
+
 #: lib/cab_web/ballot_form.ex
 #, elixir-autogen, elixir-format
 msgid "PM"
@@ -1852,7 +1857,6 @@ msgid "Please sign in."
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
-#: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Points"
@@ -2186,6 +2190,21 @@ msgstr ""
 msgid "Rooms deleted. Registration is open again."
 msgstr ""
 
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "SIDE"
+msgstr ""
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "SPEAKER POINTS"
+msgstr ""
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "SPEAKERS"
+msgstr ""
+
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
 msgid "SPK"
@@ -2426,6 +2445,11 @@ msgstr ""
 msgid "Speaker"
 msgstr ""
 
+#: lib/cab_web/controllers/session_page_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Speaker points"
+msgstr ""
+
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html.ex
@@ -2497,10 +2521,20 @@ msgstr ""
 msgid "Support"
 msgstr ""
 
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "TEAM POINTS"
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Team"
+msgstr ""
+
+#: lib/cab_web/controllers/session_page_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Team points"
 msgstr ""
 
 #: lib/cab_web/controllers/standings_html.ex
@@ -3539,6 +3573,11 @@ msgstr ""
 #: lib/cab_web/controllers/me_html.ex
 #, elixir-autogen, elixir-format
 msgid "speaker"
+msgstr ""
+
+#: lib/cab_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "team points: {points}"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex

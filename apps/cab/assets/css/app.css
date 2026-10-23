@@ -602,6 +602,10 @@ input.pick { width:15px; height:15px; margin:0 8px 0 0; vertical-align:-2px; acc
 .motion-box { display:grid; gap:4px; }
 .motion-box .kw { font-weight:800; color:var(--brand); }
 .t tr.win td { font-weight:700; color:var(--ink); }
+/* a result's speakers: the name, then its points right beside it */
+.rspk { display:flex; align-items:baseline; gap:10px; }
+.rspk .pts { font-variant-numeric:tabular-nums; color:var(--muted); font-weight:600; }
+.t tr.win .rspk .pts { color:var(--ink); }
 .sharebtns { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:10px; }
 .sharemsg { color:var(--muted); font-size:.82rem; }
 

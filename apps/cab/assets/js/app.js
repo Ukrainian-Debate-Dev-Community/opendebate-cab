@@ -463,9 +463,10 @@ const cardText = (d) => {
   return lines.join("\n")
 }
 
-// a finished session's results card: the band, then every room - its
-// keyword and motion, its sides in place order with each speaker's
-// points and the side's total; the winning side in bold
+// a finished session's results card: the band, then every room as a
+// table - its keyword and motion above, a header row, one row per side
+// in place order (one speaker per line, their points beside the name;
+// the side's speaker points; its team points), the winner tinted
 const drawResults = (canvas, d, draw = true) => {
   const ctx = canvas.getContext("2d")
   const {w} = CARD
@@ -473,16 +474,20 @@ const drawResults = (canvas, d, draw = true) => {
   const inner = w - pad * 2
   const font = (weight, size, family = CARD.sans) => { ctx.font = `${weight} ${size}px ${family}` }
   const text = (s, x, yy, color) => { if (draw) { ctx.fillStyle = color; ctx.fillText(s, x, yy) } }
-  const rule = (x, yy, width) => { if (draw) { ctx.fillStyle = CARD.line; ctx.fillRect(x, yy, width, 2) } }
+  const right = (s, x, yy, color) => { ctx.textAlign = "right"; text(s, x, yy, color); ctx.textAlign = "left" }
+  const box = (x, yy, bw, bh, color) => { if (draw) { ctx.fillStyle = color; ctx.fillRect(x, yy, bw, bh) } }
   const pts = (p) => (p == null ? "\u2014" : String(Math.round(p * 10) / 10))
 
   if (draw) { ctx.fillStyle = CARD.paper; ctx.fillRect(0, 0, canvas.width, canvas.height) }
-  let y = drawBand(ctx, d, t("card_results", "Results"), draw) + 50
+  let y = drawBand(ctx, d, t("card_results", "Results"), draw) + 46
 
-  // columns: place | side | speakers with points | points
-  const cPlace = pad, cSide = pad + 90, cPeople = pad + 190, cPoints = w - pad
+  const xPlace = pad + 16, xSide = pad + 120, xPeople = pad + 220
+  const xTeam = w - pad - 16, xSpk = xTeam - 230
+  const lineH = 36
+
   for (const room of d.rooms) {
-    font(800, 26); text(room.keyword ? `${room.room} - ${room.keyword}` : room.room, pad, y, CARD.brand); y += 34
+    // the room: keyword and motion
+    font(800, 28); text(room.keyword ? `${room.room}  ${room.keyword}` : room.room, pad, y, CARD.brand); y += 36
     if (room.motion) {
       font(600, 24)
       for (const l of wrapLines(ctx, room.motion, inner)) { text(l, pad, y, CARD.ink); y += 32 }
@@ -491,22 +496,40 @@ const drawResults = (canvas, d, draw = true) => {
       font(400, 20)
       for (const l of wrapLines(ctx, room.infoslide, inner)) { text(l, pad, y, CARD.muted); y += 27 }
     }
-    y += 10; rule(pad, y, inner); y += 36
+    y += 16
+
+    // header row
+    box(pad, y, inner, 44, CARD.tint)
+    font(800, 17)
+    text(t("card_place", "PLACE"), xPlace, y + 29, CARD.muted)
+    text(t("card_side", "SIDE"), xSide, y + 29, CARD.muted)
+    text(t("card_speakers", "SPEAKERS"), xPeople, y + 29, CARD.muted)
+    right(t("card_speaker_points", "SPEAKER POINTS"), xSpk, y + 29, CARD.muted)
+    right(t("card_team_points", "TEAM POINTS"), xTeam, y + 29, CARD.muted)
+    y += 44
+
     for (const row of room.rows) {
-      const weight = row.winner ? 800 : 500
-      const color = row.winner ? CARD.ink : CARD.muted
-      font(weight, 24); text(row.place || "\u2014", cPlace, y, color)
-      font(800, 24); text(row.side, cSide, y, CARD.brand)
-      font(weight, 24)
-      const people = row.speakers.map(s => `${s.name} ${pts(s.points)}`).join(", ")
-      const lines = wrapLines(ctx, people, cPoints - cPeople - 120)
-      lines.forEach((l, n) => text(l, cPeople, y + n * 32, row.winner ? CARD.ink : CARD.ink))
-      ctx.textAlign = "right"; font(weight, 24); text(pts(row.points), cPoints, y, color); ctx.textAlign = "left"
-      y += Math.max(1, lines.length) * 32 + 8
+      const people = row.speakers.length ? row.speakers : [{name: "\u2014", points: null}]
+      const rowH = people.length * lineH + 22
+      if (row.winner) box(pad, y, inner, rowH, "#FBF3E2")
+      box(pad, y + rowH - 2, inner, 2, CARD.line)
+      const base = y + 12 + 26
+      const weight = row.winner ? 800 : 600
+      font(weight, 26); text(row.place || "\u2014", xPlace, base, CARD.ink)
+      font(800, 26); text(row.side, xSide, base, CARD.brand)
+      people.forEach((sp, n) => {
+        const yy = base + n * lineH
+        font(weight, 26); text(sp.name, xPeople, yy, CARD.ink)
+        const nameW = ctx.measureText(sp.name).width
+        font(600, 24); text(pts(sp.points), xPeople + nameW + 14, yy, row.winner ? CARD.ink : CARD.muted)
+      })
+      font(weight, 26); right(pts(row.points), xSpk, base, CARD.ink)
+      font(800, 28); right(pts(row.team_points), xTeam, base, row.winner ? CARD.brand : CARD.ink)
+      y += rowH
     }
-    y += 24
+    y += 40
   }
-  return y + pad - 30
+  return y + pad - 40
 }
 
 // the results as short plain text
@@ -520,7 +543,7 @@ const resultsText = (d) => {
     if (room.infoslide) lines.push(t("text_infoslide", "Infoslide: {text}", {text: room.infoslide}))
     for (const row of room.rows) {
       const people = row.speakers.map(s => `${s.name} ${pts(s.points)}`).join(", ")
-      lines.push(`${row.place || "\u2014"} ${row.side}: ${people} - ${pts(row.points)}`)
+      lines.push(`${row.place || "\u2014"} ${row.side}: ${people} - ${pts(row.points)} (${t("text_team_points", "team points: {points}", {points: pts(row.team_points)})})`)
     }
   }
   lines.push("", d.link_text)

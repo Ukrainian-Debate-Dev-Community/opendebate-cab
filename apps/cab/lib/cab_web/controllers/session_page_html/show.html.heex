@@ -171,13 +171,18 @@
                 {side_code(room_team["position"])}
               </:col>
               <:col :let={room_team} label={gettext("Speakers")}>
-                <div :for={speech <- speeches(room_team)} class="speech">
-                  {speech.name}<span :if={speech.iron} class="mut">{gettext("(iron)")}</span>
-                  <b :if={ballot_in?(room)} class="pts">{points_words(speech.points)}</b>
+                <div :for={speech <- speeches(room_team)} class="rspk">
+                  <span>
+                    {speech.name}<span :if={speech.iron} class="mut">{gettext("(iron)")}</span>
+                  </span>
+                  <span :if={ballot_in?(room)} class="pts">{points_words(speech.points)}</span>
                 </div>
               </:col>
-              <:col :let={room_team} label={gettext("Points")} num>
+              <:col :let={room_team} label={gettext("Speaker points")} num>
                 {points_words(team_points(room_team))}
+              </:col>
+              <:col :let={room_team} label={gettext("Team points")} num>
+                {points_words(rank_points(room, room_team))}
               </:col>
             </.table>
           </.section>

@@ -211,7 +211,13 @@ defmodule CabWeb.EightPagesTest do
 
       card = json |> String.replace("&quot;", "\"") |> Jason.decode!()
       assert card["kind"] == "results"
-      assert [%{"rows" => [%{"place" => "1st", "winner" => true} | _]}] = card["rooms"]
+
+      assert [%{"rows" => [%{"place" => "1st", "winner" => true, "team_points" => 3} | _]}] =
+               card["rooms"]
+
+      # team points by the engine's rule (N - rank): 3/2/1/0
+      assert html =~ "Speaker points"
+      assert html =~ "Team points"
     end
 
     test "a foreign session uuid under this club is 404", %{conn: conn, club: club} do

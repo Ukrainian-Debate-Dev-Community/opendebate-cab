@@ -94,6 +94,7 @@ defmodule CabWeb.SessionPageHTML do
                   place: ballot_in?(room) && room_team["rank"] && ordinal(room_team["rank"]),
                   winner: room_team["rank"] == 1,
                   points: team_points(room_team),
+                  team_points: rank_points(room, room_team),
                   speakers: Enum.map(speeches(room_team), &Map.take(&1, [:name, :points, :iron]))
                 }
               end
