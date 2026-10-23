@@ -376,6 +376,9 @@ defmodule CabWeb.HtmlTreesTest do
     assert owner_html =~ ~s(id="open-session-form")
     assert owner_html =~ ~s(form="open-session-form")
     assert owner_html =~ "Open new session"
+    # a finished session opens its results, not the head's session page
+    assert owner_html =~ ~s(href="/c/#{club.uuid}/s/#{done.uuid}")
+    refute owner_html =~ ~s(href="/c/#{club.uuid}/owner/s/#{done.uuid}")
 
     # the separate owner Sessions page is gone (v3.1: two trees, no extras)
     assert conn |> log_in(head) |> get("/c/#{club.uuid}/owner/sessions") |> response(404)

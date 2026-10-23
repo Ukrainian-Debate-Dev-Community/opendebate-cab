@@ -182,6 +182,15 @@ defmodule CabWeb.UiTest do
 
     assert done_html =~ ~s(href="/c/abc/s/s0")
 
+    # the head too: a finished session's results are on its session page
+    owner_done =
+      rendered_to_string(~H"""
+      <.sidenav club={@club} club_role={:owner} nav_session={@done} />
+      """)
+
+    assert owner_done =~ ~s(href="/c/abc/s/s0")
+    refute owner_done =~ "/c/abc/owner/s/s0"
+
     # a private club's roster is members-only, so outsiders lose the item
     assigns = %{assigns | club: %{assigns.club | is_private: true}}
 

@@ -18,11 +18,11 @@
     </:col>
     <:col :let={row} label={gettext("Action")}>
       <%= cond do %>
-        <% @owner -> %>
+        <% @owner and row.status != :finished -> %>
           <.link href={~p"/c/#{@club.uuid}/owner/s/#{row.session_uuid}"} class="btn-quiet btn-sm">
             {gettext("Open")}
           </.link>
-        <% row.status == :open and Map.has_key?(@mine, row.session_uuid) -> %>
+        <% not @owner and row.status == :open and Map.has_key?(@mine, row.session_uuid) -> %>
           <.link
             href={
               ~p"/c/#{@club.uuid}/s/#{row.session_uuid}/signups/#{@mine[row.session_uuid]}/remove?from=club"
@@ -32,7 +32,7 @@
           >
             {gettext("Cancel registration")}
           </.link>
-        <% row.status == :open -> %>
+        <% not @owner and row.status == :open -> %>
           <.link
             href={~p"/c/#{@club.uuid}?#{[session: row.session_uuid]}" <> "#register"}
             class="btn-quiet btn-sm"

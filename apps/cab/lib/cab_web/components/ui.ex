@@ -251,7 +251,8 @@ defmodule CabWeb.Ui do
 
   # the LIVE session lives under Rooms; with no session yet the item
   # falls back to the archive (owner opens new sessions there)
-  defp rooms_href(club, role, %{uuid: uuid}) when role in [:owner, :admin],
+  # a finished session's results are on its session page, for everyone
+  defp rooms_href(club, role, %{uuid: uuid, finished_at: nil}) when role in [:owner, :admin],
     do: ~p"/c/#{club.uuid}/owner/s/#{uuid}"
 
   defp rooms_href(club, _role, %{uuid: uuid}), do: ~p"/c/#{club.uuid}/s/#{uuid}"
