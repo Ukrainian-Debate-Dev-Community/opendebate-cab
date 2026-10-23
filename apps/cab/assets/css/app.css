@@ -323,7 +323,6 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .dd-btn.quiet.split .dd-caret { border-left:none; }
 .dd-btn.quiet .dd-main:hover, .dd-btn.quiet .dd-caret:hover { border-color:var(--brand); color:var(--brand); }
 .dd-btn .dd-main:disabled { cursor:not-allowed; opacity:.55; }
-.dd-more .menu { top:calc(100% + 6px); bottom:auto; transform-origin:top right; min-width:220px; }
 /* a card clips its content to its rounded corners; an open menu must
    reach past it */
 .card:has(.dd-more[open]) { overflow:visible; }
@@ -679,6 +678,9 @@ input.pick { width:15px; height:15px; margin:0 8px 0 0; vertical-align:-2px; acc
                box-shadow:0 8px 24px rgba(28,23,34,.16); display:grid; gap:2px;
                transform-origin:bottom right; animation:menu-in .16s ease-out; }
 .langs:not([open]) .menu, .dd-more:not([open]) .menu { display:none; }
+/* (after the shared menu rule, which it overrides) a dropdown_button's
+   menu opens downwards, under its caret */
+.dd-more .menu { top:calc(100% + 6px); bottom:auto; transform-origin:top right; min-width:220px; }
 .sidenav .profile .langs .menu a { display:flex; align-items:center; gap:8px; padding:6px 8px;
                border-radius:6px; font-weight:600; color:var(--ink); }
 .langs .menu a:hover, .dd-more .menu a:hover { background:var(--brand-50); }
