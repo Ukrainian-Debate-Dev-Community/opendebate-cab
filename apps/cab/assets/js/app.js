@@ -715,7 +715,8 @@ const telegramTyped = (value) => {
     .replace(/^(https?:\/\/)?(www\.)?(t|telegram)\.me\//i, "")
     .replace(/\/+$/, "").replace(/^@+/, "")
     .replace(/[^A-Za-z0-9_]/g, "").slice(0, 32)
-  return name ? "@" + name : ""
+  // a typed @ is the leading one when there is none yet
+  return name ? "@" + name : value.includes("@") ? "@" : ""
 }
 
 // The contact fields' checks, the server's rules and words: a value is
