@@ -2,24 +2,291 @@ defmodule CabWeb.ClubPublicController do
   use CabWeb, :controller
 
   alias Cab.{Clubs, Sessions, Standings}
+  alias Cab.Sessions.Session
 
-  plug CabWeb.ClubScope, [source: :club, require: :public] when action in [:show, :standings]
+  plug CabWeb.ClubScope,
+       [source: :club, require: :public] when action in [:show, :standings, :register]
 
   plug CabWeb.ClubScope,
        [source: :club, require: :authenticated] when action in [:join_form, :join]
 
   # GET /c/:club_uuid - the club page, a PROFILE VIEW: about card
   # (meeting info, description, contacts), recent finished sessions,
-  # join CTA. The owner edits the same page in place at /owner.
-  def show(conn, _params) do
+  # join CTA; while the club's current session takes sign-ups, the
+  # registration section (#register) is the page's gold action. The
+  # owner edits the same page in place at /owner.
+  def show(conn, params) do
+    render_show(conn, registration(conn, Map.take(params, ["session"]), %{}))
+  end
+
+  # POST /c/:club_uuid/register {"session", "name", "answers"} - the
+  # section's form: a guest gets a personal link (shown in the section),
+  # a signed-in person signs up as themselves with their answers
+  def register(conn, params) do
     club = conn.assigns.club
+
+    with %Session{} = session <- Sessions.get_for_club(club, params["session"] || ""),
+         {:ok, state} <- Sessions.state(%{session | club: club}) do
+      case {account(conn.assigns.current_user), state.stage} do
+        {_viewer, stage} when stage != :signup ->
+          conn
+          |> put_flash(:error, gettext("Registration is closed for this session."))
+          |> redirect(to: ~p"/c/#{club.uuid}")
+
+        {nil, :signup} ->
+          register_guest(conn, %{session | club: club}, state, params)
+
+        {user, :signup} ->
+          register_account(conn, %{session | club: club}, user, params)
+      end
+    else
+      nil ->
+        conn |> CabWeb.ErrorHTML.respond(404)
+
+      {:error, message} ->
+        conn
+        |> put_flash(:error, registration_error(message))
+        |> redirect(to: ~p"/c/#{club.uuid}")
+    end
+  end
+
+  defp register_account(conn, session, user, params) do
+    case Cab.Registrations.register(user, session, answer_params(params)) do
+      {:ok, _participant_id} ->
+        conn
+        |> put_flash(:info, gettext("You are registered."))
+        |> redirect(to: register_path(session))
+
+      {:error, {:answers, codes}} ->
+        {_kind, fields, _values} = Cab.Registrations.form_for(session.club, user)
+        errors = CabWeb.FormComponents.answer_errors(fields, codes)
+
+        conn
+        |> put_status(422)
+        |> render_show(registration(conn, params, errors))
+
+      {:error, :conflict, message} ->
+        conn |> put_flash(:error, message) |> redirect(to: ~p"/c/#{session.club.uuid}")
+
+      {:error, message} ->
+        conn
+        |> put_flash(:error, registration_error(message))
+        |> redirect(to: ~p"/c/#{session.club.uuid}")
+    end
+  end
+
+  defp register_guest(conn, session, state, params) do
+    case CabWeb.BotGuard.check(conn, params, {:guest, session}) do
+      :ok ->
+        create_guest(conn, session, state, params)
+
+      {:limited, seconds} ->
+        conn
+        |> CabWeb.BotGuard.limited(seconds)
+        |> render_show(registration(conn, params, %{}))
+
+      {:error, message} ->
+        conn
+        |> put_status(422)
+        |> render_show(registration(conn, params, %{turnstile: message}))
+    end
+  end
+
+  defp create_guest(conn, session, state, params) do
+    case Cab.Links.register_guest(session, params["name"], answer_params(params)) do
+      {:ok, link} ->
+        done = %{
+          link: link,
+          personal_url: url(~p"/l/#{link.code}"),
+          mail: mail_link(link, session, state)
+        }
+
+        conn
+        |> CabWeb.Caching.no_store()
+        |> render_show(%{registration(conn, %{"session" => session.uuid}, %{}) | done: done})
+
+      {:error, :conflict, message} ->
+        conn |> put_flash(:error, message) |> redirect(to: ~p"/c/#{session.club.uuid}")
+
+      {:error, %{} = errors} ->
+        errors = guest_errors(Cab.Clubs.guest_fields(session.club), errors)
+        conn |> put_status(422) |> render_show(registration(conn, params, errors))
+
+      {:error, message} ->
+        conn
+        |> put_status(422)
+        |> render_show(registration(conn, params, %{name: registration_error(message)}))
+    end
+  end
+
+  # {:sent, address} | {:failed, address} | nil (no e-mail given)
+  defp mail_link(link, session, state) do
+    case Core.Forms.first_value(link.answers, "email") do
+      nil ->
+        nil
+
+      address ->
+        case CabWeb.Emails.guest_registered(address, link, session, state.event["name"]) do
+          :ok -> {:sent, address}
+          {:error, _reason} -> {:failed, address}
+        end
+    end
+  end
+
+  # the name's message as is; the answers' codes worded per field
+  defp guest_errors(fields, errors) do
+    {answers, rest} = Map.split_with(errors, &match?({{:answer, _id}, _code}, &1))
+    codes = Map.new(answers, fn {{:answer, id}, code} -> {id, code} end)
+    Map.merge(rest, CabWeb.FormComponents.answer_errors(fields, codes))
+  end
+
+  defp render_show(conn, registration) do
+    club = conn.assigns.club
+
+    # the viewer's registrations in the sessions taking sign-ups, for
+    # the Club Sessions table's actions (session uuid => participant id)
+    mine =
+      for %{session: session, participant: id} <- (registration && registration.choices) || [],
+          id,
+          into: %{},
+          do: {session.uuid, id}
 
     render(conn, :show,
       recent: Sessions.club_sessions(club),
+      mine: mine,
       members: Clubs.list_members(club),
+      registration: registration,
       page_title: club.name
     )
   end
+
+  @doc "The club page's registration section, with this session chosen."
+  def register_path(%Session{} = session),
+    do: ~p"/c/#{session.club.uuid}?#{[session: session.uuid]}" <> "#register"
+
+  # the registration section, or nil: a form for a session taking
+  # sign-ups the viewer is not registered for (params["session"], else
+  # the nearest) - :guest, :member or :account - with a one-line
+  # `notice` when the link named one they already have; :all_registered
+  # when they have every open one; with none open, the current
+  # session's :closed or :running. `params`/`errors` refill a form
+  defp registration(conn, params, errors) do
+    club = conn.assigns.club
+
+    case Enum.map(Sessions.open_for_club(club), &%{&1 | club: club}) do
+      [] ->
+        case Sessions.current_for_club(club) do
+          nil -> nil
+          session -> section(conn, %{session | club: club}, params, errors)
+        end
+
+      open ->
+        choices =
+          for session <- open do
+            id = my_participant(conn, session)
+            %{session: session, participant: id, registered: id != nil}
+          end
+
+        # a link to a session the viewer already has: said in one line,
+        # the form moves on to the nearest one they do not have
+        requested = Enum.find(choices, &(&1.session.uuid == params["session"]))
+        free = for choice <- choices, !choice.registered, do: choice.session
+        notice = requested && requested.registered && requested.session
+
+        chosen =
+          if requested && !requested.registered, do: requested.session, else: List.first(free)
+
+        case chosen do
+          nil ->
+            %{blank_section(hd(open), params, errors) | kind: :all_registered, choices: choices}
+
+          session ->
+            %{section(conn, session, params, errors) | choices: choices, notice: notice}
+        end
+    end
+  end
+
+  # the viewer's engine participant id in the session, or nil: a
+  # guest's personal link, else the account's own signup
+  defp my_participant(conn, session) do
+    viewer = conn.assigns.current_user
+
+    cond do
+      is_nil(viewer) -> nil
+      id = Cab.Links.participant_in(viewer.id, session) -> id
+      user = account(viewer) -> with %{"id" => id} <- own_signup(session, user), do: id
+      true -> nil
+    end
+  end
+
+  defp blank_section(session, params, errors) do
+    %{
+      session: session,
+      kind: nil,
+      fields: [],
+      values: %{},
+      name: params["name"],
+      errors: errors,
+      signup: nil,
+      done: nil,
+      choices: [],
+      notice: nil
+    }
+  end
+
+  defp section(conn, session, params, errors) do
+    base = blank_section(session, params, errors)
+    viewer = conn.assigns.current_user
+
+    case Sessions.stage_of(session) do
+      :signup -> signup_section(base, session, viewer, params)
+      stage -> %{base | kind: stage}
+    end
+  end
+
+  defp signup_section(base, session, viewer, params) do
+    user = account(viewer)
+
+    cond do
+      viewer && Cab.Links.holds_session?(viewer.id, session) ->
+        %{base | kind: :registered}
+
+      is_nil(user) ->
+        %{
+          base
+          | kind: :guest,
+            fields: Clubs.guest_fields(session.club),
+            values: answer_params(params)
+        }
+
+      signup = own_signup(session, user) ->
+        %{base | kind: :registered, signup: signup}
+
+      true ->
+        {kind, fields, saved} = Cab.Registrations.form_for(session.club, user)
+        values = if Map.has_key?(params, "answers"), do: answer_params(params), else: saved
+        %{base | kind: kind, fields: fields, values: values}
+    end
+  end
+
+  # the viewer's own engine signup in the session, or nil (engine
+  # trouble reads as not registered; the POST checks again)
+  defp own_signup(session, user) do
+    case Sessions.state(session) do
+      {:ok, %{signups: signups}} -> Enum.find(signups, &Sessions.own_participant?(&1, user))
+      _error -> nil
+    end
+  end
+
+  # a real account; a guest's link identity registers as a guest
+  defp account(%Cab.Accounts.User{guest: false} = user), do: user
+  defp account(_viewer), do: nil
+
+  defp answer_params(%{"answers" => %{} = answers}), do: answers
+  defp answer_params(_params), do: %{}
+
+  defp registration_error(message) when is_binary(message), do: message
+  defp registration_error(_other), do: gettext("registration is unavailable right now")
 
   # GET /c/:club_uuid/standings[/:tab] - teams, speakers, adjudicators
   # scoped to this club (RULE 0 passthrough); Clubs is global-only
@@ -220,9 +487,6 @@ defmodule CabWeb.ClubPublicController do
       page_title: gettext("%{club} — Join", club: conn.assigns.club.name)
     )
   end
-
-  defp answer_params(%{"answers" => %{} = answers}), do: answers
-  defp answer_params(_params), do: %{}
 
   defp join_error(changeset) do
     changeset

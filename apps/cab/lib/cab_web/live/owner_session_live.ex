@@ -24,6 +24,7 @@ defmodule CabWeb.OwnerSessionLive do
         {:ok,
          socket
          |> assign(:session_uuid, session.uuid)
+         |> assign(:short_url, Sessions.short_url(session))
          |> assign(:query, "")
          |> assign(selected: MapSet.new(), confirm_remove: false, refused: [])
          |> load()}

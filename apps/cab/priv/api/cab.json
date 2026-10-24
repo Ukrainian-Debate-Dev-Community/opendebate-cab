@@ -1404,6 +1404,11 @@
                   "username": {
                     "type": "string",
                     "description": "Head only: the member to register"
+                  },
+                  "answers": {
+                    "type": "object",
+                    "description": "Self sign-up: the club form's questions for you, field id => value (as on the club page); missing required answers are refused with 422",
+                    "additionalProperties": true
                   }
                 }
               }

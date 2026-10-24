@@ -692,11 +692,11 @@ document.addEventListener("click", e => {
 document.addEventListener("click", e => {
   const theme = e.target.closest('[data-cycle="theme"]')
   if (theme) applyTheme(THEMES[(THEMES.indexOf(storedTheme()) + 1) % THEMES.length])
-  // the language menu closes on any click outside it
-  document.querySelectorAll("details[data-langs][open]").forEach(d => { if (!d.contains(e.target)) d.open = false })
+  // the language menu and dropdown buttons close on any click outside them
+  document.querySelectorAll("details[data-langs][open], details[data-menu][open]").forEach(d => { if (!d.contains(e.target)) d.open = false })
 })
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") document.querySelectorAll("details[data-langs][open]").forEach(d => { d.open = false })
+  if (e.key === "Escape") document.querySelectorAll("details[data-langs][open], details[data-menu][open]").forEach(d => { d.open = false })
 })
 markTheme()
 window.addEventListener("phx:page-loading-stop", markTheme)

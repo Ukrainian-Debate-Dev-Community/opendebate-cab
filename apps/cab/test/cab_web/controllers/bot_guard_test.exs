@@ -124,8 +124,8 @@ defmodule CabWeb.BotGuardTest do
     do: Map.merge(%{"message" => "I debated at school", "contact" => "@wb"}, extra)
 
   describe "Turnstile widget" do
-    test "off without keys: no widget, no script", %{conn: conn, club: club, session: session} do
-      html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
+    test "off without keys: no widget, no script", %{conn: conn, club: club} do
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
       refute html =~ "cf-turnstile"
       refute html =~ "challenges.cloudflare.com"
 
@@ -135,10 +135,10 @@ defmodule CabWeb.BotGuardTest do
     end
 
     test "on: the guest form and the join form carry it, in the page's language",
-         %{conn: conn, club: club, session: session} do
+         %{conn: conn, club: club} do
       turnstile_on()
 
-      html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
       assert html =~ ~s(class="cf-turnstile")
       assert html =~ ~s(data-sitekey="#{@site_key}")
       assert html =~ ~s(data-language="en")
@@ -148,7 +148,7 @@ defmodule CabWeb.BotGuardTest do
       uk =
         conn
         |> put_req_header("accept-language", "uk")
-        |> get(~p"/r/#{session.uuid}")
+        |> get(~p"/c/#{club.uuid}")
         |> html_response(200)
 
       assert uk =~ ~s(data-language="uk")
@@ -159,10 +159,10 @@ defmodule CabWeb.BotGuardTest do
     end
 
     test "never for a signed-in member or on the head's preview",
-         %{conn: conn, head: head, club: club, member: member, session: session} do
+         %{conn: conn, head: head, club: club, member: member} do
       turnstile_on()
 
-      html = conn |> log_in(member) |> get(~p"/r/#{session.uuid}") |> html_response(200)
+      html = conn |> log_in(member) |> get(~p"/c/#{club.uuid}") |> html_response(200)
       refute html =~ "cf-turnstile"
 
       preview =
@@ -174,13 +174,16 @@ defmodule CabWeb.BotGuardTest do
 
   describe "Turnstile check" do
     test "a passing token registers the guest; Cloudflare gets the secret and the IP",
-         %{conn: conn, session: session} do
+         %{club: club, conn: conn, session: session} do
       turnstile_on()
 
       html =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", guest(%{"cf-turnstile-response" => @token}))
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(guest(%{"cf-turnstile-response" => @token}), "session", session.uuid)
+        )
         |> html_response(200)
 
       assert [%Link{} = link] = Repo.all(Link)
@@ -193,20 +196,28 @@ defmodule CabWeb.BotGuardTest do
     end
 
     test "a failing or missing token re-renders the form; nothing is created",
-         %{conn: conn, session: session} do
+         %{club: club, conn: conn, session: session} do
       turnstile_on(@fail_secret)
 
       html =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", guest(%{"cf-turnstile-response" => @token}))
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(guest(%{"cf-turnstile-response" => @token}), "session", session.uuid)
+        )
         |> html_response(422)
 
       assert html =~ "Please confirm you are not a robot."
       assert html =~ ~s(value="Greta Guest")
       assert_received {:siteverify, _form}
 
-      missing = conn |> anon() |> post(~p"/r/#{session.uuid}", guest()) |> html_response(422)
+      missing =
+        conn
+        |> anon()
+        |> post(~p"/c/#{club.uuid}/register", Map.put(guest(), "session", session.uuid))
+        |> html_response(422)
+
       assert missing =~ "Please confirm you are not a robot."
       refute_received {:siteverify, _form}
 
@@ -215,14 +226,17 @@ defmodule CabWeb.BotGuardTest do
     end
 
     test "Cloudflare out of reach or failing refuses (fail closed)",
-         %{conn: conn, session: session} do
+         %{club: club, conn: conn, session: session} do
       for verdict <- [:down, :error_500] do
         turnstile_on(@pass_secret, verdict)
 
         html =
           conn
           |> anon()
-          |> post(~p"/r/#{session.uuid}", guest(%{"cf-turnstile-response" => @token}))
+          |> post(
+            ~p"/c/#{club.uuid}/register",
+            Map.put(guest(%{"cf-turnstile-response" => @token}), "session", session.uuid)
+          )
           |> html_response(422)
 
         assert html =~ "We could not check that you are not a robot right now."
@@ -232,7 +246,7 @@ defmodule CabWeb.BotGuardTest do
     end
 
     test "the client IP is CF-Connecting-IP when the limiter trusts Cloudflare",
-         %{conn: conn, session: session} do
+         %{club: club, conn: conn, session: session} do
       turnstile_on()
       rate_limit = Application.get_env(:cab, CabWeb.RateLimit)
       on_exit(fn -> Application.put_env(:cab, CabWeb.RateLimit, rate_limit) end)
@@ -241,7 +255,10 @@ defmodule CabWeb.BotGuardTest do
       conn
       |> anon()
       |> put_req_header("cf-connecting-ip", "203.0.113.7")
-      |> post(~p"/r/#{session.uuid}", guest(%{"cf-turnstile-response" => @token}))
+      |> post(
+        ~p"/c/#{club.uuid}/register",
+        Map.put(guest(%{"cf-turnstile-response" => @token}), "session", session.uuid)
+      )
       |> html_response(200)
 
       assert_received {:siteverify, %{"remoteip" => "203.0.113.7"}}
@@ -251,8 +268,12 @@ defmodule CabWeb.BotGuardTest do
          %{conn: conn, club: club, member: member, session: session} do
       turnstile_on(@fail_secret)
 
-      registered = conn |> log_in(member) |> post(~p"/r/#{session.uuid}", %{})
-      assert redirected_to(registered) == "/c/#{club.uuid}/s/#{session.uuid}"
+      registered =
+        conn
+        |> log_in(member)
+        |> post(~p"/c/#{club.uuid}/register", Map.put(%{}, "session", session.uuid))
+
+      assert redirected_to(registered) == "/c/#{club.uuid}?session=#{session.uuid}#register"
       assert Phoenix.Flash.get(registered.assigns.flash, :info) == "You are registered."
       refute_received {:siteverify, _form}
     end
@@ -289,10 +310,21 @@ defmodule CabWeb.BotGuardTest do
       limits_on(guest_per_ip: {2, 600})
       [one, two] = for _ <- 1..2, do: session_fixture(club, engine_event_id: 11)
 
-      conn |> anon() |> post(~p"/r/#{one.uuid}", guest(%{})) |> html_response(200)
-      conn |> anon() |> post(~p"/r/#{two.uuid}", guest(%{})) |> html_response(200)
+      conn
+      |> anon()
+      |> post(~p"/c/#{club.uuid}/register", Map.put(guest(%{}), "session", one.uuid))
+      |> html_response(200)
 
-      limited = conn |> anon() |> post(~p"/r/#{one.uuid}", guest(%{}))
+      conn
+      |> anon()
+      |> post(~p"/c/#{club.uuid}/register", Map.put(guest(%{}), "session", two.uuid))
+      |> html_response(200)
+
+      limited =
+        conn
+        |> anon()
+        |> post(~p"/c/#{club.uuid}/register", Map.put(guest(%{}), "session", one.uuid))
+
       html = html_response(limited, 429)
       assert html =~ "Too many attempts. Please try again in 5 minutes."
       assert html =~ ~s(value="Greta Guest")
@@ -304,18 +336,18 @@ defmodule CabWeb.BotGuardTest do
       conn
       |> anon()
       |> Map.put(:remote_ip, {10, 0, 0, 2})
-      |> post(~p"/r/#{one.uuid}", guest(%{}))
+      |> post(~p"/c/#{club.uuid}/register", Map.put(guest(%{}), "session", one.uuid))
       |> html_response(200)
     end
 
-    test "per session: every address together", %{conn: conn, session: session} do
+    test "per session: every address together", %{club: club, conn: conn, session: session} do
       limits_on(guest_per_session: {2, 3600})
 
       for i <- 1..2 do
         conn
         |> anon()
         |> Map.put(:remote_ip, {10, 0, 0, i})
-        |> post(~p"/r/#{session.uuid}", guest(%{}))
+        |> post(~p"/c/#{club.uuid}/register", Map.put(guest(%{}), "session", session.uuid))
         |> html_response(200)
       end
 
@@ -323,21 +355,24 @@ defmodule CabWeb.BotGuardTest do
         conn
         |> anon()
         |> Map.put(:remote_ip, {10, 0, 0, 3})
-        |> post(~p"/r/#{session.uuid}", guest(%{}))
+        |> post(~p"/c/#{club.uuid}/register", Map.put(guest(%{}), "session", session.uuid))
 
       assert html_response(limited, 429) =~ "Too many attempts."
       assert length(Repo.all(Link)) == 2
     end
 
     test "switched on, the defaults let a club register over one Wi-Fi",
-         %{conn: conn, session: session} do
+         %{club: club, conn: conn, session: session} do
       limits_on([])
       assert Application.get_env(:cab, CabWeb.BotGuard)[:guest_per_ip] == {30, 600}
 
       for i <- 1..16 do
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", guest(%{"name" => "Guest #{i}"}))
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(guest(%{"name" => "Guest #{i}"}), "session", session.uuid)
+        )
         |> html_response(200)
       end
 
@@ -349,7 +384,11 @@ defmodule CabWeb.BotGuardTest do
 
       for _ <- 1..7 do
         session = session_fixture(club, engine_event_id: 11)
-        conn |> anon() |> post(~p"/r/#{session.uuid}", guest(%{})) |> html_response(200)
+
+        conn
+        |> anon()
+        |> post(~p"/c/#{club.uuid}/register", Map.put(guest(%{}), "session", session.uuid))
+        |> html_response(200)
       end
     end
 
@@ -359,7 +398,12 @@ defmodule CabWeb.BotGuardTest do
 
       for _ <- 1..3 do
         session = session_fixture(club, engine_event_id: 11)
-        registered = conn |> log_in(member) |> post(~p"/r/#{session.uuid}", %{})
+
+        registered =
+          conn
+          |> log_in(member)
+          |> post(~p"/c/#{club.uuid}/register", Map.put(%{}, "session", session.uuid))
+
         assert Phoenix.Flash.get(registered.assigns.flash, :info) == "You are registered."
       end
     end

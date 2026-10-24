@@ -77,27 +77,105 @@ defmodule CabWeb.GuestLinksTest do
       session = session_fixture(club, engine_event_id: 11)
       stub_stage([])
 
-      html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
 
+      assert html =~ ~s(id="register")
       assert html =~ ~s(id="guest-register-form")
-      assert html =~ ~s(action="/r/#{session.uuid}")
+      assert html =~ ~s(action="/c/#{club.uuid}/register")
+      assert html =~ ~s(name="session" value="#{session.uuid}")
       assert html =~ ~s(name="name")
       # no role choice: the head seats people at allocation
       refute html =~ ~s(name="as")
       refute html =~ "Registration is closed"
     end
 
-    test "unknown session is 404", %{conn: conn} do
-      assert conn |> get(~p"/r/#{Ecto.UUID.generate()}") |> response(404)
-      assert conn |> get("/r/not-a-uuid") |> response(404)
+    test "several open sessions: choose one, the nearest first", %{conn: conn, club: club} do
+      later = session_fixture(club, name: "Later", scheduled_at: ~U[2026-11-05 18:00:00Z])
+      nearer = session_fixture(club, name: "Nearer", scheduled_at: ~U[2026-11-01 18:00:00Z])
+      closed = session_fixture(club, signups_closed_at: ~U[2026-10-20 18:00:00Z])
+      stub_stage([])
+
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
+
+      # Register with a menu of the other open sessions
+      assert html =~ ~s(class="dd-btn go split")
+      # the form registers for the nearest; the menu offers the others
+      assert html =~ ~s(href="/c/#{club.uuid}?session=#{later.uuid}#register")
+      # the Club Sessions table offers Register on every open session
+      assert html =~ ~s(href="/c/#{club.uuid}?session=#{nearer.uuid}#register")
+      assert html =~ ~s(name="session" value="#{nearer.uuid}")
+      # a session closed for sign-ups is not offered
+      refute html =~ ~s(href="/c/#{club.uuid}?session=#{closed.uuid}#register")
+
+      chosen = conn |> get(~p"/c/#{club.uuid}?session=#{later.uuid}") |> html_response(200)
+      assert chosen =~ ~s(name="session" value="#{later.uuid}")
+      refute chosen =~ ~s(name="session" value="#{nearer.uuid}")
+      assert chosen =~ ~s(href="/c/#{club.uuid}?session=#{nearer.uuid}#register")
+    end
+
+    test "a link to a session the viewer has: one line, then the next form",
+         %{conn: conn, club: club} do
+      member = user_fixture(%{node_user_id: 44})
+      membership_fixture(member, club)
+      mine = session_fixture(club, name: "Mine", scheduled_at: ~U[2026-11-01 18:00:00Z])
+
+      next =
+        session_fixture(club,
+          name: "Next",
+          engine_event_id: 12,
+          scheduled_at: ~U[2026-11-05 18:00:00Z]
+        )
+
+      # the member has a seat in event 11 ("Mine") only
+      stub(fn conn, _params ->
+        case conn.request_path do
+          "/api/events/11/participants" ->
+            ok(conn, [%{"id" => 41, "user_id" => 44}])
+
+          "/api/events/12/participants" ->
+            ok(conn, [])
+
+          "/api/events/" <> _ = path ->
+            if String.ends_with?(path, "/rounds"),
+              do: ok(conn, [%{"id" => 21, "sequence" => 1}]),
+              else: ok(conn, %{"id" => 11, "status" => "scheduled"})
+
+          _other ->
+            ok(conn, [])
+        end
+      end)
+
+      html =
+        conn
+        |> log_in(member)
+        |> get(~p"/c/#{club.uuid}?session=#{mine.uuid}")
+        |> html_response(200)
+
+      assert html =~ "You are registered for"
+      assert html =~ ~s(name="session" value="#{next.uuid}")
+      # the menu offers only sessions the viewer is not registered for
+      refute html =~ ~s(class="dd-more")
+    end
+
+    test "one open session: no choice to make", %{conn: conn, club: club} do
+      _session = session_fixture(club, engine_event_id: 11)
+      stub_stage([])
+
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
+      refute html =~ ~s(class="dd-more")
+    end
+
+    test "the old /r registration URL is gone", %{conn: conn, club: club} do
+      session = session_fixture(club, engine_event_id: 11)
+      assert conn |> get("/r/#{session.uuid}") |> response(404)
     end
 
     test "any stage but :signup serves the closed notice", %{conn: conn, club: club} do
-      session = closed_session_fixture(club, engine_event_id: 11)
+      closed_session_fixture(club, engine_event_id: 11)
       stub_stage([])
 
-      html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
-      assert html =~ "Registration is closed for this session."
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
+      assert html =~ "No sessions are open for registration right now."
       refute html =~ ~s(id="guest-register-form")
     end
 
@@ -120,11 +198,18 @@ defmodule CabWeb.GuestLinksTest do
       html =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{
-          name: "Greta Guest",
-          as: "speak",
-          answers: %{"email" => "greta@example.com"}
-        })
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(
+            %{
+              name: "Greta Guest",
+              as: "speak",
+              answers: %{"email" => "greta@example.com"}
+            },
+            "session",
+            session.uuid
+          )
+        )
         |> html_response(200)
 
       # an engine participant with no engine account behind it
@@ -160,7 +245,10 @@ defmodule CabWeb.GuestLinksTest do
       html =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{name: "   ", as: "speak"})
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(%{name: "   ", as: "speak"}, "session", session.uuid)
+        )
         |> html_response(422)
 
       assert html =~ "Enter a name."
@@ -173,13 +261,16 @@ defmodule CabWeb.GuestLinksTest do
       session = closed_session_fixture(club, engine_event_id: 11)
       stub_stage([])
 
-      html =
+      late =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{name: "Late Larry", as: "speak"})
-        |> html_response(200)
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(%{name: "Late Larry", as: "speak"}, "session", session.uuid)
+        )
 
-      assert html =~ "Registration is closed for this session."
+      assert redirected_to(late) == "/c/#{club.uuid}"
+      assert Phoenix.Flash.get(late.assigns.flash, :error) =~ "Registration is closed"
       assert Repo.all(Link) == []
       refute Repo.exists?(from u in User, where: like(u.username, "guest-%"))
     end
@@ -437,6 +528,31 @@ defmodule CabWeb.GuestLinksTest do
       assert conn |> get(~p"/l/#{link.code}") |> response(404)
     end
 
+    test "cancelling in the club page's section goes back to it",
+         %{conn: conn, club: club, session: session, link: link} do
+      stub_stage([guest_signup(41, nil)], [], fn conn, _params ->
+        case {conn.method, conn.request_path} do
+          {"PUT", "/api/events/11/participants/41"} ->
+            ok(conn, %{})
+
+          {"DELETE", "/api/events/11/participants/41"} ->
+            Req.Test.json(conn, %{"status" => "success", "message" => "Participant archived."})
+
+          _other ->
+            nil
+        end
+      end)
+
+      conn = get(conn, ~p"/l/#{link.code}")
+
+      conn =
+        conn
+        |> anon()
+        |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove?from=club")
+
+      assert redirected_to(conn) == "/c/#{club.uuid}?session=#{session.uuid}#register"
+    end
+
     test "guest cannot cancel someone else's signup",
          %{conn: conn, club: club, session: session, link: link} do
       stub_stage([guest_signup(41, nil), guest_signup(42, 888, "speaker", "Other")])
@@ -659,8 +775,8 @@ defmodule CabWeb.GuestLinksTest do
         |> html_response(200)
 
       assert html =~ ~s(id="shared-registration-url")
-      assert html =~ "/r/#{session.uuid}"
-      assert html =~ ~s(data-copy=)
+      # the head shares the session's short link
+      assert html =~ ~s(data-copy="#{Cab.Sessions.short_url(session)}")
 
       # guests and everyone else share one table: kind, seat, link, remove
       assert html =~ ~s(id="session-people")

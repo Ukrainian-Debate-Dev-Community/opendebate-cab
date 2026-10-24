@@ -181,7 +181,9 @@ defmodule CabWeb.CabinetHomeTest do
     assert html =~ "a session is open"
     assert html =~ ~s(href="/c/#{club.uuid}")
     # the club list: a Register button, no "registration open" words
-    assert html =~ ~s(href="/r/#{session.uuid}" class="btn-quiet btn-sm")
+    assert html =~
+             ~s(href="/c/#{club.uuid}?session=#{session.uuid}#register" class="btn-quiet btn-sm")
+
     refute html =~ "registration open"
   end
 

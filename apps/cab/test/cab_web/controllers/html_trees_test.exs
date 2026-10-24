@@ -71,7 +71,8 @@ defmodule CabWeb.HtmlTreesTest do
     # recent sessions: rows -> session page, progress as words
     assert html =~ ~s(id="club-sessions")
     assert html =~ "Night 1"
-    assert html =~ "done \u2014 won by Winners"
+    assert html =~ "finished"
+    refute html =~ "won by"
     assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
 
     # anonymous: the gold join CTA routes to /signin; club sidenav
@@ -375,6 +376,9 @@ defmodule CabWeb.HtmlTreesTest do
     assert owner_html =~ ~s(id="open-session-form")
     assert owner_html =~ ~s(form="open-session-form")
     assert owner_html =~ "Open new session"
+    # a finished session opens its results, not the head's session page
+    assert owner_html =~ ~s(href="/c/#{club.uuid}/s/#{done.uuid}")
+    refute owner_html =~ ~s(href="/c/#{club.uuid}/owner/s/#{done.uuid}")
 
     # the separate owner Sessions page is gone (v3.1: two trees, no extras)
     assert conn |> log_in(head) |> get("/c/#{club.uuid}/owner/sessions") |> response(404)
@@ -422,12 +426,20 @@ defmodule CabWeb.HtmlTreesTest do
   # Member registration through the session page
   # ---------------------------------------------------------------
 
-  test "member registers via the form page and lands on the session page", %{
+  test "a member registers in the club page's section; answers stay with the session", %{
     conn: conn,
     club: club
   } do
+    club =
+      form_fields_fixture(club, [
+        %{"label" => "University", "type" => "text", "required" => "yes", "scope" => "members"},
+        %{"label" => "Who invited you", "type" => "text", "required" => "no", "scope" => "guests"}
+      ])
+
+    uni = field_id(club, "University")
     member = user_fixture(%{node_user_id: 44})
-    membership_fixture(member, club)
+    {:ok, request} = Cab.Clubs.request_join(member, club, %{"answers" => %{uni => "KPI"}})
+    {:ok, _} = Cab.Clubs.approve_join(Cab.Clubs.get_membership(request.id))
     session = session_fixture(club, engine_event_id: 11)
 
     stub(fn conn, params ->
@@ -453,44 +465,158 @@ defmodule CabWeb.HtmlTreesTest do
       end
     end)
 
-    # the session page carries the gold Register segment -> /r/:sess
+    # the session page's gold Register segment -> the club page section
     page =
       conn |> log_in(member) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
 
     assert page =~ "Register"
-    assert page =~ "/r/#{session.uuid}"
+    assert page =~ "/c/#{club.uuid}?session=#{session.uuid}#register"
 
-    # THE registration URL, signed-in: prefilled, no role, no name field
-    html =
-      conn
-      |> log_in(member)
-      |> get(~p"/r/#{session.uuid}")
-      |> html_response(200)
+    # the section, signed in as a member: the member fields prefilled
+    # from the saved answers, no name, no guests-only field
+    html = conn |> log_in(member) |> get(~p"/c/#{club.uuid}") |> html_response(200)
 
     assert html =~ ~s(id="register-form")
-    assert html =~ "Registering as"
-    # the sidenav follows the viewer's real role here too: a member
-    # sees the member roster link; registration is not a sidebar item
+    assert html =~ ~s(name="answers[#{uni}]")
+    assert html =~ ~s(value="KPI")
+    assert html =~ "this session only"
+    refute html =~ "Who invited you"
+    refute html =~ ~s(name="name")
+    # the section's Register is the gold action; Request to join is not shown to members
+    refute html =~ ~s(class="item">Register<)
     assert html =~ ~s(href="/c/#{club.uuid}/members")
-    refute html =~ ">Register<"
 
     head_html =
       conn
       |> log_in(Cab.Clubs.head_of(club))
-      |> get(~p"/r/#{session.uuid}")
+      |> get(~p"/c/#{club.uuid}")
       |> html_response(200)
 
     assert head_html =~ ~s(href="/c/#{club.uuid}/owner/members")
-    refute html =~ ~s(name="as")
-    refute html =~ ~s(name="name")
 
-    conn =
+    # a refused answer re-renders the section with the error
+    failed =
       conn
       |> log_in(member)
-      |> post(~p"/r/#{session.uuid}", %{as: "speak"})
+      |> post(~p"/c/#{club.uuid}/register", %{
+        "session" => session.uuid,
+        "answers" => %{uni => ""}
+      })
 
-    assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
-    assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "registered"
+    assert html_response(failed, 422) =~ "Fill this in."
+
+    registered =
+      conn
+      |> log_in(member)
+      |> post(~p"/c/#{club.uuid}/register", %{
+        "session" => session.uuid,
+        "answers" => %{uni => "KNU"}
+      })
+
+    assert redirected_to(registered) == "/c/#{club.uuid}?session=#{session.uuid}#register"
+    assert Phoenix.Flash.get(registered.assigns.flash, :info) =~ "registered"
+
+    # this session's answer is KNU; the saved default stays KPI
+    assert [registration] = Cab.Registrations.for_session(session)
+    assert Core.Forms.answer_values(registration.answers) == %{uni => "KNU"}
+    assert registration.engine_participant_id == 41
+    saved = Cab.Clubs.membership_of(club, member)
+    assert Core.Forms.answer_values(saved.answers) == %{uni => "KPI"}
+
+    # the head's Responses lists the member with this session's answer
+    responses =
+      conn
+      |> log_in(Cab.Clubs.head_of(club))
+      |> get(~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/responses")
+      |> html_response(200)
+
+    assert responses =~ "KNU"
+    refute responses =~ "KPI"
+  end
+
+  test "the section says where things stand: registered, running", %{conn: conn, club: club} do
+    member = user_fixture(%{node_user_id: 44})
+    membership_fixture(member, club)
+    session = session_fixture(club, engine_event_id: 11)
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} -> ok(conn, %{"id" => 11, "status" => "scheduled"})
+        {"GET", "/api/events/11/rounds"} -> ok(conn, [%{"id" => 21, "sequence" => 1}])
+        {"GET", "/api/events/11/participants"} -> ok(conn, [%{"id" => 41, "user_id" => 44}])
+        _other -> ok(conn, [])
+      end
+    end)
+
+    html = conn |> log_in(member) |> get(~p"/c/#{club.uuid}") |> html_response(200)
+    # registered for the only open session: the section says so, no
+    # buttons - cancelling and opening are the table's
+    assert html =~ "You are registered for every session open for registration:"
+    assert html =~ "Cancel or open them in Club Sessions below."
+    refute html =~ "Register for another session"
+    assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove?from=club"
+    refute html =~ ~s(id="register-form")
+    # the Club Sessions table: status in words, the viewer's action
+    assert html =~ "registration open"
+    assert html =~ "Cancel registration"
+
+    Cab.Repo.update!(Ecto.Changeset.change(session, started_at: ~U[2026-10-22 18:00:00Z]))
+
+    running = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
+    assert running =~ "The session is running."
+    # a running session's row opens it
+    assert running =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}" class="btn-quiet btn-sm")
+    refute running =~ ~s(id="guest-register-form")
+  end
+
+  test "a signed-in non-member is asked the guest fields without the e-mail", %{
+    conn: conn,
+    club: club
+  } do
+    club =
+      form_fields_fixture(club, [
+        %{"label" => "University", "type" => "text", "required" => "yes", "scope" => "members"},
+        %{
+          "label" => "Who invited you",
+          "type" => "text",
+          "required" => "yes",
+          "scope" => "guests"
+        }
+      ])
+
+    who = field_id(club, "Who invited you")
+    outsider = user_fixture(%{node_user_id: 45})
+    session = session_fixture(club, engine_event_id: 11)
+
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} -> ok(conn, %{"id" => 11, "status" => "scheduled"})
+        {"GET", "/api/events/11/rounds"} -> ok(conn, [%{"id" => 21, "sequence" => 1}])
+        {"GET", "/api/events/11/participants"} -> ok(conn, [])
+        {"GET", "/api/rounds/21/rooms"} -> ok(conn, [])
+        {"POST", "/api/events/11/participants"} -> ok(conn, %{"id" => 42, "role" => "speaker"})
+        _other -> ok(conn, [])
+      end
+    end)
+
+    html = conn |> log_in(outsider) |> get(~p"/c/#{club.uuid}") |> html_response(200)
+    assert html =~ ~s(id="register-form")
+    assert html =~ ~s(name="answers[#{who}]")
+    refute html =~ ~s(name="answers[email]")
+    refute html =~ "University"
+
+    registered =
+      conn
+      |> log_in(outsider)
+      |> post(~p"/c/#{club.uuid}/register", %{
+        "session" => session.uuid,
+        "answers" => %{who => "Anna"}
+      })
+
+    assert redirected_to(registered) == "/c/#{club.uuid}?session=#{session.uuid}#register"
+    assert [registration] = Cab.Registrations.for_session(session)
+    assert registration.user_id == outsider.id
+    assert Core.Forms.answer_values(registration.answers) == %{who => "Anna"}
   end
 
   test "registered member cancels from the session page; register bounces once closed", %{
@@ -531,7 +657,7 @@ defmodule CabWeb.HtmlTreesTest do
     closed_page =
       conn
       |> log_in(member)
-      |> get(~p"/r/#{session.uuid}")
+      |> get(~p"/c/#{club.uuid}")
       |> html_response(200)
 
     assert closed_page =~ "closed"

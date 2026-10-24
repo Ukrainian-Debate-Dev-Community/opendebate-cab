@@ -227,7 +227,7 @@ defmodule CabWeb.RegistrationFormTest do
       path = ~p"/c/#{club.uuid}/owner/form/preview"
 
       html = conn |> log_in(head) |> get(path) |> html_response(200)
-      assert html =~ "Preview: this is what a guest sees"
+      assert html =~ "Preview: this is what a visitor without an account sees"
       assert html =~ ~s(id="guest-register-form")
       assert html =~ ~s(name="name")
       assert html =~ ~s(name="answers[email]")
@@ -319,7 +319,7 @@ defmodule CabWeb.RegistrationFormTest do
       session = session_fixture(club, engine_event_id: 11)
       stub_stage([])
 
-      html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
       assert html =~ ~s(name="answers[#{ids["Phone"]}]")
       refute html =~ "Student card"
       refute html =~ card
@@ -331,10 +331,17 @@ defmodule CabWeb.RegistrationFormTest do
 
       conn
       |> anon()
-      |> post(~p"/r/#{session.uuid}", %{
-        name: "Greta Guest",
-        answers: %{"email" => "greta@example.com", card => "should be ignored"}
-      })
+      |> post(
+        ~p"/c/#{club.uuid}/register",
+        Map.put(
+          %{
+            name: "Greta Guest",
+            answers: %{"email" => "greta@example.com", card => "should be ignored"}
+          },
+          "session",
+          session.uuid
+        )
+      )
       |> html_response(200)
 
       assert [%Link{answers: answers}] = Repo.all(Link)
@@ -343,17 +350,17 @@ defmodule CabWeb.RegistrationFormTest do
   end
 
   # ---------------------------------------------------------------
-  # The guest form on /r/:sess
+  # The guest form in the club page's registration section
   # ---------------------------------------------------------------
 
   describe "guest registration" do
-    test "guests see the club's fields after the name; signed-in members do not",
+    test "guests see the club's fields after the name; members theirs, without e-mail",
          %{conn: conn, club: club, member: member} do
       {club, ids} = with_form(club)
-      session = session_fixture(club, engine_event_id: 11)
+      session_fixture(club, engine_event_id: 11)
       stub_stage([])
 
-      html = conn |> get(~p"/r/#{session.uuid}") |> html_response(200)
+      html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
       assert html =~ ~s(name="name")
       assert html =~ ~s(name="answers[#{"email"}]")
       assert html =~ ~s(type="email")
@@ -361,9 +368,11 @@ defmodule CabWeb.RegistrationFormTest do
       assert html =~ ~s(name="answers[#{ids["Days"]}][]")
       assert html =~ "Thursday"
 
-      signed_in = conn |> log_in(member) |> get(~p"/r/#{session.uuid}") |> html_response(200)
+      signed_in = conn |> log_in(member) |> get(~p"/c/#{club.uuid}") |> html_response(200)
       assert signed_in =~ ~s(id="register-form")
-      refute signed_in =~ "answers["
+      assert signed_in =~ ~s(name="answers[#{ids["Phone"]}]")
+      refute signed_in =~ ~s(name="answers[email]")
+      refute signed_in =~ ~s(name="name")
     end
 
     test "a missing or invalid answer re-renders with values kept; nothing is created",
@@ -375,10 +384,17 @@ defmodule CabWeb.RegistrationFormTest do
       html =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{
-          name: "Greta Guest",
-          answers: %{ids["Phone"] => "12", ids["Days"] => ["Thursday"]}
-        })
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(
+            %{
+              name: "Greta Guest",
+              answers: %{ids["Phone"] => "12", ids["Days"] => ["Thursday"]}
+            },
+            "session",
+            session.uuid
+          )
+        )
         |> html_response(422)
 
       assert html =~ "Fill this in."
@@ -394,7 +410,10 @@ defmodule CabWeb.RegistrationFormTest do
       both =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{name: " ", answers: %{}})
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(%{name: " ", answers: %{}}, "session", session.uuid)
+        )
         |> html_response(422)
 
       assert both =~ "Enter a name."
@@ -410,10 +429,17 @@ defmodule CabWeb.RegistrationFormTest do
       html =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{
-          name: "\u200B\u00A0",
-          answers: %{"email" => "\uFEFF", ids["Phone"] => "12\u0000"}
-        })
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(
+            %{
+              name: "\u200B\u00A0",
+              answers: %{"email" => "\uFEFF", ids["Phone"] => "12\u0000"}
+            },
+            "session",
+            session.uuid
+          )
+        )
         |> html_response(422)
 
       assert html =~ "Enter a name."
@@ -424,10 +450,17 @@ defmodule CabWeb.RegistrationFormTest do
       long =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{
-          name: String.duplicate("x", 121),
-          answers: %{"email" => "greta@example.com"}
-        })
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(
+            %{
+              name: String.duplicate("x", 121),
+              answers: %{"email" => "greta@example.com"}
+            },
+            "session",
+            session.uuid
+          )
+        )
         |> html_response(422)
 
       assert long =~ "120 characters at most."
@@ -445,14 +478,21 @@ defmodule CabWeb.RegistrationFormTest do
       html =
         conn
         |> anon()
-        |> post(~p"/r/#{session.uuid}", %{
-          name: "Greta Guest",
-          answers: %{
-            "email" => " greta@example.com ",
-            ids["Phone"] => "+380 44 123 45 67",
-            ids["Days"] => ["Thursday", "Monday"]
-          }
-        })
+        |> post(
+          ~p"/c/#{club.uuid}/register",
+          Map.put(
+            %{
+              name: "Greta Guest",
+              answers: %{
+                "email" => " greta@example.com ",
+                ids["Phone"] => "+380 44 123 45 67",
+                ids["Days"] => ["Thursday", "Monday"]
+              }
+            },
+            "session",
+            session.uuid
+          )
+        )
         |> html_response(200)
 
       assert [%Link{} = link] = Repo.all(Link)
@@ -493,10 +533,17 @@ defmodule CabWeb.RegistrationFormTest do
       conn
       |> anon()
       |> put_req_header("accept-language", "uk-UA,uk;q=0.9")
-      |> post(~p"/r/#{session.uuid}", %{
-        name: "Greta",
-        answers: %{"email" => "g@example.com"}
-      })
+      |> post(
+        ~p"/c/#{club.uuid}/register",
+        Map.put(
+          %{
+            name: "Greta",
+            answers: %{"email" => "g@example.com"}
+          },
+          "session",
+          session.uuid
+        )
+      )
       |> html_response(200)
 
       assert_email_sent(fn email ->
@@ -512,7 +559,10 @@ defmodule CabWeb.RegistrationFormTest do
       stub_stage([])
 
       refused =
-        conn |> anon() |> post(~p"/r/#{session.uuid}", %{name: "Greta"}) |> html_response(422)
+        conn
+        |> anon()
+        |> post(~p"/c/#{club.uuid}/register", Map.put(%{name: "Greta"}, "session", session.uuid))
+        |> html_response(422)
 
       assert refused =~ "Your e-mail"
       assert refused =~ "Fill this in."
@@ -524,7 +574,10 @@ defmodule CabWeb.RegistrationFormTest do
         )
 
       html =
-        conn |> anon() |> post(~p"/r/#{session.uuid}", %{name: "Greta"}) |> html_response(200)
+        conn
+        |> anon()
+        |> post(~p"/c/#{club.uuid}/register", Map.put(%{name: "Greta"}, "session", session.uuid))
+        |> html_response(200)
 
       refute html =~ "We also sent it"
       assert [%Link{answers: []}] = Repo.all(Link)
@@ -605,8 +658,7 @@ defmodule CabWeb.RegistrationFormTest do
          %{conn: conn, club: club, session: session, member: member, link: link} do
       pages = [
         ~p"/c/#{club.uuid}/s/#{session.uuid}",
-        ~p"/c/#{club.uuid}",
-        ~p"/r/#{session.uuid}"
+        ~p"/c/#{club.uuid}"
       ]
 
       for path <- pages, who <- [:anon, member] do

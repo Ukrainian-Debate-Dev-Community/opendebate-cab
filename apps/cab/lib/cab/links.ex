@@ -72,7 +72,8 @@ defmodule Cab.Links do
 
   @doc """
   The session's form responses, for the head: one row per guest with
-  an active personal link, oldest first, as
+  an active personal link and per signed-in registration
+  (`Cab.Registrations`), oldest first, as
   `%{columns: [field], rows: [%{name, registered_at, answers}]}`.
   Columns go by the label each answer was given under (answers keep
   a copy), so answers stay readable after the form changed: the
@@ -81,8 +82,15 @@ defmodule Cab.Links do
   label to the answer (`Core.Forms` shape). Gateway rows only.
   """
   def responses(%Session{} = session) do
-    links = list_for_session(session)
-    answers = Enum.flat_map(links, &(&1.answers || []))
+    entries =
+      Enum.map(list_for_session(session), &{&1.user.name, &1.inserted_at, &1.answers}) ++
+        Enum.map(
+          Cab.Registrations.for_session(session),
+          &{&1.user.name || &1.user.username, &1.inserted_at, &1.answers}
+        )
+
+    entries = Enum.sort_by(entries, fn {_name, at, _answers} -> at end, DateTime)
+    answers = Enum.flat_map(entries, fn {_name, _at, answers} -> answers || [] end)
 
     columns =
       (Cab.Clubs.guest_form(session_club(session)) ++ answers)
@@ -90,12 +98,12 @@ defmodule Cab.Links do
       |> Enum.uniq_by(& &1["label"])
 
     rows =
-      for link <- links do
+      for {name, at, answers} <- entries do
         %{
-          name: link.user.name,
-          registered_at: link.inserted_at,
+          name: name,
+          registered_at: at,
           answers:
-            (link.answers || [])
+            (answers || [])
             |> Enum.reverse()
             |> Map.new(&{&1["label"], &1})
         }
@@ -244,6 +252,18 @@ defmodule Cab.Links do
   end
 
   def holds_session?(_user_id, _session), do: false
+
+  @doc "The engine participant id of this user's live link to the session, or nil."
+  def participant_in(user_id, %Session{id: session_id}) when is_integer(user_id) do
+    Repo.one(
+      from l in Link,
+        where: l.user_id == ^user_id and l.session_id == ^session_id and is_nil(l.revoked_at),
+        select: l.engine_participant_id,
+        limit: 1
+    )
+  end
+
+  def participant_in(_user_id, _session), do: nil
 
   @doc """
   Deletes a removed guest's cab account - their personal links go with

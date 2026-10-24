@@ -251,7 +251,8 @@ defmodule CabWeb.Ui do
 
   # the LIVE session lives under Rooms; with no session yet the item
   # falls back to the archive (owner opens new sessions there)
-  defp rooms_href(club, role, %{uuid: uuid}) when role in [:owner, :admin],
+  # a finished session's results are on its session page, for everyone
+  defp rooms_href(club, role, %{uuid: uuid, finished_at: nil}) when role in [:owner, :admin],
     do: ~p"/c/#{club.uuid}/owner/s/#{uuid}"
 
   defp rooms_href(club, _role, %{uuid: uuid}), do: ~p"/c/#{club.uuid}/s/#{uuid}"
@@ -474,6 +475,9 @@ defmodule CabWeb.Ui do
     attr :note, :string
     attr :quiet, :boolean, doc: "a plain button when the page's gold action is elsewhere"
     attr :disabled, :boolean, doc: "shown but not usable (a preview)"
+
+    attr :menu, :list,
+      doc: "alternatives beside the button (`dropdown_button/1` items); none = a plain button"
   end
 
   def form_for(assigns) do
@@ -498,7 +502,16 @@ defmodule CabWeb.Ui do
       </div>
       <.bot_guard :if={@guard} error={@errors[:turnstile]} />
       <div :for={submit <- @submit} class="f-submit">
+        <.dropdown_button
+          :if={submit[:menu] not in [nil, []]}
+          items={submit[:menu]}
+          quiet={submit[:quiet]}
+          disabled={submit[:disabled]}
+        >
+          {render_slot(submit)}
+        </.dropdown_button>
         <button
+          :if={submit[:menu] in [nil, []]}
           type="submit"
           class={if submit[:quiet], do: "btn-quiet", else: "btn-go"}
           disabled={submit[:disabled]}
@@ -1129,6 +1142,65 @@ defmodule CabWeb.Ui do
     ~H"""
     <.link :if={!@off} href={@value} aria-label={@label} title={@label}>{@text}</.link>
     <span :if={@off} class="off" aria-hidden="true">{@text}</span>
+    """
+  end
+
+  @doc """
+  A split button: the main action, and beside it a caret opening a
+  menu of alternatives - like a pull request's merge button. The main
+  part submits its form (`type`, `form`) unless `href` makes it a
+  link; each menu item is a link. The menu is a `<details>` (works
+  without JS; app.js closes it on an outside click or Escape, as the
+  language menu). With no items it is the plain button.
+
+  Items are maps: `label`, `href`, optional `at` (a DateTime shown in
+  the viewer's time zone after the label) and `current` (marked as
+  the chosen one).
+
+      <.dropdown_button items={[%{label: "Practice", href: "/c/x?session=y"}]}>
+        Register
+      </.dropdown_button>
+  """
+  attr :items, :list, default: []
+  attr :href, :string, default: nil, doc: "the main part as a link instead of a submit"
+  attr :type, :string, default: "submit"
+  attr :form, :string, default: nil, doc: "the id of the form the main part submits"
+  attr :quiet, :boolean, default: false, doc: "the plain style when the gold action is elsewhere"
+  attr :disabled, :boolean, default: false
+  attr :menu_label, :string, default: nil, doc: "the caret's name for screen readers"
+  slot :inner_block, required: true
+
+  def dropdown_button(assigns) do
+    assigns =
+      assign_new(assigns, :menu_label_text, fn ->
+        assigns.menu_label || gettext("More options")
+      end)
+
+    ~H"""
+    <div class={["dd-btn", if(@quiet, do: "quiet", else: "go"), @items != [] && "split"]}>
+      <.link :if={@href} href={@href} class="dd-main">{render_slot(@inner_block)}</.link>
+      <button :if={!@href} type={@type} form={@form} class="dd-main" disabled={@disabled}>
+        {render_slot(@inner_block)}
+      </button>
+      <details :if={@items != []} class="dd-more" data-menu>
+        <summary class="dd-caret" aria-label={@menu_label_text} title={@menu_label_text}>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" /></svg>
+        </summary>
+        <div class="menu" role="menu">
+          <.link
+            :for={item <- @items}
+            href={item.href}
+            role="menuitem"
+            aria-current={item[:current] && "true"}
+          >
+            <span>{item.label}</span><span :if={item[:at]} class="at"><.local_time
+              at={item.at}
+              as={:weekday_time}
+            /></span>
+          </.link>
+        </div>
+      </details>
+    </div>
     """
   end
 

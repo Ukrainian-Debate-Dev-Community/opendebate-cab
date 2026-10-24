@@ -156,6 +156,21 @@ defmodule Cab.Sessions do
   end
 
   @doc """
+  The club's sessions taking sign-ups (not closed, started or
+  finished), nearest scheduled date first (unscheduled last, newest
+  first) - the club page's registration section offers each.
+  """
+  def open_for_club(%Club{} = club) do
+    Repo.all(
+      from s in Session,
+        where:
+          s.club_id == ^club.id and is_nil(s.finished_at) and is_nil(s.started_at) and
+            is_nil(s.signups_closed_at),
+        order_by: [asc_nulls_last: s.scheduled_at, desc: s.id]
+    )
+  end
+
+  @doc """
   The club's session people are looking for: a running one, else the
   unfinished one with the nearest scheduled date (unscheduled last),
   else the one finished last; nil for a club with no sessions.
@@ -784,6 +799,7 @@ defmodule Cab.Sessions do
              EngineApi.delete_participant(head_actor, session.engine_event_id, participant_id) do
         Cab.Links.purge_guest(participant["id"])
         Cab.Invitations.forget_participant(session, participant_id)
+        Cab.Registrations.forget_participant(session, participant_id)
         :ok
       end
 
@@ -1877,8 +1893,8 @@ defmodule Cab.Sessions do
 
   @doc """
   The club page's "Club Sessions" table: EVERY session, latest first,
-  with its status from cab's records - done (+ the winner recorded at
-  finish) | live | open. Pure database, no engine call.
+  with its status from cab's records - open (registration open) |
+  closed | running | finished. Pure database, no engine call.
   """
   def club_sessions(%Club{} = club) do
     for session <- list_for_club(club) do
@@ -1888,9 +1904,10 @@ defmodule Cab.Sessions do
         date: session.scheduled_at || session.inserted_at,
         status:
           case stage_of(session) do
-            :done -> :done
             :signup -> :open
-            _ -> :live
+            :closed -> :closed
+            :running -> :running
+            :done -> :finished
           end,
         winner: session.winner_name
       }

@@ -16,7 +16,9 @@ defmodule CabWeb.SigninController do
     conn |> delete_session(:pending_identity) |> redirect(to: ~p"/signin")
   end
 
-  def show(conn, _params) do
+  def show(conn, params) do
+    conn = remember_return(conn, params["return_to"])
+
     case {conn.assigns.current_user, existing(conn)} do
       {nil, nil} ->
         render(conn, :show,
@@ -74,4 +76,14 @@ defmodule CabWeb.SigninController do
   defp provider_name("github"), do: "GitHub"
   defp provider_name("google"), do: "Google"
   defp provider_name(other), do: other
+
+  # a page that sent the visitor here ("Have an account? Sign in" on
+  # a club page) gets them back after signing in: local paths only
+  defp remember_return(conn, "/" <> rest = path) do
+    if String.starts_with?(rest, ["/", "\\"]),
+      do: conn,
+      else: put_session(conn, :return_to, path)
+  end
+
+  defp remember_return(conn, _path), do: conn
 end

@@ -1,19 +1,48 @@
 <.section title={gettext("Club Sessions")}>
   <.table id="club-sessions" rows={@archive} empty={gettext("No sessions yet.")}>
-    <:col :let={row} label={gettext("Session")}>
-      <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"}>{row.name}</.link>
-      <.sub><.local_time at={row.date} as={:date} /></.sub>
+    <:col :let={row} label={gettext("Session")}>{row.name}</:col>
+    <:col :let={row} label={gettext("Date and time")}>
+      <.local_time at={row.date} as={:short} />
     </:col>
     <:col :let={row} label={gettext("Status")} class="st">
       <%= case row.status do %>
-        <% :done -> %>
-          {if row.winner,
-            do: gettext("done — won by %{winner}", winner: row.winner),
-            else: gettext("done")}
-        <% :live -> %>
-          <b>{gettext("running")}</b>
         <% :open -> %>
           {gettext("registration open")}
+        <% :closed -> %>
+          {gettext("registration closed")}
+        <% :running -> %>
+          <b>{gettext("running")}</b>
+        <% :finished -> %>
+          {gettext("finished")}
+      <% end %>
+    </:col>
+    <:col :let={row} label={gettext("Action")}>
+      <%= cond do %>
+        <% @owner and row.status != :finished -> %>
+          <.link href={~p"/c/#{@club.uuid}/owner/s/#{row.session_uuid}"} class="btn-quiet btn-sm">
+            {gettext("Open")}
+          </.link>
+        <% not @owner and row.status == :open and Map.has_key?(@mine, row.session_uuid) -> %>
+          <.link
+            href={
+              ~p"/c/#{@club.uuid}/s/#{row.session_uuid}/signups/#{@mine[row.session_uuid]}/remove?from=club"
+            }
+            method="post"
+            class="btn-quiet btn-sm"
+          >
+            {gettext("Cancel registration")}
+          </.link>
+        <% not @owner and row.status == :open -> %>
+          <.link
+            href={~p"/c/#{@club.uuid}?#{[session: row.session_uuid]}" <> "#register"}
+            class="btn-quiet btn-sm"
+          >
+            {gettext("Register")}
+          </.link>
+        <% true -> %>
+          <.link href={~p"/c/#{@club.uuid}/s/#{row.session_uuid}"} class="btn-quiet btn-sm">
+            {gettext("Open")}
+          </.link>
       <% end %>
     </:col>
   </.table>

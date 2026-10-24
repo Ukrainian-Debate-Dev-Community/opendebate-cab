@@ -10,13 +10,17 @@
     <:seg :if={@club_role in [:owner, :admin]} href={~p"/c/#{@club.uuid}/owner"}>
       {gettext("Edit club")}
     </:seg>
-    <:seg :if={@club_role == :public and is_nil(@current_user)} href={~p"/signin"} primary>
+    <:seg
+      :if={@club_role == :public and is_nil(@current_user)}
+      href={~p"/signin"}
+      primary={!form_open?(@registration)}
+    >
       {gettext("Request to join")}
     </:seg>
     <:seg
       :if={@club_role == :public and @current_user}
       href={~p"/c/#{@club.uuid}/join"}
-      primary
+      primary={!form_open?(@registration)}
     >
       {gettext("Request to join")}
     </:seg>
@@ -24,6 +28,8 @@
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
+
+    <.registration_section :if={@registration} club={@club} registration={@registration} />
 
     <.section title={gettext("About")} pad>
       <div :if={@club.logo} class="club-id">
@@ -61,11 +67,6 @@
       </p>
     </.section>
 
-    <CabWeb.MemberHTML.archive_section club={@club} archive={@recent} />
-
-    <.section title={gettext("Standings")} pad>
-      {gettext("Standings for each session are under")}
-      <.link href={~p"/c/#{@club.uuid}/standings/teams"}>{gettext("Standings")}</.link>.
-    </.section>
+    <CabWeb.MemberHTML.archive_section club={@club} archive={@recent} mine={@mine} />
   </div>
 </Layouts.app>

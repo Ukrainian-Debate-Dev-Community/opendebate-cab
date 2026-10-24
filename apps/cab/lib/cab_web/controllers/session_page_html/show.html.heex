@@ -12,7 +12,7 @@
   >
     <:seg
       :if={@state.stage == :signup && is_nil(@my_signup)}
-      href={~p"/r/#{@session.uuid}"}
+      href={~p"/c/#{@club.uuid}?#{[session: @session.uuid]}" <> "#register"}
       primary
     >
       {gettext("Register")}

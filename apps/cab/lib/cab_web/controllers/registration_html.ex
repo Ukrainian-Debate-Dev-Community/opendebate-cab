@@ -1,7 +1,7 @@
 defmodule CabWeb.RegistrationHTML do
   @moduledoc """
-  /r/:sess - the registration form (guest or signed-in), the guest's
-  personal-link page, and the registration-closed notice.
+  The guest registration form: the club page's registration section
+  for visitors without an account, and the head's preview of it.
   """
   use CabWeb, :html
 
@@ -14,8 +14,6 @@ defmodule CabWeb.RegistrationHTML do
       placeholder: 1,
       prompt: 1
     ]
-
-  embed_templates "registration_html/*"
 
   @doc """
   The guest's registration form: the built-in name, then the club's
@@ -30,12 +28,15 @@ defmodule CabWeb.RegistrationHTML do
   attr :errors, :map, default: %{}
   attr :preview, :boolean, default: false
   attr :logo, :string, default: nil, doc: "the club's logo beside the title"
+  attr :hidden, :list, default: [], doc: "extra hidden inputs as {name, value}"
+  attr :menu, :list, default: [], doc: "other choices beside Register (dropdown_button/1 items)"
 
   def guest_form(assigns) do
     ~H"""
     <.form_for
       id="guest-register-form"
       action={@action}
+      hidden={@hidden}
       title={@title}
       logo={@logo}
       description={
@@ -67,6 +68,7 @@ defmodule CabWeb.RegistrationHTML do
       />
       <:submit
         disabled={@preview}
+        menu={@menu}
         note={
           gettext(
             "You appear in this session's list right away; the club head seats you as a speaker or the adjudicator."

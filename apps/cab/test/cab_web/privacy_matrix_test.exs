@@ -33,7 +33,6 @@ defmodule CabWeb.PrivacyMatrixTest do
     {"Room page (live)", "/c/:club/s/:live/rooms/72", List.duplicate(200, 7), nil},
     {"Ballot page (member chairs the room)", "/c/:club/s/:live/rooms/72/ballot",
      [:signin, 403, 403, 403, 200, 200, 200], nil},
-    {"Registration page", "/r/:live", List.duplicate(200, 7), nil},
     {"My page", "/me", [:signin, 200, :signin, :signin, 200, 200, 200], nil},
     {"Account", "/account", [:signin, 200, :signin, :signin, 200, 200, 200], nil},
     {"Owner: club edit", "/c/:club/owner", [:signin, 403, 403, 403, 403, 200, 200], nil},

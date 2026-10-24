@@ -304,6 +304,31 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
              border-radius:7px; border:1px solid var(--line); background:var(--surface);
              color:var(--ink); }
 .btn-quiet:hover { border-color:var(--brand); color:var(--brand); }
+/* dropdown_button: the main action + a caret menu, one button (the
+   halves take .btn-go / .btn-quiet's look; the menu is the language
+   menu's, opening downwards) */
+.dd-btn { display:inline-flex; align-items:stretch; }
+.dd-btn .dd-main, .dd-btn .dd-caret { font:inherit; font-size:.8rem; font-weight:700; cursor:pointer;
+               text-decoration:none; display:inline-flex; align-items:center; }
+.dd-btn .dd-main { padding:8px 20px; border-radius:7px; }
+.dd-btn.split .dd-main { border-top-right-radius:0; border-bottom-right-radius:0; }
+.dd-btn .dd-caret { list-style:none; padding:8px 10px; border-radius:0 7px 7px 0; height:100%; }
+.dd-btn .dd-caret::-webkit-details-marker { display:none; }
+.dd-btn .dd-caret svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; }
+.dd-btn.go .dd-main, .dd-btn.go .dd-caret { border:none; background:var(--gold); color:var(--gold-ink); }
+.dd-btn.go .dd-caret { box-shadow:inset 1px 0 0 rgba(0,0,0,.18); }
+.dd-btn.go .dd-main:hover, .dd-btn.go .dd-caret:hover { background:var(--gold-hover); }
+.dd-btn.quiet .dd-main, .dd-btn.quiet .dd-caret { border:1px solid var(--line); background:var(--surface);
+               color:var(--ink); }
+.dd-btn.quiet.split .dd-caret { border-left:none; }
+.dd-btn.quiet .dd-main:hover, .dd-btn.quiet .dd-caret:hover { border-color:var(--brand); color:var(--brand); }
+.dd-btn .dd-main:disabled { cursor:not-allowed; opacity:.55; }
+/* a card clips its content to its rounded corners; an open menu must
+   reach past it */
+.card:has(.dd-more[open]) { overflow:visible; }
+.dd-more .menu a { display:flex; flex-wrap:wrap; justify-content:space-between; gap:2px 12px; padding:7px 9px;
+               border-radius:6px; font-weight:600; color:var(--ink); text-decoration:none; }
+.dd-more .menu a .at { color:var(--muted); font-weight:500; font-variant-numeric:tabular-nums; }
 /* stepper: [ < | current | > ] - the allocator's room count, the
    standings' session */
 .stepper { display:inline-flex; align-items:stretch; border:1px solid var(--line);
@@ -647,19 +672,22 @@ input.pick { width:15px; height:15px; margin:0 8px 0 0; vertical-align:-2px; acc
 .cycle svg .fill { fill:currentColor; stroke:none; }
 .cycle[data-state="light"] .i-light, .cycle[data-state="auto"] .i-auto,
 .cycle[data-state="dark"] .i-dark { opacity:1; transform:none; }
-.langs { position:relative; }
-.langs .menu { position:absolute; right:0; bottom:calc(100% + 6px); z-index:20; min-width:150px;
+.langs, .dd-more { position:relative; }
+.langs .menu, .dd-more .menu { position:absolute; right:0; bottom:calc(100% + 6px); z-index:20; min-width:150px;
                padding:4px; border-radius:9px; background:var(--surface); border:1px solid var(--line);
                box-shadow:0 8px 24px rgba(28,23,34,.16); display:grid; gap:2px;
                transform-origin:bottom right; animation:menu-in .16s ease-out; }
-.langs:not([open]) .menu { display:none; }
+.langs:not([open]) .menu, .dd-more:not([open]) .menu { display:none; }
+/* (after the shared menu rule, which it overrides) a dropdown_button's
+   menu opens downwards, under its caret */
+.dd-more .menu { top:calc(100% + 6px); bottom:auto; transform-origin:top right; min-width:220px; }
 .sidenav .profile .langs .menu a { display:flex; align-items:center; gap:8px; padding:6px 8px;
                border-radius:6px; font-weight:600; color:var(--ink); }
-.langs .menu a:hover { background:var(--brand-50); }
-.langs .menu a[aria-current="true"] { color:var(--brand); }
+.langs .menu a:hover, .dd-more .menu a:hover { background:var(--brand-50); }
+.langs .menu a[aria-current="true"], .dd-more .menu a[aria-current="true"] { color:var(--brand); }
 .langs .menu .code { width:22px; font-size:.62rem; font-weight:800; color:var(--muted); }
 @keyframes menu-in { from { opacity:0; transform:translateY(4px) scale(.97); } to { opacity:1; transform:none; } }
-@media (prefers-reduced-motion: reduce) { .cycle svg, .langs .menu { transition:none; animation:none; } }
+@media (prefers-reduced-motion: reduce) { .cycle svg, .langs .menu, .dd-more .menu { transition:none; animation:none; } }
 .sidenav .profile .who { min-width:0; }
 .sidenav .profile .who a, .sidenav .profile .who span:last-child
   { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }

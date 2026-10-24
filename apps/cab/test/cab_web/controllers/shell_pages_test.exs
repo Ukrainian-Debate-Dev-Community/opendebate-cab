@@ -77,6 +77,10 @@ defmodule CabWeb.ShellPagesTest do
         case conn.request_path do
           "/api/events/organisation/3" ->
             ok(conn, [%{"id" => 11, "name" => "Tonight", "status" => "scheduled"}])
+
+          # the club page reads a signed-in viewer's own signup
+          _other ->
+            ok(conn, [])
         end
       end)
 
