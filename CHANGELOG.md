@@ -1,5 +1,40 @@
 # Changelog
 
+## v0.2.0 - 2026-10-24
+
+11 features, 6 fixes, 1 chore; breaking: 0
+
+### Features
+
+- cab: contact fields checked as typed, errors on leaving the field (#34) by @merv1n34k
+- cab: phone, e-mail and telegram fields, checked and formatted (#30) by @merv1n34k
+- cab: registration as a section on the club page (#20) by @merv1n34k
+- cab: session results with points, motion details and a share card (#26) by @merv1n34k
+- cab: session pages show the people who play, not team names (#25) by @merv1n34k
+- cab: share a room as a picture or text, click to copy (#23) by @merv1n34k
+- cab: club speakers and adjudicators across all sessions (#29) by @merv1n34k
+- cab: step through standings sessions like the room count (#27) by @merv1n34k
+- cab: members' saved answers, join request asks member fields (#19) by @merv1n34k
+- forms: ask each registration field of guests, members or both (#16) by @merv1n34k
+- cab: short links as a service for any target (#21) by @merv1n34k
+
+### Fixes
+
+- deps: fetch mdex's native library from its mirror (#33) by @merv1n34k
+- ci: fetch tailwind with curl in the image build (#32) by @merv1n34k
+- cab: my page and admin in the menu inside a club too (#24) by @merv1n34k
+- deps: plug_crypto 2.2.1 (CVE-2026-105963) (#28) by @merv1n34k
+- cab: a register button in the club list (#18) by @merv1n34k
+- cab: nearest session, sessions by date, no register in sidebar (#17) by @merv1n34k
+
+### Other
+
+- chore(deps): opendebate-engine v1.5.0 (#31) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 18 commits
+
 ## v0.1.0 - 2026-10-19
 
 8 features, 3 fixes, 1 test, 3 chore; breaking: 0
