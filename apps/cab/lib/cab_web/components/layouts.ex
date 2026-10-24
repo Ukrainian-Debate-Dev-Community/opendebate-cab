@@ -68,8 +68,16 @@ defmodule CabWeb.Layouts do
       "text_motion" => gettext("Motion: {motion}"),
       "text_infoslide" => gettext("Infoslide: {text}"),
       "phone_country" => gettext("Country"),
-      "phone_any" => gettext("Other: type the +code"),
-      "phone_incomplete" => gettext("Not a whole number for this country yet."),
+      # a field's check in the browser says what the server would
+      "field_required" => dgettext("errors", "Fill this in."),
+      "field_email" => dgettext("errors", "Enter an e-mail address like name@example.com."),
+      "field_phone" =>
+        dgettext("errors", "Enter a full phone number for its country, like +380 50 123 4567."),
+      "field_telegram" =>
+        dgettext(
+          "errors",
+          "Enter a Telegram username: 5 to 32 letters, digits or _, like @name or t.me/name."
+        ),
       "copy" => gettext("Copy"),
       "copied" => gettext("Copied"),
       "theme_light" => gettext("Theme: light"),

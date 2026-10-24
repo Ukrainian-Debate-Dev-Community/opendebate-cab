@@ -578,13 +578,10 @@ defmodule CabWeb.Ui do
 
       :phone ->
         assigns =
-          Map.merge(assigns, %{
-            id: "phone-" <> String.replace(assigns.name, ~r/[^A-Za-z0-9_-]/, "-"),
-            country: Application.get_env(:cab, :default_phone_country)
-          })
+          Map.put(assigns, :id, "phone-" <> String.replace(assigns.name, ~r/[^A-Za-z0-9_-]/, "-"))
 
         ~H"""
-        <div class="phonefield" id={@id} phx-hook="PhoneField" data-country={@country}>
+        <div class="phonefield" id={@id} phx-hook="PhoneField">
           <input
             type="tel"
             name={@name}
@@ -592,8 +589,9 @@ defmodule CabWeb.Ui do
             placeholder={@b[:placeholder] || "+380 50 123 4567"}
             autocomplete="tel"
             inputmode="tel"
+            data-phone
+            data-required={@b[:required] && "true"}
           />
-          <div class="phonehint hint" aria-live="polite" hidden></div>
         </div>
         """
 
@@ -608,6 +606,7 @@ defmodule CabWeb.Ui do
           autocomplete="email"
           inputmode="email"
           data-email
+          data-required={@b[:required] && "true"}
         />
         """
 
@@ -623,6 +622,7 @@ defmodule CabWeb.Ui do
           autocapitalize="none"
           spellcheck="false"
           data-telegram
+          data-required={@b[:required] && "true"}
         />
         """
 

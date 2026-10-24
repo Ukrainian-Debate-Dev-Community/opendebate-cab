@@ -1688,11 +1688,6 @@ msgstr ""
 msgid "Nobody registered yet."
 msgstr ""
 
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Not a whole number for this country yet."
-msgstr ""
-
 #: lib/cab_web/controllers/error_html.ex
 #, elixir-autogen, elixir-format
 msgid "Not allowed"
@@ -1827,11 +1822,6 @@ msgstr ""
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Options"
-msgstr ""
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Other: type the +code"
 msgstr ""
 
 #: lib/cab_web/components/layouts/app.html.heex
