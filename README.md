@@ -108,6 +108,14 @@ bin/cab eval "Cab.Release.migrate()"
 | `ECTO_IPV6` | no | `true` to reach the database over IPv6 |
 | `DNS_CLUSTER_QUERY` | no | only for clustering several nodes |
 
+**Contact fields on other sites.** A site that renders cab's form
+blocks (`:phone`, `:email`, `:telegram`) on its own pages gets the
+typing helpers (the phone's country picker and spacing, the checks
+when a field is left) by loading cab's standalone script:
+`<script defer src="https://<cab host>/assets/js/contact-fields.js"></script>`.
+The messages come from the blocks' `data-msg-*` attributes, in the
+page's language.
+
 ## Bot protection
 
 The public forms - a guest's registration at `/r/<session>` and a club
