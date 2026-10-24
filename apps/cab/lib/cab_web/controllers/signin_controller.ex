@@ -36,8 +36,12 @@ defmodule CabWeb.SigninController do
           page_title: gettext("Sign in")
         )
 
+      # already signed in: straight back to whoever sent them here
       _signed_in ->
-        redirect(conn, to: ~p"/")
+        case CabWeb.ReturnTo.accept(params["return_to"]) do
+          nil -> redirect(conn, to: ~p"/")
+          back -> conn |> delete_session(:return_to) |> CabWeb.ReturnTo.redirect_to(back)
+        end
     end
   end
 
@@ -78,12 +82,12 @@ defmodule CabWeb.SigninController do
   defp provider_name(other), do: other
 
   # a page that sent the visitor here ("Have an account? Sign in" on
-  # a club page) gets them back after signing in: local paths only
-  defp remember_return(conn, "/" <> rest = path) do
-    if String.starts_with?(rest, ["/", "\\"]),
-      do: conn,
-      else: put_session(conn, :return_to, path)
+  # a club page, a sibling site's editors) gets them back after signing
+  # in: local paths and the deployment's return hosts (CabWeb.ReturnTo)
+  defp remember_return(conn, value) do
+    case CabWeb.ReturnTo.accept(value) do
+      nil -> conn
+      back -> put_session(conn, :return_to, back)
+    end
   end
-
-  defp remember_return(conn, _path), do: conn
 end

@@ -80,3 +80,7 @@ config :phoenix_live_view,
 # no API rate limit while developing or testing (the walkthrough and the
 # stress test run far faster on purpose); tests turn it on where needed
 config :cab, CabWeb.RateLimit, enabled: false
+
+# sibling sites running locally (uadebate on :4001) may send their
+# editors here to sign in and get them back
+config :cab, :return_hosts, ["localhost"]

@@ -95,6 +95,7 @@ bin/cab eval "Cab.Release.migrate()"
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` | for mail | without `SMTP_HOST` mail is kept in memory and not sent |
 | `MAIL_FROM` | for mail | `Name <address>`, e.g. `cab <noreply@example.org>` |
 | `SESSION_COOKIE_DOMAIN` | no | e.g. `.example.org`, so sibling sites can read the sign-in |
+| `RETURN_HOSTS` | no | e.g. `example.org,www.example.org`: sibling sites a sign-in may send people back to (`/signin?return_to=https://example.org/...`) |
 | `SHORT_LINK_HOSTS` | no | e.g. `example.org,www.example.org`: hosts besides cab's own that short links may point to |
 | `DEFAULT_PHONE_COUNTRY` | no | e.g. `UA`: phone numbers typed without a `+code` are read in this country, and the phone field opens on it; unset, the field opens on the visitor's own region and the server asks for a `+code` |
 | `RATE_LIMIT_ENABLED` | no | the JSON API's rate limit, `true` by default |
