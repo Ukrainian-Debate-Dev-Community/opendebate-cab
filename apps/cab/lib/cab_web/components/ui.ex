@@ -578,13 +578,10 @@ defmodule CabWeb.Ui do
 
       :phone ->
         assigns =
-          Map.merge(assigns, %{
-            id: "phone-" <> String.replace(assigns.name, ~r/[^A-Za-z0-9_-]/, "-"),
-            country: Application.get_env(:cab, :default_phone_country)
-          })
+          Map.put(assigns, :id, "phone-" <> String.replace(assigns.name, ~r/[^A-Za-z0-9_-]/, "-"))
 
         ~H"""
-        <div class="phonefield" id={@id} phx-hook="PhoneField" data-country={@country}>
+        <div class="phonefield" id={@id} phx-hook="PhoneField">
           <input
             type="tel"
             name={@name}
