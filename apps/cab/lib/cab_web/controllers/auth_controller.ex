@@ -1,9 +1,22 @@
 defmodule CabWeb.AuthController do
   use CabWeb, :controller
 
+  # before the provider hop: the address of the page that asked for
+  # this sign-in (the /signin buttons carry it), or none - so a sign-in
+  # never returns somewhere an earlier, abandoned one asked for
+  plug :remember_return when action == :request
   plug Ueberauth
 
   alias Cab.Accounts
+
+  defp remember_return(conn, _opts) do
+    conn = fetch_query_params(conn)
+
+    case CabWeb.ReturnTo.accept(conn.params["return_to"]) do
+      nil -> delete_session(conn, :return_to)
+      back -> put_session(conn, :return_to, back)
+    end
+  end
 
   # Ueberauth's request phase redirects to the provider; reaching the
   # action means the provider is unknown.
