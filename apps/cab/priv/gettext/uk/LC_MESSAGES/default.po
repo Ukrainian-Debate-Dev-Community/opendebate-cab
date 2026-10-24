@@ -854,7 +854,7 @@ msgstr "Не вдалося скасувати запрошення. Спроб�
 msgid "Could not save the profile."
 msgstr "Не вдалося зберегти профіль."
 
-#: lib/cab_web/components/layouts.ex
+#: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
 msgid "Country"
 msgstr "Країна"

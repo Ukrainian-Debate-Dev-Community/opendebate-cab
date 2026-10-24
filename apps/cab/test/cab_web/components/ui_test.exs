@@ -645,6 +645,11 @@ defmodule CabWeb.UiTest do
     assert html =~ ~s(autocomplete="tel")
     # checked in the browser when the field is left, no hint while typing
     assert html =~ "data-phone"
+    # the messages travel with the field (the server's own, translated),
+    # so the helpers need no table of words on other sites' pages
+    assert html =~ ~s(data-msg-country="Country")
+    assert html =~ ~s(data-msg-invalid="Enter a full phone number for its country)
+    assert html =~ ~s(data-msg-required="Fill this in.")
     refute html =~ "phonehint"
     # e-mail: the e-mail keyboard and autofill, cleaned as typed
     assert html =~ ~s(type="email")

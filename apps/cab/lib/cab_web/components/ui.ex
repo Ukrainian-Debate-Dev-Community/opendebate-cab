@@ -581,7 +581,7 @@ defmodule CabWeb.Ui do
           Map.put(assigns, :id, "phone-" <> String.replace(assigns.name, ~r/[^A-Za-z0-9_-]/, "-"))
 
         ~H"""
-        <div class="phonefield" id={@id} phx-hook="PhoneField">
+        <div class="phonefield" id={@id} phx-hook="PhoneField" data-msg-country={gettext("Country")}>
           <input
             type="tel"
             name={@name}
@@ -591,6 +591,8 @@ defmodule CabWeb.Ui do
             inputmode="tel"
             data-phone
             data-required={@b[:required] && "true"}
+            data-msg-required={CabWeb.FormComponents.answer_error(:required, "text")}
+            data-msg-invalid={CabWeb.FormComponents.answer_error({:invalid, :phone}, "phone")}
           />
         </div>
         """
@@ -607,6 +609,8 @@ defmodule CabWeb.Ui do
           inputmode="email"
           data-email
           data-required={@b[:required] && "true"}
+          data-msg-required={CabWeb.FormComponents.answer_error(:required, "text")}
+          data-msg-invalid={CabWeb.FormComponents.answer_error({:invalid, :email}, "email")}
         />
         """
 
@@ -623,6 +627,8 @@ defmodule CabWeb.Ui do
           spellcheck="false"
           data-telegram
           data-required={@b[:required] && "true"}
+          data-msg-required={CabWeb.FormComponents.answer_error(:required, "text")}
+          data-msg-invalid={CabWeb.FormComponents.answer_error({:invalid, :telegram}, "telegram")}
         />
         """
 

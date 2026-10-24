@@ -845,7 +845,7 @@ msgstr ""
 msgid "Could not save the profile."
 msgstr ""
 
-#: lib/cab_web/components/layouts.ex
+#: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
 msgid "Country"
 msgstr ""
