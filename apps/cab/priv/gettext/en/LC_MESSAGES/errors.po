@@ -93,7 +93,12 @@ msgstr ""
 
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
-msgid "Enter a Telegram username: 5 to 32 letters, digits or _, like @name."
+msgid "Enter a Telegram username: 5 to 32 letters, digits or _, like @name or t.me/name."
+msgstr ""
+
+#: lib/cab_web/components/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter a full phone number for its country, like +380 50 123 4567."
 msgstr ""
 
 #: lib/cab_web/components/form_components.ex
@@ -109,11 +114,6 @@ msgstr ""
 #: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Enter a number, like 12 or 3.5."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Enter a phone number: 7 to 20 digits, + in front if needed."
 msgstr ""
 
 #: lib/cab_web/components/form_components.ex

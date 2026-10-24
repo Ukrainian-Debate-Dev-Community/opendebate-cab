@@ -308,10 +308,17 @@ defmodule Cab.Clubs do
     )
   end
 
+  @doc """
+  The options every club form's answers are checked with: the deploy's
+  phone country (`:default_phone_country`), for numbers typed without
+  their +code.
+  """
+  def answer_opts, do: [phone_region: Application.get_env(:cab, :default_phone_country)]
+
   defp check_member_answers(club, attrs) do
     params = attrs["answers"] || attrs[:answers]
 
-    case Core.Forms.validate_answers(member_fields(club), params) do
+    case Core.Forms.validate_answers(member_fields(club), params, answer_opts()) do
       {:ok, answers} -> {:ok, answers}
       {:error, codes} -> {:error, {:answers, codes}}
     end

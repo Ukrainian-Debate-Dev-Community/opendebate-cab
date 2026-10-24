@@ -32,6 +32,7 @@ defmodule Core.MixProject do
       {:jason, "~> 1.2"},
       {:swoosh, "~> 1.19"},
       {:gen_smtp, "~> 1.3"},
+      {:ex_phone_number, "~> 0.4"},
       {:phoenix_live_view, "~> 1.2.0"},
       {:plug, "~> 1.14", only: :test}
     ]

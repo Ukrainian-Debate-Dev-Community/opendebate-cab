@@ -73,10 +73,14 @@ defmodule CabWeb.FormComponents do
     do: dgettext("errors", "Enter an e-mail address like name@example.com.")
 
   def answer_error({:invalid, :phone}, _type),
-    do: dgettext("errors", "Enter a phone number: 7 to 20 digits, + in front if needed.")
+    do: dgettext("errors", "Enter a full phone number for its country, like +380 50 123 4567.")
 
   def answer_error({:invalid, :telegram}, _type),
-    do: dgettext("errors", "Enter a Telegram username: 5 to 32 letters, digits or _, like @name.")
+    do:
+      dgettext(
+        "errors",
+        "Enter a Telegram username: 5 to 32 letters, digits or _, like @name or t.me/name."
+      )
 
   def answer_error({:invalid, :number}, _type),
     do: dgettext("errors", "Enter a number, like 12 or 3.5.")
@@ -287,6 +291,9 @@ defmodule CabWeb.FormComponents do
   def block_type(%{"type" => "yesno"}), do: :check
   def block_type(%{"type" => "choice"}), do: :select
   def block_type(%{"type" => "multi"}), do: :multi
+  def block_type(%{"type" => "phone"}), do: :phone
+  def block_type(%{"type" => "email"}), do: :email
+  def block_type(%{"type" => "telegram"}), do: :telegram
   def block_type(_field), do: :text
 
   @doc "A :text block's input type."
@@ -339,7 +346,7 @@ defmodule CabWeb.FormComponents do
 
   def answer_value(%{answer: %{"type" => "phone", "value" => value}} = assigns)
       when is_binary(value) do
-    ~H|<a href={"tel:#{String.replace(@answer["value"], ~r/[^0-9+]/, "")}"}>{@answer["value"]}</a>|
+    ~H|<a href={"tel:#{String.replace(@answer["value"], ~r/[^0-9+]/, "")}"}>{answer_text(@answer)}</a>|
   end
 
   def answer_value(%{answer: %{"type" => "telegram", "value" => value}} = assigns)
@@ -353,6 +360,13 @@ defmodule CabWeb.FormComponents do
   def answer_text(%{"value" => true}), do: gettext("yes")
   def answer_text(%{"value" => false}), do: gettext("no")
   def answer_text(%{"value" => values}) when is_list(values), do: Enum.join(values, ", ")
+  # stored as E.164, read as "+380 50 123 4567"
+  def answer_text(%{"type" => "phone", "value" => value}) when is_binary(value),
+    do: Core.Forms.phone_display(value)
+
+  def answer_text(%{"type" => "telegram", "value" => value}) when is_binary(value),
+    do: "@" <> value
+
   def answer_text(%{"value" => value}) when is_binary(value), do: value
   def answer_text(_answer), do: ""
 end

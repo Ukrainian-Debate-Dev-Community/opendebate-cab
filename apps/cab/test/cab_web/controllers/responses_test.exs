@@ -122,7 +122,7 @@ defmodule CabWeb.ResponsesTest do
 
     assert csv ==
              "Name;Registered (UTC);Your e-mail;Phone;Level;School;Your level\r\n" <>
-               ~s("Anna ""Ann"" Koval";2026-10-10 09:30;anna@example.org;+380 44 123 45 67;novice;;\r\n) <>
+               ~s("Anna ""Ann"" Koval";2026-10-10 09:30;anna@example.org;+380 44 123 4567;novice;;\r\n) <>
                ~s{"Bohdan, Jr.";2026-10-11 10:00;"'=HYPERLINK(""http://x"")";;;"Lyceum 1,\nKyiv";pro\r\n}
   end
 

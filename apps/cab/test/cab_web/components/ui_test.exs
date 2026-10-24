@@ -624,4 +624,31 @@ defmodule CabWeb.UiTest do
     assert plain =~ ~s(href="/somewhere")
     refute plain =~ "<details"
   end
+
+  test "form_for contact blocks: phone with its picker hook, e-mail, telegram" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form_for action="/x">
+        <:block name="answers[ph]" type={:phone} label="Phone" value="+380501234567" />
+        <:block name="answers[em]" type={:email} label="E-mail" value="a@b.co" />
+        <:block name="answers[tg]" type={:telegram} label="Telegram" value="debate_ua" />
+      </.form_for>
+      """)
+
+    # the phone block: a hooked wrapper, the stored E.164 shown readable
+    assert html =~ ~s(phx-hook="PhoneField")
+    assert html =~ ~s(id="phone-answers-ph-")
+    assert html =~ ~s(type="tel")
+    assert html =~ ~s(value="+380 50 123 4567")
+    assert html =~ ~s(autocomplete="tel")
+    # e-mail: the e-mail keyboard and autofill, cleaned as typed
+    assert html =~ ~s(type="email")
+    assert html =~ ~s(inputmode="email")
+    assert html =~ "data-email"
+    # telegram: shown with its @, cleaned as typed
+    assert html =~ ~s(value="@debate_ua")
+    assert html =~ "data-telegram"
+  end
 end

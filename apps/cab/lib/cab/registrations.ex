@@ -62,7 +62,7 @@ defmodule Cab.Registrations do
   end
 
   defp check(fields, params) do
-    case Core.Forms.validate_answers(fields, params) do
+    case Core.Forms.validate_answers(fields, params, Clubs.answer_opts()) do
       {:ok, answers} -> {:ok, answers}
       {:error, codes} -> {:error, {:answers, codes}}
     end

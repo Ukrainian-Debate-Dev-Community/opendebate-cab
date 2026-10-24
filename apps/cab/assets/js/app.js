@@ -24,6 +24,7 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/cab"
 import topbar from "../vendor/topbar"
+import * as libphone from "../vendor/libphonenumber-min"
 
 // Words the browser writes itself, in the page's language: the server
 // puts them in <meta name="cab-i18n"> (CabWeb.Layouts.js_strings/0);
@@ -594,6 +595,112 @@ const ShareCard = {
   updated() { this.render && this.render() },
 }
 
+// ----------------------------------------------------------------
+// Contact fields: phone (per country), e-mail, Telegram. The server
+// checks every value again; these only help people type them.
+// ----------------------------------------------------------------
+const lpn = libphone.default || libphone
+
+// a region's flag, built from its ISO code (no emoji in the source)
+const flag = (code) => String.fromCodePoint(...[...code].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65))
+
+// a phone field: a country picker before the number, the number
+// formatted for that country as it is typed (a typed or pasted +code
+// picks the country), a hint until it is a whole number; it goes out
+// as +E.164 when valid
+const PhoneField = {
+  mounted() {
+    const input = this.el.querySelector('input[type="tel"]')
+    const hint = this.el.querySelector(".phonehint")
+    if (!input || this.el.querySelector(".phonecountry")) return
+    const lang = document.documentElement.lang || "en"
+    let names = null
+    try { names = new Intl.DisplayNames([lang], {type: "region"}) } catch (_e) { /* names stay codes */ }
+
+    const select = document.createElement("select")
+    select.className = "phonecountry"
+    select.setAttribute("aria-label", t("phone_country", "Country"))
+    const any = document.createElement("option")
+    any.value = ""
+    any.textContent = t("phone_any", "Other: type the +code")
+    select.appendChild(any)
+    lpn.getCountries()
+      .map(c => ({c, name: (names && names.of(c)) || c, code: lpn.getCountryCallingCode(c)}))
+      .sort((a, b) => a.name.localeCompare(b.name, lang))
+      .forEach(x => {
+        const o = document.createElement("option")
+        o.value = x.c
+        o.textContent = `${flag(x.c)} ${x.name} +${x.code}`
+        select.appendChild(o)
+      })
+    this.el.insertBefore(select, input)
+
+    const known = (c) => !!c && lpn.getCountries().includes(c)
+    const region = ((navigator.language || "").split("-")[1] || "").toUpperCase()
+    let start = known(this.el.dataset.country) ? this.el.dataset.country : known(region) ? region : ""
+    if (input.value.trim().startsWith("+")) {
+      try { const p = lpn.parsePhoneNumber(input.value.trim()); if (p && p.country) start = p.country } catch (_e) { /* keep */ }
+    }
+    select.value = start
+
+    const country = () => select.value || undefined
+    const check = () => {
+      const raw = input.value.trim()
+      const ok = !raw || lpn.isValidPhoneNumber(raw, country())
+      hint.hidden = ok
+      if (!ok) hint.textContent = t("phone_incomplete", "Not a whole number for this country yet.")
+    }
+    const format = () => {
+      const raw = input.value.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, "")
+      const typer = new lpn.AsYouType(country())
+      const out = typer.input(raw)
+      if (raw.startsWith("+") && typer.getCountry() && typer.getCountry() !== select.value) select.value = typer.getCountry()
+      input.value = out
+      check()
+    }
+    // reformat only while typing at the end, so an edit in the middle keeps its caret
+    input.addEventListener("input", () => (input.selectionStart === input.value.length ? format() : check()))
+    select.addEventListener("change", () => { format(); input.focus() })
+    if (input.form) {
+      input.form.addEventListener("submit", () => {
+        const raw = input.value.trim()
+        if (!raw) return
+        try { const p = lpn.parsePhoneNumber(raw, country()); if (p && p.isValid()) input.value = p.number } catch (_e) { /* the server answers */ }
+      })
+    }
+    if (input.value) check()
+  },
+}
+
+// a Telegram username as people paste it: "@name" from "name",
+// "t.me/name" or "https://t.me/name"; letters, digits and _ only
+const telegramTyped = (value) => {
+  const name = value.trim()
+    .replace(/^(https?:\/\/)?(www\.)?(t|telegram)\.me\//i, "")
+    .replace(/\/+$/, "").replace(/^@+/, "")
+    .replace(/[^A-Za-z0-9_]/g, "").slice(0, 32)
+  return name ? "@" + name : ""
+}
+
+document.addEventListener("input", e => {
+  const el = e.target
+  if (!(el instanceof HTMLInputElement)) return
+  if (el.matches("[data-email]")) {
+    const v = el.value.replace(/\s+/g, "")
+    if (v !== el.value) el.value = v
+  } else if (el.matches("[data-telegram]")) {
+    const v = telegramTyped(el.value)
+    if (v !== el.value) el.value = v
+  }
+})
+// an e-mail's domain in lowercase once the field is left
+document.addEventListener("focusout", e => {
+  const el = e.target
+  if (!(el instanceof HTMLInputElement) || !el.matches("[data-email]")) return
+  const at = el.value.lastIndexOf("@")
+  if (at > 0) el.value = el.value.slice(0, at + 1) + el.value.slice(at + 1).toLowerCase()
+})
+
 // put text on the clipboard: the Clipboard API on secure pages, the
 // old textarea + execCommand path elsewhere; done(ok) either way
 function copyText(text, done) {
@@ -625,7 +732,7 @@ const CopyLinks = {
   },
 }
 
-const Hooks = {BallotMath, PrepClock, Allocator, ShareCard, CopyLinks}
+const Hooks = {BallotMath, PrepClock, Allocator, ShareCard, CopyLinks, PhoneField}
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {

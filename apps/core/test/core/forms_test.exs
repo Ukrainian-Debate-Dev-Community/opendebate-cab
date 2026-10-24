@@ -7,7 +7,7 @@ defmodule Core.FormsTest do
 
   alias Core.Forms
 
-  doctest Core.Forms, only: [email?: 1, answer_values: 1]
+  doctest Core.Forms, only: [email?: 1, answer_values: 1, phone: 2, telegram: 1]
 
   defp add!(definition, params) do
     {:ok, definition} = Forms.add_field(definition, Map.merge(%{"required" => "no"}, params))
@@ -270,9 +270,9 @@ defmodule Core.FormsTest do
             "Short" => " hi ",
             "Long" => "line one\nline two",
             "Age" => "3,5",
-            "Mail" => "a@b.co",
+            "Mail" => "Ada@Example.CO",
             "Phone" => "+38 (044) 123-45-67",
-            "Tg" => "@debater_1",
+            "Tg" => "https://t.me/debater_1",
             "Rules" => "yes",
             "Level" => "open",
             "Days" => ["wed", "mon"]
@@ -283,8 +283,8 @@ defmodule Core.FormsTest do
                {"Short", "text", "hi"},
                {"Long", "longtext", "line one\nline two"},
                {"Age", "number", "3.5"},
-               {"Mail", "email", "a@b.co"},
-               {"Phone", "phone", "+38 (044) 123-45-67"},
+               {"Mail", "email", "Ada@example.co"},
+               {"Phone", "phone", "+380441234567"},
                {"Tg", "telegram", "debater_1"},
                {"Rules", "yesno", true},
                {"Level", "choice", "open"},
@@ -292,7 +292,7 @@ defmodule Core.FormsTest do
              ]
 
       assert Enum.all?(answers, &(&1["id"] == ids[&1["label"]]))
-      assert Forms.first_value(answers, "email") == "a@b.co"
+      assert Forms.first_value(answers, "email") == "Ada@example.co"
       assert Forms.first_value(answers, "url") == nil
     end
 
@@ -326,12 +326,25 @@ defmodule Core.FormsTest do
       assert {:error, %{} = e} = check.("Mail", "a@b")
       assert e[ids["Mail"]] == {:invalid, :email}
       assert {:error, _} = check.("Mail", "a b@c.de")
-      assert {:ok, _} = check.("Phone", "1234567")
-      assert {:error, _} = check.("Phone", "123456")
-      assert {:ok, _} = check.("Phone", String.duplicate("1", 20))
-      assert {:error, _} = check.("Phone", String.duplicate("1", 21))
+      # phones are checked per country; without a +code the app's region
+      assert {:ok, answers} = check.("Phone", "+48 601 234 567")
+      assert Enum.find(answers, &(&1["type"] == "phone"))["value"] == "+48601234567"
+      assert {:error, %{} = e} = check.("Phone", "+380 50 123")
+      assert e[ids["Phone"]] == {:invalid, :phone}
+      assert {:error, _} = check.("Phone", "050 123 45 67")
       assert {:error, _} = check.("Phone", "+1 555 CALL ME")
       assert {:error, _} = check.("Phone", "1+234567")
+
+      ua = fn value ->
+        Forms.validate_answers(form, params(ids, Map.put(base, "Phone", value)), phone_region: "UA")
+      end
+
+      assert {:ok, answers} = ua.("050 123 45 67")
+      assert Enum.find(answers, &(&1["type"] == "phone"))["value"] == "+380501234567"
+      assert {:ok, _} = ua.("+48 601 234 567")
+      assert {:error, _} = ua.("050 123")
+      assert {:ok, _} = check.("Tg", "t.me/abcde")
+      assert {:ok, _} = check.("Tg", "@abcde")
       assert {:ok, _} = check.("Tg", "abcde")
       assert {:ok, _} = check.("Tg", String.duplicate("a", 32))
       assert {:error, _} = check.("Tg", String.duplicate("a", 33))
@@ -497,6 +510,30 @@ defmodule Core.FormsTest do
 
       assert {:ok, [%{"audience" => "a"}]} =
                Forms.normalize([%{"label" => "X", "type" => "text", "audience" => "a"}], [], @attrs)
+    end
+  end
+
+  describe "contact values" do
+    test "phone: per country, E.164 out, international display" do
+      assert Forms.phone("+380 (50) 123-45-67") == {:ok, "+380501234567"}
+      assert Forms.phone("0501234567", "ua") == {:ok, "+380501234567"}
+      assert Forms.phone("601 234 567", "PL") == {:ok, "+48601234567"}
+      assert Forms.phone("601 234 567", "UA") == :error
+      assert Forms.phone("+380 50 12") == :error
+      assert Forms.phone(nil) == :error
+      assert Forms.phone_display("+380501234567") == "+380 50 123 4567"
+      # an older answer kept as typed
+      assert Forms.phone_display("050 123 45 67") == "050 123 45 67"
+    end
+
+    test "telegram: every way people write it" do
+      for typed <- ["@debate_ua", "debate_ua", "t.me/debate_ua", "https://t.me/debate_ua/", "http://telegram.me/debate_ua"] do
+        assert Forms.telegram(typed) == {:ok, "debate_ua"}, typed
+      end
+
+      assert Forms.telegram("@abc") == :error
+      assert Forms.telegram("t.me/") == :error
+      assert Forms.telegram("debate-ua") == :error
     end
   end
 end
