@@ -664,7 +664,9 @@ const PhoneField = {
     const fullNumber = () => {
       const d = digitsOf(input.value)
       if (!d) return ""
-      if (input.value.trim().startsWith("+") || !select.value) return "+" + d
+      if (input.value.trim().startsWith("+")) return "+" + d
+      // no country: the digits as typed, the server decides
+      if (!select.value) return d
       try { return lpn.parsePhoneNumber(d, select.value).number } catch (_e) {
         return "+" + lpn.getCountryCallingCode(select.value) + d
       }
@@ -676,13 +678,15 @@ const PhoneField = {
     const format = () => {
       const typed = input.value.trim()
       if (!digitsOf(typed)) { input.value = typed.startsWith("+") ? "+" : ""; check(); return }
-      // a +code, or digits with no country yet: the code decides
-      if (typed.startsWith("+") || !select.value) takeCode()
-      else input.value = national(select.value, digitsOf(typed))
+      // only a typed + or the picker gives the country: digits with
+      // neither stay as typed (no country guessed from them)
+      if (typed.startsWith("+")) takeCode()
+      else if (select.value) input.value = national(select.value, digitsOf(typed))
+      else input.value = digitsOf(typed)
       showPicked()
       check()
     }
-    if (digitsOf(input.value)) { takeCode(); showPicked() }
+    if (input.value.trim().startsWith("+") && digitsOf(input.value)) { takeCode(); showPicked() }
     // reformat only while typing at the end, so an edit in the middle keeps its caret
     input.addEventListener("input", () => (input.selectionStart === input.value.length ? format() : check()))
     // another country: the same national digits, spaced for it
