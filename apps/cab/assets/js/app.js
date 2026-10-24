@@ -605,10 +605,10 @@ const lpn = typeof libphone.getCountries === "function" ? libphone : libphone.de
 // a region's flag, built from its ISO code (no emoji in the source)
 const flag = (code) => String.fromCodePoint(...[...code].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65))
 
-// a phone field: always international - a typed or pasted +code picks
-// the country in the picker before it (choosing one there writes its
-// code), the number is spaced as it is typed; checked when the field is
-// left (see the field checks below); it goes out as +E.164 when valid
+// a phone field: the +code in the picker before it (flag and code), the
+// national number in the field, spaced as it is typed; a +code typed or
+// pasted into the field moves to the picker; checked when the field is
+// left (see the field checks below); it goes out as +E.164
 const PhoneField = {
   mounted() {
     const input = this.el.querySelector('input[type="tel"]')
@@ -634,40 +634,62 @@ const PhoneField = {
       })
     this.el.insertBefore(select, input)
 
-    // the country comes only from the number's own +code: the field is
-    // always international ("+" in front), the code picks the country
-    // in the picker, and picking a country writes its +code
+    // the code lives in the picker, the field keeps the national number:
+    // a +code typed or pasted into the field moves to the picker as soon
+    // as it names a country (shared codes like +1 once the digits say
+    // which); with a country picked the field takes the national number,
+    // spaced as it is typed; the form sends +E.164
     const digitsOf = (v) => v.replace(/\D/g, "")
-    const codeOf = (c) => "+" + lpn.getCountryCallingCode(c)
-    const follow = (typer, number) => {
-      const c = typer.getCountry()
-      if (c) select.value = c
-      else if (select.value && !number.startsWith(codeOf(select.value))) select.value = ""
+    const placeholder = input.placeholder
+    // the national number spaced for its country: as written there
+    // (050 123 4567), or - without the trunk 0, as it is left after a
+    // +code - spaced the international way minus the code (50 123 4567)
+    const national = (c, digits) => {
+      const local = new lpn.AsYouType(c).input(digits)
+      if (local !== digits) return local
+      const code = "+" + lpn.getCountryCallingCode(c)
+      const intl = new lpn.AsYouType().input(code + digits)
+      return intl.startsWith(code) ? intl.slice(code.length).trim() : local
     }
-    if (digitsOf(input.value)) {
+    const takeCode = () => {
       const typer = new lpn.AsYouType()
-      input.value = typer.input("+" + digitsOf(input.value))
-      follow(typer, "+" + digitsOf(input.value))
+      const shown = typer.input("+" + digitsOf(input.value))
+      const c = typer.getCountry()
+      if (!c) { input.value = shown; return }
+      select.value = c
+      const rest = typer.getNationalNumber() || ""
+      input.value = rest ? national(c, rest) : ""
+    }
+    const showPicked = () => { input.placeholder = select.value ? "" : placeholder }
+    const fullNumber = () => {
+      const d = digitsOf(input.value)
+      if (!d) return ""
+      if (input.value.trim().startsWith("+") || !select.value) return "+" + d
+      try { return lpn.parsePhoneNumber(d, select.value).number } catch (_e) {
+        return "+" + lpn.getCountryCallingCode(select.value) + d
+      }
     }
 
     // the field checks (below) ask the number whether it is whole
-    input.phoneValid = () => lpn.isValidPhoneNumber(input.value.trim())
+    input.phoneValid = () => { const n = fullNumber(); return !!n && lpn.isValidPhoneNumber(n) }
     const check = () => recheckField(input)
     const format = () => {
-      const digits = digitsOf(input.value)
-      if (!digits) { input.value = ""; check(); return }
-      const typer = new lpn.AsYouType()
-      input.value = typer.input("+" + digits)
-      follow(typer, "+" + digits)
+      const typed = input.value.trim()
+      if (!digitsOf(typed)) { input.value = typed.startsWith("+") ? "+" : ""; check(); return }
+      // a +code, or digits with no country yet: the code decides
+      if (typed.startsWith("+") || !select.value) takeCode()
+      else input.value = national(select.value, digitsOf(typed))
+      showPicked()
       check()
     }
+    if (digitsOf(input.value)) { takeCode(); showPicked() }
     // reformat only while typing at the end, so an edit in the middle keeps its caret
     input.addEventListener("input", () => (input.selectionStart === input.value.length ? format() : check()))
-    // picking a country puts its +code in front of the number's own digits
+    // another country: the same national digits, spaced for it
     select.addEventListener("change", () => {
-      let national = ""
-      try { national = lpn.parsePhoneNumber("+" + digitsOf(input.value)).nationalNumber || "" } catch (_e) { /* no number yet */ }
-      input.value = select.value ? new lpn.AsYouType().input(codeOf(select.value) + national) : ""
+      const d = digitsOf(input.value)
+      if (d && !input.value.trim().startsWith("+")) input.value = select.value ? national(select.value, d) : "+" + d
+      showPicked()
       input.focus()
       check()
     })
@@ -675,8 +697,8 @@ const PhoneField = {
     select.addEventListener("focusout", (e) => { if (e.relatedTarget !== input) checkField(input) })
     if (input.form) {
       input.form.addEventListener("submit", () => {
-        if (!digitsOf(input.value)) return
-        try { const p = lpn.parsePhoneNumber(input.value.trim()); if (p && p.isValid()) input.value = p.number } catch (_e) { /* the server answers */ }
+        const n = fullNumber()
+        if (n) input.value = n
       })
     }
   },
