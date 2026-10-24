@@ -1824,11 +1824,6 @@ msgstr ""
 msgid "Options"
 msgstr ""
 
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Other: type the +code"
-msgstr ""
-
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Our organisation"

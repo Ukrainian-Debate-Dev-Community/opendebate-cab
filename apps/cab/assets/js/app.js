@@ -613,25 +613,23 @@ const PhoneField = {
   mounted() {
     const input = this.el.querySelector('input[type="tel"]')
     if (!input || this.el.querySelector(".phonecountry")) return
-    const lang = document.documentElement.lang || "en"
-    let names = null
-    try { names = new Intl.DisplayNames([lang], {type: "region"}) } catch (_e) { /* names stay codes */ }
-
     const select = document.createElement("select")
     select.className = "phonecountry"
     select.setAttribute("aria-label", t("phone_country", "Country"))
+    // no country yet: just the +, the code typed decides
     const any = document.createElement("option")
     any.value = ""
-    any.textContent = t("phone_any", "Other: type the +code")
+    any.textContent = "+"
     select.appendChild(any)
+    // only flag and code, by code (+1 ..., +7 ...), a flag telling
+    // apart the countries that share one
     lpn.getCountries()
-      .map(c => ({c, name: (names && names.of(c)) || c, code: lpn.getCountryCallingCode(c)}))
-      .sort((a, b) => a.name.localeCompare(b.name, lang))
+      .map(c => ({c, code: lpn.getCountryCallingCode(c)}))
+      .sort((a, b) => Number(a.code) - Number(b.code) || a.c.localeCompare(b.c))
       .forEach(x => {
         const o = document.createElement("option")
         o.value = x.c
-        // flag and code first: the narrow closed picker shows just them
-        o.textContent = `${flag(x.c)} +${x.code} ${x.name}`
+        o.textContent = `${flag(x.c)} +${x.code}`
         select.appendChild(o)
       })
     this.el.insertBefore(select, input)

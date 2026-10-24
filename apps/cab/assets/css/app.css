@@ -257,7 +257,7 @@ table.t { width:100%; border-collapse:collapse; font-size:.84rem; }
 .form input:focus, .form textarea:focus { border-color:var(--brand); }
 /* a phone block: the country picker, then the number */
 .form .phonefield { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; }
-.form .phonefield .phonecountry { flex:0 0 7.5rem; width:7.5rem; min-width:0; text-overflow:ellipsis; }
+.form .phonefield .phonecountry { flex:0 0 auto; width:6.5rem; min-width:0; }
 .form .phonefield input[type=tel] { flex:1 1 12rem; min-width:0; }
 .form .half { display:flex; gap:10px; }
 .form .half > * { flex:1; }

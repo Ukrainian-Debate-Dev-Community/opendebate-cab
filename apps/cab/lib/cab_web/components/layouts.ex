@@ -68,7 +68,6 @@ defmodule CabWeb.Layouts do
       "text_motion" => gettext("Motion: {motion}"),
       "text_infoslide" => gettext("Infoslide: {text}"),
       "phone_country" => gettext("Country"),
-      "phone_any" => gettext("Other: type the +code"),
       # a field's check in the browser says what the server would
       "field_required" => dgettext("errors", "Fill this in."),
       "field_email" => dgettext("errors", "Enter an e-mail address like name@example.com."),
