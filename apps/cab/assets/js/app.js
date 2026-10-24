@@ -599,7 +599,8 @@ const ShareCard = {
 // Contact fields: phone (per country), e-mail, Telegram. The server
 // checks every value again; these only help people type them.
 // ----------------------------------------------------------------
-const lpn = libphone.default || libphone
+// the library's own object (its default export is the parse function)
+const lpn = typeof libphone.getCountries === "function" ? libphone : libphone.default
 
 // a region's flag, built from its ISO code (no emoji in the source)
 const flag = (code) => String.fromCodePoint(...[...code].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65))
