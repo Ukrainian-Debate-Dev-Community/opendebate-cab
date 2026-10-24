@@ -44,6 +44,10 @@ config :cab, CabWeb.BotGuard,
 # and without the documents the pages answer 404
 config :cab, :legal_dir, Path.expand("../../opendebate-server/legal", __DIR__)
 
+# sibling sites a sign-in may return to (CabWeb.ReturnTo; RETURN_HOSTS
+# in production, e.g. "example.org"); none by default
+config :cab, :return_hosts, []
+
 # hosts besides cab's own whose addresses Cab.ShortLinks may shorten
 # (SHORT_LINK_HOSTS in production); none by default
 config :cab, :short_link_hosts, []

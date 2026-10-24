@@ -117,9 +117,13 @@ defmodule CabWeb.AuthController do
     # a head invitation opened before signing in finishes here; else
     # back to the page that asked for the sign-in, if one did
     {conn, path} = CabWeb.HeadInvitationController.accept_pending(conn, user)
-    return_to = get_session(conn, :return_to)
+    return_to = CabWeb.ReturnTo.accept(get_session(conn, :return_to))
     conn = delete_session(conn, :return_to)
-    redirect(conn, to: path || return_to || ~p"/")
+
+    case path || return_to do
+      nil -> redirect(conn, to: ~p"/")
+      back -> CabWeb.ReturnTo.redirect_to(conn, back)
+    end
   end
 
   def logout(conn, _params) do
