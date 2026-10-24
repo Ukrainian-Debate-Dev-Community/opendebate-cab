@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.2 - 2026-10-24
+
+1 feature; breaking: 0
+
+### Features
+
+- cab: contact-field helpers as a script other sites can load (#36) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 1 commit
+
 ## v0.2.1 - 2026-10-24
 
 1 feature; breaking: 0
