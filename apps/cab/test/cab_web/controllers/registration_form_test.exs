@@ -481,7 +481,8 @@ defmodule CabWeb.RegistrationFormTest do
         html =
           conn
           |> anon()
-          |> post(~p"/r/#{session.uuid}", %{
+          |> post(~p"/c/#{club.uuid}/register", %{
+            session: session.uuid,
             name: "Greta Guest",
             answers: %{"email" => "greta@example.com", ids["Phone"] => typed}
           })
