@@ -8,7 +8,7 @@ defmodule Core.MixProject do
   def project do
     [
       app: :core,
-      version: "0.2.0",
+      version: "0.2.1",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",

@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.1 - 2026-10-24
+
+1 feature; breaking: 0
+
+### Features
+
+- cab: sign-in can return to the deployment's sibling sites (#35) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 1 commit
+
 ## v0.2.0 - 2026-10-24
 
 11 features, 6 fixes, 1 chore; breaking: 0
