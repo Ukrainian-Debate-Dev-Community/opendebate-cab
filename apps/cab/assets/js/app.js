@@ -630,7 +630,8 @@ const PhoneField = {
       .forEach(x => {
         const o = document.createElement("option")
         o.value = x.c
-        o.textContent = `${flag(x.c)} ${x.name} +${x.code}`
+        // flag and code first: the narrow closed picker shows just them
+        o.textContent = `${flag(x.c)} +${x.code} ${x.name}`
         select.appendChild(o)
       })
     this.el.insertBefore(select, input)
