@@ -93,11 +93,13 @@ msgid "Each option must be different."
 msgstr "Варіанти мають бути різними."
 
 #: lib/cab_web/components/form_components.ex
+#: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
 msgid "Enter a Telegram username: 5 to 32 letters, digits or _, like @name or t.me/name."
 msgstr "Введіть ім'я користувача Telegram: від 5 до 32 літер, цифр або _, наприклад @name чи t.me/name."
 
 #: lib/cab_web/components/form_components.ex
+#: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
 msgid "Enter a full phone number for its country, like +380 50 123 4567."
 msgstr "Введіть повний номер телефону для його країни, наприклад +380 50 123 4567."
@@ -118,6 +120,7 @@ msgid "Enter a number, like 12 or 3.5."
 msgstr "Введіть число, наприклад 12 або 3.5."
 
 #: lib/cab_web/components/form_components.ex
+#: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
 msgid "Enter an e-mail address like name@example.com."
 msgstr "Введіть e-mail, наприклад name@example.com."
@@ -159,6 +162,7 @@ msgstr "Кожен бал має містити speaker_participant_id."
 
 #: lib/cab/text.ex
 #: lib/cab_web/components/form_components.ex
+#: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
 msgid "Fill this in."
 msgstr "Заповніть це поле."

@@ -632,7 +632,7 @@ defmodule CabWeb.UiTest do
       rendered_to_string(~H"""
       <.form_for action="/x">
         <:block name="answers[ph]" type={:phone} label="Phone" value="+380501234567" />
-        <:block name="answers[em]" type={:email} label="E-mail" value="a@b.co" />
+        <:block name="answers[em]" type={:email} label="E-mail" value="a@b.co" required />
         <:block name="answers[tg]" type={:telegram} label="Telegram" value="debate_ua" />
       </.form_for>
       """)
@@ -643,10 +643,15 @@ defmodule CabWeb.UiTest do
     assert html =~ ~s(type="tel")
     assert html =~ ~s(value="+380 50 123 4567")
     assert html =~ ~s(autocomplete="tel")
+    # checked in the browser when the field is left, no hint while typing
+    assert html =~ "data-phone"
+    refute html =~ "phonehint"
     # e-mail: the e-mail keyboard and autofill, cleaned as typed
     assert html =~ ~s(type="email")
     assert html =~ ~s(inputmode="email")
     assert html =~ "data-email"
+    # a required field says so to the browser's check
+    assert html =~ ~s(data-required="true")
     # telegram: shown with its @, cleaned as typed
     assert html =~ ~s(value="@debate_ua")
     assert html =~ "data-telegram"

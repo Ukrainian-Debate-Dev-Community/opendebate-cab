@@ -1697,11 +1697,6 @@ msgstr "Автоматично нікого не розсаджують"
 msgid "Nobody registered yet."
 msgstr "Ще ніхто не зареєструвався."
 
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Not a whole number for this country yet."
-msgstr "Це ще не повний номер для цієї країни."
-
 #: lib/cab_web/controllers/error_html.ex
 #, elixir-autogen, elixir-format
 msgid "Not allowed"

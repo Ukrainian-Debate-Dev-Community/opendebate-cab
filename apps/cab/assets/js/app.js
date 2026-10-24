@@ -606,12 +606,11 @@ const flag = (code) => String.fromCodePoint(...[...code].map(ch => 0x1F1E6 + ch.
 
 // a phone field: a country picker before the number, the number
 // formatted for that country as it is typed (a typed or pasted +code
-// picks the country), a hint until it is a whole number; it goes out
-// as +E.164 when valid
+// picks the country); checked when the field is left (see the field
+// checks below); it goes out as +E.164 when valid
 const PhoneField = {
   mounted() {
     const input = this.el.querySelector('input[type="tel"]')
-    const hint = this.el.querySelector(".phonehint")
     if (!input || this.el.querySelector(".phonecountry")) return
     const lang = document.documentElement.lang || "en"
     let names = null
@@ -636,7 +635,14 @@ const PhoneField = {
     this.el.insertBefore(select, input)
 
     const known = (c) => !!c && lpn.getCountries().includes(c)
-    const region = ((navigator.language || "").split("-")[1] || "").toUpperCase()
+    // the visitor's country from the browser: its region, else the
+    // language's likely one ("uk" -> UA), so the number is formatted
+    // from the first digit even with no default country configured
+    const likely = (tag) => {
+      try { return new Intl.Locale(tag).maximize().region || "" } catch (_e) { return "" }
+    }
+    const region = (navigator.languages || [navigator.language || ""])
+      .map(likely).find(known) || likely(document.documentElement.lang || "")
     let start = known(this.el.dataset.country) ? this.el.dataset.country : known(region) ? region : ""
     if (input.value.trim().startsWith("+")) {
       try { const p = lpn.parsePhoneNumber(input.value.trim()); if (p && p.country) start = p.country } catch (_e) { /* keep */ }
@@ -644,12 +650,9 @@ const PhoneField = {
     select.value = start
 
     const country = () => select.value || undefined
-    const check = () => {
-      const raw = input.value.trim()
-      const ok = !raw || lpn.isValidPhoneNumber(raw, country())
-      hint.hidden = ok
-      if (!ok) hint.textContent = t("phone_incomplete", "Not a whole number for this country yet.")
-    }
+    // the field checks (below) ask the number whether it is whole
+    input.phoneValid = () => lpn.isValidPhoneNumber(input.value.trim(), country())
+    const check = () => recheckField(input)
     const format = () => {
       const raw = input.value.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, "")
       const typer = new lpn.AsYouType(country())
@@ -661,6 +664,8 @@ const PhoneField = {
     // reformat only while typing at the end, so an edit in the middle keeps its caret
     input.addEventListener("input", () => (input.selectionStart === input.value.length ? format() : check()))
     select.addEventListener("change", () => { format(); input.focus() })
+    // picking a country is not leaving the number
+    select.addEventListener("focusout", (e) => { if (e.relatedTarget !== input) checkField(input) })
     if (input.form) {
       input.form.addEventListener("submit", () => {
         const raw = input.value.trim()
@@ -668,7 +673,6 @@ const PhoneField = {
         try { const p = lpn.parsePhoneNumber(raw, country()); if (p && p.isValid()) input.value = p.number } catch (_e) { /* the server answers */ }
       })
     }
-    if (input.value) check()
   },
 }
 
@@ -682,6 +686,58 @@ const telegramTyped = (value) => {
   return name ? "@" + name : ""
 }
 
+// The contact fields' checks, the server's rules and words: a value is
+// cleaned as it is typed and checked as it is typed, but its error
+// shows only once the field is left - under it, where the server puts
+// its own - and goes away as soon as the value is right again.
+const CONTACT = "[data-email], [data-telegram], [data-phone]"
+const dotted = (p) => p !== "" && !p.startsWith(".") && !p.endsWith(".") && !p.includes("..")
+const emailOk = (v) => {
+  if (v.length > 254 || /[\s\p{C}%"'(),:;<>[\]\\]/u.test(v)) return false
+  const parts = v.split("@")
+  if (parts.length !== 2 || !dotted(parts[0]) || !dotted(parts[1])) return false
+  const labels = parts[1].split(".")
+  return labels.length > 1 && /^(\p{L}{2,63}|xn--[a-z0-9-]{1,59})$/iu.test(labels[labels.length - 1])
+}
+const telegramOk = (v) => /^@?[A-Za-z0-9_]{5,32}$/.test(v)
+
+const contactError = (input) => {
+  const v = input.value.trim()
+  if (!v) return input.dataset.required ? t("field_required", "Fill this in.") : null
+  if (input.matches("[data-email]") && !emailOk(v))
+    return t("field_email", "Enter an e-mail address like name@example.com.")
+  if (input.matches("[data-telegram]") && !telegramOk(v))
+    return t("field_telegram", "Enter a Telegram username: 5 to 32 letters, digits or _, like @name or t.me/name.")
+  if (input.matches("[data-phone]") && input.phoneValid && !input.phoneValid())
+    return t("field_phone", "Enter a full phone number for its country, like +380 50 123 4567.")
+  return null
+}
+
+// the error under the field (the form's own .error), its hint hidden
+// meanwhile, as the server renders a refused answer
+const showFieldError = (input, message) => {
+  const block = input.closest(".f-block")
+  if (!block) return
+  let box = block.querySelector(":scope > .error")
+  const hint = block.querySelector(":scope > .hint")
+  if (message) {
+    if (!box) {
+      box = document.createElement("div")
+      box.className = "error"
+      box.setAttribute("aria-live", "polite")
+      hint ? block.insertBefore(box, hint) : block.appendChild(box)
+    }
+    box.textContent = message
+  } else if (box) box.remove()
+  block.classList.toggle("err", !!message)
+  if (hint) hint.hidden = !!message
+  input.setAttribute("aria-invalid", message ? "true" : "false")
+}
+// on leaving the field
+const checkField = (input) => showFieldError(input, contactError(input))
+// while typing: only an error already shown follows the value
+const recheckField = (input) => { if (input.closest(".f-block.err")) checkField(input) }
+
 document.addEventListener("input", e => {
   const el = e.target
   if (!(el instanceof HTMLInputElement)) return
@@ -692,13 +748,20 @@ document.addEventListener("input", e => {
     const v = telegramTyped(el.value)
     if (v !== el.value) el.value = v
   }
+  if (el.matches("[data-email], [data-telegram]")) recheckField(el)
 })
-// an e-mail's domain in lowercase once the field is left
 document.addEventListener("focusout", e => {
   const el = e.target
-  if (!(el instanceof HTMLInputElement) || !el.matches("[data-email]")) return
-  const at = el.value.lastIndexOf("@")
-  if (at > 0) el.value = el.value.slice(0, at + 1) + el.value.slice(at + 1).toLowerCase()
+  if (!(el instanceof HTMLInputElement) || !el.matches(CONTACT)) return
+  // an e-mail's domain in lowercase once the field is left
+  if (el.matches("[data-email]")) {
+    const at = el.value.lastIndexOf("@")
+    if (at > 0) el.value = el.value.slice(0, at + 1) + el.value.slice(at + 1).toLowerCase()
+  }
+  // moving from a phone number to its country picker is not leaving it
+  const picker = el.closest(".phonefield")?.querySelector(".phonecountry")
+  if (picker && e.relatedTarget === picker) return
+  checkField(el)
 })
 
 // put text on the clipboard: the Clipboard API on secure pages, the

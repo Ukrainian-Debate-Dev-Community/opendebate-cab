@@ -1688,11 +1688,6 @@ msgstr ""
 msgid "Nobody registered yet."
 msgstr ""
 
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Not a whole number for this country yet."
-msgstr ""
-
 #: lib/cab_web/controllers/error_html.ex
 #, elixir-autogen, elixir-format
 msgid "Not allowed"

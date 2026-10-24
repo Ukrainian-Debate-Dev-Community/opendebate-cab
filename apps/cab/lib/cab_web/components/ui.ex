@@ -592,8 +592,9 @@ defmodule CabWeb.Ui do
             placeholder={@b[:placeholder] || "+380 50 123 4567"}
             autocomplete="tel"
             inputmode="tel"
+            data-phone
+            data-required={@b[:required] && "true"}
           />
-          <div class="phonehint hint" aria-live="polite" hidden></div>
         </div>
         """
 
@@ -608,6 +609,7 @@ defmodule CabWeb.Ui do
           autocomplete="email"
           inputmode="email"
           data-email
+          data-required={@b[:required] && "true"}
         />
         """
 
@@ -623,6 +625,7 @@ defmodule CabWeb.Ui do
           autocapitalize="none"
           spellcheck="false"
           data-telegram
+          data-required={@b[:required] && "true"}
         />
         """
 
