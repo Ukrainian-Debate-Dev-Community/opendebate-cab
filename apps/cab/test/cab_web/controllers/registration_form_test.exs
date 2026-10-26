@@ -81,11 +81,29 @@ defmodule CabWeb.RegistrationFormTest do
   # ---------------------------------------------------------------
 
   describe "editor" do
-    test "the head's pages carry it in the top bar; only the head opens it",
+    test "the club and session pages carry it in the top bar; only the head opens it",
          %{conn: conn, club: club, head: head, member: member} do
       club_page = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner") |> html_response(200)
       assert club_page =~ ~s(href="/c/#{club.uuid}/owner/form")
       assert club_page =~ "Registration form"
+
+      session = session_fixture(club, engine_event_id: 11)
+      stub_stage([])
+
+      session_page =
+        conn
+        |> log_in(head)
+        |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+        |> html_response(200)
+
+      assert session_page =~ ~s(href="/c/#{club.uuid}/owner/form")
+      assert session_page =~ "Registration form"
+
+      members =
+        conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner/members") |> html_response(200)
+
+      refute members =~ ~s(href="/c/#{club.uuid}/owner/form")
+      refute members =~ "Registration form"
 
       html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}/owner/form") |> html_response(200)
       assert html =~ ~s(id="guest-form-editor")
