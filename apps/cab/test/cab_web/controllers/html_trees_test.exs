@@ -807,6 +807,68 @@ defmodule CabWeb.HtmlTreesTest do
     assert Phoenix.Flash.get(bounced.assigns.flash, :error) =~ "only be closed while it is open"
   end
 
+  test "the owner moves the planned start after opening, in their zone; not once rooms exist",
+       %{conn: conn, club: club, head: head} do
+    {:ok, head} = Cab.Accounts.update_profile(head, %{"time_zone" => "Europe/Kyiv"})
+    session = session_fixture(club, engine_event_id: 11, scheduled_at: ~U[2026-10-09 15:30:00Z])
+    # people have signed up; the start may still move
+    stub_signup_stage(signup_stage_signups())
+    path = ~p"/c/#{club.uuid}/owner/sessions/#{session.uuid}/schedule"
+
+    html =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+      |> html_response(200)
+
+    assert html =~ ~s(id="schedule-form" action="#{path}")
+    assert html =~ ~s(type="date" name="date" value="2026-10-09")
+    assert html =~ ~s(type="time" name="time" value="18:30")
+    assert html =~ ~s(type="hidden" name="zone" value="Europe/Kyiv")
+
+    # without JavaScript the form posts the zone it was rendered in
+    saved =
+      conn
+      |> log_in(head)
+      |> post(path, %{date: "2026-12-01", time: "19:00", zone: "Europe/Kyiv"})
+
+    assert redirected_to(saved) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
+    assert Phoenix.Flash.get(saved.assigns.flash, :info) =~ "Start time saved."
+    assert Cab.Repo.reload(session).scheduled_at == ~U[2026-12-01 17:00:00Z]
+
+    # the browser's own zone, sent by app.js
+    conn
+    |> log_in(head)
+    |> post(path, %{date: "2026-12-01", time: "19:00", zone: "Europe/London"})
+
+    assert Cab.Repo.reload(session).scheduled_at == ~U[2026-12-01 19:00:00Z]
+
+    # no zone at all: the account's
+    conn |> log_in(head) |> post(path, %{date: "2026-07-01", time: "19:00"})
+    assert Cab.Repo.reload(session).scheduled_at == ~U[2026-07-01 16:00:00Z]
+
+    bad = conn |> log_in(head) |> post(path, %{date: "1 July", time: "19:00"})
+    assert Phoenix.Flash.get(bad.assigns.flash, :error) =~ "YYYY-MM-DD"
+    assert Cab.Repo.reload(session).scheduled_at == ~U[2026-07-01 16:00:00Z]
+
+    conn |> log_in(head) |> post(path, %{date: "", time: ""})
+    assert Cab.Repo.reload(session).scheduled_at == nil
+
+    # once rooms are made the start is history
+    stub_running_session(running_room(44))
+    refused = conn |> log_in(head) |> post(path, %{date: "2026-12-01", time: "19:00"})
+    assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "before the session starts"
+    assert Cab.Repo.reload(session).scheduled_at == nil
+
+    html =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+      |> html_response(200)
+
+    refute html =~ "schedule-form"
+  end
+
   test "owner signs a member up on their behalf and removes a signup",
        %{conn: conn, club: club, head: head} do
     member = user_fixture(%{node_user_id: 444, username: "benched"})

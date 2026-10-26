@@ -328,6 +328,11 @@ msgstr ""
 msgid "The rooms are fixed once the session runs."
 msgstr ""
 
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
+msgid "The start time can only change before the session starts."
+msgstr ""
+
 #: lib/cab/accounts.ex
 #, elixir-autogen, elixir-format
 msgid "This account already has a different %{provider} sign-in linked."

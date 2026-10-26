@@ -58,6 +58,11 @@ config :cab, :short_link_hosts, []
 # in the browser, and the server asks for a +code
 config :cab, :default_phone_country, nil
 
+# the zone (IANA, e.g. "Europe/Kyiv") the server reads and shows form
+# times in for accounts that keep none and browsers without JavaScript
+# (DEFAULT_TIME_ZONE in production; Cab.TimeZones)
+config :cab, :default_time_zone, "Etc/UTC"
+
 # Configure the endpoint
 # English by default; Ukrainian when the browser or the footer asks
 config :cab, CabWeb.Gettext, default_locale: "en", locales: ~w(en uk)

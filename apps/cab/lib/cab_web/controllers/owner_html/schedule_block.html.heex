@@ -1,0 +1,15 @@
+<.section :if={@state.stage in [:signup, :closed]} title={gettext("Date and start time")}>
+  <.form_for
+    id="schedule-form"
+    action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/schedule"}
+  >
+    <:block
+      names={[:date, :time]}
+      type={:datetime}
+      at={@current.scheduled_at}
+      zone={@zone}
+      hint={gettext("In your time zone; members see it in theirs. No date removes it.")}
+    />
+    <:submit quiet>{gettext("Save")}</:submit>
+  </.form_for>
+</.section>

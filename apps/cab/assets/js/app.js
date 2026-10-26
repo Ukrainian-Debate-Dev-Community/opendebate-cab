@@ -296,6 +296,30 @@ const localizeTimes = () => {
   document.querySelectorAll('input[name="prep_until"]').forEach(input => {
     if (/T/.test(input.value)) input.value = clock(input.value)
   })
+  localizePickers()
+}
+
+// the date and time pickers arrive in the server's zone (the account's,
+// else the deployment's); here they show the viewer's, and the form
+// tells the server which zone they were typed in
+const localizePickers = () => {
+  const zone = viewerZone() || Intl.DateTimeFormat().resolvedOptions().timeZone
+  document.querySelectorAll('.half > input[type="hidden"][name="zone"]').forEach(input => {
+    if (input.value === zone) return
+    const box = input.parentElement
+    if (box.dataset.at) {
+      const [date, time] = zonedParts(box.dataset.at, zone)
+      box.querySelector('input[type="date"]').value = date
+      box.querySelector('input[type="time"]').value = time
+    }
+    input.value = zone
+  })
+}
+const zonedParts = (iso, zone) => {
+  const parts = new Intl.DateTimeFormat("en-GB", {timeZone: zone, year: "numeric", month: "2-digit",
+    day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23"}).formatToParts(new Date(iso))
+  const p = Object.fromEntries(parts.map(part => [part.type, part.value]))
+  return [`${p.year}-${p.month}-${p.day}`, `${p.hour}:${p.minute}`]
 }
 // live updates re-render times in UTC; put them back in the viewer's zone
 new MutationObserver(localizeTimes).observe(document.documentElement,
@@ -312,18 +336,6 @@ const toUtcParts = (date, time, zone) => {
   const utc = new Date(guess.getTime() - offset)
   return [utc.toISOString().slice(0, 10), utc.toISOString().slice(11, 16)]
 }
-document.addEventListener("submit", e => {
-  const form = e.target.closest("#open-session-form")
-  if (!form) return
-  const date = form.querySelector('[name="date"]'), time = form.querySelector('[name="time"]')
-  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date.value.trim())) return
-  const hhmm = time && time.value.trim().match(/^(\d{1,2}):(\d{2})$/)
-  if (time && time.value.trim() && !hhmm) return
-  const [d, t] = toUtcParts(date.value.trim(), hhmm && `${hhmm[1].padStart(2, "0")}:${hhmm[2]}`, viewerZone())
-  date.value = d
-  if (time && time.value) time.value = t
-}, true)
-
 // the prep end typed as HH:MM in the viewer's zone goes out as a UTC
 // instant: today, or tomorrow when that time is already long past
 document.addEventListener("submit", e => {

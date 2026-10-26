@@ -26,6 +26,7 @@ defmodule CabWeb.OwnerSessionLive do
          |> assign(:session_uuid, session.uuid)
          |> assign(:short_url, Sessions.short_url(session))
          |> assign(:query, "")
+         |> assign(:zone, Cab.TimeZones.for_user(socket.assigns.current_user))
          |> assign(selected: MapSet.new(), confirm_remove: false, refused: [])
          |> load()}
     end
@@ -374,6 +375,7 @@ defmodule CabWeb.OwnerSessionLive do
          socket
          |> put_flash(:info, words.(info))
          |> assign(:query, "")
+         |> assign(:zone, Cab.TimeZones.for_user(socket.assigns.current_user))
          |> load()}
 
       error ->
