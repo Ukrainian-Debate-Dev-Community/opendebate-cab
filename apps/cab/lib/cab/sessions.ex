@@ -289,11 +289,12 @@ defmodule Cab.Sessions do
   defp with_feedback_form(error, _club), do: error
 
   @doc """
-  Parses the open-session form's optional date ("YYYY-MM-DD") and time
-  ("HH:MM") into a `scheduled_at` UTC datetime. No date -> `{:ok, nil}`
-  (a time alone is ignored); malformed input -> `{:error, message}`.
+  Parses the schedule form's optional date ("YYYY-MM-DD") and time
+  ("HH:MM") as a wall clock in `zone` (`Cab.TimeZones`; the API's are
+  UTC) into a `scheduled_at` UTC datetime. No date -> `{:ok, nil}` (a
+  time alone is ignored); malformed input -> `{:error, message}`.
   """
-  def parse_schedule(date, time) do
+  def parse_schedule(date, time, zone \\ "Etc/UTC") do
     case presence(date) do
       nil ->
         {:ok, nil}
@@ -301,7 +302,7 @@ defmodule Cab.Sessions do
       date_string ->
         with {:ok, date} <- parse_date(date_string),
              {:ok, time} <- parse_time(presence(time)) do
-          DateTime.new(date, time, "Etc/UTC")
+          {:ok, Cab.TimeZones.to_utc(NaiveDateTime.new!(date, time), zone)}
         end
     end
   end
@@ -354,6 +355,30 @@ defmodule Cab.Sessions do
             {:error, changeset} -> Repo.rollback(changeset)
           end
         end)
+      end
+
+    notify(result, session)
+  end
+
+  @doc """
+  Moves the planned start (`parse_schedule/3`; nil clears it): only
+  before the session starts, sign-ups or not - members see the new
+  time on the club page. Returns `{:ok, session}` or
+  `{:error, :conflict, message}`.
+  """
+  def reschedule(%Session{} = session, scheduled_at) do
+    result =
+      with {:ok, state} <- state(session) do
+        case state.stage do
+          stage when stage in [:signup, :closed] ->
+            session
+            |> Ecto.Changeset.change(scheduled_at: scheduled_at)
+            |> Repo.update()
+
+          _stage ->
+            {:error, :conflict,
+             dgettext("errors", "The start time can only change before the session starts.")}
+        end
       end
 
     notify(result, session)
@@ -419,8 +444,9 @@ defmodule Cab.Sessions do
 
   defp parse_time(nil), do: {:ok, ~T[00:00:00]}
 
+  # a time picker may add seconds ("HH:MM:SS")
   defp parse_time(string) do
-    case Time.from_iso8601(string <> ":00") do
+    case Time.from_iso8601(if String.length(string) <= 5, do: string <> ":00", else: string) do
       {:ok, time} -> {:ok, time}
       _ -> {:error, dgettext("errors", "Enter the time as HH:MM.")}
     end

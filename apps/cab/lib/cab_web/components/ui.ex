@@ -411,8 +411,11 @@ defmodule CabWeb.Ui do
   Block types (the complete inventory): `:text`, `:longtext`, `:int`,
   `:float`, `:scale` (flush integer segments), `:yesno` (two pills),
   `:select` (pills at 2-4 options, dropdown at 5+), `:multi` (stacked
-  checks), `:check` (one yes box), `:datetime` (half-split pair, pass
-  `names`), `:file` (an image picker with the current one's `preview`
+  checks), `:check` (one yes box), `:datetime` (the phone's date and
+  time pickers side by side, pass `names`; `at` prefills them in
+  `zone`, which goes along as `zone`: app.js puts the viewer's own
+  there, without one the server reads the account's), `:file` (an
+  image picker with the current one's `preview`
   and a `remove` box; pass `enctype="multipart/form-data"`), `:phone`
   (a number with a country picker, formatted as it is typed; the
   picker opens on `:default_phone_country`, else the visitor's region;
@@ -458,7 +461,8 @@ defmodule CabWeb.Ui do
     attr :max, :any
     attr :step, :any
     attr :value, :any
-    attr :values, :list, doc: "the two values of a :datetime pair"
+    attr :at, :any, doc: "a :datetime pair's current instant (UTC)"
+    attr :zone, :string, doc: "the zone a :datetime pair is typed in (Cab.TimeZones)"
     attr :options, :list, doc: "choices for :select / :multi, strings or {label, value}"
     attr :placeholder, :string
     attr :input, :string, doc: "a :text block's input type: email, tel (default text)"
@@ -759,7 +763,9 @@ defmodule CabWeb.Ui do
 
       :datetime ->
         [date_name, time_name] = Enum.map(block[:names] || [:date, :time], &to_string/1)
-        [date_value, time_value] = block[:values] || [nil, nil]
+
+        [date_value, time_value] =
+          Cab.TimeZones.local_parts(block[:at], block[:zone] || Cab.TimeZones.default())
 
         assigns =
           Map.merge(assigns, %{
@@ -770,14 +776,10 @@ defmodule CabWeb.Ui do
           })
 
         ~H"""
-        <div class="half">
-          <input
-            type="text"
-            name={@date_name}
-            value={@date_value}
-            placeholder={gettext("YYYY-MM-DD")}
-          />
-          <input type="text" name={@time_name} value={@time_value} placeholder={gettext("HH:MM")} />
+        <div class="half" data-at={@b[:at] && DateTime.to_iso8601(@b[:at])}>
+          <input type="date" name={@date_name} value={@date_value} aria-label={gettext("Date")} />
+          <input type="time" name={@time_name} value={@time_value} aria-label={gettext("Time")} />
+          <input type="hidden" name="zone" value={@b[:zone]} />
         </div>
         """
     end

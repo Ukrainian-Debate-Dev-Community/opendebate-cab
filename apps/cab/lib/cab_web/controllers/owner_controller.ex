@@ -159,7 +159,7 @@ defmodule CabWeb.OwnerController do
   # POST /c/:club_uuid/owner/sessions - name + optional date/time and
   # participant limit; lands on the new session's owner surface
   def open_session(conn, params) do
-    with {:ok, scheduled_at} <- Sessions.parse_schedule(params["date"], params["time"]),
+    with {:ok, scheduled_at} <- parse_schedule(conn, params),
          {:ok, limit} <- Sessions.parse_participant_limit(params["max_participants"]),
          {:ok, session} <-
            Sessions.open(
@@ -294,6 +294,23 @@ defmodule CabWeb.OwnerController do
         error -> error
       end
     end)
+  end
+
+  # POST .../owner/sessions/:session_uuid/schedule {"date", "time",
+  # "zone"} - the planned start, moved or cleared
+  def reschedule(conn, %{"session_uuid" => session_uuid} = params) do
+    with_session(conn, session_uuid, fn session ->
+      with {:ok, scheduled_at} <- parse_schedule(conn, params),
+           {:ok, _session} <- Sessions.reschedule(session, scheduled_at) do
+        {:ok, gettext("Start time saved.")}
+      end
+    end)
+  end
+
+  # the date/time block's wall clock, in the zone it was typed in
+  defp parse_schedule(conn, params) do
+    zone = Cab.TimeZones.for_form(params["zone"], conn.assigns.current_user)
+    Sessions.parse_schedule(params["date"], params["time"], zone)
   end
 
   # POST .../owner/sessions/:session_uuid/signups {"q"} - the add field

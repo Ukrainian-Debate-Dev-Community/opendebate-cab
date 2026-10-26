@@ -892,7 +892,13 @@ msgstr ""
 msgid "Data requests or deletion:"
 msgstr ""
 
+#: lib/cab_web/components/ui.ex
+#, elixir-autogen, elixir-format
+msgid "Date"
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
+#: lib/cab_web/controllers/owner_html/schedule_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Date and start time"
 msgstr ""
@@ -1192,7 +1198,6 @@ msgstr ""
 msgid "Guests see the label as the question and the hint below it."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "HH:MM"
@@ -1256,6 +1261,11 @@ msgstr ""
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex
 #, elixir-autogen, elixir-format
 msgid "If that guest was you, add their results to your account. They show on My page under your name, and this link stops working."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/schedule_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "In your time zone; members see it in theirs. No date removes it."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
@@ -2068,7 +2078,6 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex
-#: lib/cab_web/controllers/owner_html/members.html.heex
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registration form"
@@ -2271,6 +2280,7 @@ msgstr ""
 #: lib/cab_web/controllers/account_html/show.html.heex
 #: lib/cab_web/controllers/me_html/answers.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
+#: lib/cab_web/controllers/owner_html/schedule_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Save"
 msgstr ""
@@ -2540,6 +2550,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Start session"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Start time saved."
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex
@@ -2881,6 +2896,11 @@ msgstr ""
 msgid "This session is unavailable right now."
 msgstr ""
 
+#: lib/cab_web/components/ui.ex
+#, elixir-autogen, elixir-format
+msgid "Time"
+msgstr ""
+
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Time zone"
@@ -3026,11 +3046,6 @@ msgstr ""
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Winners:"
-msgstr ""
-
-#: lib/cab_web/components/ui.ex
-#, elixir-autogen, elixir-format
-msgid "YYYY-MM-DD"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex
