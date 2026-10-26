@@ -98,6 +98,7 @@ bin/cab eval "Cab.Release.migrate()"
 | `RETURN_HOSTS` | no | e.g. `example.org,www.example.org`: sibling sites a sign-in may send people back to (`/signin?return_to=https://example.org/...`) |
 | `SHORT_LINK_HOSTS` | no | e.g. `example.org,www.example.org`: hosts besides cab's own that short links may point to |
 | `DEFAULT_PHONE_COUNTRY` | no | e.g. `UA`: phone numbers typed without a `+code` are read in this country, and the phone field opens on it; unset, the field opens on the visitor's own region and the server asks for a `+code` |
+| `DEFAULT_TIME_ZONE` | no | e.g. `Europe/Kyiv`: the zone form times are read and prefilled in for accounts without their own zone when the browser runs no JavaScript; `Etc/UTC` by default |
 | `RATE_LIMIT_ENABLED` | no | the JSON API's rate limit, `true` by default |
 | `RATE_LIMIT_SIGNED_IN`, `RATE_LIMIT_ANONYMOUS` | no | requests per minute, 60 and 20 by default |
 | `FORM_RATE_LIMIT` | no | `true` turns on the public forms' rate limit (off by default, independent of `RATE_LIMIT_ENABLED`) |

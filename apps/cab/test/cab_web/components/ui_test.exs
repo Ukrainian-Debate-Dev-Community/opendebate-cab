@@ -361,10 +361,10 @@ defmodule CabWeb.UiTest do
     assert html =~ ~s(class="opts")
     assert html =~ ~s(name="opts[]")
 
-    # datetime: half-split pair
+    # datetime: the native date and time pickers, half-split
     assert html =~ ~s(class="half")
-    assert html =~ ~s(name="date")
-    assert html =~ ~s(placeholder="HH:MM")
+    assert html =~ ~s(type="date" name="date")
+    assert html =~ ~s(type="time" name="time")
 
     assert html =~ ~s(class="f-submit")
     assert html =~ ~s(class="btn-go")

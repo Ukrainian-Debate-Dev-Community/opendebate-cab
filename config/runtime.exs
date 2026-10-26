@@ -114,6 +114,10 @@ if config_env() == :prod do
     config :cab, :default_phone_country, String.upcase(country)
   end
 
+  if zone = System.get_env("DEFAULT_TIME_ZONE") do
+    config :cab, :default_time_zone, zone
+  end
+
   # the public forms' rate limit, independent of the API's: opt-in
   if form_rate_limit = System.get_env("FORM_RATE_LIMIT") do
     config :cab, CabWeb.BotGuard, rate_limit: form_rate_limit == "true"

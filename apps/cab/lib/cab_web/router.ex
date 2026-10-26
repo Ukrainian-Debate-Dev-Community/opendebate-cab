@@ -171,6 +171,7 @@ defmodule CabWeb.Router do
     post "/owner/sessions/:session_uuid/start", OwnerController, :start
     post "/owner/sessions/:session_uuid/close-signups", OwnerController, :close_signups
     post "/owner/sessions/:session_uuid/reopen-signups", OwnerController, :reopen_signups
+    post "/owner/sessions/:session_uuid/schedule", OwnerController, :reschedule
 
     post "/owner/sessions/:session_uuid/reopen-registration",
          OwnerController,
