@@ -8,4 +8,8 @@ defmodule CabWeb.SigninHTML do
   use CabWeb, :html
 
   embed_templates "signin_html/*"
+
+  # the sign-in buttons' query: the page to return to, when one asked
+  defp return_param(nil), do: []
+  defp return_param(back), do: [return_to: back]
 end

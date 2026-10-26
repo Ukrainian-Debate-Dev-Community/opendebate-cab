@@ -17,20 +17,29 @@ defmodule CabWeb.SigninController do
   end
 
   def show(conn, params) do
-    conn = remember_return(conn, params["return_to"])
+    asked = CabWeb.ReturnTo.accept(params["return_to"])
 
     case {conn.assigns.current_user, existing(conn)} do
+      # a fresh sign-in: only the page that asked gets the person back -
+      # the buttons carry it to the provider (AuthController stores it
+      # there), and an address left from an abandoned sign-in goes
       {nil, nil} ->
-        render(conn, :show,
+        conn
+        |> delete_session(:return_to)
+        |> render(:show,
           existing: nil,
+          return_to: asked,
           providers: ["GitHub", "Google"],
           head_club: CabWeb.HeadInvitationController.pending_club(conn),
           page_title: gettext("Sign in")
         )
 
+      # mid sign-in (adding a method to an existing account): the
+      # address stored when this sign-in started stays with it
       {nil, existing} ->
         render(conn, :show,
           existing: existing,
+          return_to: CabWeb.ReturnTo.accept(get_session(conn, :return_to)),
           providers: existing.providers,
           head_club: CabWeb.HeadInvitationController.pending_club(conn),
           page_title: gettext("Sign in")
@@ -38,7 +47,7 @@ defmodule CabWeb.SigninController do
 
       # already signed in: straight back to whoever sent them here
       _signed_in ->
-        case CabWeb.ReturnTo.accept(params["return_to"]) do
+        case asked do
           nil -> redirect(conn, to: ~p"/")
           back -> conn |> delete_session(:return_to) |> CabWeb.ReturnTo.redirect_to(back)
         end
@@ -80,14 +89,4 @@ defmodule CabWeb.SigninController do
   defp provider_name("github"), do: "GitHub"
   defp provider_name("google"), do: "Google"
   defp provider_name(other), do: other
-
-  # a page that sent the visitor here ("Have an account? Sign in" on
-  # a club page, a sibling site's editors) gets them back after signing
-  # in: local paths and the deployment's return hosts (CabWeb.ReturnTo)
-  defp remember_return(conn, value) do
-    case CabWeb.ReturnTo.accept(value) do
-      nil -> conn
-      back -> put_session(conn, :return_to, back)
-    end
-  end
 end
