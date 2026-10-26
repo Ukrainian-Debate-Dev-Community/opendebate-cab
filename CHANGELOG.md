@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.3 - 2026-10-26
+
+1 fix; breaking: 0
+
+### Fixes
+
+- cab: a sign-in returns only where that sign-in asked (#37) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 1 commit
+
 ## v0.2.2 - 2026-10-24
 
 1 feature; breaking: 0
