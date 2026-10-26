@@ -54,7 +54,8 @@
             <% nil -> %>
               {gettext("not planned yet")}
             <% {session, :signup, _rooms} -> %>
-              <span class="next-reg">
+              <span :if={Cab.Sessions.full?(session)}>{gettext("registration full")}</span>
+              <span :if={!Cab.Sessions.full?(session)} class="next-reg">
                 <.local_time
                   :if={session.scheduled_at}
                   at={session.scheduled_at}

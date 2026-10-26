@@ -6,7 +6,8 @@ defmodule CabWeb.MemberHTML do
 
   @doc """
   The Club Sessions table - every session: name, date and time,
-  status in words, and the viewer's action (Register / Cancel
+  status in words ("registration full" once an open session's limit
+  is reached), and the viewer's action (Register / Cancel
   registration while it takes sign-ups, else Open); shared by the
   club and owner pages.
   """

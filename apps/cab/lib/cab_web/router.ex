@@ -176,6 +176,7 @@ defmodule CabWeb.Router do
          OwnerController,
          :reopen_registration
 
+    post "/owner/sessions/:session_uuid/limit", OwnerController, :set_limit
     post "/owner/sessions/:session_uuid/signups", OwnerController, :add_person
 
     post "/owner/sessions/:session_uuid/signups/:participant_id/remove",

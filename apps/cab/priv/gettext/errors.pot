@@ -197,6 +197,11 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
+msgid "Registration is full."
+msgstr ""
+
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
 msgid "Registration is not open."
 msgstr ""
 
@@ -309,6 +314,11 @@ msgstr ""
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
 msgid "The number of rooms is 1 to %{max}, or automatic."
+msgstr ""
+
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
+msgid "The participant limit is a whole number above zero, or empty for none."
 msgstr ""
 
 #: lib/cab/sessions.ex

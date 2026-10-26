@@ -8,6 +8,8 @@
       <%= case row.status do %>
         <% :open -> %>
           {gettext("registration open")}
+        <% :full -> %>
+          {gettext("registration full")}
         <% :closed -> %>
           {gettext("registration closed")}
         <% :running -> %>
@@ -22,7 +24,7 @@
           <.link href={~p"/c/#{@club.uuid}/owner/s/#{row.session_uuid}"} class="btn-quiet btn-sm">
             {gettext("Open")}
           </.link>
-        <% not @owner and row.status == :open and Map.has_key?(@mine, row.session_uuid) -> %>
+        <% not @owner and row.status in [:open, :full] and Map.has_key?(@mine, row.session_uuid) -> %>
           <.link
             href={
               ~p"/c/#{@club.uuid}/s/#{row.session_uuid}/signups/#{@mine[row.session_uuid]}/remove?from=club"

@@ -16,6 +16,11 @@ defmodule Cab.Sessions.Session do
     # the draft's room count set by hand; nil = automatic (see
     # Cab.Sessions.rooms_for/2)
     field :draft_rooms, :integer
+    # the head's cap on sign-ups; nil = no limit (see
+    # Cab.Sessions.claim_place/2). signups_count is cab's record of the
+    # engine's sign-ups, for lists (Cab.Sessions.full?/1)
+    field :max_participants, :integer
+    field :signups_count, :integer, default: 0
     # lifecycle facts recorded when cab performs them (lists read these,
     # never the engine): see Cab.Sessions.stage_of/1
     field :name, :string
@@ -37,8 +42,32 @@ defmodule Cab.Sessions.Session do
     session
     |> change()
     |> validate_required([:engine_event_id])
+    |> validate_limit()
     |> put_uuid()
     |> unique_constraint(:uuid)
+  end
+
+  @doc "The head sets or clears the participant limit (`Cab.Sessions.set_max_participants/2`)."
+  def limit_changeset(session, max_participants) do
+    session
+    |> change(max_participants: max_participants)
+    |> validate_limit()
+  end
+
+  # the field's value, changed or not: changeset/1 casts nothing
+  defp validate_limit(changeset) do
+    case get_field(changeset, :max_participants) do
+      max when is_integer(max) and max < 1 ->
+        add_error(changeset, :max_participants, "must be greater than %{number}",
+          validation: :number,
+          kind: :greater_than,
+          number: 0
+        )
+
+      _none_or_positive ->
+        changeset
+    end
+    |> check_constraint(:max_participants, name: :max_participants_positive)
   end
 
   defp put_uuid(changeset) do

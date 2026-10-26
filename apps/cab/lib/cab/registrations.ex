@@ -6,12 +6,14 @@ defmodule Cab.Registrations do
   account the guest fields without the e-mail (cab has the account's
   address). The answers are kept for that session only - never
   written back to the member's saved answers - and only the head
-  reads them (Responses). Guests register through `Cab.Links`.
+  reads them (Responses). Guests register through `Cab.Links`
+  (`register_guest/3` here). Both take a place under the session's
+  participant limit (`Cab.Sessions.claim_place/2`).
   """
 
   import Ecto.Query
 
-  alias Cab.{Clubs, Invitations, Repo, Sessions}
+  alias Cab.{Clubs, Invitations, Links, Repo, Sessions}
   alias Cab.Accounts.User
   alias Cab.Registrations.Registration
   alias Cab.Sessions.Session
@@ -37,8 +39,10 @@ defmodule Cab.Registrations do
   @doc """
   Registers the signed-in user with their answers (`params` keyed by
   field id): checks them, signs up in the engine (or accepts a pending
-  invitation), keeps the answers. `{:ok, participant_id}`, `{:error,
-  {:answers, codes}}` or the engine's refusal.
+  invitation, whose place is already taken), keeps the answers.
+  `{:ok, participant_id}`, `{:error, {:answers, codes}}`, `{:error,
+  :conflict, message}` when the session is full, or the engine's
+  refusal.
   """
   def register(%User{} = user, %Session{} = session, params) do
     session = Repo.preload(session, :club)
@@ -61,6 +65,15 @@ defmodule Cab.Registrations do
     end
   end
 
+  @doc """
+  A guest registers on the club page (`Cab.Links.register_guest/3`)
+  while the session has a place; `{:error, :conflict, message}` when
+  it is full.
+  """
+  def register_guest(%Session{} = session, name, answer_params) do
+    Sessions.claim_place(session, fn -> Links.register_guest(session, name, answer_params) end)
+  end
+
   defp check(fields, params) do
     case Core.Forms.validate_answers(fields, params, Clubs.answer_opts()) do
       {:ok, answers} -> {:ok, answers}
@@ -71,7 +84,9 @@ defmodule Cab.Registrations do
   defp sign_up(user, session) do
     case Invitations.pending(session, user) do
       nil ->
-        with {:ok, participant} <- Sessions.signup(user, session), do: {:ok, participant["id"]}
+        with {:ok, participant} <-
+               Sessions.claim_place(session, fn -> Sessions.signup(user, session) end),
+             do: {:ok, participant["id"]}
 
       invitation ->
         with {:ok, :accepted} <- Invitations.accept(invitation, user),

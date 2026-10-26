@@ -52,7 +52,8 @@
           <%= cond do %>
             <% m.status != "approved" -> %>
               —
-            <% match?({%{scheduled_at: %DateTime{}}, :signup, _}, @tonight[m.club_id]) -> %>
+            <% match?({%{scheduled_at: %DateTime{}}, :signup, _}, @tonight[m.club_id]) and
+                not Cab.Sessions.full?(elem(@tonight[m.club_id], 0)) -> %>
               {gettext("registration open")},
               <.local_time
                 at={elem(@tonight[m.club_id], 0).scheduled_at}

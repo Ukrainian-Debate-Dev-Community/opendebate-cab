@@ -29,7 +29,13 @@ defmodule CabWeb.ClubPublicHTML do
 
   # the session line shows above a form (and a running session)
   defp header?(%{done: %{}}), do: false
-  defp header?(%{kind: kind}), do: kind in [:guest, :member, :account, :running]
+  defp header?(%{kind: kind}), do: kind in [:guest, :member, :account, :full, :running]
+
+  # the places left under the session's limit, while it takes sign-ups
+  defp places_left(%{kind: kind, session: session}) when kind in [:guest, :member, :account],
+    do: Cab.Sessions.places_left(session)
+
+  defp places_left(_registration), do: nil
 
   # the Register button's menu: the other sessions taking sign-ups the
   # viewer is not registered for,
@@ -51,7 +57,9 @@ defmodule CabWeb.ClubPublicHTML do
   session (with several taking sign-ups, Register's menu switches to
   another): a form while it takes sign-ups (the guest form,
   or the member's / account's fields as themselves), the guest's
-  personal link once registered, else where things stand.
+  personal link once registered, else where things stand. With a
+  participant limit the places left show above the form, and a full
+  session says so instead of the form.
   """
   attr :club, :map, required: true
   attr :registration, :map, required: true
@@ -75,6 +83,9 @@ defmodule CabWeb.ClubPublicHTML do
               at={@registration.session.scheduled_at}
               as={:short}
             /></span>
+          </p>
+          <p :if={places_left(@registration)}>
+            {ngettext("%{count} place left", "%{count} places left", places_left(@registration))}
           </p>
         </div>
         <%= case {@registration.kind, @registration.done} do %>
@@ -167,6 +178,11 @@ defmodule CabWeb.ClubPublicHTML do
                 {gettext("Register")}
               </:submit>
             </.form_for>
+          <% {:full, _done} -> %>
+            <div class="pad">
+              {gettext("Registration is full.")}
+              {gettext("Ask the club head about the next session.")}
+            </div>
           <% {:registered, _done} -> %>
             <div class="pad">
               <p>

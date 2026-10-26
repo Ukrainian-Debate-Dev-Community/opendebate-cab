@@ -93,7 +93,7 @@ defmodule CabWeb.ClubPublicController do
   end
 
   defp create_guest(conn, session, state, params) do
-    case Cab.Links.register_guest(session, params["name"], answer_params(params)) do
+    case Cab.Registrations.register_guest(session, params["name"], answer_params(params)) do
       {:ok, link} ->
         done = %{
           link: link,
@@ -166,7 +166,8 @@ defmodule CabWeb.ClubPublicController do
 
   # the registration section, or nil: a form for a session taking
   # sign-ups the viewer is not registered for (params["session"], else
-  # the nearest) - :guest, :member or :account - with a one-line
+  # the nearest with a place) - :guest, :member or :account, :full once
+  # its limit is reached - with a one-line
   # `notice` when the link named one they already have; :all_registered
   # when they have every open one; with none open, the current
   # session's :closed or :running. `params`/`errors` refill a form
@@ -193,8 +194,11 @@ defmodule CabWeb.ClubPublicController do
         free = for choice <- choices, !choice.registered, do: choice.session
         notice = requested && requested.registered && requested.session
 
+        # by default the nearest one with a place left
         chosen =
-          if requested && !requested.registered, do: requested.session, else: List.first(free)
+          if requested && !requested.registered,
+            do: requested.session,
+            else: Enum.find(free, List.first(free), &(!Sessions.full?(&1)))
 
         case chosen do
           nil ->
@@ -251,6 +255,12 @@ defmodule CabWeb.ClubPublicController do
       viewer && Cab.Links.holds_session?(viewer.id, session) ->
         %{base | kind: :registered}
 
+      signup = user && own_signup(session, user) ->
+        %{base | kind: :registered, signup: signup}
+
+      Sessions.full?(session) ->
+        %{base | kind: :full}
+
       is_nil(user) ->
         %{
           base
@@ -258,9 +268,6 @@ defmodule CabWeb.ClubPublicController do
             fields: Clubs.guest_fields(session.club),
             values: answer_params(params)
         }
-
-      signup = own_signup(session, user) ->
-        %{base | kind: :registered, signup: signup}
 
       true ->
         {kind, fields, saved} = Cab.Registrations.form_for(session.club, user)

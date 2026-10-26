@@ -115,6 +115,14 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "%{count} place left"
+msgid_plural "%{count} places left"
+msgstr[0] "Залишилося %{count} місце"
+msgstr[1] "Залишилося %{count} місця"
+msgstr[2] "Залишилося %{count} місць"
+
 #: lib/cab_web/controllers/owner_controller.ex
 #: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
@@ -1504,6 +1512,11 @@ msgstr "Спосіб"
 msgid "More options"
 msgstr "Інші варіанти"
 
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Most people in this session"
+msgstr "Найбільше людей у цій сесії"
+
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
@@ -1815,6 +1828,11 @@ msgstr "Необов'язкова мітка, щоб згодом знайти �
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
+msgid "Optional — registration stops once this many people are in. Empty = no limit."
+msgstr "Необов'язково — реєстрація зупиняється, щойно зареєструється стільки людей. Порожньо = без обмеження."
+
+#: lib/cab_web/controllers/owner_html/club.html.heex
+#, elixir-autogen, elixir-format
 msgid "Optional — when the session is planned to start, in your time zone."
 msgstr "Необов'язково — коли сесія має початися, у вашому часовому поясі."
 
@@ -1847,6 +1865,22 @@ msgstr "МІСЦЕ"
 #, elixir-autogen, elixir-format
 msgid "PM"
 msgstr "ПМ"
+
+#: lib/cab_web/controllers/owner_html/club.html.heex
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Participant limit"
+msgstr "Обмеження учасників"
+
+#: lib/cab_web/controllers/owner_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Participant limit removed."
+msgstr "Обмеження учасників знято."
+
+#: lib/cab_web/controllers/owner_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Participant limit saved."
+msgstr "Обмеження учасників збережено."
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -2056,6 +2090,11 @@ msgstr "Форма реєстрації"
 msgid "Registration is closed for this session."
 msgstr "Реєстрацію на цю сесію закрито."
 
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "Registration is full."
+msgstr "Усі місця зайнято."
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registration opens as soon as you open the session."
@@ -2070,6 +2109,11 @@ msgstr "Реєстрацію видалено."
 #, elixir-autogen, elixir-format
 msgid "Registration reopened."
 msgstr "Реєстрацію знову відкрито."
+
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Registration stops once this many people are in. Empty = no limit. Now in: %{count}."
+msgstr "Реєстрація зупиняється, щойно зареєструється стільки людей. Порожньо = без обмеження. Зараз зареєстровано: %{count}."
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
@@ -2248,6 +2292,11 @@ msgstr "Зберегти"
 #, elixir-autogen, elixir-format
 msgid "Save field"
 msgstr "Зберегти поле"
+
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Save limit"
+msgstr "Зберегти обмеження"
 
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
@@ -3521,6 +3570,13 @@ msgstr "зареєстрований користувач, прийме запр
 #, elixir-autogen, elixir-format
 msgid "registration closed"
 msgstr "реєстрацію закрито"
+
+#: lib/cab_web/controllers/me_html.ex
+#: lib/cab_web/controllers/member_html/archive_section.html.heex
+#: lib/cab_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "registration full"
+msgstr "місць немає"
 
 #: lib/cab_web/controllers/club_public_controller.ex
 #, elixir-autogen, elixir-format
