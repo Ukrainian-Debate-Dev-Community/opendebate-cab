@@ -107,6 +107,23 @@ defmodule Cab.Sessions do
 
   defp topic(uuid), do: "session:" <> uuid
 
+  # cab's record of the engine's sign-up count moves with each add
+  # (+1) or removal (-1) it makes; `claim_place/2` resets it from the
+  # engine
+  defp count_signups(result, %Session{id: id}, delta) when is_integer(id) do
+    if result == :ok or match?({:ok, _}, result) do
+      from(s in Session,
+        where: s.id == ^id,
+        update: [set: [signups_count: fragment("greatest(? + ?, 0)", s.signups_count, ^delta)]]
+      )
+      |> Repo.update_all([])
+    end
+
+    result
+  end
+
+  defp count_signups(result, _session, _delta), do: result
+
   defp notify(result, session) do
     if result == :ok or match?({:ok, _}, result), do: broadcast(session)
     result
@@ -225,9 +242,10 @@ defmodule Cab.Sessions do
   ready for sign-ups, plus the gateway row. Motions are NOT set here -
   each room's judge sets their own room's motion once rooms are made.
   `scheduled_at` is the optional planned start (UTC) - see
-  `parse_schedule/2` for the form's date/time pair.
+  `parse_schedule/2` for the form's date/time pair; `max_participants`
+  the optional limit on sign-ups (`parse_participant_limit/1`).
   """
-  def open(%User{} = head, %Club{} = club, name, scheduled_at \\ nil) do
+  def open(%User{} = head, %Club{} = club, name, scheduled_at \\ nil, max_participants \\ nil) do
     with {:ok, name} <- Cab.Text.check(name, max: @name_max),
          name = name || "Club session #{Date.utc_today()}",
          {:ok, actor} <- owner_actor(head, club),
@@ -239,7 +257,8 @@ defmodule Cab.Sessions do
         engine_event_id: event["id"],
         engine_round_id: round["id"],
         name: event["name"] || name,
-        scheduled_at: scheduled_at
+        scheduled_at: scheduled_at,
+        max_participants: max_participants
       }
       |> Session.changeset()
       |> Repo.insert()
@@ -289,6 +308,59 @@ defmodule Cab.Sessions do
   end
 
   @doc """
+  Parses a form's participant limit: blank -> `{:ok, nil}` (no limit),
+  a whole number above zero -> `{:ok, number}`, anything else ->
+  `{:error, message}`.
+  """
+  def parse_participant_limit(limit) when limit in [nil, ""], do: {:ok, nil}
+  def parse_participant_limit(limit) when is_integer(limit) and limit > 0, do: {:ok, limit}
+
+  def parse_participant_limit(limit) when is_binary(limit) do
+    case {String.trim(limit), Integer.parse(String.trim(limit))} do
+      {"", _} -> {:ok, nil}
+      {_, {number, ""}} -> parse_participant_limit(number)
+      _ -> parse_participant_limit(:invalid)
+    end
+  end
+
+  def parse_participant_limit(_limit),
+    do:
+      {:error,
+       dgettext(
+         "errors",
+         "The participant limit is a whole number above zero, or empty for none."
+       )}
+
+  @doc """
+  The head sets the participant limit (or clears it with `nil`) while
+  sign-ups are open. A limit below the people already signed up keeps
+  them all; it only stops new registrations. Records the engine's
+  sign-up count on the row too. Returns `{:ok, session}`,
+  `{:error, :conflict, message}` or `{:error, message}`.
+  """
+  def set_max_participants(%Session{} = session, limit) do
+    result =
+      with {:ok, limit} <- parse_participant_limit(limit),
+           {:ok, state} <- state(session),
+           :ok <- require_stage(state, :signup) do
+        Repo.transaction(fn ->
+          locked = Repo.one!(from s in Session, where: s.id == ^session.id, lock: "FOR UPDATE")
+
+          locked
+          |> Session.limit_changeset(limit)
+          |> Ecto.Changeset.change(signups_count: length(state.signups))
+          |> Repo.update()
+          |> case do
+            {:ok, saved} -> saved
+            {:error, changeset} -> Repo.rollback(changeset)
+          end
+        end)
+      end
+
+    notify(result, session)
+  end
+
+  @doc """
   Moves the planned start (`parse_schedule/3`; nil clears it): only
   before the session starts, sign-ups or not - members see the new
   time on the club page. Returns `{:ok, session}` or
@@ -311,6 +383,57 @@ defmodule Cab.Sessions do
 
     notify(result, session)
   end
+
+  @doc """
+  A self-registration (`fun`, the engine sign-up) taken only while the
+  session has a place. The session row is locked (`SELECT ... FOR
+  UPDATE`) and the engine's sign-ups counted under the lock, so two
+  people racing for the last place go one after the other and the
+  second finds it taken. Returns `fun`'s result, or `{:error,
+  :conflict, message}` when the session is full. The head adding
+  people is not limited.
+  """
+  def claim_place(%Session{} = session, fun) do
+    club = session_club(session)
+
+    {:ok, result} =
+      Repo.transaction(
+        fn ->
+          locked = Repo.one!(from s in Session, where: s.id == ^session.id, lock: "FOR UPDATE")
+
+          with :ok <- require_place(%{locked | club: club}) do
+            fun.()
+          end
+        end,
+        timeout: :timer.seconds(60)
+      )
+
+    result
+  end
+
+  defp require_place(%Session{max_participants: nil}), do: :ok
+
+  defp require_place(%Session{max_participants: max} = session) do
+    with {:ok, state} <- state(session) do
+      # the count lists read follows the engine's
+      record(session, signups_count: length(state.signups))
+
+      if length(state.signups) < max,
+        do: :ok,
+        else: {:error, :conflict, dgettext("errors", "Registration is full.")}
+    end
+  end
+
+  @doc """
+  Is the session full - a limit set and reached? From cab's record of
+  the sign-ups, no engine call (`claim_place/2` counts the engine's).
+  """
+  def full?(%Session{max_participants: max, signups_count: count}),
+    do: is_integer(max) and count >= max
+
+  @doc "The places left under the session's limit, or nil without one."
+  def places_left(%Session{max_participants: nil}), do: nil
+  def places_left(%Session{max_participants: max, signups_count: count}), do: max(max - count, 0)
 
   defp parse_date(string) do
     case Date.from_iso8601(string) do
@@ -675,7 +798,7 @@ defmodule Cab.Sessions do
         )
       end
 
-    notify(result, session)
+    result |> count_signups(session, 1) |> notify(session)
   end
 
   @doc """
@@ -699,7 +822,7 @@ defmodule Cab.Sessions do
         )
       end
 
-    notify(result, session)
+    result |> count_signups(session, 1) |> notify(session)
   end
 
   @doc """
@@ -724,7 +847,7 @@ defmodule Cab.Sessions do
         )
       end
 
-    notify(result, session)
+    result |> count_signups(session, 1) |> notify(session)
   end
 
   @doc """
@@ -748,7 +871,7 @@ defmodule Cab.Sessions do
         else
           with {:ok, _} <-
                  EngineApi.delete_participant(head_actor, session.engine_event_id, participant_id),
-               do: :ok
+               do: count_signups(:ok, session, -1)
         end
       end
 
@@ -781,7 +904,7 @@ defmodule Cab.Sessions do
         )
       end
 
-    notify(result, session)
+    result |> count_signups(session, 1) |> notify(session)
   end
 
   defp approved_member(club, username) do
@@ -829,7 +952,7 @@ defmodule Cab.Sessions do
         :ok
       end
 
-    notify(result, session)
+    result |> count_signups(session, -1) |> notify(session)
   end
 
   @doc """
@@ -1732,6 +1855,7 @@ defmodule Cab.Sessions do
       record(session,
         name: state.event["name"],
         rooms_count: length(state.rooms),
+        signups_count: length(state.signups),
         started_at:
           if(state.rooms != [], do: session.started_at || session.updated_at, else: nil),
         finished_at: if(done?, do: session.finished_at || session.updated_at, else: nil),
@@ -1920,7 +2044,8 @@ defmodule Cab.Sessions do
   @doc """
   The club page's "Club Sessions" table: EVERY session, latest first,
   with its status from cab's records - open (registration open) |
-  closed | running | finished. Pure database, no engine call.
+  full (open, the limit reached) | closed | running | finished. Pure
+  database, no engine call.
   """
   def club_sessions(%Club{} = club) do
     for session <- list_for_club(club) do
@@ -1930,7 +2055,7 @@ defmodule Cab.Sessions do
         date: session.scheduled_at || session.inserted_at,
         status:
           case stage_of(session) do
-            :signup -> :open
+            :signup -> if full?(session), do: :full, else: :open
             :closed -> :closed
             :running -> :running
             :done -> :finished

@@ -6,6 +6,28 @@
     {gettext("Share to register: the club page")}
   </.copy_banner>
 
+  <.section title={gettext("Participant limit")}>
+    <.form_for
+      id="participant-limit-form"
+      action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/limit"}
+    >
+      <:block
+        name={:max_participants}
+        type={:int}
+        label={gettext("Most people in this session")}
+        min={1}
+        value={@current.max_participants}
+        hint={
+          gettext(
+            "Registration stops once this many people are in. Empty = no limit. Now in: %{count}.",
+            count: length(@state.signups)
+          )
+        }
+      />
+      <:submit quiet>{gettext("Save limit")}</:submit>
+    </.form_for>
+  </.section>
+
   <.section title={gettext("Add a person")}>
     <div class="pad addp">
       <form

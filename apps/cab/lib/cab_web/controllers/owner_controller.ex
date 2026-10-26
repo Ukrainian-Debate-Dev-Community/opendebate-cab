@@ -156,16 +156,18 @@ defmodule CabWeb.OwnerController do
   # Opening a session (the form lives on /owner)
   # ---------------------------------------------------------------
 
-  # POST /c/:club_uuid/owner/sessions - name + optional date/time;
-  # lands on the new session's owner surface
+  # POST /c/:club_uuid/owner/sessions - name + optional date/time and
+  # participant limit; lands on the new session's owner surface
   def open_session(conn, params) do
     with {:ok, scheduled_at} <- parse_schedule(conn, params),
+         {:ok, limit} <- Sessions.parse_participant_limit(params["max_participants"]),
          {:ok, session} <-
            Sessions.open(
              conn.assigns.current_user,
              conn.assigns.club,
              params["name"],
-             scheduled_at
+             scheduled_at,
+             limit
            ) do
       conn
       |> put_flash(:info, gettext("Session opened. Registration is open."))
@@ -277,6 +279,18 @@ defmodule CabWeb.OwnerController do
     with_session(conn, session_uuid, fn session ->
       case Sessions.reopen_signups(session) do
         {:ok, _session} -> {:ok, gettext("Registration reopened.")}
+        error -> error
+      end
+    end)
+  end
+
+  # POST .../owner/sessions/:session_uuid/limit {"max_participants"} -
+  # while sign-ups are open; empty = no limit
+  def set_limit(conn, %{"session_uuid" => session_uuid} = params) do
+    with_session(conn, session_uuid, fn session ->
+      case Sessions.set_max_participants(session, params["max_participants"]) do
+        {:ok, %Session{max_participants: nil}} -> {:ok, gettext("Participant limit removed.")}
+        {:ok, _session} -> {:ok, gettext("Participant limit saved.")}
         error -> error
       end
     end)

@@ -210,6 +210,11 @@ msgstr "Відкрити реєстрацію знову можна лише т�
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
+msgid "Registration is full."
+msgstr "Усі місця зайнято."
+
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
 msgid "Registration is not open."
 msgstr "Реєстрацію не відкрито."
 
@@ -323,6 +328,11 @@ msgstr "Запрошення не збережено. Спробуйте ще р
 #, elixir-autogen, elixir-format
 msgid "The number of rooms is 1 to %{max}, or automatic."
 msgstr "Кількість кімнат: від 1 до %{max} або автоматично."
+
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
+msgid "The participant limit is a whole number above zero, or empty for none."
+msgstr "Обмеження учасників має бути цілим числом, більшим за нуль, або порожнім, якщо його немає."
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format

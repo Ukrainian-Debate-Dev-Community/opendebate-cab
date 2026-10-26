@@ -111,6 +111,13 @@ msgid_plural "%{count} people have no personal link"
 msgstr[0] ""
 msgstr[1] ""
 
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "%{count} place left"
+msgid_plural "%{count} places left"
+msgstr[0]  ""
+msgstr[1]  ""
+
 #: lib/cab_web/controllers/owner_controller.ex
 #: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
@@ -1505,6 +1512,11 @@ msgstr ""
 msgid "More options"
 msgstr ""
 
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Most people in this session"
+msgstr ""
+
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
@@ -1816,6 +1828,11 @@ msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
+msgid "Optional — registration stops once this many people are in. Empty = no limit."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/club.html.heex
+#, elixir-autogen, elixir-format
 msgid "Optional — when the session is planned to start, in your time zone."
 msgstr ""
 
@@ -1847,6 +1864,22 @@ msgstr ""
 #: lib/cab_web/ballot_form.ex
 #, elixir-autogen, elixir-format
 msgid "PM"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/club.html.heex
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Participant limit"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Participant limit removed."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Participant limit saved."
 msgstr ""
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
@@ -2057,6 +2090,11 @@ msgstr ""
 msgid "Registration is closed for this session."
 msgstr ""
 
+#: lib/cab_web/controllers/club_public_html.ex
+#, elixir-autogen, elixir-format
+msgid "Registration is full."
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registration opens as soon as you open the session."
@@ -2070,6 +2108,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Registration reopened."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Registration stops once this many people are in. Empty = no limit. Now in: %{count}."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
@@ -2246,6 +2289,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex
 #, elixir-autogen, elixir-format
 msgid "Save field"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/registration_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Save limit"
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex
@@ -3523,6 +3571,13 @@ msgstr ""
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "registration closed"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html.ex
+#: lib/cab_web/controllers/member_html/archive_section.html.heex
+#: lib/cab_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "registration full"
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_controller.ex

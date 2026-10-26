@@ -20,7 +20,11 @@ defmodule CabWeb.MeHTML do
   # the Next session column, written out as words - no pills anywhere
   defp tonight_words(nil), do: gettext("quiet")
 
-  defp tonight_words({_session, :signup, _rooms}), do: gettext("registration open")
+  defp tonight_words({session, :signup, _rooms}) do
+    if Cab.Sessions.full?(session),
+      do: gettext("registration full"),
+      else: gettext("registration open")
+  end
 
   defp tonight_words({_session, :closed, _rooms}), do: gettext("registration closed")
 

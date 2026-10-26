@@ -148,6 +148,17 @@
           label={gettext("Date and start time")}
           hint={gettext("Optional — when the session is planned to start, in your time zone.")}
         />
+        <:block
+          name={:max_participants}
+          type={:int}
+          label={gettext("Participant limit")}
+          min={1}
+          hint={
+            gettext(
+              "Optional — registration stops once this many people are in. Empty = no limit."
+            )
+          }
+        />
       </.form_for>
     </.section>
   </div>

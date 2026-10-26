@@ -74,7 +74,9 @@ defmodule Cab.Fixtures do
       winner_name: Keyword.get(opts, :winner_name),
       winner_user_ids: Keyword.get(opts, :winner_user_ids, []),
       scheduled_at: Keyword.get(opts, :scheduled_at),
-      signups_closed_at: Keyword.get(opts, :signups_closed_at)
+      signups_closed_at: Keyword.get(opts, :signups_closed_at),
+      max_participants: Keyword.get(opts, :max_participants),
+      signups_count: Keyword.get(opts, :signups_count, 0)
     }
     |> Session.changeset()
     |> Repo.insert!()
