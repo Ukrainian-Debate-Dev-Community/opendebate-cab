@@ -43,7 +43,7 @@ defmodule CabWeb.AdminController do
             |> redirect(to: ~p"/admin")
 
           {:error, %Ecto.Changeset{} = changeset} ->
-            bounce(conn, CabWeb.ClubProfile.save_error(changeset))
+            refused_club(conn, params, changeset)
 
           {:error, message} ->
             bounce(conn, message)
@@ -55,7 +55,7 @@ defmodule CabWeb.AdminController do
           conn |> invited(invitation, token, :created) |> redirect(to: ~p"/admin")
         else
           {:error, %Ecto.Changeset{} = changeset} ->
-            bounce(conn, CabWeb.ClubProfile.save_error(changeset))
+            refused_club(conn, params, changeset)
 
           {:error, message} ->
             bounce(conn, message)
@@ -168,16 +168,34 @@ defmodule CabWeb.AdminController do
     end
   end
 
-  defp render_admin(conn) do
+  # a refused new club comes back as typed, its errors on the fields
+  defp refused_club(conn, params, changeset) do
+    conn
+    |> put_status(422)
+    |> put_flash(:error, CabWeb.ClubProfile.save_error(changeset))
+    |> render_admin(
+      new_club: Map.take(params, ~w(name city head head_name)),
+      new_club_errors: CabWeb.ClubProfile.field_errors(changeset)
+    )
+  end
+
+  defp render_admin(conn, assigns \\ []) do
     clubs = Clubs.list_all_clubs()
 
-    render(conn, :show,
-      clubs: clubs,
-      heads: Map.new(clubs, &{&1.id, Clubs.head_of(&1)}),
-      member_counts: Clubs.member_counts(Enum.map(clubs, & &1.id)),
-      accounts: Accounts.list_accounts(),
-      head_invitations: HeadInvitations.list_pending(),
-      page_title: gettext("Admin")
+    render(
+      conn,
+      :show,
+      [
+        new_club: %{},
+        new_club_errors: %{},
+        clubs: clubs,
+        heads: Map.new(clubs, &{&1.id, Clubs.head_of(&1)}),
+        member_counts: Clubs.member_counts(Enum.map(clubs, & &1.id)),
+        accounts: Accounts.list_accounts(),
+        head_invitations: HeadInvitations.list_pending(),
+        page_title: gettext("Admin")
+      ]
+      |> Keyword.merge(assigns)
     )
   end
 

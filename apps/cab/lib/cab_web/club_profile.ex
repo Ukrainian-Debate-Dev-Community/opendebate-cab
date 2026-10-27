@@ -36,16 +36,30 @@ defmodule CabWeb.ClubProfile do
     |> Enum.join(", ")
   end
 
+  @text_fields ~w(name city meeting_info description contacts format_other language_other)a
+
   @doc "A refused profile save in one line: the first field that is wrong, and why."
   def save_error(%Ecto.Changeset{} = changeset) do
-    case Cab.Text.first_error(
-           changeset,
-           ~w(name city meeting_info description contacts format_other language_other)a
-         ) do
+    case Cab.Text.first_error(changeset, @text_fields) do
       {field, message} -> gettext("%{field}: %{error}", field: field_label(field), error: message)
       nil -> gettext("Something went wrong, try again.")
     end
   end
+
+  @doc """
+  A refused profile save's errors by the form's block names, for
+  `form_for`: an "other" text's error sits on its choice's block.
+  """
+  def field_errors(%Ecto.Changeset{} = changeset) do
+    for field <- @text_fields,
+        {^field, message} <- [Cab.Text.first_error(changeset, [field])],
+        into: %{},
+        do: {block(field), message}
+  end
+
+  defp block(:format_other), do: :formats
+  defp block(:language_other), do: :languages
+  defp block(field), do: field
 
   defp field_label(:name), do: gettext("Club name")
   defp field_label(:city), do: gettext("City")

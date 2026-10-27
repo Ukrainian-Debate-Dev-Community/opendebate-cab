@@ -423,7 +423,8 @@ defmodule CabWeb.Ui do
   keyboard, spaces dropped, the domain lowercased), `:telegram` (a
   username: the @ added, t.me links read). A `:text` block may name its
   input type (`input`: email, tel); a `:select` dropdown may lead with
-  an empty `prompt` option.
+  an empty `prompt` option. A `required` `:text` or `:longtext` block's
+  field is `required` in the browser too.
 
   Server errors render per block: pass `errors` as a map of
   block-name => message; the failing block gets the amber border +
@@ -576,6 +577,7 @@ defmodule CabWeb.Ui do
           value={@b[:value]}
           placeholder={@b[:placeholder]}
           maxlength={@b[:maxlength]}
+          required={@b[:required]}
           list={@b[:list]}
         />
         """
@@ -638,7 +640,13 @@ defmodule CabWeb.Ui do
 
       :longtext ->
         ~H"""
-        <textarea rows="3" name={@name} placeholder={@b[:placeholder]} maxlength={@b[:maxlength]}>{@b[:value]}</textarea>
+        <textarea
+          rows="3"
+          name={@name}
+          placeholder={@b[:placeholder]}
+          maxlength={@b[:maxlength]}
+          required={@b[:required]}
+        >{@b[:value]}</textarea>
         """
 
       :int ->

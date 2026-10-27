@@ -65,6 +65,7 @@ defmodule CabWeb.RegistrationHTML do
         input={input_type(field)}
         placeholder={placeholder(field)}
         prompt={prompt(field)}
+        maxlength={Core.Forms.max_length(field)}
       />
       <:submit
         disabled={@preview}

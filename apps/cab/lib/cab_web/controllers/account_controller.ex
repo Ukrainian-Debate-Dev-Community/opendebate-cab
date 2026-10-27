@@ -27,18 +27,21 @@ defmodule CabWeb.AccountController do
         |> redirect(to: ~p"/account")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        message =
-          case Cab.Text.first_error(changeset, [:name]) do
-            {:name, error} ->
+        case Cab.Text.first_error(changeset, [:name]) do
+          {:name, error} ->
+            conn
+            |> put_status(422)
+            |> put_flash(
+              :error,
               gettext("%{field}: %{error}", field: gettext("Display name"), error: error)
+            )
+            |> render_account(%{"name" => params["name"]}, %{name: error})
 
-            nil ->
-              gettext("Could not save the profile.")
-          end
-
-        conn
-        |> put_flash(:error, message)
-        |> render_account()
+          nil ->
+            conn
+            |> put_flash(:error, gettext("Could not save the profile."))
+            |> render_account()
+        end
     end
   end
 
@@ -153,11 +156,14 @@ defmodule CabWeb.AccountController do
     end
   end
 
-  defp render_account(conn) do
+  # a refused profile comes back as typed, the error on its field
+  defp render_account(conn, values \\ %{}, errors \\ %{}) do
     user = conn.assigns.current_user
 
     render(conn, :show,
       identities: Accounts.list_identities(user),
+      values: values,
+      errors: errors,
       page_title: gettext("Account")
     )
   end

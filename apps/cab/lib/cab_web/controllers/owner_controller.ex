@@ -16,13 +16,26 @@ defmodule CabWeb.OwnerController do
   # GET /c/:club_uuid/owner - the club page as an edit-in-place form,
   # with the session archive and the open-session form below (v3.1:
   # there is no separate owner Sessions page)
-  def club(conn, _params) do
+  def club(conn, _params), do: render_club(conn)
+
+  # a refused form comes back as typed, its errors on the fields:
+  # `profile` the club as the profile form shows it, `opening` the
+  # open-session form's values and errors
+  defp render_club(conn, assigns \\ []) do
     club = conn.assigns.club
 
-    render(conn, :club,
-      archive: Sessions.club_sessions(club),
-      live: Sessions.current_for_club(club),
-      page_title: gettext("%{club} — Edit", club: club.name)
+    render(
+      conn,
+      :club,
+      [
+        profile: club,
+        profile_errors: %{},
+        opening: %{values: %{}, errors: %{}},
+        archive: Sessions.club_sessions(club),
+        live: Sessions.current_for_club(club),
+        page_title: gettext("%{club} — Edit", club: club.name)
+      ]
+      |> Keyword.merge(assigns)
     )
   end
 
@@ -42,6 +55,15 @@ defmodule CabWeb.OwnerController do
         conn
         |> put_flash(:info, gettext("Club profile saved."))
         |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        conn
+        |> put_status(422)
+        |> put_flash(:error, update_error(changeset))
+        |> render_club(
+          profile: Ecto.Changeset.apply_changes(changeset),
+          profile_errors: CabWeb.ClubProfile.field_errors(changeset)
+        )
 
       {:error, reason} ->
         conn
@@ -160,23 +182,41 @@ defmodule CabWeb.OwnerController do
   # participant limit; lands on the new session's owner surface
   def open_session(conn, params) do
     with {:ok, scheduled_at} <- parse_schedule(conn, params),
-         {:ok, limit} <- Sessions.parse_participant_limit(params["max_participants"]),
+         {:ok, name, limit} <- opening_fields(params),
          {:ok, session} <-
-           Sessions.open(
-             conn.assigns.current_user,
-             conn.assigns.club,
-             params["name"],
-             scheduled_at,
-             limit
-           ) do
+           Sessions.open(conn.assigns.current_user, conn.assigns.club, name, scheduled_at, limit) do
       conn
       |> put_flash(:info, gettext("Session opened. Registration is open."))
       |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}")
     else
+      {:error, {:fields, errors}} ->
+        conn
+        |> put_status(422)
+        |> put_flash(:error, errors[:name] || errors[:max_participants])
+        |> render_club(
+          opening: %{values: Map.take(params, ~w(name max_participants)), errors: errors}
+        )
+
       {:error, message} ->
         conn
         |> put_flash(:error, error_message(message))
         |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
+    end
+  end
+
+  # the name and the limit, each refused on its own field
+  defp opening_fields(params) do
+    name = Sessions.check_name(params["name"])
+    limit = Sessions.parse_participant_limit(params["max_participants"])
+
+    errors =
+      for {field, {:error, message}} <- [name: name, max_participants: limit],
+          into: %{},
+          do: {field, message}
+
+    case {name, limit} do
+      {{:ok, name}, {:ok, limit}} -> {:ok, name, limit}
+      _refused -> {:error, {:fields, errors}}
     end
   end
 
