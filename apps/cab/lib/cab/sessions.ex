@@ -333,8 +333,8 @@ defmodule Cab.Sessions do
 
   @doc """
   The head sets the participant limit (or clears it with `nil`) while
-  sign-ups are open. A limit below the people already signed up keeps
-  them all; it only stops new registrations. Records the engine's
+  sign-ups are open, never below the people already signed up. Records
+  the engine's
   sign-up count on the row too. Returns `{:ok, session}`,
   `{:error, :conflict, message}` or `{:error, message}`.
   """
@@ -342,7 +342,8 @@ defmodule Cab.Sessions do
     result =
       with {:ok, limit} <- parse_participant_limit(limit),
            {:ok, state} <- state(session),
-           :ok <- require_stage(state, :signup) do
+           :ok <- require_stage(state, :signup),
+           :ok <- require_room_for(limit, length(state.signups)) do
         Repo.transaction(fn ->
           locked = Repo.one!(from s in Session, where: s.id == ^session.id, lock: "FOR UPDATE")
 
@@ -384,14 +385,25 @@ defmodule Cab.Sessions do
     notify(result, session)
   end
 
+  defp require_room_for(limit, count) when is_integer(limit) and limit < count,
+    do:
+      {:error,
+       dngettext(
+         "errors",
+         "%{count} person is already signed up: the limit cannot be lower.",
+         "%{count} people are already signed up: the limit cannot be lower.",
+         count
+       )}
+
+  defp require_room_for(_limit, _count), do: :ok
+
   @doc """
-  A self-registration (`fun`, the engine sign-up) taken only while the
-  session has a place. The session row is locked (`SELECT ... FOR
+  A sign-up (`fun`, the engine sign-up) taken only while the session
+  has a place: self-registration and the head adding people alike. The session row is locked (`SELECT ... FOR
   UPDATE`) and the engine's sign-ups counted under the lock, so two
   people racing for the last place go one after the other and the
   second finds it taken. Returns `fun`'s result, or `{:error,
-  :conflict, message}` when the session is full. The head adding
-  people is not limited.
+  :conflict, message}` when the session is full.
   """
   def claim_place(%Session{} = session, fun) do
     club = session_club(session)

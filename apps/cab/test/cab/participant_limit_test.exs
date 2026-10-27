@@ -121,6 +121,33 @@ defmodule Cab.ParticipantLimitTest do
       assert Sessions.places_left(Repo.get!(Session, session.id)) == nil
     end
 
+    test "cannot set it below the people already signed up", %{club: club} do
+      session = session_fixture(club)
+      engine(signups(3))
+
+      assert {:error, "3 people are already signed up: the limit cannot be lower."} =
+               Sessions.set_max_participants(session, "2")
+
+      assert {:ok, %Session{max_participants: 3}} = Sessions.set_max_participants(session, "3")
+    end
+
+    test "adds people only while there is a place", %{head: head, club: club} do
+      session = session_fixture(club, max_participants: 2)
+      agent = engine(signups(1))
+
+      assert {:ok, _info} = CabWeb.OwnerController.add_resolved(head, session, {:guest, "Gil"})
+
+      assert {:error, :conflict, "Registration is full."} =
+               CabWeb.OwnerController.add_resolved(head, session, {:guest, "Gus"})
+
+      invitee = user_fixture(%{node_user_id: 45})
+
+      assert {:error, :conflict, "Registration is full."} =
+               CabWeb.OwnerController.add_resolved(head, session, {:user, invitee})
+
+      assert length(Agent.get(agent, & &1)) == 2
+    end
+
     test "cannot set it once registration closed", %{club: club} do
       session = closed_session_fixture(club)
       engine([])

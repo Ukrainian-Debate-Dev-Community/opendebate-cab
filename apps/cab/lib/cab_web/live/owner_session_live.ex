@@ -110,7 +110,7 @@ defmodule CabWeb.OwnerSessionLive do
         {:noreply, put_flash(socket, :error, gettext("Enter an e-mail address."))}
 
       true ->
-        case Links.register_guest(session, name) do
+        case Sessions.claim_place(session, fn -> Links.register_guest(session, name) end) do
           {:ok, %{user: %{name: name}} = link} ->
             info =
               case CabWeb.Emails.guest_link(email, link, session, club) do
