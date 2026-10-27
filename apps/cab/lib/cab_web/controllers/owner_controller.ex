@@ -332,11 +332,15 @@ defmodule CabWeb.OwnerController do
   def add_resolved(head, session, resolved) do
     case resolved do
       {:member, user} ->
-        with {:ok, _} <- Sessions.signup_for(head, session, user.username),
+        with {:ok, _} <-
+               Sessions.claim_place(session, fn ->
+                 Sessions.signup_for(head, session, user.username)
+               end),
              do: {:ok, gettext("Registered %{name}.", name: user.name || user.username)}
 
       {:user, user} ->
-        with {:ok, _} <- Cab.Invitations.invite(head, session, user) do
+        with {:ok, _} <-
+               Sessions.claim_place(session, fn -> Cab.Invitations.invite(head, session, user) end) do
           added =
             gettext("%{name} is in the session. They accept on their My page.",
               name: user.name || user.username
@@ -346,7 +350,8 @@ defmodule CabWeb.OwnerController do
         end
 
       {:guest, name} ->
-        with {:ok, link} <- Links.register_guest(session, name),
+        with {:ok, link} <-
+               Sessions.claim_place(session, fn -> Links.register_guest(session, name) end),
              do:
                {:ok,
                 gettext("%{name} added as a guest. Personal link: %{url}",

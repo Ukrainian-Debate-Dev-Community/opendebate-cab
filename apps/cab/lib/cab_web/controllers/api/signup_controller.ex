@@ -14,7 +14,9 @@ defmodule CabWeb.Api.SignupController do
   def create(conn, %{"username" => username}) when is_binary(username) do
     with :ok <- require_owner(conn),
          {:ok, participant} <-
-           Sessions.signup_for(conn.assigns.current_user, conn.assigns.session, username) do
+           Sessions.claim_place(conn.assigns.session, fn ->
+             Sessions.signup_for(conn.assigns.current_user, conn.assigns.session, username)
+           end) do
       conn
       |> put_status(201)
       |> json(%{participant_id: participant["id"], username: username})

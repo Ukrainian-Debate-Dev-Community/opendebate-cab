@@ -16,6 +16,13 @@ msgstr ""
 msgid "%{count} characters at most."
 msgstr ""
 
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
+msgid "%{count} person is already signed up: the limit cannot be lower."
+msgid_plural "%{count} people are already signed up: the limit cannot be lower."
+msgstr[0] ""
+msgstr[1] ""
+
 #: lib/cab/invitations.ex
 #, elixir-autogen, elixir-format
 msgid "%{name} is already invited."

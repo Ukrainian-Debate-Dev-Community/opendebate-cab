@@ -2088,7 +2088,6 @@ msgstr "Реєстрацію закрито. Розподіліть людей �
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex
-#: lib/cab_web/controllers/owner_html/members.html.heex
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registration form"

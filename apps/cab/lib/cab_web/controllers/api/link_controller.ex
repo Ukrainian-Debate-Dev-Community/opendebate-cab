@@ -49,7 +49,9 @@ defmodule CabWeb.Api.LinkController do
   # issues a guest registration + personal link by hand
   def create(conn, params) do
     with {:ok, link} <-
-           Links.register_guest(conn.assigns.session, params["name"]) do
+           Sessions.claim_place(conn.assigns.session, fn ->
+             Links.register_guest(conn.assigns.session, params["name"])
+           end) do
       conn |> put_status(201) |> json(link_json(link))
     end
   end

@@ -37,7 +37,10 @@ defmodule CabWeb.Api.PeopleController do
          {:user, user} <-
            Invitations.resolve(conn.assigns.club, session, state.signups, params["user"]) ||
              {:error, "no registered user has that exact username or email"},
-         {:ok, invitation} <- Invitations.invite(conn.assigns.current_user, session, user) do
+         {:ok, invitation} <-
+           Sessions.claim_place(session, fn ->
+             Invitations.invite(conn.assigns.current_user, session, user)
+           end) do
       conn
       |> put_status(201)
       |> json(%{participant_id: invitation.engine_participant_id, username: user.username})
