@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.3.0 - 2026-10-27
+
+3 features, 1 fix, 2 chore; breaking: 0
+
+### Features
+
+- cab: the head adds people only within the participant limit (#42) by @merv1n34k
+- cab: participant limit for sessions (#41) by @merv1n34k
+- cab: native date and time pickers in the account's zone (#39) by @merv1n34k
+
+### Fixes
+
+- cab: the registration form button only on club and session pages (#38) by @merv1n34k
+
+### Other
+
+- chore(deps): bump jose to 1.11.13 for new advisories (#43) by @merv1n34k
+- chore(deps): bump bandit to 1.14.0 for CVE-2026-115269 (#40) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 6 commits
+
 ## v0.2.3 - 2026-10-26
 
 1 fix; breaking: 0
