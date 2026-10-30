@@ -278,6 +278,7 @@ defmodule CabWeb.FormComponents do
   #       input={input_type(field)}
   #       placeholder={placeholder(field)}
   #       prompt={prompt(field)}
+  #       maxlength={Core.Forms.max_length(field)}
   #     />
   #
   # Each field posts as answers[<field id>] (a list for multiple

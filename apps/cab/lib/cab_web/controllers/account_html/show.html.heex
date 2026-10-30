@@ -8,13 +8,13 @@
     <.flash_banners flash={@flash} />
 
     <.section title={gettext("Profile")}>
-      <.form_for id="account-form" action={~p"/account"}>
+      <.form_for id="account-form" action={~p"/account"} errors={@errors}>
         <:block
           name={:name}
           type={:text}
           label={gettext("Display name")}
           maxlength={Cab.Accounts.name_max()}
-          value={@current_user.name}
+          value={Map.get(@values, "name", @current_user.name)}
           hint={gettext("Shown instead of your username on rosters and draws.")}
         />
         <:block

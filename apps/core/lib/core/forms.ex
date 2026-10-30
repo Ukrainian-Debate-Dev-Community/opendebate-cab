@@ -67,6 +67,11 @@ defmodule Core.Forms do
   @doc "Every field type, in the editor's order."
   def types, do: @types
 
+  @doc "The most characters a field's answer takes, nil where its format decides."
+  def max_length(%{"type" => "text"}), do: @text_max
+  def max_length(%{"type" => "longtext"}), do: @longtext_max
+  def max_length(_field), do: nil
+
   @doc """
   An address worth sending mail to - a deliberately simple check, not
   the full RFC 5322 grammar:

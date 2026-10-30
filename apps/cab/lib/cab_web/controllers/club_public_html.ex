@@ -166,6 +166,7 @@ defmodule CabWeb.ClubPublicHTML do
                 input={input_type(field)}
                 placeholder={placeholder(field)}
                 prompt={prompt(field)}
+                maxlength={Core.Forms.max_length(field)}
               />
               <:submit
                 menu={session_menu(@club, @registration)}

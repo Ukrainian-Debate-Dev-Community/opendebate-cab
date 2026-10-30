@@ -246,7 +246,7 @@ defmodule Cab.Sessions do
   the optional limit on sign-ups (`parse_participant_limit/1`).
   """
   def open(%User{} = head, %Club{} = club, name, scheduled_at \\ nil, max_participants \\ nil) do
-    with {:ok, name} <- Cab.Text.check(name, max: @name_max),
+    with {:ok, name} <- check_name(name),
          name = name || "Club session #{Date.utc_today()}",
          {:ok, actor} <- owner_actor(head, club),
          {:ok, event} <- EngineApi.create_event(actor, club.engine_organisation_id, name),
@@ -266,6 +266,13 @@ defmodule Cab.Sessions do
       |> with_feedback_form(club)
     end
   end
+
+  @doc """
+  A typed session name, cleaned: `{:ok, name}`, `{:ok, nil}` when
+  nothing visible is typed (`open/5` names the session after the
+  date), or `{:error, message}`.
+  """
+  def check_name(name), do: Cab.Text.check(name, max: @name_max)
 
   # the session's short link exists from the start (shared, printed)
   defp with_short_link({:ok, session} = result) do

@@ -120,7 +120,8 @@ defmodule CabWeb.HeadInvitationsTest do
         |> log_in(admin)
         |> post(~p"/admin/clubs", %{name: club_name, head: "z@example.com", head_name: head_name})
 
-      assert redirected_to(resp) == "/admin"
+      # a refused club name comes back on the page, the rest bounces
+      assert resp.status in [302, 422]
       assert Phoenix.Flash.get(resp.assigns.flash, :error)
     end
 
