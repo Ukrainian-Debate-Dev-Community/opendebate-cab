@@ -14,13 +14,24 @@ defmodule CabWeb.ReturnTo do
     if String.starts_with?(rest, ["/", "\\"]), do: nil, else: path
   end
 
+  # Browsers read a backslash as a slash and drop a user@ part, so
+  # "https://evil.example\@sibling.example" goes to evil.example while
+  # URI.parse/1 sees the sibling's host: such addresses are refused, and
+  # the one returned is rebuilt from the parsed parts.
   def accept(url) when is_binary(url) do
-    case URI.parse(url) do
-      %URI{scheme: scheme, host: host} when scheme in ["https", "http"] and is_binary(host) ->
-        if String.downcase(host) in hosts(), do: url
-
-      _other ->
-        nil
+    with false <- String.contains?(url, "\\") or url =~ ~r/[[:space:][:cntrl:]]/u,
+         %URI{scheme: scheme, userinfo: nil, host: host} = uri
+         when scheme in ["https", "http"] and is_binary(host) <- URI.parse(url),
+         true <- String.downcase(host) in hosts() do
+      URI.to_string(%URI{
+        scheme: scheme,
+        host: host,
+        port: uri.port,
+        path: uri.path,
+        query: uri.query
+      })
+    else
+      _refused -> nil
     end
   end
 
