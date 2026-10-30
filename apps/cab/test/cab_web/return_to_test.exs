@@ -24,10 +24,34 @@ defmodule CabWeb.ReturnToTest do
           "https://example.org.evil.example/",
           "javascript:alert(1)",
           "example.org/manage",
+          # look-alikes a browser sends to evil.example
+          "https://evil.example\\@example.org/manage",
+          "https://evil.example\\.example.org/",
+          "https://evil.example@example.org/manage",
+          "https://user:pw@example.org/manage",
+          "https://example.org/man age",
+          "https://example.org/manage\n",
+          "https://example.org/\tmanage",
           nil
         ] do
       assert ReturnTo.accept(refused) == nil, inspect(refused)
     end
+  end
+
+  test "the address returned is the parsed one, query kept" do
+    assert ReturnTo.accept("https://example.org/manage?x=1") == "https://example.org/manage?x=1"
+    assert ReturnTo.accept("https://example.org:8443/m") == "https://example.org:8443/m"
+    assert ReturnTo.accept("https://example.org/m#top") == "https://example.org/m"
+  end
+
+  test "a signed-in look-alike is sent home, not away", %{conn: conn} do
+    user = user_fixture()
+    lookalike = "https://evil.example\\@example.org/manage"
+
+    assert conn
+           |> init_test_session(%{user_id: user.id})
+           |> get(~p"/signin?#{[return_to: lookalike]}")
+           |> redirected_to() == "/"
   end
 
   test "signing in returns to a sibling site that asked", %{conn: conn} do
