@@ -40,7 +40,7 @@ defmodule CabWeb.CabinetHomeTest do
     assert html =~ ~s(id="welcome")
     assert html =~ "Welcome to"
     assert html =~ "needs no account"
-    assert html =~ "Free for every Ukrainian club"
+    assert html =~ "follow standings and your own results in one place"
 
     # directory: name, city, members, Next session words
     assert html =~ ~s(id="clubs-directory")
@@ -72,7 +72,7 @@ defmodule CabWeb.CabinetHomeTest do
 
     assert html =~ ~s(id="clubs-directory")
     assert html =~ other.name
-    assert html =~ "Debate clubs of Ukraine"
+    assert html =~ "Debate clubs"
     refute html =~ "My cab"
     refute html =~ ~s(id="my-clubs")
     refute html =~ ~s(id="welcome")

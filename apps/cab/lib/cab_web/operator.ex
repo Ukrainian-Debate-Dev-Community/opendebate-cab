@@ -11,8 +11,12 @@ defmodule CabWeb.Operator do
     * `:contact_email` - "Contact us"
     * `:support_email` - "Support" and the account page's data requests
     * `:signin_foot` - the line under the sign-in features
+    * `:directory_title` - the home page's title over the clubs
+    * `:welcome` - the home page's welcome text for visitors
+    * `:tagline` - the sign-in page's heading
 
-  Without it cab shows none of them.
+  Without it cab shows none of the first ones and neutral words for the
+  last three.
   """
 
   @callback info() :: map()
