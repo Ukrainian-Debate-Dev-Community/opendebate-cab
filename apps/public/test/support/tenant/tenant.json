@@ -1,0 +1,215 @@
+{
+  "name": "LeagueSite",
+  "title": {
+    "en": "League site title",
+    "uk": "UK League site title"
+  },
+  "org": {
+    "en": "League org",
+    "uk": "UK League org"
+  },
+  "since": {
+    "en": "League since 2001",
+    "uk": "UK League since 2001"
+  },
+  "contacts": [
+    {
+      "label": {
+        "en": "League office",
+        "uk": "UK League office"
+      },
+      "href": "mailto:office@example.org",
+      "text": "office@example.org"
+    },
+    {
+      "label": {
+        "en": "League support",
+        "uk": "UK League support"
+      },
+      "href": "mailto:support@example.org",
+      "text": "support@example.org"
+    },
+    {
+      "label": {
+        "en": "League chat",
+        "uk": "UK League chat"
+      },
+      "href": "https://chat.example.org/league",
+      "text": "chat.example.org/league"
+    }
+  ],
+  "cab": {
+    "about": {
+      "en": "League cab about",
+      "uk": "UK League cab about"
+    },
+    "site_url": "https://league.example.org",
+    "org_text": {
+      "en": "League cab org text",
+      "uk": "UK League cab org text"
+    },
+    "org_label": {
+      "en": "League cab org label",
+      "uk": "UK League cab org label"
+    },
+    "org_url": "https://league.example.org/about",
+    "contact_email": "office@example.org",
+    "support_email": "support@example.org",
+    "signin_foot": {
+      "en": "League cab signin foot",
+      "uk": "UK League cab signin foot"
+    },
+    "directory_title": {
+      "en": "League cab directory title",
+      "uk": "UK League cab directory title"
+    },
+    "welcome": {
+      "en": "League cab welcome",
+      "uk": "UK League cab welcome"
+    },
+    "tagline": {
+      "en": "League cab tagline",
+      "uk": "UK League cab tagline"
+    }
+  },
+  "home": {
+    "notice": {
+      "en": "League home notice",
+      "uk": "UK League home notice"
+    },
+    "kicker": {
+      "en": "League home kicker",
+      "uk": "UK League home kicker"
+    },
+    "heading": {
+      "en": "League home heading",
+      "uk": "UK League home heading"
+    },
+    "heading_em": {
+      "en": "League home heading em",
+      "uk": "UK League home heading em"
+    },
+    "lead": {
+      "en": "League home lead",
+      "uk": "UK League home lead"
+    },
+    "about_link": {
+      "en": "League about link",
+      "uk": "UK League about link"
+    }
+  },
+  "story": [
+    {
+      "year": "2001",
+      "text": {
+        "en": "League story first",
+        "uk": "UK League story first"
+      }
+    },
+    {
+      "year": "2005",
+      "text": {
+        "en": "League story second",
+        "uk": "UK League story second"
+      }
+    }
+  ],
+  "about": {
+    "title": {
+      "en": "League about title words",
+      "uk": "UK League about title words"
+    },
+    "blocks": [
+      {
+        "title": {
+          "en": "League block one",
+          "uk": "UK League block one"
+        },
+        "text": {
+          "en": "League block one text",
+          "uk": "UK League block one text"
+        }
+      },
+      {
+        "title": {
+          "en": "League block two",
+          "uk": "UK League block two"
+        },
+        "text": {
+          "en": "League block two text",
+          "uk": "UK League block two text"
+        }
+      },
+      {
+        "title": {
+          "en": "League block three",
+          "uk": "UK League block three"
+        },
+        "text": {
+          "en": "League block three text",
+          "uk": "UK League block three text"
+        }
+      }
+    ],
+    "timeline": [
+      {
+        "year": "2001",
+        "entries": [
+          {
+            "date": "01/2001",
+            "text": {
+              "en": "League timeline first",
+              "uk": "UK League timeline first"
+            }
+          }
+        ]
+      },
+      {
+        "year": "2005",
+        "entries": [
+          {
+            "date": "03/2005",
+            "text": {
+              "en": "League timeline second",
+              "uk": "UK League timeline second"
+            }
+          },
+          {
+            "date": "12/2005",
+            "text": {
+              "en": "League timeline third",
+              "uk": "UK League timeline third"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "labels": {
+    "news": {
+      "en": "League news",
+      "uk": "UK League news"
+    },
+    "clubs": {
+      "en": "League clubs",
+      "uk": "UK League clubs"
+    },
+    "calendar_lead": {
+      "en": "League calendar lead",
+      "uk": "UK League calendar lead"
+    },
+    "map": {
+      "en": "League map",
+      "uk": "UK League map"
+    },
+    "branches": {
+      "en": "League branches",
+      "uk": "UK League branches"
+    },
+    "branches_map": {
+      "en": "League branches map",
+      "uk": "UK League branches map"
+    }
+  },
+  "event_requests_email": "requests@example.org"
+}

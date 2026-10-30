@@ -1,0 +1,23 @@
+<div class="ua-crumbs">
+  <a href={@back} id="back-to-calendar">{gettext("Back to the calendar")}</a>
+</div>
+
+<.page_head kicker={gettext("Calendar")} title={@event.title}>
+  <:actions>
+    <a
+      :if={@event.link}
+      class="ua-btn ua-btn--gold"
+      href={@event.link}
+      target="_blank"
+      rel="noopener"
+      id="event-link"
+    >
+      {gettext("Event website")}
+    </a>
+    <a class="ua-btn ua-btn--line" href={~p"/calendar/#{@event.id}/ics"} id="event-ics">
+      {gettext("Add to my calendar")}
+    </a>
+  </:actions>
+</.page_head>
+
+<.event_body event={@event} />

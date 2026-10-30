@@ -1,0 +1,52 @@
+<div class="ua-cmd">
+  <div class="cr">{gettext("People")} / {gettext("Content managers")}</div>
+</div>
+
+<.form for={%{}} action={~p"/manage/people"} method="post" class="ua-card form">
+  <div class="f-head">
+    <h3>{gettext("Grant the content-manager role")}</h3>
+    <p>{gettext("To a person who has signed in to cab at least once.")}</p>
+  </div>
+  <div class="f-block">
+    <label class="q" for="login">{gettext("Person")} <span class="req">*</span></label>
+    <input type="text" id="login" name="login" required />
+    <div class="hint">{gettext("Their exact cab username or e-mail.")}</div>
+  </div>
+  <div class="f-block">
+    <button type="submit" class="ua-btn ua-btn--gold">{gettext("Grant the role")}</button>
+  </div>
+</.form>
+
+<div class="ua-sec">{gettext("Content managers")}</div>
+<div class="ua-card">
+  <table :if={@roles != []} class="ua-t">
+    <thead>
+      <tr>
+        <th>{gettext("Person")}</th>
+        <th>{gettext("Since")}</th>
+        <th>{gettext("Granted by")}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr :for={row <- @roles}>
+        <td>
+          <b>{row.user && display_name(row.user)}</b>
+          <div :if={row.user} class="ua-meta">{row.user.username}</div>
+        </td>
+        <td data-label={gettext("Since")}>{long_date(row.role.inserted_at)}</td>
+        <td data-label={gettext("Granted by")}>
+          {if row.granted_by,
+            do: display_name(row.granted_by),
+            else: gettext("set up from the server")}
+        </td>
+        <td class="r">
+          <.button_to action={~p"/manage/people/#{row.role.user_id}"} method="delete">
+            {gettext("Revoke")}
+          </.button_to>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div :if={@roles == []} class="ua-empty">{gettext("Nobody holds the role yet.")}</div>
+</div>

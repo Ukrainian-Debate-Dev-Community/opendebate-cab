@@ -1,0 +1,124 @@
+<div class="ua-cmd">
+  <div class="cr">
+    <a href={~p"/manage/news"}>{gettext("News")}</a>
+    / {if @post,
+      do: gettext("Edit"),
+      else: gettext("New")}
+  </div>
+  <div class="seg">
+    <a
+      :if={@post && @post.published_at}
+      href={~p"/news/#{@post.slug}"}
+      class="ua-btn ua-btn--line ua-btn--sm"
+    >{gettext("View")}</a>
+    <.button_to
+      :if={@post && !@post.published_at}
+      action={~p"/manage/news/#{@post.id}/publish"}
+    >
+      {gettext("Publish")}
+    </.button_to>
+  </div>
+</div>
+
+<.form
+  for={@form}
+  action={if @post, do: ~p"/manage/news/#{@post.id}", else: ~p"/manage/news"}
+  method={if @post, do: "put", else: "post"}
+  multipart
+  class="ua-card form"
+>
+  <div class="f-head">
+    <h3>{if @post, do: @post.title, else: gettext("Write news")}</h3>
+    <p>{gettext("Saved as a draft until you publish it.")}</p>
+  </div>
+  <div class="f-block">
+    <label class="q" for="post_title">{gettext("Title")} <span class="req">*</span></label>
+    <input
+      type="text"
+      id="post_title"
+      name="post[title]"
+      value={@form[:title].value}
+      maxlength="200"
+    />
+    <.errors form={@form} field={:title} />
+  </div>
+  <div class="f-block">
+    <label class="q" for="post_slug">{gettext("Address")}</label>
+    <input
+      type="text"
+      id="post_slug"
+      name="post[slug]"
+      value={@form[:slug].value}
+      maxlength="200"
+    />
+    <div class="hint">
+      {gettext("The end of the link, /news/... Left empty, it is made from the title.")}
+    </div>
+    <.errors form={@form} field={:slug} />
+  </div>
+  <div class="f-block">
+    <label class="q" for="post_rubric">{gettext("Rubric")}</label>
+    <select id="post_rubric" name="post[rubric]">
+      <option
+        :for={r <- Public.News.Post.rubrics()}
+        value={r}
+        selected={@form[:rubric].value == r}
+      >
+        {rubric_label(r)}
+      </option>
+    </select>
+  </div>
+  <div class="f-block">
+    <label class="q" for="post_image">{gettext("Cover image")}</label>
+    <div :if={@post && @post.image} class="ua-cover ua-cover--img ua-cover--preview">
+      <img src={Public.Uploads.url(@post.image)} alt={@post.image_alt || ""} />
+    </div>
+    <label :if={@post && @post.image} class="ua-check">
+      <input type="checkbox" name="post[remove_image]" value="true" /> {gettext(
+        "Remove the image"
+      )}
+    </label>
+    <input
+      type="file"
+      id="post_image"
+      name="post[image]"
+      accept="image/jpeg,image/png,image/webp"
+    />
+    <div class="hint">
+      {gettext("JPEG, PNG or WebP, up to %{mb} MB. Without an image the card shows a gradient.",
+        mb: @max_mb
+      )}
+    </div>
+    <.errors form={@form} field={:image} />
+    <label class="q ua-q-gap" for="post_image_alt">{gettext("Image description")}</label>
+    <input
+      type="text"
+      id="post_image_alt"
+      name="post[image_alt]"
+      value={@form[:image_alt].value}
+      maxlength="200"
+    />
+    <div class="hint">
+      {gettext("What the image shows, for people who cannot see it.")}
+    </div>
+    <.errors form={@form} field={:image_alt} />
+  </div>
+  <div class="f-block">
+    <label class="q" for="post_summary">{gettext("Summary")}</label>
+    <textarea id="post_summary" name="post[summary]" style="min-height:70px" maxlength="1000">{@form[:summary].value}</textarea>
+    <.errors form={@form} field={:summary} />
+    <div class="hint">{gettext("One or two sentences shown above the article.")}</div>
+  </div>
+  <div class="f-block">
+    <label class="q" for="post_body">{gettext("Text")}</label>
+    <textarea id="post_body" name="post[body]" maxlength="20000">{@form[:body].value}</textarea>
+    <.errors form={@form} field={:body} />
+    <div class="hint">
+      {gettext("Markdown: ## for a heading, **bold**, [a link](https://...), > for a quote.")}
+    </div>
+  </div>
+  <.tag_picker name="post[tag_ids][]" tags={@tags} selected={@selected_tags} />
+  <div class="f-block">
+    <button type="submit" class="ua-btn ua-btn--gold">{gettext("Save")}</button>
+  </div>
+</.form>

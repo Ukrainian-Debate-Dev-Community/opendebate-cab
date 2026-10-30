@@ -1,0 +1,38 @@
+<.page_head
+  kicker={gettext("Calendar")}
+  title={gettext("Tournaments and events")}
+  lead={Public.Tenant.text([:labels, :calendar_lead])}
+>
+  <:actions>
+    <a class="ua-btn ua-btn--gold" href={~p"/calendar/request"} id="request-event">
+      {gettext("Request an event")}
+    </a>
+    <a :if={@calendar_public} class="ua-btn ua-btn--line" href={~p"/calendar.ics"}>
+      {gettext("Subscribe to the calendar")}
+    </a>
+  </:actions>
+</.page_head>
+
+<%= if @calendar_public do %>
+  <.toolbar period={@period} kind={@kind} base={~p"/calendar"} />
+  <.month_grid
+    :if={@period.view == :month}
+    first={@period.first}
+    events={@events}
+    href={&link(~p"/calendar/#{&1.id}", @period, @kind, nil)}
+  />
+
+  <%= for {heading, events} <- groups(@period, @events) do %>
+    <div class="ua-sec">{heading}</div>
+    <.event_row
+      :for={event <- events}
+      event={event}
+      href={link(~p"/calendar/#{event.id}", @period, @kind, nil)}
+    />
+  <% end %>
+  <div :if={@events == []} class="ua-card ua-empty">{empty_text(@period)}</div>
+<% else %>
+  <div class="ua-card ua-empty" id="calendar-not-public">
+    {gettext("The calendar is not public yet. Tournaments will appear here soon.")}
+  </div>
+<% end %>

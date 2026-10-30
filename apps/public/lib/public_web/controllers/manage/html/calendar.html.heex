@@ -1,0 +1,68 @@
+<.page_head
+  kicker={gettext("Calendar")}
+  title={gettext("Tournaments and events")}
+  lead={gettext("You see private events too: only content managers see them.")}
+>
+  <:actions>
+    <a class="ua-btn ua-btn--gold" href={~p"/manage/events/new"}>{gettext("New event")}</a>
+  </:actions>
+</.page_head>
+
+<div :if={!@calendar_public} class="ua-flash ua-flash--error" id="calendar-private-notice">
+  {gettext(
+    "The whole calendar is private: no event reaches the public site, the home page or the iCal feed. You can still prepare events here."
+  )}
+</div>
+
+<div :if={@access == :admin} class="ua-card ua-pad ua-calswitch" id="calendar-public-switch">
+  <div>
+    <b>{gettext("Calendar visible to the public")}</b>
+    <p>{gettext("Admins only. Turn it off to keep every event off the public site.")}</p>
+  </div>
+  <span class="ua-vis">
+    <.form for={%{}} action={~p"/manage/calendar/public"} method="post" class="ua-inline-form">
+      <input type="hidden" name="public" value="true" />
+      <button type="submit" class={@calendar_public && "on"}>{gettext("On")}</button>
+    </.form>
+    <.form for={%{}} action={~p"/manage/calendar/public"} method="post" class="ua-inline-form">
+      <input type="hidden" name="public" value="false" />
+      <button type="submit" class={!@calendar_public && "on"}>{gettext("Off")}</button>
+    </.form>
+  </span>
+</div>
+
+<PublicWeb.CalendarHTML.toolbar
+  period={@period}
+  kind={@kind}
+  tag={@tag}
+  base={~p"/manage/calendar"}
+/>
+<.tag_filter
+  tags={@tags}
+  selected={@tag}
+  href={&PublicWeb.CalendarHTML.link(~p"/manage/calendar", @period, @kind, &1)}
+/>
+<.month_grid
+  :if={@period.view == :month}
+  first={@period.first}
+  events={@events}
+  href={&PublicWeb.CalendarHTML.link(~p"/manage/events/#{&1.id}", @period, @kind, @tag)}
+/>
+
+<%= for {heading, events} <- PublicWeb.CalendarHTML.groups(@period, @events) do %>
+  <div class="ua-sec">{heading}</div>
+  <.event_row
+    :for={event <- events}
+    event={event}
+    href={PublicWeb.CalendarHTML.link(~p"/manage/events/#{event.id}", @period, @kind, @tag)}
+  >
+    <.tag_chips tags={event.tags} />
+    <.visibility_switch event={event} action={~p"/manage/events/#{event.id}/visibility"} />
+    <a class="ua-btn ua-btn--line ua-btn--sm" href={~p"/manage/events/#{event.id}/edit"}>
+      {gettext("Edit")}
+    </a>
+  </.event_row>
+<% end %>
+<div :if={@events == []} class="ua-card ua-empty">
+  {PublicWeb.CalendarHTML.empty_text(@period)}
+</div>

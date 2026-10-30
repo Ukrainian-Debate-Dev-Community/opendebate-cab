@@ -1,0 +1,95 @@
+<div class="ua-cmd">
+  <div class="cr">{gettext("Requests")} / {gettext("Event requests from the public")}</div>
+</div>
+
+<div class="ua-sec">{gettext("Pending")}</div>
+<div :if={@pending == []} class="ua-card ua-empty" id="requests-none">
+  {gettext("No pending requests.")}
+</div>
+<div :for={request <- @pending} class="ua-card ua-pad ua-request" id={"request-#{request.id}"}>
+  <div class="ua-meta">
+    {gettext("Received %{date} from %{email}",
+      date: long_date(request.inserted_at),
+      email: request.email
+    )}
+  </div>
+  <dl class="ua-answers">
+    <%= for answer <- request.answers, answer["id"] != "email" do %>
+      <dt>{CabWeb.FormComponents.field_label(answer)}</dt>
+      <dd>{CabWeb.FormComponents.answer_text(answer)}</dd>
+    <% end %>
+  </dl>
+  <div class="ua-request-actions">
+    <a class="ua-btn ua-btn--line" href={~p"/manage/events/new?#{[request: request.id]}"}>
+      {gettext("Accept: add the event")}
+    </a>
+    <.form
+      for={%{}}
+      action={~p"/manage/requests/#{request.id}/decline"}
+      method="post"
+      class="ua-decline"
+    >
+      <input
+        type="text"
+        name="reason"
+        maxlength="1000"
+        placeholder={gettext("Reason (optional, sent to the requester)")}
+        aria-label={gettext("Reason")}
+      />
+      <button type="submit" class="ua-btn ua-btn--line">{gettext("Decline")}</button>
+    </.form>
+  </div>
+</div>
+
+<div class="ua-sec">{gettext("Decided")}</div>
+<div class="ua-card">
+  <table :if={@decided != []} class="ua-t" id="requests-decided">
+    <thead>
+      <tr>
+        <th>{gettext("Request")}</th>
+        <th>{gettext("Decision")}</th>
+        <th>{gettext("Decided")}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr :for={request <- @decided}>
+        <td>
+          <b>{Core.Forms.first_value(request.answers, "text") || request.email}</b>
+          <div class="ua-meta">{request.email}</div>
+        </td>
+        <td data-label={gettext("Decision")}>
+          {if request.status == "accepted", do: gettext("accepted"), else: gettext("declined")}
+          <div :if={request.reason} class="ua-meta">{request.reason}</div>
+        </td>
+        <td data-label={gettext("Decided")}>{long_date(request.decided_at)}</td>
+      </tr>
+    </tbody>
+  </table>
+  <div :if={@decided == []} class="ua-empty">{gettext("Nothing decided yet.")}</div>
+</div>
+
+<div class="ua-sec" id="request-form">{gettext("The request form")}</div>
+<p class="ua-meta">
+  {gettext(
+    "What the public is asked on the calendar's request page; the e-mail is always asked first."
+  )}
+  <a href={~p"/calendar/request"}>{gettext("Open the page")}</a>
+</p>
+<div class="ua-card">
+  <CabWeb.FormComponents.form_editor
+    definition={@definition}
+    page={~p"/manage/requests"}
+    fields={~p"/manage/requests/form/fields"}
+    editing={@editing}
+    values={@values}
+    errors={@errors}
+  />
+  <div class="ua-pad">
+    <button type="submit" form="field-form" class="ua-btn ua-btn--gold">
+      {if @editing, do: gettext("Save the field"), else: gettext("Add the field")}
+    </button>
+    <a :if={@editing} class="ua-btn ua-btn--line" href={~p"/manage/requests#request-form"}>
+      {gettext("Cancel")}
+    </a>
+  </div>
+</div>
