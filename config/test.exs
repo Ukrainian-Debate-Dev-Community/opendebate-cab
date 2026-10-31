@@ -27,6 +27,30 @@ config :cab, CabWeb.Endpoint,
   secret_key_base: "pcTGx24RetJ4w8tsy07/57TzZuynVVvB3y+aJ3jBYkW6951u7HKhCf0RX044fX0O",
   server: false
 
+# the public site: its own database, uploads in tmp, the neutral tenant
+config :public, Public.Repo,
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  database: "public_test#{System.get_env("MIX_TEST_PARTITION")}",
+  port: 5432,
+  pool: Ecto.Adapters.SQL.Sandbox,
+  pool_size: System.schedulers_online() * 2
+
+config :public, :uploads_dir, Path.join(System.tmp_dir!(), "public-uploads-test")
+
+config :public, :tenant_dir, Path.expand("../apps/public/test/support/tenant", __DIR__)
+
+# the umbrella's test run starts every app before cab's tests, which
+# expect cab without an operator: the site hands cab its operator in
+# its own test_helper.exs instead of at boot
+config :public, :hand_cab_operator, false
+
+config :public, PublicWeb.Endpoint,
+  http: [ip: {127, 0, 0, 1}, port: 4003],
+  secret_key_base: "Tz8mK2vQ5nB1xR7cL4wH9dF3jS6pA0gE2uY5kN8tM1qV4zC7bX0rD3fG6hJ9wP2s",
+  server: false
+
 # Stub the Node engine at the HTTP boundary (Req.Test); no live engine
 # is required in tests.
 config :core, Core.Engine,

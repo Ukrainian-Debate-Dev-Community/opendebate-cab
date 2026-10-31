@@ -1,0 +1,1602 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} city"
+msgid_plural "%{count} cities"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "%{count} city. Click a city to see its clubs"
+msgid_plural "%{count} cities. Click a city to see its clubs"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} club"
+msgid_plural "%{count} clubs"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/public_web/controllers/manage/people_controller.ex
+#, elixir-autogen, elixir-format
+msgid "%{name} can now manage the site. Send them the link %{link}."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/news_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{n} min read"
+msgstr ""
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "A new request for an event in the calendar.\n\n%{answers}\n\nAccept or decline it: %{url}"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "APF"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "About the club"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Accept: add the event"
+msgstr ""
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Active clubs"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Add the field"
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Add to my calendar"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Address"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Admin"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "Admins only. Turn it off to keep every event off the public site."
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html.ex
+#: lib/public_web/controllers/club_html.ex
+#: lib/public_web/controllers/news_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "All"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "All cities"
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "All events"
+msgstr ""
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "All news"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "All tags"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Announcements"
+msgstr ""
+
+#: lib/public_web/controllers/news_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Announcements, tournament results, interviews and tips for debaters."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Apr"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "April"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "April"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Audience"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Aug"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "August"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "August"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "BP"
+msgstr ""
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Back to draft: only content managers see it."
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html/show.html.heex
+#: lib/public_web/controllers/event_request_html/sent.html.heex
+#, elixir-autogen, elixir-format
+msgid "Back to the calendar"
+msgstr ""
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "Back to the home page"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Blue"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Cabinet"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Cabinet (cab)"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/calendar_controller.ex
+#: lib/public_web/controllers/calendar_html/index.html.heex
+#: lib/public_web/controllers/calendar_html/show.html.heex
+#: lib/public_web/controllers/event_request_html/new.html.heex
+#: lib/public_web/controllers/event_request_html/sent.html.heex
+#: lib/public_web/controllers/manage/calendar_controller.ex
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/manage/html/event.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Calendar"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "Calendar visible to the public"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr ""
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Cities"
+msgstr ""
+
+#: lib/public/event_requests.ex
+#: lib/public_web/controllers/calendar_html.ex
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "City"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Click a city to show its clubs"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Club"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Club details are kept by the club in cab."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Club event"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Club events"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Club map"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/club_controller.ex
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Clubs"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Colour"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Coming up"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Community"
+msgstr ""
+
+#: lib/public_web/controllers/event_request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Confirm you are not a robot."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/club_html/show.html.heex
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "Contact"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Content manager"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Content managers"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Cover image"
+msgstr ""
+
+#: lib/public/event_requests.ex
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "Dates"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Dec"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "December"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "December"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Decided"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Decision"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Decline"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Delete"
+msgstr ""
+
+#: lib/public/event_requests.ex
+#: lib/public_web/controllers/calendar_html.ex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Details"
+msgstr ""
+
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "Documents"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Draft"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Drafts"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/manage/html/event.html.heex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Edit"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Edit event"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Edit tag"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Ends"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "English"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Event"
+msgstr ""
+
+#: lib/public_web/controllers/manage/event_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Event deleted."
+msgstr ""
+
+#: lib/public/event_requests.ex
+#, elixir-autogen, elixir-format
+msgid "Event name"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Event requests from the public"
+msgstr ""
+
+#: lib/public_web/controllers/manage/event_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Event saved and the request accepted. The requester got an e-mail."
+msgstr ""
+
+#: lib/public_web/controllers/manage/event_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Event saved."
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html/show.html.heex
+#: lib/public_web/controllers/manage/html/event.html.heex
+#, elixir-autogen, elixir-format
+msgid "Event website"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Feb"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "February"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "February"
+msgstr ""
+
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Field added."
+msgstr ""
+
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Field removed."
+msgstr ""
+
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Field saved."
+msgstr ""
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Find a club"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Find a club in your city: format, language, who it is for and when it meets."
+msgstr ""
+
+#: lib/public/event_requests.ex
+#, elixir-autogen, elixir-format
+msgid "For example 14-16 November 2026"
+msgstr ""
+
+#: lib/public/event_requests.ex
+#, elixir-autogen, elixir-format
+msgid "For example BP, APF, WSDC"
+msgstr ""
+
+#: lib/public/event_requests.ex
+#: lib/public_web/controllers/calendar_html.ex
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Format"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Fri"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "From a request by %{email}: check it and save to accept the request."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Grant the content-manager role"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Grant the role"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Granted by"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Gray"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Green"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Head"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Home"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Image description"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Interviews"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "JPEG, PNG or WebP, up to %{mb} MB. Without an image the card shows a gradient."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Jan"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "January"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "January"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Jul"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "July"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "July"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Jun"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "June"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "June"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Kind"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/calendar_html.ex
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Language"
+msgstr ""
+
+#: lib/public_web/controllers/calendar_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Language: %{language}"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Link"
+msgstr ""
+
+#: lib/public_web/controllers/manage/dash_controller.ex
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Manage"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Manage tags"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Mar"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "March"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "March"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Markdown: ## for a heading, **bold**, [a link](https://...), > for a quote."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "May"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "May"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Meets"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Members"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Mon"
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "Month"
+msgstr ""
+
+#: lib/public_web/controllers/news_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "More news"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "New"
+msgstr ""
+
+#: lib/public_web/controllers/manage/event_controller.ex
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "New event"
+msgstr ""
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "New event request"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "New tag"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#: lib/public_web/controllers/manage/news_controller.ex
+#: lib/public_web/controllers/news_controller.ex
+#: lib/public_web/controllers/news_html/index.html.heex
+#: lib/public_web/controllers/news_html/show.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "News"
+msgstr ""
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Next tournament"
+msgstr ""
+
+#: lib/public_web/controllers/manage/people_controller.ex
+#, elixir-autogen, elixir-format
+msgid "No cab account has that username or e-mail. They sign in to cab once first."
+msgstr ""
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "No club matches these filters."
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "No events yet."
+msgstr ""
+
+#: lib/public_web/controllers/news_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "No news here yet."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "No news with this tag."
+msgstr ""
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "No news yet."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "No news yet. Write the first one."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "No pending requests."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "No tags yet."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Nobody holds the role yet."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Nothing decided yet."
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "Nothing planned this month."
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "Nothing planned this year."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Nothing planned yet."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Nov"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "November"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "November"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Oct"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "October"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "October"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Of them private"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "Off"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "On"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "On the map"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "One or two sentences shown above the article."
+msgstr ""
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Only JPEG, PNG or WebP images."
+msgstr ""
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Open in cab"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Open the page"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Open to all"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Orange"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Other"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Other events"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Other format"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Other language"
+msgstr ""
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Our story"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Overview"
+msgstr ""
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "Page not found"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Pending"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html/people.html.heex
+#: lib/public_web/controllers/manage/people_controller.ex
+#, elixir-autogen, elixir-format
+msgid "People"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Person"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Platform"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "Privacy policy"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html.ex
+#: lib/public_web/controllers/manage/html/event.html.heex
+#, elixir-autogen, elixir-format
+msgid "Private"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Private: only content managers see it"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Private: only content managers see tags."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Public"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Public events appear on the calendar, the home page and the iCal feed."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Publish"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Published %{date}"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Published news"
+msgstr ""
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Published: everyone can read it now."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Purple"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Reason"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Reason (optional, sent to the requester)"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Received %{date} from %{email}"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Red"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Registration or the tournament's page, https://..."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Remove the image"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Request"
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html/index.html.heex
+#: lib/public_web/controllers/event_request_controller.ex
+#: lib/public_web/controllers/event_request_html/new.html.heex
+#, elixir-autogen, elixir-format
+msgid "Request an event"
+msgstr ""
+
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Request declined. The requester got an e-mail."
+msgstr ""
+
+#: lib/public_web/controllers/event_request_html/sent.html.heex
+#, elixir-autogen, elixir-format
+msgid "Request sent"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Requests"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Results"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Revoke"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Rubric"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Sat"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Save"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Save the field"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Saved as a draft until you publish it."
+msgstr ""
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Saved as a draft."
+msgstr ""
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Saved."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "School students"
+msgstr ""
+
+#: lib/public_web/controllers/event_request_html/new.html.heex
+#, elixir-autogen, elixir-format
+msgid "Send the request"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Sep"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "September"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "September"
+msgstr ""
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Show"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Sign out"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Since"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Site"
+msgstr ""
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "Something went wrong"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Starts"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Status"
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Subscribe to the calendar"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Summary"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Sun"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Tag"
+msgstr ""
+
+#: lib/public_web/controllers/manage/tag_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Tag deleted: it is gone from every event and news post."
+msgstr ""
+
+#: lib/public_web/controllers/manage/tag_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Tag saved."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html.ex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#: lib/public_web/controllers/manage/tag_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Tags"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Tags mark events and news for the editors, a status for example. They are private: the public site never shows them."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Teal"
+msgstr ""
+
+#: lib/public_web/controllers/event_request_html/new.html.heex
+#, elixir-autogen, elixir-format
+msgid "Tell us about your tournament or event. We will write to you once it is decided; a copy of your request goes to your e-mail."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "Terms of use"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Text"
+msgstr ""
+
+#: lib/public_web/controllers/event_request_html/sent.html.heex
+#, elixir-autogen, elixir-format
+msgid "Thank you. We sent a copy of your request to %{email}."
+msgstr ""
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Thank you: we received your request for an event in the calendar. We will write to this address once it is decided.\n\nWhat you sent:\n\n%{answers}"
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "The calendar is not public yet. Tournaments will appear here soon."
+msgstr ""
+
+#: lib/public_web/controllers/manage/calendar_controller.ex
+#, elixir-autogen, elixir-format
+msgid "The calendar is private: no event reaches the public site."
+msgstr ""
+
+#: lib/public_web/controllers/manage/calendar_controller.ex
+#, elixir-autogen, elixir-format
+msgid "The calendar is public again."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "The end of the link, /news/... Left empty, it is made from the title."
+msgstr ""
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "The image is larger than 3 MB."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "The request form"
+msgstr ""
+
+#: lib/public_web/controllers/manage/people_controller.ex
+#, elixir-autogen, elixir-format
+msgid "The role is revoked; it takes effect on their next request."
+msgstr ""
+
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "The rules for the site and the cabinet"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "The whole calendar is private: no event reaches the public site, the home page or the iCal feed. You can still prepare events here."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Their exact cab username or e-mail."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: auto"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: dark"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: light"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: light, auto or dark"
+msgstr ""
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "There is nothing at this address. It may have moved, or the link is mistyped."
+msgstr ""
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "This page cannot be shown."
+msgstr ""
+
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "This request was already decided."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Thu"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Tips"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Title"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "To a person who has signed in to cab at least once."
+msgstr ""
+
+#: lib/public_web/controllers/event_request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Too many requests from this address. Please try again in %{minutes} minutes."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Tournament"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Tournaments"
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html/index.html.heex
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "Tournaments and events"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Training"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Trainings"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Tue"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Ukrainian"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "University students"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Unpublish"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Upcoming events"
+msgstr ""
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Upcoming tournaments"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "View"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "View site"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Visibility"
+msgstr ""
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "We could not show this page. Please try again in a minute."
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Wed"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "What the image shows, for people who cannot see it."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "What the public is asked on the calendar's request page; the e-mail is always asked first."
+msgstr ""
+
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "What we store and why"
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "When and where"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Which language"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Write news"
+msgstr ""
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "Year"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Yellow"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "You reached this through the link you were given; it works only while you hold the role."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "You see private events too: only content managers see them."
+msgstr ""
+
+#: lib/public_web/controllers/event_request_html/new.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your event"
+msgstr ""
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your event request"
+msgstr ""
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your event request was accepted"
+msgstr ""
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your event request was declined"
+msgstr ""
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your request for an event was declined."
+msgstr ""
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your request for an event was declined.\n\nReason: %{reason}"
+msgstr ""
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your request was accepted: %{title} is in the calendar.\n\n%{url}"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "accepted"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "beta"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "declined"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "e.g. Polish"
+msgstr ""
+
+#: lib/public/event_requests.ex
+#, elixir-autogen, elixir-format
+msgid "no"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "set up from the server"
+msgstr ""
+
+#: lib/public/event_requests.ex
+#, elixir-autogen, elixir-format
+msgid "yes"
+msgstr ""

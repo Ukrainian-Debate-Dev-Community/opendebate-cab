@@ -14,6 +14,30 @@ config :cab, Cab.Repo,
 # club logos (Cab.Uploads): an ignored folder in the repo root
 config :cab, :uploads_dir, Path.expand("../uploads/cab", __DIR__)
 
+# the public site on :4001, its own database; news cover images in the
+# ignored uploads folder. Its tenant is the neutral test one unless
+# TENANT_DIR (runtime.exs, also read from .env) points elsewhere
+config :public, Public.Repo,
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  database: "public_dev",
+  port: 5432,
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 5
+
+config :public, PublicWeb.Endpoint,
+  http: [ip: {127, 0, 0, 1}, port: 4001],
+  check_origin: false,
+  code_reloader: true,
+  debug_errors: true,
+  secret_key_base: "Wq3oV0bKq8fD2n7mS5yH1cR4tL9xE6jA0pZ3uG8vN2kT7wB5sY1dF4hJ6mQ9rX2c"
+
+config :public, :uploads_dir, Path.expand("../uploads/public", __DIR__)
+
+config :public, :tenant_dir, Path.expand("../apps/public/test/support/tenant", __DIR__)
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -81,6 +105,6 @@ config :phoenix_live_view,
 # stress test run far faster on purpose); tests turn it on where needed
 config :cab, CabWeb.RateLimit, enabled: false
 
-# sibling sites running locally (uadebate on :4001) may send their
+# sibling sites running locally (the public site on :4001) may send their
 # editors here to sign in and get them back
 config :cab, :return_hosts, ["localhost"]

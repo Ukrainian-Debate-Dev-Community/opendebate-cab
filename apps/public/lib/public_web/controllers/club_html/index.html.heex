@@ -1,0 +1,100 @@
+<.page_head
+  kicker={gettext("Clubs")}
+  title={Public.Tenant.text([:labels, :clubs])}
+  lead={gettext("Find a club in your city: format, language, who it is for and when it meets.")}
+/>
+
+<div class="ua-clubs">
+  <div>
+    <div class="ua-filters">
+      <form action={~p"/clubs"} method="get" class="ua-inline">
+        {gettext("City")}
+        <select name="city">
+          <option value="">{gettext("All cities")}</option>
+          <option :for={city <- @cities} value={city} selected={@filters["city"] == city}>
+            {city_label(city)}
+          </option>
+        </select>
+        <input
+          :for={{k, v} <- Map.delete(@filters, "city")}
+          :if={v not in [nil, ""]}
+          type="hidden"
+          name={k}
+          value={v}
+        />
+        <button type="submit" class="ua-btn ua-btn--line ua-btn--sm">{gettext("Show")}</button>
+      </form>
+      <.filter_seg
+        name="format"
+        label={gettext("Format")}
+        values={~w(bp apf)}
+        labeler={&format_label/1}
+        filters={@filters}
+      />
+      <.filter_seg
+        name="language"
+        label={gettext("Language")}
+        values={~w(uk en)}
+        labeler={&language_label/1}
+        filters={@filters}
+      />
+      <.filter_seg
+        name="audience"
+        label={gettext("Audience")}
+        values={~w(school university open)}
+        labeler={&audience_label/1}
+        filters={@filters}
+      />
+    </div>
+
+    <div class="ua-meta ua-count">
+      {ngettext("%{count} club", "%{count} clubs", length(@clubs))}, {ngettext(
+        "%{count} city",
+        "%{count} cities",
+        @shown_cities
+      )}
+    </div>
+
+    <div class="ua-card">
+      <table :if={@clubs != []} class="ua-t">
+        <thead>
+          <tr>
+            <th>{gettext("Club")}</th>
+            <th>{gettext("City")}</th>
+            <th>{gettext("Format")}</th>
+            <th>{gettext("Language")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr :for={club <- @clubs}>
+            <td>
+              <div class="ua-clubname">
+                <img :if={Clubs.logo_url(club)} class="ua-logo" src={Clubs.logo_url(club)} alt="" />
+                <div>
+                  <a href={~p"/clubs/#{club.uuid}"}><b>{club.name}</b></a>
+                  <div :if={club.meeting_info} class="ua-meta">{club.meeting_info}</div>
+                </div>
+              </div>
+            </td>
+            <td data-label={gettext("City")}>{city_label(club.city)}</td>
+            <td data-label={gettext("Format")}>
+              {labels(club.formats, &format_label(&1, club.format_other))}
+            </td>
+            <td data-label={gettext("Language")}>
+              {labels(club.languages, &language_label(&1, club.language_other))}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div :if={@clubs == []} class="ua-empty">{gettext("No club matches these filters.")}</div>
+    </div>
+  </div>
+
+  <aside class="ua-mapcard ua-card">
+    <div class="ua-pad">
+      <b>{gettext("Club map")}</b>
+      <div class="ua-meta">{gettext("Click a city to show its clubs")}</div>
+    </div>
+    <.club_map counts={@counts} selected={@filters["city"]} />
+  </aside>
+</div>

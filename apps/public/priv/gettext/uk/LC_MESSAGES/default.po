@@ -1,0 +1,1605 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: uk\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100 != 11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} city"
+msgid_plural "%{count} cities"
+msgstr[0] "%{count} місто"
+msgstr[1] "%{count} міста"
+msgstr[2] "%{count} міст"
+
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "%{count} city. Click a city to see its clubs"
+msgid_plural "%{count} cities. Click a city to see its clubs"
+msgstr[0] "%{count} місто. Натисніть на місто, щоб побачити його клуби"
+msgstr[1] "%{count} міста. Натисніть на місто, щоб побачити його клуби"
+msgstr[2] "%{count} міст. Натисніть на місто, щоб побачити його клуби"
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} club"
+msgid_plural "%{count} clubs"
+msgstr[0] "%{count} клуб"
+msgstr[1] "%{count} клуби"
+msgstr[2] "%{count} клубів"
+
+#: lib/public_web/controllers/manage/people_controller.ex
+#, elixir-autogen, elixir-format
+msgid "%{name} can now manage the site. Send them the link %{link}."
+msgstr "%{name} тепер може керувати сайтом. Надішліть людині посилання %{link}."
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/news_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{n} min read"
+msgstr "%{n} хв читання"
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "A new request for an event in the calendar.\n\n%{answers}\n\nAccept or decline it: %{url}"
+msgstr "Новий запит на подію в календарі.\n\n%{answers}\n\nПрийняти чи відхилити: %{url}"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "APF"
+msgstr "АПФ"
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "About the club"
+msgstr "Про клуб"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Accept: add the event"
+msgstr "Прийняти: додати подію"
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Active clubs"
+msgstr "Активні клуби"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Add the field"
+msgstr "Додати поле"
+
+#: lib/public_web/controllers/calendar_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Add to my calendar"
+msgstr "Додати до мого календаря"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Address"
+msgstr "Адреса"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Admin"
+msgstr "Адміністратор"
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "Admins only. Turn it off to keep every event off the public site."
+msgstr "Лише для адміністраторів. Вимкніть, щоб жодна подія не потрапляла на публічний сайт."
+
+#: lib/public_web/controllers/calendar_html.ex
+#: lib/public_web/controllers/club_html.ex
+#: lib/public_web/controllers/news_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "All"
+msgstr "Усі"
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "All cities"
+msgstr "Усі міста"
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "All events"
+msgstr "Усі події"
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "All news"
+msgstr "Усі новини"
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "All tags"
+msgstr "Усі мітки"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Announcements"
+msgstr "Анонси"
+
+#: lib/public_web/controllers/news_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Announcements, tournament results, interviews and tips for debaters."
+msgstr "Анонси, результати турнірів, інтерв'ю та поради для дебатерів."
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Apr"
+msgstr "кві"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "April"
+msgstr "Квітень"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "April"
+msgstr "квітня"
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Audience"
+msgstr "Аудиторія"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Aug"
+msgstr "сер"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "August"
+msgstr "Серпень"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "August"
+msgstr "серпня"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "BP"
+msgstr "БПФ"
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Back to draft: only content managers see it."
+msgstr "Знову чернетка: її бачать лише контент-менеджери."
+
+#: lib/public_web/controllers/calendar_html/show.html.heex
+#: lib/public_web/controllers/event_request_html/sent.html.heex
+#, elixir-autogen, elixir-format
+msgid "Back to the calendar"
+msgstr "Назад до календаря"
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "Back to the home page"
+msgstr "На головну"
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Blue"
+msgstr "Синій"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Cabinet"
+msgstr "Кабінет"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Cabinet (cab)"
+msgstr "Кабінет (cab)"
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/calendar_controller.ex
+#: lib/public_web/controllers/calendar_html/index.html.heex
+#: lib/public_web/controllers/calendar_html/show.html.heex
+#: lib/public_web/controllers/event_request_html/new.html.heex
+#: lib/public_web/controllers/event_request_html/sent.html.heex
+#: lib/public_web/controllers/manage/calendar_controller.ex
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/manage/html/event.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Calendar"
+msgstr "Календар"
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "Calendar visible to the public"
+msgstr "Календар видно всім"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Cities"
+msgstr "Міста"
+
+#: lib/public/event_requests.ex
+#: lib/public_web/controllers/calendar_html.ex
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "City"
+msgstr "Місто"
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Click a city to show its clubs"
+msgstr "Натисніть на місто, щоб показати його клуби"
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Club"
+msgstr "Клуб"
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Club details are kept by the club in cab."
+msgstr "Дані клубу веде сам клуб у cab."
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Club event"
+msgstr "Клубна подія"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Club events"
+msgstr "Клубні події"
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Club map"
+msgstr "Мапа клубів"
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/club_controller.ex
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Clubs"
+msgstr "Клуби"
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Colour"
+msgstr "Колір"
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Coming up"
+msgstr "Найближче"
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Community"
+msgstr "Спільнота"
+
+#: lib/public_web/controllers/event_request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Confirm you are not a robot."
+msgstr "Підтвердьте, що ви не робот."
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/club_html/show.html.heex
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "Contact"
+msgstr "Контакти"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Content manager"
+msgstr "Контент-менеджер"
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Content managers"
+msgstr "Контент-менеджери"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Cover image"
+msgstr "Обкладинка"
+
+#: lib/public/event_requests.ex
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "Dates"
+msgstr "Дати"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Dec"
+msgstr "гру"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "December"
+msgstr "Грудень"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "December"
+msgstr "грудня"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Decided"
+msgstr "Вирішено"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Decision"
+msgstr "Рішення"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Decline"
+msgstr "Відхилити"
+
+#: lib/public_web/controllers/manage/html/event.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Delete"
+msgstr "Видалити"
+
+#: lib/public/event_requests.ex
+#: lib/public_web/controllers/calendar_html.ex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Details"
+msgstr "Докладніше"
+
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "Documents"
+msgstr "Документи"
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Draft"
+msgstr "Чернетка"
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Drafts"
+msgstr "Чернетки"
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/manage/html/event.html.heex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Edit"
+msgstr "Редагувати"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Edit event"
+msgstr "Редагувати подію"
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Edit tag"
+msgstr "Редагувати мітку"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Ends"
+msgstr "Закінчується"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "English"
+msgstr "Англійська"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Event"
+msgstr "Подія"
+
+#: lib/public_web/controllers/manage/event_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Event deleted."
+msgstr "Подію видалено."
+
+#: lib/public/event_requests.ex
+#, elixir-autogen, elixir-format
+msgid "Event name"
+msgstr "Назва події"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Event requests from the public"
+msgstr "Запити на події від відвідувачів"
+
+#: lib/public_web/controllers/manage/event_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Event saved and the request accepted. The requester got an e-mail."
+msgstr "Подію збережено, запит прийнято. Автор запиту отримав лист."
+
+#: lib/public_web/controllers/manage/event_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Event saved."
+msgstr "Подію збережено."
+
+#: lib/public_web/controllers/calendar_html/show.html.heex
+#: lib/public_web/controllers/manage/html/event.html.heex
+#, elixir-autogen, elixir-format
+msgid "Event website"
+msgstr "Сайт події"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Feb"
+msgstr "лют"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "February"
+msgstr "Лютий"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "February"
+msgstr "лютого"
+
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Field added."
+msgstr "Поле додано."
+
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Field removed."
+msgstr "Поле видалено."
+
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Field saved."
+msgstr "Поле збережено."
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Find a club"
+msgstr "Знайти клуб"
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Find a club in your city: format, language, who it is for and when it meets."
+msgstr "Знайдіть клуб у своєму місті: формат, мова, для кого він і коли збирається."
+
+#: lib/public/event_requests.ex
+#, elixir-autogen, elixir-format
+msgid "For example 14-16 November 2026"
+msgstr "Наприклад, 14-16 листопада 2026"
+
+#: lib/public/event_requests.ex
+#, elixir-autogen, elixir-format
+msgid "For example BP, APF, WSDC"
+msgstr "Наприклад, BP, APF, WSDC"
+
+#: lib/public/event_requests.ex
+#: lib/public_web/controllers/calendar_html.ex
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Format"
+msgstr "Формат"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Fri"
+msgstr "Пт"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "From a request by %{email}: check it and save to accept the request."
+msgstr "З запиту від %{email}: перевірте та збережіть, щоб прийняти запит."
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Grant the content-manager role"
+msgstr "Надати роль контент-менеджера"
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Grant the role"
+msgstr "Надати роль"
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Granted by"
+msgstr "Надав"
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Gray"
+msgstr "Сірий"
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Green"
+msgstr "Зелений"
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Head"
+msgstr "Голова"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Home"
+msgstr "Головна"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Image description"
+msgstr "Опис зображення"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Interviews"
+msgstr "Інтерв'ю"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "JPEG, PNG or WebP, up to %{mb} MB. Without an image the card shows a gradient."
+msgstr "JPEG, PNG або WebP, до %{mb} МБ. Без зображення картка показує градієнт."
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Jan"
+msgstr "січ"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "January"
+msgstr "Січень"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "January"
+msgstr "січня"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Jul"
+msgstr "лип"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "July"
+msgstr "Липень"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "July"
+msgstr "липня"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Jun"
+msgstr "чер"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "June"
+msgstr "Червень"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "June"
+msgstr "червня"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Kind"
+msgstr "Вид"
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/calendar_html.ex
+#: lib/public_web/controllers/club_html/index.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Language"
+msgstr "Мова"
+
+#: lib/public_web/controllers/calendar_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Language: %{language}"
+msgstr "Мова: %{language}"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Link"
+msgstr "Посилання"
+
+#: lib/public_web/controllers/manage/dash_controller.ex
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Manage"
+msgstr "Керування"
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Manage tags"
+msgstr "Керувати мітками"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Mar"
+msgstr "бер"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "March"
+msgstr "Березень"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "March"
+msgstr "березня"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Markdown: ## for a heading, **bold**, [a link](https://...), > for a quote."
+msgstr "Markdown: ## для заголовка, **жирний**, [посилання](https://...), > для цитати."
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "May"
+msgstr "травня"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "May"
+msgstr "тра"
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Meets"
+msgstr "Зустрічі"
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Members"
+msgstr "Члени"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Mon"
+msgstr "Пн"
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "Month"
+msgstr "Місяць"
+
+#: lib/public_web/controllers/news_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "More news"
+msgstr "Більше новин"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "New"
+msgstr "Нова"
+
+#: lib/public_web/controllers/manage/event_controller.ex
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "New event"
+msgstr "Нова подія"
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "New event request"
+msgstr "Новий запит на подію"
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "New tag"
+msgstr "Нова мітка"
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#: lib/public_web/controllers/manage/news_controller.ex
+#: lib/public_web/controllers/news_controller.ex
+#: lib/public_web/controllers/news_html/index.html.heex
+#: lib/public_web/controllers/news_html/show.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "News"
+msgstr "Новини"
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Next tournament"
+msgstr "Наступний турнір"
+
+#: lib/public_web/controllers/manage/people_controller.ex
+#, elixir-autogen, elixir-format
+msgid "No cab account has that username or e-mail. They sign in to cab once first."
+msgstr "Жоден акаунт у cab не має такого імені користувача чи e-mail. Спершу людина має один раз увійти в cab."
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "No club matches these filters."
+msgstr "Жоден клуб не відповідає цим фільтрам."
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "No events yet."
+msgstr "Подій поки немає."
+
+#: lib/public_web/controllers/news_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "No news here yet."
+msgstr "Тут поки немає новин."
+
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "No news with this tag."
+msgstr "Немає новин із цією міткою."
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "No news yet."
+msgstr "Новин поки немає."
+
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "No news yet. Write the first one."
+msgstr "Новин поки немає. Напишіть першу."
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "No pending requests."
+msgstr "Немає запитів, що очікують."
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "No tags yet."
+msgstr "Міток ще немає."
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Nobody holds the role yet."
+msgstr "Цієї ролі поки ні в кого немає."
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Nothing decided yet."
+msgstr "Ще нічого не вирішено."
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "Nothing planned this month."
+msgstr "Цього місяця нічого не заплановано."
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "Nothing planned this year."
+msgstr "Цього року нічого не заплановано."
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Nothing planned yet."
+msgstr "Поки нічого не заплановано."
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Nov"
+msgstr "лис"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "November"
+msgstr "Листопад"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "November"
+msgstr "листопада"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Oct"
+msgstr "жов"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "October"
+msgstr "Жовтень"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "October"
+msgstr "жовтня"
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Of them private"
+msgstr "З них приватних"
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "Off"
+msgstr "Вимк."
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "On"
+msgstr "Увімк."
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "On the map"
+msgstr "На мапі"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "One or two sentences shown above the article."
+msgstr "Одне-два речення над статтею."
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Only JPEG, PNG or WebP images."
+msgstr "Лише зображення JPEG, PNG або WebP."
+
+#: lib/public_web/controllers/club_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Open in cab"
+msgstr "Відкрити в cab"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Open the page"
+msgstr "Відкрити сторінку"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Open to all"
+msgstr "Відкрито для всіх"
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Orange"
+msgstr "Помаранчевий"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Other"
+msgstr "Інша"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Other events"
+msgstr "Інші події"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Other format"
+msgstr "Інший формат"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Other language"
+msgstr "Інша мова"
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Our story"
+msgstr "Наша історія"
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Overview"
+msgstr "Огляд"
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "Page not found"
+msgstr "Сторінку не знайдено"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Pending"
+msgstr "Очікують"
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html/people.html.heex
+#: lib/public_web/controllers/manage/people_controller.ex
+#, elixir-autogen, elixir-format
+msgid "People"
+msgstr "Люди"
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Person"
+msgstr "Людина"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Platform"
+msgstr "Платформа"
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "Privacy policy"
+msgstr "Політика конфіденційності"
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html.ex
+#: lib/public_web/controllers/manage/html/event.html.heex
+#, elixir-autogen, elixir-format
+msgid "Private"
+msgstr "Приватна"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Private: only content managers see it"
+msgstr "Приватна: її бачать лише контент-менеджери"
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Private: only content managers see tags."
+msgstr "Приватно: мітки бачать лише контент-менеджери."
+
+#: lib/public_web/controllers/manage/html.ex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Public"
+msgstr "Публічна"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Public events appear on the calendar, the home page and the iCal feed."
+msgstr "Публічні події з'являються в календарі, на головній і в стрічці iCal."
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Publish"
+msgstr "Опублікувати"
+
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Published %{date}"
+msgstr "Опубліковано %{date}"
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "Published news"
+msgstr "Опубліковані новини"
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Published: everyone can read it now."
+msgstr "Опубліковано: тепер її може прочитати кожен."
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Purple"
+msgstr "Фіолетовий"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Reason"
+msgstr "Причина"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Reason (optional, sent to the requester)"
+msgstr "Причина (необов'язково, надсилається автору запиту)"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Received %{date} from %{email}"
+msgstr "Отримано %{date} від %{email}"
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Red"
+msgstr "Червоний"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Registration or the tournament's page, https://..."
+msgstr "Реєстрація або сторінка турніру, https://..."
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Remove the image"
+msgstr "Прибрати зображення"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Request"
+msgstr "Запит"
+
+#: lib/public_web/controllers/calendar_html/index.html.heex
+#: lib/public_web/controllers/event_request_controller.ex
+#: lib/public_web/controllers/event_request_html/new.html.heex
+#, elixir-autogen, elixir-format
+msgid "Request an event"
+msgstr "Запропонувати подію"
+
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Request declined. The requester got an e-mail."
+msgstr "Запит відхилено. Автор запиту отримав лист."
+
+#: lib/public_web/controllers/event_request_html/sent.html.heex
+#, elixir-autogen, elixir-format
+msgid "Request sent"
+msgstr "Запит надіслано"
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Requests"
+msgstr "Запити"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Results"
+msgstr "Результати"
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Revoke"
+msgstr "Забрати"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Rubric"
+msgstr "Рубрика"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Sat"
+msgstr "Сб"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Save"
+msgstr "Зберегти"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "Save the field"
+msgstr "Зберегти поле"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Saved as a draft until you publish it."
+msgstr "Збережено як чернетку, доки ви її не опублікуєте."
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Saved as a draft."
+msgstr "Збережено як чернетку."
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Saved."
+msgstr "Збережено."
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "School students"
+msgstr "Школярі"
+
+#: lib/public_web/controllers/event_request_html/new.html.heex
+#, elixir-autogen, elixir-format
+msgid "Send the request"
+msgstr "Надіслати запит"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "short month"
+msgid "Sep"
+msgstr "вер"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "September"
+msgstr "Вересень"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgctxt "in a date"
+msgid "September"
+msgstr "вересня"
+
+#: lib/public_web/controllers/club_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Show"
+msgstr "Показати"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Sign out"
+msgstr "Вийти"
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Since"
+msgstr "Від"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Site"
+msgstr "Сайт"
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "Something went wrong"
+msgstr "Щось пішло не так"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Starts"
+msgstr "Починається"
+
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Status"
+msgstr "Статус"
+
+#: lib/public_web/controllers/calendar_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Subscribe to the calendar"
+msgstr "Підписатися на календар"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Summary"
+msgstr "Анонс"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Sun"
+msgstr "Нд"
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Tag"
+msgstr "Мітка"
+
+#: lib/public_web/controllers/manage/tag_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Tag deleted: it is gone from every event and news post."
+msgstr "Мітку видалено: її прибрано з усіх подій і новин."
+
+#: lib/public_web/controllers/manage/tag_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Tag saved."
+msgstr "Мітку збережено."
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/manage/html.ex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#: lib/public_web/controllers/manage/tag_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Tags"
+msgstr "Мітки"
+
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Tags mark events and news for the editors, a status for example. They are private: the public site never shows them."
+msgstr "Мітки позначають події та новини для редакторів, наприклад статус. Вони приватні: публічний сайт їх ніколи не показує."
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Teal"
+msgstr "Бірюзовий"
+
+#: lib/public_web/controllers/event_request_html/new.html.heex
+#, elixir-autogen, elixir-format
+msgid "Tell us about your tournament or event. We will write to you once it is decided; a copy of your request goes to your e-mail."
+msgstr "Розкажіть про ваш турнір чи подію. Ми напишемо вам, щойно рішення буде ухвалено; копія запиту надійде на вашу пошту."
+
+#: lib/public_web/components/site.ex
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "Terms of use"
+msgstr "Умови користування"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/tags.html.heex
+#, elixir-autogen, elixir-format
+msgid "Text"
+msgstr "Текст"
+
+#: lib/public_web/controllers/event_request_html/sent.html.heex
+#, elixir-autogen, elixir-format
+msgid "Thank you. We sent a copy of your request to %{email}."
+msgstr "Дякуємо. Ми надіслали копію вашого запиту на %{email}."
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Thank you: we received your request for an event in the calendar. We will write to this address once it is decided.\n\nWhat you sent:\n\n%{answers}"
+msgstr "Дякуємо: ми отримали ваш запит на подію в календарі. Ми напишемо на цю адресу, щойно рішення буде ухвалено.\n\nЩо ви надіслали:\n\n%{answers}"
+
+#: lib/public_web/controllers/calendar_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "The calendar is not public yet. Tournaments will appear here soon."
+msgstr "Календар поки не публічний. Турніри скоро з'являться тут."
+
+#: lib/public_web/controllers/manage/calendar_controller.ex
+#, elixir-autogen, elixir-format
+msgid "The calendar is private: no event reaches the public site."
+msgstr "Календар приватний: жодна подія не потрапляє на публічний сайт."
+
+#: lib/public_web/controllers/manage/calendar_controller.ex
+#, elixir-autogen, elixir-format
+msgid "The calendar is public again."
+msgstr "Календар знову публічний."
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "The end of the link, /news/... Left empty, it is made from the title."
+msgstr "Кінець посилання, /news/... Якщо лишити порожнім, його буде зроблено з заголовка."
+
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "The image is larger than 3 MB."
+msgstr "Зображення більше за 3 МБ."
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "The request form"
+msgstr "Форма запиту"
+
+#: lib/public_web/controllers/manage/people_controller.ex
+#, elixir-autogen, elixir-format
+msgid "The role is revoked; it takes effect on their next request."
+msgstr "Роль забрано; це діє з наступного запиту людини."
+
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "The rules for the site and the cabinet"
+msgstr "Правила сайту і кабінету"
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "The whole calendar is private: no event reaches the public site, the home page or the iCal feed. You can still prepare events here."
+msgstr "Увесь календар приватний: жодна подія не потрапляє на публічний сайт, головну чи в стрічку iCal. Готувати події тут можна й далі."
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "Their exact cab username or e-mail."
+msgstr "Точне ім'я користувача в cab або e-mail."
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: auto"
+msgstr "Тема: авто"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: dark"
+msgstr "Тема: темна"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: light"
+msgstr "Тема: світла"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: light, auto or dark"
+msgstr "Тема: світла, авто чи темна"
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "There is nothing at this address. It may have moved, or the link is mistyped."
+msgstr "За цією адресою нічого немає. Можливо, сторінку перенесено або посилання введено з помилкою."
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "This page cannot be shown."
+msgstr "Цю сторінку неможливо показати."
+
+#: lib/public_web/controllers/manage/request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "This request was already decided."
+msgstr "Щодо цього запиту вже ухвалено рішення."
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Thu"
+msgstr "Чт"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Tips"
+msgstr "Поради"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Title"
+msgstr "Заголовок"
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "To a person who has signed in to cab at least once."
+msgstr "Людині, яка хоча б раз входила в cab."
+
+#: lib/public_web/controllers/event_request_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Too many requests from this address. Please try again in %{minutes} minutes."
+msgstr "Забагато запитів з цієї адреси. Спробуйте знову за %{minutes} хв."
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Tournament"
+msgstr "Турнір"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Tournaments"
+msgstr "Турніри"
+
+#: lib/public_web/controllers/calendar_html/index.html.heex
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "Tournaments and events"
+msgstr "Турніри та події"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Training"
+msgstr "Тренінг"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Trainings"
+msgstr "Тренінги"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Tue"
+msgstr "Вт"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Ukrainian"
+msgstr "Українська"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "University students"
+msgstr "Студенти"
+
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Unpublish"
+msgstr "Зняти з публікації"
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Upcoming events"
+msgstr "Найближчі події"
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Upcoming tournaments"
+msgstr "Найближчі турніри"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "View"
+msgstr "Переглянути"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "View site"
+msgstr "Переглянути сайт"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Visibility"
+msgstr "Видимість"
+
+#: lib/public_web/controllers/error_html.ex
+#, elixir-autogen, elixir-format
+msgid "We could not show this page. Please try again in a minute."
+msgstr "Не вдалося показати цю сторінку. Спробуйте ще раз за хвилину."
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Wed"
+msgstr "Ср"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "What the image shows, for people who cannot see it."
+msgstr "Що на зображенні, для тих, хто його не бачить."
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "What the public is asked on the calendar's request page; the e-mail is always asked first."
+msgstr "Що питаємо у відвідувачів на сторінці запиту в календарі; електронну пошту питаємо завжди першою."
+
+#: lib/public_web/controllers/page_html.ex
+#, elixir-autogen, elixir-format
+msgid "What we store and why"
+msgstr "Що ми зберігаємо і навіщо"
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "When and where"
+msgstr "Коли і де"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Which language"
+msgstr "Яка мова"
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/html/news_index.html.heex
+#: lib/public_web/controllers/manage/news_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Write news"
+msgstr "Написати новину"
+
+#: lib/public_web/controllers/calendar_html.ex
+#, elixir-autogen, elixir-format
+msgid "Year"
+msgstr "Рік"
+
+#: lib/public_web/controllers/manage/html.ex
+#, elixir-autogen, elixir-format
+msgid "Yellow"
+msgstr "Жовтий"
+
+#: lib/public_web/controllers/manage/html/dash.html.heex
+#, elixir-autogen, elixir-format
+msgid "You reached this through the link you were given; it works only while you hold the role."
+msgstr "Ви потрапили сюди за посиланням, яке вам надали; воно діє, лише поки у вас є ця роль."
+
+#: lib/public_web/controllers/manage/html/calendar.html.heex
+#, elixir-autogen, elixir-format
+msgid "You see private events too: only content managers see them."
+msgstr "Ви бачите й приватні події: їх бачать лише контент-менеджери."
+
+#: lib/public_web/controllers/event_request_html/new.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your event"
+msgstr "Ваша подія"
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your event request"
+msgstr "Ваш запит на подію"
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your event request was accepted"
+msgstr "Ваш запит на подію прийнято"
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your event request was declined"
+msgstr "Ваш запит на подію відхилено"
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your request for an event was declined."
+msgstr "Ваш запит на подію відхилено."
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your request for an event was declined.\n\nReason: %{reason}"
+msgstr "Ваш запит на подію відхилено.\n\nПричина: %{reason}"
+
+#: lib/public_web/emails.ex
+#, elixir-autogen, elixir-format
+msgid "Your request was accepted: %{title} is in the calendar.\n\n%{url}"
+msgstr "Ваш запит прийнято: %{title} уже в календарі.\n\n%{url}"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "accepted"
+msgstr "прийнято"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "beta"
+msgstr "бета"
+
+#: lib/public_web/controllers/manage/html/requests.html.heex
+#, elixir-autogen, elixir-format
+msgid "declined"
+msgstr "відхилено"
+
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "e.g. Polish"
+msgstr "наприклад, польська"
+
+#: lib/public/event_requests.ex
+#, elixir-autogen, elixir-format
+msgid "no"
+msgstr "ні"
+
+#: lib/public_web/controllers/manage/html/people.html.heex
+#, elixir-autogen, elixir-format
+msgid "set up from the server"
+msgstr "налаштовано із сервера"
+
+#: lib/public/event_requests.ex
+#, elixir-autogen, elixir-format
+msgid "yes"
+msgstr "так"

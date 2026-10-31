@@ -1,0 +1,5 @@
+ExUnit.start()
+# config/test.exs keeps the boot from it (cab's tests expect no operator)
+Public.Application.hand_cab_operator()
+Ecto.Adapters.SQL.Sandbox.mode(Cab.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Public.Repo, :manual)

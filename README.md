@@ -5,8 +5,10 @@ sessions, on top of the debate engine. An Elixir umbrella (Phoenix):
 
 - `apps/core`: the engine client and the shared mailer
 - `apps/cab`: the club cabinet, the web app on :4000
+- `apps/public`: the organisation's public site (news, calendar, clubs,
+  about), the web app on :4001
 
-Dependencies point down only: cab -> core -> engine. cab and core know
+Dependencies point down only: public -> cab -> core -> engine. cab and core know
 nothing about the apps built on them; such apps pull this repo in and
 depend on `apps/cab` and `apps/core`.
 
@@ -20,7 +22,7 @@ answer 404.
 
 ```sh
 make setup     # engine checkout and packages, Elixir deps, databases
-make dev:up    # engine on :3100, cab on :4000 (make dev does the same)
+make dev:up    # engine on :3100, cab on :4000, the public site on :4001 (make dev does the same)
 make test      # unit tests
 make test-all  # everything that runs without the stack
 ```
@@ -109,6 +111,19 @@ bin/cab eval "Cab.Release.migrate()"
 | `ECTO_IPV6` | no | `true` to reach the database over IPv6 |
 | `DNS_CLUSTER_QUERY` | no | only for clustering several nodes |
 
+The public site (`apps/public`), on a node that runs it (the `cab`
+release and image leave it out):
+
+| Variable | Needed | What |
+|---|---|---|
+| `PUBLIC_DATABASE_URL` | yes | the site's own database (news, events, roles), `ecto://user:pass@host/db` |
+| `PUBLIC_HOST` | yes | the site's host, e.g. `example.org` |
+| `PUBLIC_UPLOADS_DIR` | yes | folder for news cover images, served at `/uploads`; a persistent volume kept in the backups |
+| `TENANT_DIR` | yes | the tenant folder (see below) |
+| `CAB_URL` | no | where the Cabinet links point, `https://<PHX_HOST>` by default |
+| `PUBLIC_PORT` | no | 4001 by default |
+| `PUBLIC_POOL_SIZE` | no | the database pool, 5 by default |
+
 **Contact fields on other sites.** A site that renders cab's form
 blocks (`:phone`, `:email`, `:telegram`) on its own pages gets the
 typing helpers (the phone's country picker and spacing, the checks
@@ -154,6 +169,32 @@ the sign-in page and on the account page (name, links, contact and
 support addresses, in every language you translate), set
 `config :cab, :operator, YourApp.CabOperator` to a module whose `info/0`
 returns them; see `CabWeb.Operator`.
+
+## The public site
+
+`apps/public` is generic: everything that belongs to the organisation
+running it comes from its tenant folder (`TENANT_DIR`), read once at
+boot by `Public.Tenant`:
+
+- `tenant.json`: the name and page title, the footer lines and
+  contacts, the texts cab shows about who runs it (`cab`), the home
+  page (`home`, `story`), the about page (`about`: title, blocks,
+  timeline), a few page labels (`labels`) and `event_requests_email`
+  (where a copy of every public event request goes; null for none).
+  Every text is `{"en": "...", "uk": "..."}`, English when a language
+  has none; links and addresses are plain strings.
+- `map.json`: the club map - `size`, `outline` (SVG points), `cities`
+  (`{"City": [x, y]}`), `branches`, and optionally `names` (a city's
+  name per language) and `label_side` (`"left"` or `"below"` for a
+  branch label that would cover a neighbour).
+
+The site refuses to boot when a key it needs is missing and names every
+one. It hands cab its operator (`PublicWeb.CabOperator`, from the
+tenant's `cab` texts) at boot. Development and tests use the neutral
+tenant in `apps/public/test/support/tenant` unless `TENANT_DIR` (also
+read from `.env`) points elsewhere. The first content manager:
+`mix public.grant <username-or-email>`; later ones are granted by cab
+admins at `/manage/people`.
 
 ## License
 

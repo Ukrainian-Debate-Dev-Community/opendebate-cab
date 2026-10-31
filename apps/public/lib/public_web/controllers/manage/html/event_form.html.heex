@@ -1,0 +1,171 @@
+<div class="ua-cmd">
+  <div class="cr">
+    <a href={~p"/manage/calendar"}>{gettext("Calendar")}</a>
+    / {if @event,
+      do: gettext("Edit event"),
+      else: gettext("New event")}
+  </div>
+  <div class="seg">
+    <.button_to
+      :if={@event}
+      action={~p"/manage/events/#{@event.id}"}
+      method="delete"
+    >
+      {gettext("Delete")}
+    </.button_to>
+  </div>
+</div>
+
+<.form
+  for={@form}
+  action={if @event, do: ~p"/manage/events/#{@event.id}", else: ~p"/manage/events"}
+  method={if @event, do: "put", else: "post"}
+  class="ua-card form"
+>
+  <input :if={@request} type="hidden" name="request_id" value={@request.id} />
+  <div :if={@request} class="ua-flash" id="from-request">
+    {gettext("From a request by %{email}: check it and save to accept the request.",
+      email: @request.email
+    )}
+  </div>
+  <div class="f-head">
+    <h3>{if @event, do: @event.title, else: gettext("New event")}</h3>
+    <p>{gettext("Public events appear on the calendar, the home page and the iCal feed.")}</p>
+  </div>
+  <div class="f-block">
+    <label class="q" for="event_title">{gettext("Title")} <span class="req">*</span></label>
+    <input
+      type="text"
+      id="event_title"
+      name="event[title]"
+      value={@form[:title].value}
+      maxlength="200"
+    />
+    <.errors form={@form} field={:title} />
+  </div>
+  <div class="f-block">
+    <label class="q" for="event_kind">{gettext("Kind")}</label>
+    <select id="event_kind" name="event[kind]">
+      <option
+        :for={k <- Public.Events.Event.kinds()}
+        value={k}
+        selected={@form[:kind].value == k}
+      >
+        {kind_label(k)}
+      </option>
+    </select>
+  </div>
+  <div class="f-block">
+    <div class="half">
+      <div>
+        <label class="q" for="event_starts_on">{gettext("Starts")} <span class="req">*</span></label>
+        <input
+          type="date"
+          id="event_starts_on"
+          name="event[starts_on]"
+          value={@form[:starts_on].value}
+        />
+        <.errors form={@form} field={:starts_on} />
+      </div>
+      <div>
+        <label class="q" for="event_ends_on">{gettext("Ends")}</label>
+        <input type="date" id="event_ends_on" name="event[ends_on]" value={@form[:ends_on].value} />
+        <.errors form={@form} field={:ends_on} />
+      </div>
+    </div>
+  </div>
+  <div class="f-block">
+    <div class="half">
+      <div>
+        <label class="q" for="event_city">{gettext("City")}</label>
+        <input
+          type="text"
+          id="event_city"
+          name="event[city]"
+          value={@form[:city].value}
+          maxlength="80"
+        />
+        <.errors form={@form} field={:city} />
+      </div>
+      <div>
+        <label class="q" for="event_format">{gettext("Format")}</label>
+        <input
+          type="text"
+          id="event_format"
+          name="event[format]"
+          value={@form[:format].value}
+          maxlength="80"
+        />
+        <.errors form={@form} field={:format} />
+      </div>
+    </div>
+  </div>
+  <div class="f-block ua-lang">
+    <label class="q">{gettext("Language")}</label>
+    <div class="opts ua-opts-row">
+      <label :for={code <- Public.Events.Event.languages()}>
+        <input
+          type="radio"
+          name="event[language]"
+          value={code}
+          checked={@form[:language].value == code}
+        /> {if code == "other", do: gettext("Other"), else: language_label(code)}
+      </label>
+    </div>
+    <div class="ua-lang-other">
+      <label class="q" for="event_language_other">{gettext("Which language")}</label>
+      <input
+        type="text"
+        id="event_language_other"
+        name="event[language_other]"
+        value={@form[:language_other].value}
+        maxlength="60"
+        placeholder={gettext("e.g. Polish")}
+      />
+    </div>
+    <.errors form={@form} field={:language} />
+    <.errors form={@form} field={:language_other} />
+  </div>
+  <div class="f-block">
+    <label class="q" for="event_link">{gettext("Link")}</label>
+    <input
+      type="url"
+      id="event_link"
+      name="event[link]"
+      value={@form[:link].value}
+      maxlength="255"
+    />
+    <div class="hint">{gettext("Registration or the tournament's page, https://...")}</div>
+    <.errors form={@form} field={:link} />
+  </div>
+  <div class="f-block">
+    <label class="q" for="event_details">{gettext("Details")}</label>
+    <textarea id="event_details" name="event[details]" style="min-height:90px" maxlength="5000">{@form[:details].value}</textarea>
+    <.errors form={@form} field={:details} />
+  </div>
+  <div class="f-block">
+    <label class="q">{gettext("Visibility")}</label>
+    <div class="opts ua-opts-row">
+      <label>
+        <input
+          type="radio"
+          name="event[visibility]"
+          value="public"
+          checked={@form[:visibility].value != "private"}
+        /> {gettext("Public")}
+      </label>
+      <label>
+        <input
+          type="radio"
+          name="event[visibility]"
+          value="private"
+          checked={@form[:visibility].value == "private"}
+        /> {gettext("Private: only content managers see it")}
+      </label>
+    </div>
+  </div>
+  <.tag_picker name="event[tag_ids][]" tags={@tags} selected={@selected_tags} />
+  <div class="f-block">
+    <button type="submit" class="ua-btn ua-btn--gold">{gettext("Save")}</button>
+  </div>
+</.form>

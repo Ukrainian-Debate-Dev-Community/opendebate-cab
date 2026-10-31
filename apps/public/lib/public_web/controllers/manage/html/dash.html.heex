@@ -1,0 +1,32 @@
+<.page_head
+  kicker={gettext("Manage")}
+  title={gettext("Overview")}
+  lead={
+    gettext(
+      "You reached this through the link you were given; it works only while you hold the role."
+    )
+  }
+>
+  <:actions>
+    <a class="ua-btn ua-btn--line" href={~p"/manage/events/new"}>{gettext("New event")}</a>
+    <a class="ua-btn ua-btn--gold" href={~p"/manage/news/new"}>{gettext("Write news")}</a>
+  </:actions>
+</.page_head>
+
+<div class="ua-stats ua-stats--4">
+  <div><b>{@published}</b><span>{gettext("Published news")}</span></div>
+  <div><b>{@drafts}</b><span>{gettext("Drafts")}</span></div>
+  <div><b>{@upcoming_count}</b><span>{gettext("Upcoming events")}</span></div>
+  <div><b>{@private_count}</b><span>{gettext("Of them private")}</span></div>
+</div>
+
+<div class="ua-sec">
+  {gettext("Coming up")} <a href={~p"/manage/calendar"}>{gettext("Calendar")}</a>
+</div>
+<.event_row :for={event <- @upcoming} event={event} href={~p"/manage/events/#{event.id}"}>
+  <.tag_chips tags={event.tags} />
+  <a class="ua-btn ua-btn--line ua-btn--sm" href={~p"/manage/events/#{event.id}/edit"}>
+    {gettext("Edit")}
+  </a>
+</.event_row>
+<div :if={@upcoming == []} class="ua-card ua-empty">{gettext("Nothing planned yet.")}</div>

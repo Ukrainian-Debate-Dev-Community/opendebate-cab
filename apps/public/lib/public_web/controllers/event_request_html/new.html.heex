@@ -1,0 +1,42 @@
+<.page_head
+  kicker={gettext("Calendar")}
+  title={gettext("Request an event")}
+  lead={
+    gettext(
+      "Tell us about your tournament or event. We will write to you once it is decided; a copy of your request goes to your e-mail."
+    )
+  }
+/>
+
+<div :if={@errors[:form]} class="ua-flash ua-flash--error" id="request-limited">
+  {@errors[:form]}
+</div>
+
+<CabWeb.Ui.form_for
+  id="event-request-form"
+  action={~p"/calendar/request"}
+  title={gettext("Your event")}
+  errors={@errors}
+  guard
+>
+  <:block
+    :for={field <- @fields}
+    name={answer_name(field)}
+    type={block_type(field)}
+    label={field_label(field)}
+    required={field["required"]}
+    hint={field["hint"]}
+    options={field["options"]}
+    value={@answers[field["id"]]}
+    input={input_type(field)}
+    placeholder={placeholder(field)}
+    prompt={prompt(field)}
+  />
+  <:submit>{gettext("Send the request")}</:submit>
+</CabWeb.Ui.form_for>
+
+<%!-- cab's contact-field helpers for the form's phone, e-mail and
+     telegram fields: the country picker and spacing, the checks when a
+     field is left (the messages come with the fields) --%>
+<script defer src={cab_url("/assets/js/contact-fields.js")}>
+</script>

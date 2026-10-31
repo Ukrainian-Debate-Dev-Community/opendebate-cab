@@ -1,0 +1,35 @@
+<div class="ua-cmd">
+  <div class="cr">
+    <a href={@back} id="back-to-calendar">{gettext("Calendar")}</a> / {@event.title}
+  </div>
+  <div class="seg">
+    <.visibility_switch event={@event} action={@visibility_action} back="event" />
+    <a class="ua-btn ua-btn--line ua-btn--sm" href={~p"/manage/events/#{@event.id}/edit"}>
+      {gettext("Edit")}
+    </a>
+    <.button_to action={~p"/manage/events/#{@event.id}"} method="delete">
+      {gettext("Delete")}
+    </.button_to>
+  </div>
+</div>
+
+<.page_head kicker={gettext("Calendar")} title={@event.title}>
+  <:actions :if={@event.link}>
+    <a
+      class="ua-btn ua-btn--gold"
+      href={@event.link}
+      target="_blank"
+      rel="noopener"
+      id="event-link"
+    >
+      {gettext("Event website")}
+    </a>
+  </:actions>
+</.page_head>
+
+<PublicWeb.CalendarHTML.event_body event={@event}>
+  <:tags>
+    <.tag :if={@event.visibility == "private"} kind="priv">{gettext("Private")}</.tag>
+    <.tag_chips tags={@event.tags} />
+  </:tags>
+</PublicWeb.CalendarHTML.event_body>

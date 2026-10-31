@@ -109,6 +109,23 @@ config :tailwind,
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
+# The public site (apps/public): its own repo (news, events, roles) and
+# endpoint. It reads cab downward; :cab_url is where its Cabinet links
+# point. Its organisation's texts and map come from the tenant folder
+# (:tenant_dir; TENANT_DIR in production)
+config :public,
+  ecto_repos: [Public.Repo],
+  generators: [timestamp_type: :utc_datetime]
+
+config :public, PublicWeb.Gettext, default_locale: "en", locales: ~w(en uk)
+
+config :public, PublicWeb.Endpoint,
+  url: [host: "localhost"],
+  adapter: Bandit.PhoenixAdapter,
+  render_errors: [formats: [html: PublicWeb.ErrorHTML], layout: false]
+
+config :public, :cab_url, "http://localhost:4000"
+
 # Configure Elixir's Logger
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
