@@ -1,5 +1,5 @@
 <Layouts.app flash={@flash} current_user={@current_user} active="clubs">
-  <.chrome here={gettext("Debate clubs of Ukraine")}></.chrome>
+  <.chrome here={CabWeb.Operator.get(:directory_title) || gettext("Debate clubs")}></.chrome>
   <div class="pbody">
     <.flash_banners flash={@flash} />
     <.banner
@@ -21,9 +21,10 @@
     <div :if={!@current_user} class="welcome" id="welcome">
       <h2>{gettext("Welcome to")} <span class="brand-script">cab</span></h2>
       <p>
-        {gettext(
-          "The home of Ukrainian debate clubs: find a club, register for a session, debate — and follow standings and your own results in one place. Free for every Ukrainian club, run by the Debate Federation of Ukraine."
-        )}
+        {CabWeb.Operator.get(:welcome) ||
+          gettext(
+            "Find a club, register for a session, debate — and follow standings and your own results in one place."
+          )}
       </p>
       <p class="mut">
         {gettext("Registering for a session needs no account — the club shares one link.")}

@@ -920,8 +920,8 @@ msgstr "Дата і час"
 
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
-msgid "Debate clubs of Ukraine"
-msgstr "Дебатні клуби України"
+msgid "Debate clubs"
+msgstr "Дебатні клуби"
 
 #: lib/cab_web/controllers/owner_html/delete_session.html.heex
 #, elixir-autogen, elixir-format
@@ -1134,6 +1134,11 @@ msgstr "Заповнити белот"
 #, elixir-autogen, elixir-format
 msgid "Fill ballot — %{room}"
 msgstr "Заповнити белот — %{room}"
+
+#: lib/cab_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Find a club, register for a session, debate — and follow standings and your own results in one place."
+msgstr "Знайдіть клуб, зареєструйтеся на сесію, дебатуйте — і стежте за рейтингом і власними результатами в одному місці."
 
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
@@ -2710,13 +2715,8 @@ msgstr "Помилку записано — спробуйте ще раз за 
 
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
-msgid "The home of Ukrainian debate clubs"
-msgstr "Дім українських дебатних клубів"
-
-#: lib/cab_web/controllers/page_html/home.html.heex
-#, elixir-autogen, elixir-format
-msgid "The home of Ukrainian debate clubs: find a club, register for a session, debate — and follow standings and your own results in one place. Free for every Ukrainian club, run by the Debate Federation of Ukraine."
-msgstr "Дім українських дебатних клубів: знайдіть клуб, зареєструйтеся на сесію, дебатуйте — і стежте за рейтингом і власними результатами в одному місці. Безкоштовно для кожного українського клубу, від Федерації Дебатів України."
+msgid "The home of debate clubs"
+msgstr "Дім дебатних клубів"
 
 #: lib/cab_web/controllers/admin_controller.ex
 #, elixir-autogen, elixir-format
