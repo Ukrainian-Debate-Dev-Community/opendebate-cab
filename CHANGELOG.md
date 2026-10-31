@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.4.0 - 2026-10-31
+
+4 features, 2 fixes, 2 chore; breaking: 0
+
+### Features
+
+- the image runs cab and the public site (the full release) (#52) by @merv1n34k
+- cab: the home and sign-in wording comes from the operator (#47) by @merv1n34k
+- public: the tenant's own pages, the about page among them (#49) by @merv1n34k
+- public: the public site as apps/public, its content from the tenant (#48) by @merv1n34k
+
+### Fixes
+
+- cab: field errors and browser checks in the club and session forms (#44) by @merv1n34k
+- cab: sign-in never returns to a look-alike address (#45) by @merv1n34k
+
+### Other
+
+- chore(deps): bump phoenix_html to 4.4.0 for CVE-2026-117645 (#50) by @merv1n34k
+- chore(deps): bump bandit to 1.14.1 for CVE-2026-116078 (#46) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 8 commits
+
 ## v0.3.0 - 2026-10-27
 
 3 features, 1 fix, 2 chore; breaking: 0
