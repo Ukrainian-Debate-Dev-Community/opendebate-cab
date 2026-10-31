@@ -140,6 +140,22 @@ defmodule PublicWeb.EventRequestsTest do
     end)
   end
 
+  test "decline: a reason too long is refused, the request stays pending", %{conn: conn} do
+    {:ok, request} = EventRequests.submit(answers(), "en")
+
+    refused =
+      conn
+      |> cab_sign_in(editor())
+      |> post(~p"/manage/requests/#{request.id}/decline", %{
+        "reason" => String.duplicate("x", 1001)
+      })
+
+    assert redirected_to(refused) == "/manage/requests"
+    assert Phoenix.Flash.get(refused.assigns.flash, :error) == "1000 characters at most."
+    assert EventRequests.get!(request.id).status == "pending"
+    refute_email_sent()
+  end
+
   test "the form editor adds, moves and removes fields; the e-mail stays", %{conn: conn} do
     signed = cab_sign_in(conn, editor())
 
