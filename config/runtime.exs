@@ -29,16 +29,23 @@ config :ueberauth, Ueberauth.Strategy.Google.OAuth,
 # The engine trusts any token signed with this secret (admin included),
 # so production refuses to boot without a real one.
 if config_env() != :test do
+  # long enough for the engine, which wants 32 characters or more; the
+  # Makefile's engine fallback (make dev:up without engine/.env) uses it too
+  dev_engine_secret = "insecure-dev-engine-secret-not-for-production"
+
   engine_secret =
     case {config_env(), System.get_env("ENGINE_JWT_SECRET")} do
       {:prod, secret} when secret in [nil, ""] ->
         raise "ENGINE_JWT_SECRET is missing; the engine would trust a public default"
 
-      {:prod, "insecure-dev-engine-secret"} ->
+      {:prod, secret} when secret == "insecure-dev-engine-secret" ->
+        raise "ENGINE_JWT_SECRET is the public dev default; set a real secret"
+
+      {:prod, ^dev_engine_secret} ->
         raise "ENGINE_JWT_SECRET is the public dev default; set a real secret"
 
       {_env, nil} ->
-        "insecure-dev-engine-secret"
+        dev_engine_secret
 
       {_env, secret} ->
         secret
