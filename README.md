@@ -74,11 +74,12 @@ The dev stack reads `.env` at the repo root (OAuth keys, engine secret,
   (and `:sha-<commit>`).
 - `make dev:image` builds the image locally (Docker needed).
 
-The image runs the `cab` release on port 4000 and answers `GET /healthz`.
+The image runs the `full` release: cab on port 4000 and the public site
+on 4001, each answering `GET /healthz`.
 Before starting a new version run the migrations:
 
 ```sh
-bin/cab eval "Cab.Release.migrate()"
+bin/full eval "Cab.Release.migrate(); Public.Release.migrate()"
 ```
 
 ## Production settings
@@ -93,7 +94,7 @@ bin/cab eval "Cab.Release.migrate()"
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | yes | sign-in with GitHub |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | yes | sign-in with Google |
 | `LEGAL_DIR` | yes | folder with `en/policy.md`, `en/terms.md` (and other languages); 404 without |
-| `CAB_UPLOADS_DIR` | yes | folder for club logos, served at `/uploads`; in the image `/app/uploads`, a persistent volume kept in the backups |
+| `CAB_UPLOADS_DIR` | yes | folder for club logos, served at `/uploads`; in the image `/app/cab-uploads`, a persistent volume kept in the backups |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` | for mail | without `SMTP_HOST` mail is kept in memory and not sent |
 | `MAIL_FROM` | for mail | `Name <address>`, e.g. `cab <noreply@example.org>` |
 | `SESSION_COOKIE_DOMAIN` | no | e.g. `.example.org`, so sibling sites can read the sign-in |
@@ -111,14 +112,14 @@ bin/cab eval "Cab.Release.migrate()"
 | `ECTO_IPV6` | no | `true` to reach the database over IPv6 |
 | `DNS_CLUSTER_QUERY` | no | only for clustering several nodes |
 
-The public site (`apps/public`), on a node that runs it (the `cab`
-release and image leave it out):
+The public site (`apps/public`), on a node that runs it (the image
+does; the `cab` release leaves it out):
 
 | Variable | Needed | What |
 |---|---|---|
 | `PUBLIC_DATABASE_URL` | yes | the site's own database (news, events, roles), `ecto://user:pass@host/db` |
 | `PUBLIC_HOST` | yes | the site's host, e.g. `example.org` |
-| `PUBLIC_UPLOADS_DIR` | yes | folder for news cover images, served at `/uploads`; a persistent volume kept in the backups |
+| `PUBLIC_UPLOADS_DIR` | yes | folder for news cover images, served at `/uploads`; in the image `/app/uploads`, a persistent volume kept in the backups |
 | `TENANT_DIR` | yes | the tenant folder (see below) |
 | `CAB_URL` | no | where the Cabinet links point, `https://<PHX_HOST>` by default |
 | `PUBLIC_PORT` | no | 4001 by default |

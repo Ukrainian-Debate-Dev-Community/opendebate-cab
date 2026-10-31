@@ -1,13 +1,14 @@
 defmodule OpendebateCab.MixProject do
   use Mix.Project
 
-  # opendebate-cab: the club cabinet and its engine client. Layering
-  # (deps point down only):
+  # opendebate-cab: the club cabinet, the public site and the engine
+  # client. Layering (deps point down only):
   #
-  #   engine (Node, engine/) <- core <- cab
+  #   engine (Node, engine/) <- core <- cab <- public
   #
-  # Apps built on top of cab pull this repo in and depend on apps/cab
-  # and apps/core; cab and core know nothing above them.
+  # cab and core know nothing above them. The `full` release (the image)
+  # runs cab (:4000) and public (:4001) in one node; `cab` runs the
+  # cabinet alone.
   def project do
     [
       apps_path: "apps",
@@ -21,6 +22,9 @@ defmodule OpendebateCab.MixProject do
 
   defp releases do
     [
+      full: [
+        applications: [cab: :permanent, public: :permanent]
+      ],
       cab: [
         applications: [cab: :permanent]
       ]
