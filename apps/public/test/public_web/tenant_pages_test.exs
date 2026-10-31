@@ -122,7 +122,8 @@ defmodule PublicWeb.TenantPagesTest do
   end
 
   test "error pages carry the tenant's name", %{conn: conn} do
-    assert conn |> get("/no-such-page") |> html_response(404) =~ " | LeagueSite</title>"
+    {404, _headers, page} = assert_error_sent(404, fn -> get(conn, "/no-such-page") end)
+    assert page =~ " | LeagueSite</title>"
   end
 
   test "without event_requests_email nobody but the requester is e-mailed", %{conn: conn} do

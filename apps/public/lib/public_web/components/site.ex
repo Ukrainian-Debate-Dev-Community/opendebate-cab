@@ -47,8 +47,8 @@ defmodule PublicWeb.Site do
         {:home, ~p"/", gettext("Home")},
         {:news, ~p"/news", gettext("News")},
         {:calendar, ~p"/calendar", gettext("Calendar")},
-        {:clubs, ~p"/clubs", gettext("Clubs")},
-        {:about, ~p"/about", gettext("About")}
+        {:clubs, ~p"/clubs", gettext("Clubs")}
+        | for({slug, title} <- Tenant.nav_pages(), do: {{:page, slug}, ~p"/#{slug}", title})
       ])
 
     ~H"""
@@ -169,7 +169,7 @@ defmodule PublicWeb.Site do
           <a href={~p"/news"}>{gettext("News")}</a>
           <a href={~p"/calendar"}>{gettext("Calendar")}</a>
           <a href={~p"/clubs"}>{gettext("Clubs")}</a>
-          <a href={~p"/about"}>{gettext("About")}</a>
+          <a :for={{slug, title} <- Tenant.nav_pages()} href={~p"/#{slug}"}>{title}</a>
         </div>
         <div>
           <b>{gettext("Platform")}</b>

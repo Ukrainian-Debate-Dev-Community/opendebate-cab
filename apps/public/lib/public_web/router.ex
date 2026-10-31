@@ -47,7 +47,6 @@ defmodule PublicWeb.Router do
     pipe_through :public
 
     get "/", PageController, :home
-    get "/about", PageController, :about
     get "/news", NewsController, :index
     get "/news/:slug", NewsController, :show
     get "/calendar", CalendarController, :index
@@ -108,5 +107,13 @@ defmodule PublicWeb.Router do
     get "/people", PeopleController, :index
     post "/people", PeopleController, :grant
     delete "/people/:user_id", PeopleController, :revoke
+  end
+
+  # the tenant's own pages (About...), last: any one-segment address not
+  # taken above
+  scope "/", PublicWeb do
+    pipe_through :public
+
+    get "/:page", PageController, :page
   end
 end

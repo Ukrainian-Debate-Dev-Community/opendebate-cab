@@ -2,13 +2,14 @@ defmodule Public.Tenant do
   @moduledoc """
   The organisation's own part of the site: its names, footer lines,
   contacts, the texts cab shows about who runs it, the home and about
-  pages, a few page labels and the club map. The deployment mounts them
-  as a folder (`config :public, :tenant_dir`, TENANT_DIR in production)
-  holding `tenant.json` and `map.json`; the code holds none of them.
+  page, a few page labels, the club map and its own pages (About...).
+  The deployment mounts them as a folder (`config :public, :tenant_dir`,
+  TENANT_DIR in production) holding `tenant.json`, `map.json` and
+  `pages/` (`Public.Tenant.Page`); the code holds none of them.
 
   The folder is read once at boot (`load!/1`, from Public.Application)
-  and kept in :persistent_term. A folder without a key the site needs
-  refuses to boot, naming every missing key.
+  and kept in :persistent_term. A folder without a key the site needs, or
+  with a page that does not read, refuses to boot, naming every problem.
 
   Every text is an object with a value per language, `{"en": "...",
   "uk": "..."}`; `text/2` and `translate/2` give the value in the page
@@ -42,9 +43,6 @@ defmodule Public.Tenant do
     ~w(home lead),
     ~w(home about_link),
     ~w(story),
-    ~w(about title),
-    ~w(about blocks),
-    ~w(about timeline),
     ~w(labels news),
     ~w(labels clubs),
     ~w(labels calendar_lead),
@@ -78,9 +76,15 @@ defmodule Public.Tenant do
   (all of them in one message).
   """
   def read!(dir) do
-    data = dir |> json!("tenant.json") |> Map.put("map", json!(dir, "map.json"))
+    {pages, page_problems} = pages(dir)
 
-    case missing(data) ++ unknown_branches(data) do
+    data =
+      dir
+      |> json!("tenant.json")
+      |> Map.put("map", json!(dir, "map.json"))
+      |> Map.put("pages", pages)
+
+    case missing(data) ++ unknown_branches(data) ++ page_problems do
       [] ->
         data
 
@@ -107,6 +111,28 @@ defmodule Public.Tenant do
     end
   end
 
+  # pages/<slug>.<lang>.md: %{slug => %{lang => page}}, every page with
+  # its English file
+  defp pages(dir) do
+    files = Path.wildcard(Path.join([dir, "pages", "*.md"]))
+
+    {pages, problems} =
+      Enum.reduce(files, {%{}, []}, fn path, {pages, problems} ->
+        name = Path.basename(path)
+
+        with [_, slug, lang] <- Regex.run(~r/^([a-z0-9-]+)\.([a-z]{2})\.md$/, name),
+             {:ok, page} <- path |> File.read!() |> Public.Tenant.Page.parse() do
+          {Map.update(pages, slug, %{lang => page}, &Map.put(&1, lang, page)), problems}
+        else
+          nil -> {pages, problems ++ ["pages/#{name} (name it <slug>.<lang>.md)"]}
+          {:error, reason} -> {pages, problems ++ ["pages/#{name}: #{reason}"]}
+        end
+      end)
+
+    english = for {slug, langs} <- pages, not Map.has_key?(langs, "en"), do: "pages/#{slug}.en.md"
+    {pages, problems ++ english}
+  end
+
   defp missing(data) do
     for path <- @required, fetch(data, path) in [nil, ""], do: Enum.join(path, ".")
   end
@@ -120,6 +146,24 @@ defmodule Public.Tenant do
 
   @doc "A value as the folder has it: `get(\"name\")`, `get([:home, :notice])`."
   def get(keys), do: fetch(data(), List.wrap(keys))
+
+  @doc "A tenant page by its slug, in `locale` (the page language by default), English when missing; nil when there is none."
+  def page(slug, locale \\ nil) do
+    case get(["pages", slug]) do
+      nil -> nil
+      langs -> langs[locale || Gettext.get_locale(PublicWeb.Gettext)] || langs["en"]
+    end
+  end
+
+  @doc "The pages in the header and footer menus, by their nav number: [{slug, title}]."
+  def nav_pages(locale \\ nil) do
+    for(
+      {slug, %{"en" => %{nav: nav}}} when is_integer(nav) <- get("pages") || %{},
+      do: {nav, slug}
+    )
+    |> Enum.sort()
+    |> Enum.map(fn {_nav, slug} -> {slug, page(slug, locale).title} end)
+  end
 
   @doc "A text in `locale` (the page language by default), English when missing."
   def text(keys, locale \\ nil), do: keys |> get() |> translate(locale)

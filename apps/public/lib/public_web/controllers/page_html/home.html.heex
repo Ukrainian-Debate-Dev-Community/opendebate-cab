@@ -51,7 +51,8 @@
     <div :if={@news == []} class="ua-card ua-empty">{gettext("No news yet.")}</div>
 
     <div class="ua-sec">
-      {gettext("Our story")} <a href={~p"/about"}>{Tenant.text([:home, :about_link])}</a>
+      {gettext("Our story")}
+      <a :if={Tenant.page("about")} href={~p"/about"}>{Tenant.text([:home, :about_link])}</a>
     </div>
     <div class="ua-card ua-pad">
       <ol class="ua-story">
