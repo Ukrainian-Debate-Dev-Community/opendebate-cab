@@ -24,7 +24,7 @@ defmodule PublicWeb.ManageTest do
   end
 
   test "/manage does not exist for anyone signed in without the role", %{conn: conn} do
-    unknown = conn |> get("/no-such-page") |> html_response(404)
+    {404, _headers, unknown} = assert_error_sent(404, fn -> get(conn, "/no-such-page") end)
     assert unknown =~ "Page not found"
     assert unknown =~ ~s(class="ua-error")
 

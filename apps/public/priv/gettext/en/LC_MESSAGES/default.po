@@ -19,7 +19,7 @@ msgid_plural "%{count} cities"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/public_web/controllers/page_html/about.html.heex
+#: lib/public_web/controllers/page_html.ex
 #, elixir-autogen, elixir-format
 msgid "%{count} city. Click a city to see its clubs"
 msgid_plural "%{count} cities. Click a city to see its clubs"
@@ -53,12 +53,6 @@ msgstr ""
 #: lib/public_web/components/site.ex
 #, elixir-autogen, elixir-format
 msgid "APF"
-msgstr ""
-
-#: lib/public_web/components/site.ex
-#: lib/public_web/controllers/page_controller.ex
-#, elixir-autogen, elixir-format
-msgid "About"
 msgstr ""
 
 #: lib/public_web/controllers/club_html/show.html.heex
@@ -314,7 +308,7 @@ msgstr ""
 
 #: lib/public_web/components/site.ex
 #: lib/public_web/controllers/club_html/show.html.heex
-#: lib/public_web/controllers/page_html/about.html.heex
+#: lib/public_web/controllers/page_html.ex
 #, elixir-autogen, elixir-format
 msgid "Contact"
 msgstr ""
@@ -387,7 +381,7 @@ msgstr ""
 msgid "Details"
 msgstr ""
 
-#: lib/public_web/controllers/page_html/about.html.heex
+#: lib/public_web/controllers/page_html.ex
 #, elixir-autogen, elixir-format
 msgid "Documents"
 msgstr ""
@@ -986,7 +980,7 @@ msgid "Platform"
 msgstr ""
 
 #: lib/public_web/components/site.ex
-#: lib/public_web/controllers/page_html/about.html.heex
+#: lib/public_web/controllers/page_html.ex
 #, elixir-autogen, elixir-format
 msgid "Privacy policy"
 msgstr ""
@@ -1269,7 +1263,7 @@ msgid "Tell us about your tournament or event. We will write to you once it is d
 msgstr ""
 
 #: lib/public_web/components/site.ex
-#: lib/public_web/controllers/page_html/about.html.heex
+#: lib/public_web/controllers/page_html.ex
 #, elixir-autogen, elixir-format
 msgid "Terms of use"
 msgstr ""
@@ -1325,7 +1319,7 @@ msgstr ""
 msgid "The role is revoked; it takes effect on their next request."
 msgstr ""
 
-#: lib/public_web/controllers/page_html/about.html.heex
+#: lib/public_web/controllers/page_html.ex
 #, elixir-autogen, elixir-format
 msgid "The rules for the site and the cabinet"
 msgstr ""
@@ -1494,7 +1488,7 @@ msgstr ""
 msgid "What the public is asked on the calendar's request page; the e-mail is always asked first."
 msgstr ""
 
-#: lib/public_web/controllers/page_html/about.html.heex
+#: lib/public_web/controllers/page_html.ex
 #, elixir-autogen, elixir-format
 msgid "What we store and why"
 msgstr ""

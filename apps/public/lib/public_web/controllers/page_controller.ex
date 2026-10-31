@@ -21,7 +21,9 @@ defmodule PublicWeb.PageController do
     )
   end
 
-  def about(conn, _params) do
-    render(conn, :about, active: :about, page_title: gettext("About"))
+  # a tenant's own page (pages/<slug>.<lang>.md), else not found
+  def page(conn, %{"page" => slug}) do
+    page = Public.Tenant.page(slug) || raise PublicWeb.NotFound
+    render(conn, :page, active: {:page, slug}, page: page, page_title: page.title)
   end
 end

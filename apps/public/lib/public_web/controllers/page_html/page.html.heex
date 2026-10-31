@@ -1,0 +1,12 @@
+<%= for group <- groups(@page.parts) do %>
+  <%= case group do %>
+    <% {:main, parts} -> %>
+      <div class="ua-hist">
+        <%= for part <- parts do %>
+          <.part part={part} />
+        <% end %>
+      </div>
+    <% {:side, sides} -> %>
+      <.sides sides={sides} />
+  <% end %>
+<% end %>
