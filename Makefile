@@ -2,7 +2,7 @@
 RELEASE_NAME      = opendebate-cab
 RELEASE_REPO      = Ukrainian-Debate-Dev-Community/opendebate-cab
 RELEASE_CI        = ci.yml
-RELEASE_FILES     = mix.exs apps/core/mix.exs apps/cab/mix.exs
+RELEASE_FILES     = mix.exs apps/core/mix.exs apps/cab/mix.exs apps/public/mix.exs
 RELEASE_CHANGELOG = CHANGELOG.md
 IMAGE             = ghcr.io/ukrainian-debate-dev-community/opendebate-cab
 RELEASE_ARTIFACT  = the image $(IMAGE):v{version} (release workflow)
@@ -45,7 +45,7 @@ test-all: test
 	python3 scripts/release --self-test
 
 lint:
-	$(NIX) sh -c 'mix format --check-formatted && (cd apps/cab && MIX_ENV=test mix gettext.extract --check-up-to-date) && mix hex.audit'
+	$(NIX) sh -c 'mix format --check-formatted && (cd apps/cab && MIX_ENV=test mix gettext.extract --check-up-to-date) && (cd apps/public && MIX_ENV=test mix gettext.extract --check-up-to-date) && mix hex.audit'
 
 fmt:
 	$(NIX) mix format

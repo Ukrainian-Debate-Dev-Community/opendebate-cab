@@ -1,0 +1,23 @@
+<.page_head
+  kicker={gettext("News")}
+  title={Public.Tenant.text([:labels, :news])}
+  lead={gettext("Announcements, tournament results, interviews and tips for debaters.")}
+/>
+
+<div class="ua-toolbar">
+  <div class="ua-seg">
+    <a class={is_nil(@rubric) && "on"} href={~p"/news"}>{gettext("All")}</a>
+    <a
+      :for={r <- Public.News.Post.rubrics()}
+      class={r == @rubric && "on"}
+      href={~p"/news?#{[rubric: r]}"}
+    >
+      {rubric_label(r)}
+    </a>
+  </div>
+</div>
+
+<div :if={@posts != []} class="ua-grid3">
+  <.news_card :for={post <- @posts} post={post} />
+</div>
+<div :if={@posts == []} class="ua-card ua-empty">{gettext("No news here yet.")}</div>

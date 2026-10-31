@@ -1,0 +1,18 @@
+<div class="ua-crumbs">
+  <a href={~p"/news"}>{gettext("News")}</a> / {rubric_label(@post.rubric)}
+</div>
+<article class="ua-article">
+  <.tag kind="info">{rubric_label(@post.rubric)}</.tag>
+  <h1>{@post.title}</h1>
+  <div class="ua-meta">
+    {long_date(@post.published_at)}, {gettext("%{n} min read", n: read_minutes(@post.body))}
+  </div>
+  <.cover post={@post} class="ua-cover--wide" />
+  <p :if={@post.summary} class="ua-lead">{@post.summary}</p>
+  {Phoenix.HTML.raw(@body)}
+</article>
+
+<div :if={@more != []}>
+  <div class="ua-sec">{gettext("More news")}</div>
+  <div class="ua-grid3"><.news_card :for={post <- @more} post={post} /></div>
+</div>

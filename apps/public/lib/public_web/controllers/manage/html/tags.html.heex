@@ -1,0 +1,79 @@
+<div class="ua-cmd">
+  <div class="cr">
+    <a :if={@tag} href={~p"/manage/tags"}>{gettext("Tags")}</a>
+    <span :if={!@tag}>{gettext("Tags")}</span>
+    <span :if={@tag}>/ {gettext("Edit tag")}</span>
+  </div>
+  <div class="seg">
+    <.button_to :if={@tag} action={~p"/manage/tags/#{@tag.id}"} method="delete">
+      {gettext("Delete")}
+    </.button_to>
+  </div>
+</div>
+
+<.form
+  for={@form}
+  action={if @tag, do: ~p"/manage/tags/#{@tag.id}", else: ~p"/manage/tags"}
+  method={if @tag, do: "put", else: "post"}
+  class="ua-card form"
+>
+  <div class="f-head">
+    <h3>{if @tag, do: @tag.name, else: gettext("New tag")}</h3>
+    <p>
+      {gettext(
+        "Tags mark events and news for the editors, a status for example. They are private: the public site never shows them."
+      )}
+    </p>
+  </div>
+  <div class="f-block">
+    <label class="q" for="tag_name">{gettext("Text")} <span class="req">*</span></label>
+    <input type="text" id="tag_name" name="tag[name]" value={@form[:name].value} maxlength="40" />
+    <.errors form={@form} field={:name} />
+  </div>
+  <div class="f-block">
+    <label class="q">{gettext("Colour")}</label>
+    <div class="ua-swatches">
+      <label
+        :for={color <- Public.Tags.Tag.colors()}
+        class={["ua-label", "ua-label--#{color}"]}
+      >
+        <input
+          type="radio"
+          name="tag[color]"
+          value={color}
+          checked={(@form[:color].value || "gray") == color}
+        />
+        {color_label(color)}
+      </label>
+    </div>
+    <.errors form={@form} field={:color} />
+  </div>
+  <div class="f-block">
+    <button type="submit" class="ua-btn ua-btn--gold">{gettext("Save")}</button>
+  </div>
+</.form>
+
+<div class="ua-sec">{gettext("Tags")}</div>
+<div class="ua-card">
+  <table :if={@tags != []} class="ua-t">
+    <thead>
+      <tr>
+        <th>{gettext("Tag")}</th>
+        <th>{gettext("Colour")}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr :for={tag <- @tags}>
+        <td><.tag_chips tags={[tag]} /></td>
+        <td data-label={gettext("Colour")}>{color_label(tag.color)}</td>
+        <td class="r">
+          <a class="ua-btn ua-btn--line ua-btn--sm" href={~p"/manage/tags/#{tag.id}/edit"}>
+            {gettext("Edit")}
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div :if={@tags == []} class="ua-empty">{gettext("No tags yet.")}</div>
+</div>
