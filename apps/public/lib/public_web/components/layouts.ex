@@ -17,8 +17,8 @@ defmodule PublicWeb.Layouts do
             if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme
           } catch (_e) {}
         </script>
-        <link rel="stylesheet" href={~p"/css/app.css"} />
-        <script defer src={~p"/js/site.js"}>
+        <link rel="stylesheet" href={~p"/assets/css/app.css"} />
+        <script defer src={~p"/assets/js/site.js"}>
         </script>
       </head>
       <body>

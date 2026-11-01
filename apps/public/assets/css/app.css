@@ -1,5 +1,6 @@
 /* the public site: cab's tokens and look; the page rules come from the
-   design board (opendebate-docs). No JavaScript. */
+   design board (opendebate-docs). Built by tailwind as plain CSS (no
+   utilities, no reset) into priv/static/assets/css. */
 
 @font-face {
   font-family: "Cedarville Cursive";
