@@ -40,6 +40,8 @@ defmodule Public.MixProject do
       {:core, in_umbrella: true},
       {:cab, in_umbrella: true},
       {:phoenix, "~> 1.8.13"},
+      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.5", runtime: Mix.env() == :dev},
       {:phoenix_ecto, "~> 4.5"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_view, "~> 1.2.0"},
@@ -56,6 +58,9 @@ defmodule Public.MixProject do
   defp aliases do
     [
       "ecto.setup": ["ecto.create", "ecto.migrate"],
+      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
+      "assets.build": ["tailwind public", "esbuild public"],
+      "assets.deploy": ["tailwind public --minify", "esbuild public --minify", "phx.digest"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       # cab's database too: the site's tests read accounts and clubs there
       test: [
