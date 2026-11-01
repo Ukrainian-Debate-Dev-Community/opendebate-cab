@@ -14,14 +14,12 @@ depend on `apps/cab` and `apps/core`.
 
 `engine/` is the debate engine, [opendebate-engine](https://github.com/Ukrainian-Debate-Dev-Community/opendebate-engine),
 pinned as a git submodule. Policy and Terms are deployment documents,
-read from `LEGAL_DIR` (in development, without it, from an
-`opendebate-server` checkout next to this repo); without them the pages
-answer 404.
+read from `LEGAL_DIR`; without them the pages answer 404.
 
 ## Getting started
 
 ```sh
-make setup     # engine checkout and packages, Elixir deps, databases
+make setup     # engine checkout and packages, Elixir deps, the tailwind binary, databases
 make dev:up    # engine on :3100, cab on :4000, the public site on :4001 (make dev does the same)
 make test      # unit tests
 make test-all  # everything that runs without the stack
@@ -33,9 +31,9 @@ the local stack:
 
 | Command | Does |
 |---|---|
-| `make dev:up` / `make dev:down` / `make dev:restart` | start, stop, restart the engine and cab |
+| `make dev:up` / `make dev:down` / `make dev:restart` | start, stop, restart the engine, cab and the public site |
 | `make dev:status` / `make dev:logs` | what is running / follow the logs in `.run/` |
-| `make dev:fresh DEV_USER=<your cab username>` | wipe both databases, load demo data |
+| `make dev:fresh DEV_USER=<your cab username>` | wipe the engine's, cab's and the public site's databases, load demo data |
 | `make dev:e2e` | the full session walkthrough against the running stack |
 | `make dev:phone DEV_USER=<username>` | every key page as an iPhone 15 |
 | `make dev:stress` | load test against the running stack |
@@ -44,8 +42,12 @@ the local stack:
 | `make dev:api-docs` | refresh the engine's API description from the pinned engine |
 | `make dev:image` | build the release image locally (Docker needed) |
 
-The dev stack reads `.env` at the repo root (OAuth keys, engine secret,
-`LEGAL_DIR`) and `engine/.env`. Tooling comes from `nix develop`.
+The dev stack reads `.env` at the repo root: the OAuth keys, the engine
+secret (`ENGINE_JWT_SECRET`), `LEGAL_DIR` (Policy and Terms) and
+`TENANT_DIR` (the public site's tenant folder, e.g. a deployment's
+`tenant/`; without it the neutral test tenant). The engine reads
+`engine/.env`; without one `make dev:up` starts it with development
+settings and the same secret. Tooling comes from `nix develop`.
 
 ## Branches and releases
 
