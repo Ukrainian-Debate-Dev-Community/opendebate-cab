@@ -63,6 +63,10 @@ config :cab, :default_phone_country, nil
 # (DEFAULT_TIME_ZONE in production; Cab.TimeZones)
 config :cab, :default_time_zone, "Etc/UTC"
 
+# the shared components' words (apps/ui); the apps set its locale
+# along with their own
+config :ui, Ui.Gettext, default_locale: "en", locales: ~w(en uk)
+
 # Configure the endpoint
 # English by default; Ukrainian when the browser or the footer asks
 config :cab, CabWeb.Gettext, default_locale: "en", locales: ~w(en uk)

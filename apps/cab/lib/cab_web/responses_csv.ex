@@ -11,7 +11,7 @@ defmodule CabWeb.ResponsesCsv do
 
   use Gettext, backend: CabWeb.Gettext
 
-  alias CabWeb.FormComponents
+  alias Ui.FormComponents
 
   @bom <<0xEF, 0xBB, 0xBF>>
 

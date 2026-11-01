@@ -12,12 +12,12 @@
   {@errors[:form]}
 </div>
 
-<CabWeb.Ui.form_for
+<.form_for
   id="event-request-form"
   action={~p"/calendar/request"}
   title={gettext("Your event")}
   errors={@errors}
-  guard
+  guard={CabWeb.Turnstile.site_key()}
 >
   <:block
     :for={field <- @fields}
@@ -33,7 +33,7 @@
     prompt={prompt(field)}
   />
   <:submit>{gettext("Send the request")}</:submit>
-</CabWeb.Ui.form_for>
+</.form_for>
 
 <%!-- cab's contact-field helpers for the form's phone, e-mail and
      telegram fields: the country picker and spacing, the checks when a

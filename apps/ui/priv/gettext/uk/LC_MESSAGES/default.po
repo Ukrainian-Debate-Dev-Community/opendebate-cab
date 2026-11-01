@@ -1,0 +1,232 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: uk\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100 != 11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Add a field"
+msgstr "Додати поле"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Always asked. You can choose whether it is required and give it a hint."
+msgstr "Питаємо завжди. Можна вибрати, чи воно обов'язкове, і додати підказку."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Answer"
+msgstr "Відповідь"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Asked of"
+msgstr "Кого питаємо"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Copy"
+msgstr "Копіювати"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Country"
+msgstr "Країна"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Date"
+msgstr "Дата"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Edit field: %{label}"
+msgstr "Редагування поля: %{label}"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Field"
+msgstr "Поле"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Guests see the label as the question and the hint below it."
+msgstr "Гості бачать назву як запитання, а підказку під ним."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Hint"
+msgstr "Підказка"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Label"
+msgstr "Назва"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "More options"
+msgstr "Інші варіанти"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "No"
+msgstr "Ні"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "No fields yet."
+msgstr "Полів ще немає."
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Nothing here yet."
+msgstr "Тут поки нічого немає."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Optional: a line under the question."
+msgstr "Необов'язково: рядок під запитанням."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Options"
+msgstr "Варіанти"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Required"
+msgstr "Обов'язкове"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Single and multiple choice only: one option per line, 2 to 20 options."
+msgstr "Лише для одного й кількох варіантів: по одному варіанту в рядку, від 2 до 20 варіантів."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Telegram username"
+msgstr "ім'я користувача в Telegram"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Time"
+msgstr "Час"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Type"
+msgstr "Тип"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Yes"
+msgstr "Так"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Your e-mail"
+msgstr "Ваш e-mail"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "always asked"
+msgstr "питаємо завжди"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "beta"
+msgstr "бета"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "choose one"
+msgstr "оберіть один"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "down"
+msgstr "нижче"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "e-mail"
+msgstr "e-mail"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "edit"
+msgstr "змінити"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "long text"
+msgstr "довгий текст"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "multiple choice"
+msgstr "кілька варіантів"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "no"
+msgstr "ні"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "number"
+msgstr "число"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "optional"
+msgstr "необов'язкове"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "phone"
+msgstr "телефон"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "remove"
+msgstr "видалити"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "required"
+msgstr "обов'язкове"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "short text"
+msgstr "короткий текст"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "single choice"
+msgstr "один варіант"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "up"
+msgstr "вище"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "yes"
+msgstr "так"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "yes/no"
+msgstr "так/ні"

@@ -157,7 +157,7 @@ defmodule CabWeb.OwnerController do
   # the always-asked fields keep their place
   defp on_field_error({conn, {:error, :locked}}, _editing, _params) do
     conn
-    |> put_flash(:error, CabWeb.FormComponents.editor_error(:locked))
+    |> put_flash(:error, Ui.FormComponents.editor_error(:locked))
     |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/form")
   end
 

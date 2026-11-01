@@ -39,6 +39,7 @@ defmodule Public.MixProject do
     [
       {:core, in_umbrella: true},
       {:cab, in_umbrella: true},
+      {:ui, in_umbrella: true},
       {:phoenix, "~> 1.8.13"},
       {:phoenix_ecto, "~> 4.5"},
       {:phoenix_html, "~> 4.1"},

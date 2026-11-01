@@ -44,6 +44,20 @@ defmodule PublicWeb.EventRequestsTest do
     assert page =~ ~s(name="answers[name]")
   end
 
+  test "the request form's shared words (apps/ui) follow the page language", %{conn: conn} do
+    page =
+      conn
+      |> put_req_cookie("public_locale", "uk")
+      |> get(~p"/calendar/request")
+      |> html_response(200)
+
+    # the locked e-mail field's label and its check's message are ui's
+    assert page =~ "\u0412\u0430\u0448 e-mail"
+
+    assert page =~
+             ~s(data-msg-required="\u0417\u0430\u043f\u043e\u0432\u043d\u0456\u0442\u044c \u0446\u0435 \u043f\u043e\u043b\u0435.")
+  end
+
   test "a request is kept and e-mailed to the requester and the receiving address",
        %{conn: conn} do
     sent = conn |> post(~p"/calendar/request", %{answers: answers()}) |> html_response(200)

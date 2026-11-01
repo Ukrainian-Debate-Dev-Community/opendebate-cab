@@ -1574,11 +1574,6 @@ msgstr "Ваш запит прийнято: %{title} уже в календар�
 msgid "accepted"
 msgstr "прийнято"
 
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "beta"
-msgstr "бета"
-
 #: lib/public_web/controllers/manage/html/requests.html.heex
 #, elixir-autogen, elixir-format
 msgid "declined"

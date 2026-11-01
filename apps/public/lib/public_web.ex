@@ -26,6 +26,8 @@ defmodule PublicWeb do
       use Phoenix.Component
       import Phoenix.Controller, only: [get_csrf_token: 0]
       use Gettext, backend: PublicWeb.Gettext
+      # the kit both web apps share (apps/ui)
+      use Ui
       import PublicWeb.Site
       unquote(verified_routes())
     end

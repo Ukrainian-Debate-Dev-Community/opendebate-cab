@@ -5,7 +5,7 @@ defmodule CabWeb.RegistrationHTML do
   """
   use CabWeb, :html
 
-  import CabWeb.FormComponents,
+  import Ui.FormComponents,
     only: [
       answer_name: 1,
       block_type: 1,
@@ -43,7 +43,7 @@ defmodule CabWeb.RegistrationHTML do
         gettext("No account needed — you'll get a personal link that is your access to this session.")
       }
       errors={@errors}
-      guard={!@preview}
+      guard={if(!@preview, do: CabWeb.Turnstile.site_key())}
     >
       <:block
         name={:name}

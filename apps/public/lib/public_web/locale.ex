@@ -33,8 +33,10 @@ defmodule PublicWeb.Locale do
         "en"
 
     Gettext.put_locale(PublicWeb.Gettext, locale)
-    # cab's messages (Cab.Text form errors) in the same language
+    # cab's messages (Cab.Text form errors) and the shared components'
+    # (apps/ui) in the same language
     Gettext.put_locale(CabWeb.Gettext, locale)
+    Gettext.put_locale(Ui.Gettext, locale)
 
     conn
     |> assign(:locale, locale)

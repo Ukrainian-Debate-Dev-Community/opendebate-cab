@@ -84,13 +84,15 @@ defmodule PublicWeb.Emails do
 
   defp answers_text(%Request{answers: answers}) do
     Enum.map_join(answers, "\n", fn answer ->
-      "#{CabWeb.FormComponents.field_label(answer)}: #{CabWeb.FormComponents.answer_text(answer)}"
+      "#{Ui.FormComponents.field_label(answer)}: #{Ui.FormComponents.answer_text(answer)}"
     end)
   end
 
   defp in_language(%Request{locale: locale}, fun) do
     Gettext.with_locale(PublicWeb.Gettext, locale, fn ->
-      Gettext.with_locale(CabWeb.Gettext, locale, fun)
+      Gettext.with_locale(CabWeb.Gettext, locale, fn ->
+        Gettext.with_locale(Ui.Gettext, locale, fun)
+      end)
     end)
   end
 
