@@ -4,9 +4,10 @@ defmodule OpendebateCab.MixProject do
   # opendebate-cab: the club cabinet, the public site and the engine
   # client. Layering (deps point down only):
   #
-  #   engine (Node, engine/) <- core <- cab <- public
+  #   engine (Node, engine/) <- core <- ui <- cab <- public
   #
-  # cab and core know nothing above them. The `full` release (the image)
+  # ui is the component library both web apps share. Each layer knows
+  # nothing above it. The `full` release (the image)
   # runs cab (:4000) and public (:4001) in one node; `cab` runs the
   # cabinet alone.
   def project do

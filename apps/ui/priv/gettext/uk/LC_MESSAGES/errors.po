@@ -1,0 +1,112 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: uk\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100 != 11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "%{count} characters at most."
+msgstr "Не більше ніж %{count} символів."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "A form holds %{count} fields at most."
+msgstr "У формі може бути не більше ніж %{count} полів."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "An option is %{count} characters at most."
+msgstr "Варіант може мати не більше ніж %{count} символів."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose a type."
+msgstr "Оберіть тип."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose at least one."
+msgstr "Оберіть хоча б один."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose from the options."
+msgstr "Оберіть із запропонованих варіантів."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose one."
+msgstr "Оберіть один."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose who is asked."
+msgstr "Оберіть, кого питати."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Each option must be different."
+msgstr "Варіанти мають бути різними."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter a Telegram username: 5 to 32 letters, digits or _, like @name or t.me/name."
+msgstr "Введіть ім'я користувача Telegram: від 5 до 32 літер, цифр або _, наприклад @name чи t.me/name."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter a full phone number for its country, like +380 50 123 4567."
+msgstr "Введіть повний номер телефону для його країни, наприклад +380 50 123 4567."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter a label."
+msgstr "Введіть назву."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter a number, like 12 or 3.5."
+msgstr "Введіть число, наприклад 12 або 3.5."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter an e-mail address like name@example.com."
+msgstr "Введіть e-mail, наприклад name@example.com."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Fill this in."
+msgstr "Заповніть це поле."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Give %{min} to %{max} options, one per line."
+msgstr "Вкажіть від %{min} до %{max} варіантів, по одному в рядку."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Something went wrong, try again."
+msgstr "Щось пішло не так, спробуйте ще раз."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "This field is always asked: it cannot be moved or removed."
+msgstr "Це поле питаємо завжди: його не можна перемістити чи видалити."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Tick this box."
+msgstr "Позначте це поле."
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Use plain text without control characters."
+msgstr "Використовуйте звичайний текст без спеціальних знаків."

@@ -42,6 +42,15 @@ defmodule CabWeb.LocaleTest do
     assert kept =~ ~r/<html[^>]*lang="en"/
   end
 
+  test "the shared components (apps/ui) speak the page's language", %{conn: conn} do
+    uk = conn |> put_req_cookie("cab_locale", "uk") |> get(~p"/") |> html_response(200)
+    # the beta tag beside the wordmark is ui's
+    assert uk =~ ~s(class="beta-tag">\u0431\u0435\u0442\u0430</span>)
+
+    en = conn |> get(~p"/") |> html_response(200)
+    assert en =~ ~s(class="beta-tag">beta</span>)
+  end
+
   test "the switch never sends you to another site, and knows only its languages",
        %{conn: conn} do
     away =

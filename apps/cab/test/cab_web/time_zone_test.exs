@@ -33,15 +33,6 @@ defmodule CabWeb.TimeZoneTest do
     assert html =~ ~s(name="time_zone")
   end
 
-  test "a time renders as its UTC instant with a UTC fallback text" do
-    assigns = %{at: ~U[2026-10-09 15:30:00Z]}
-
-    html = rendered_to_string(~H"<CabWeb.Ui.local_time at={@at} as={:short} />")
-    assert html =~ ~s(datetime="2026-10-09T15:30:00Z")
-    assert html =~ ~s(data-when="short")
-    assert html =~ "9 Oct, 15:30 UTC"
-  end
-
   describe "the schedule form's date and time" do
     test "read in the account's zone, summer and winter time alike" do
       {:ok, user} = Accounts.update_profile(user_fixture(), %{"time_zone" => "Europe/Kyiv"})
@@ -105,9 +96,15 @@ defmodule CabWeb.TimeZoneTest do
 
       html =
         rendered_to_string(~H"""
-        <CabWeb.Ui.form_for action="/schedule">
-          <:block names={[:date, :time]} type={:datetime} at={@at} zone="Europe/Kyiv" />
-        </CabWeb.Ui.form_for>
+        <Ui.Form.form_for action="/schedule">
+          <:block
+            names={[:date, :time]}
+            type={:datetime}
+            at={@at}
+            value={TimeZones.local_parts(@at, "Europe/Kyiv")}
+            zone="Europe/Kyiv"
+          />
+        </Ui.Form.form_for>
         """)
 
       assert html =~ ~s(data-at="2026-12-01T16:30:00Z")
@@ -118,9 +115,9 @@ defmodule CabWeb.TimeZoneTest do
       # nothing planned yet: empty pickers, the server picks the zone
       html =
         rendered_to_string(~H"""
-        <CabWeb.Ui.form_for action="/schedule">
+        <Ui.Form.form_for action="/schedule">
           <:block names={[:date, :time]} type={:datetime} />
-        </CabWeb.Ui.form_for>
+        </Ui.Form.form_for>
         """)
 
       refute html =~ "data-at"

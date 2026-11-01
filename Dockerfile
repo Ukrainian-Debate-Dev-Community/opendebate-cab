@@ -20,6 +20,7 @@ RUN mix local.hex --force && mix local.rebar --force
 # dependencies first, so code changes reuse this layer
 COPY mix.exs mix.lock ./
 COPY apps/core/mix.exs apps/core/mix.exs
+COPY apps/ui/mix.exs apps/ui/mix.exs
 COPY apps/cab/mix.exs apps/cab/mix.exs
 COPY apps/public/mix.exs apps/public/mix.exs
 COPY config/config.exs config/prod.exs config/

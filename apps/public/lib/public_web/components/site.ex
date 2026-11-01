@@ -12,6 +12,8 @@ defmodule PublicWeb.Site do
     router: PublicWeb.Router,
     statics: PublicWeb.static_paths()
 
+  import Ui.Components, only: [beta: 1]
+
   alias Public.{Geo, Tenant}
 
   @doc "Where cab lives; the Cabinet, Policy, Terms and club links point there."
@@ -29,13 +31,6 @@ defmodule PublicWeb.Site do
 
     ~H"""
     <a class={["wordmark", @class]} href={~p"/"}>{@name}<.beta /></a>
-    """
-  end
-
-  @doc "The beta tag beside the wordmark, until the site leaves beta."
-  def beta(assigns) do
-    ~H"""
-    <span class="beta-tag">{gettext("beta")}</span>
     """
   end
 

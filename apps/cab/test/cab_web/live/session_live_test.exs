@@ -63,6 +63,20 @@ defmodule CabWeb.SessionLiveTest do
     assert render(view) =~ "Bohdan"
   end
 
+  test "a live page speaks the session's language, the shared components too", %{conn: conn} do
+    head = user_fixture(%{node_user_id: 9})
+    club = club_fixture(head, %{engine_organisation_id: 3})
+    session = session_fixture(club, engine_event_id: 11)
+    stub_engine([])
+
+    {:ok, view, _html} =
+      conn |> put_req_cookie("cab_locale", "uk") |> live(~p"/c/#{club.uuid}/s/#{session.uuid}")
+
+    # rendered in the LiveView's own process: the locale the plug put in
+    # the session, set again on mount
+    assert render(view) =~ ~s(class="beta-tag">\u0431\u0435\u0442\u0430</span>)
+  end
+
   test "the room page shows the motion the moment it is published", %{conn: conn} do
     head = user_fixture(%{node_user_id: 9})
     club = club_fixture(head, %{engine_organisation_id: 3})

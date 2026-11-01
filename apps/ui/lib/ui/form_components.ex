@@ -1,10 +1,11 @@
-defmodule CabWeb.FormComponents do
+defmodule Ui.FormComponents do
   @moduledoc """
-  cab's UI for configurable forms (`Core.Forms` holds the logic): the
+  The UI of configurable forms (`Core.Forms` holds the logic): the
   definition editor, a definition's fields as `form_for` blocks, and
-  the answers given to it - built from cab's design kit (table,
-  form_for, banner) in cab's words. Server-rendered, no JavaScript
-  beyond the kit's method links.
+  the answers given to it - built from the kit (table, form_for,
+  banner). Server-rendered, no JavaScript beyond the kit's method
+  links. The app's own field attributes and their names come in as
+  attrs.
 
   The editor's routes, relative to the `fields` URL the caller passes:
 
@@ -14,7 +15,9 @@ defmodule CabWeb.FormComponents do
       POST <fields>/<id>/move/up|down   move a field
       GET  <page>?edit=<id>             the page with that field's form
   """
-  use CabWeb, :html
+  use Phoenix.Component
+  use Gettext, backend: Ui.Gettext
+  use Ui
 
   alias Core.Forms
 
@@ -29,11 +32,6 @@ defmodule CabWeb.FormComponents do
   def type_name("choice"), do: gettext("single choice")
   def type_name("multi"), do: gettext("multiple choice")
   def type_name(other), do: to_string(other)
-
-  @doc "A field scope's name, as the editor shows it."
-  def scope_name("guests"), do: gettext("Guests only")
-  def scope_name("members"), do: gettext("Members only")
-  def scope_name(_both), do: gettext("Guests and members")
 
   @doc "A `Core.Forms` editing error code as a message."
   def editor_error(:required), do: dgettext("errors", "Enter a label.")
@@ -58,7 +56,9 @@ defmodule CabWeb.FormComponents do
   def editor_error(:locked),
     do: dgettext("errors", "This field is always asked: it cannot be moved or removed.")
 
-  def editor_error(:invalid), do: Cab.Text.message(:invalid)
+  def editor_error(:invalid),
+    do: dgettext("errors", "Use plain text without control characters.")
+
   def editor_error(:locked_removed), do: editor_error(:locked)
   def editor_error(:locked_moved), do: editor_error(:locked)
   def editor_error(_code), do: dgettext("errors", "Something went wrong, try again.")
@@ -89,7 +89,10 @@ defmodule CabWeb.FormComponents do
     do: dgettext("errors", "%{count} characters at most.", count: max)
 
   def answer_error(:not_an_option, _type), do: dgettext("errors", "Choose from the options.")
-  def answer_error(:invalid, _type), do: Cab.Text.message(:invalid)
+
+  def answer_error(:invalid, _type),
+    do: dgettext("errors", "Use plain text without control characters.")
+
   def answer_error(_code, _type), do: dgettext("errors", "Something went wrong, try again.")
 
   # ---------------------------------------------------------------
@@ -103,7 +106,10 @@ defmodule CabWeb.FormComponents do
   are the field form's posted params, `errors` the `Core.Forms` codes
   by param. `fixed` lists the labels the app asks before the form
   (shown first, not editable); locked fields can only be edited.
-  `scoped` shows and edits each field's scope (who is asked it).
+  `attrs` are the form's own field attributes (`Core.Forms`); with
+  `scopes` - its "scope" attribute's values as `{label, value}` - the
+  editor shows and edits each field's scope (who is asked it), the
+  fixed labels in `fixed_scope`.
   """
   attr :id, :string, default: "form-editor"
   attr :definition, :list, required: true
@@ -114,12 +120,12 @@ defmodule CabWeb.FormComponents do
   attr :errors, :map, default: %{}
   attr :fixed, :list, default: []
   attr :form_id, :string, default: "field-form"
-  attr :scoped, :boolean, default: false
+  attr :attrs, :map, default: %{}, doc: "the form's own field attributes (Core.Forms)"
+  attr :scopes, :list, default: [], doc: "the scope attribute's {label, value}s; none = unscoped"
+  attr :fixed_scope, :string, default: nil, doc: "the scope the fixed labels are asked of"
 
   def form_editor(assigns) do
     definition = assigns.definition
-    # the registration form's own attribute (scope) only where it is shown
-    attrs = if assigns.scoped, do: Cab.Clubs.Club.form_attrs(), else: %{}
 
     rows =
       Enum.map(assigns.fixed, &{:fixed, %{"id" => "fixed", "label" => &1}, nil}) ++
@@ -131,7 +137,11 @@ defmodule CabWeb.FormComponents do
 
     assigns =
       assigns
-      |> assign(:values, Map.merge(Forms.field_params(assigns.editing, attrs), assigns.values))
+      |> assign(
+        :values,
+        Map.merge(Forms.field_params(assigns.editing, assigns.attrs), assigns.values)
+      )
+      |> assign(:scoped, assigns.scopes != [])
       |> assign(
         :messages,
         Map.new(assigns.errors, fn {key, code} -> {key, editor_error(code)} end)
@@ -157,7 +167,10 @@ defmodule CabWeb.FormComponents do
           <.sub :if={field["options"] not in [nil, []]}>{Enum.join(field["options"], ", ")}</.sub>
         </:col>
         <:col :let={{kind, field, _moves}} :if={@scoped} label={gettext("Asked of")}>
-          {scope_name(if kind == :fixed, do: "guests", else: Cab.Clubs.Club.scope(field))}
+          {scope_label(
+            @scopes,
+            if(kind == :fixed, do: @fixed_scope, else: Forms.attr(field, "scope", @attrs))
+          )}
         </:col>
         <:col :let={{kind, field, _moves}} label={gettext("Answer")}>
           {if kind == :fixed or field["required"],
@@ -226,7 +239,7 @@ defmodule CabWeb.FormComponents do
           type={:select}
           label={gettext("Asked of")}
           value={@values["scope"]}
-          options={Enum.map(Cab.Clubs.Club.scopes(), &{scope_name(&1), &1})}
+          options={@scopes}
         />
         <:block
           :if={not @locked}
@@ -255,9 +268,13 @@ defmodule CabWeb.FormComponents do
     """
   end
 
+  defp scope_label(scopes, value),
+    do: Enum.find_value(scopes, value, fn {label, scope} -> scope == value && label end)
+
   @doc """
-  A field's or an answer's label as shown: cab's locked e-mail field
-  in the viewer's language, every other label as the head wrote it.
+  A field's or an answer's label as shown: the apps' locked e-mail
+  field ("Your e-mail") in the viewer's language, every other label as
+  its author wrote it.
   """
   def field_label(%{"id" => "email", "label" => "Your e-mail"}), do: gettext("Your e-mail")
   def field_label(field), do: field["label"]

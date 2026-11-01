@@ -16,6 +16,8 @@
 @source "../css";
 @source "../js";
 @source "../../lib/cab_web";
+/* the shared components (apps/ui) render on cab's pages too */
+@source "../../../ui/lib";
 /* Colocated CSS in dev: the _build of this umbrella, or of the project that holds cab as a submodule */
 @source "../../../../_build/dev/phoenix-colocated/cab/*/";
 @source "../../../../../_build/dev/phoenix-colocated/cab/*/";

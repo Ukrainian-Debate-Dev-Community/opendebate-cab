@@ -84,8 +84,9 @@ defmodule CabWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
-      # Design-system kit: chrome, sidenav, table, form_for, ballot,
-      # allocator, banner, section
+      # The shared kit (apps/ui): table, form_for, banner, section, ...
+      use Ui
+      # cab's own: chrome, sidenav, selrow, club_logo, ballot, allocator
       import CabWeb.Ui
       # The one source of session/room words
       import CabWeb.SessionFormat

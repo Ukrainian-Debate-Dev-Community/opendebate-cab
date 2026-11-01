@@ -15,8 +15,8 @@
   </div>
   <dl class="ua-answers">
     <%= for answer <- request.answers, answer["id"] != "email" do %>
-      <dt>{CabWeb.FormComponents.field_label(answer)}</dt>
-      <dd>{CabWeb.FormComponents.answer_text(answer)}</dd>
+      <dt>{Ui.FormComponents.field_label(answer)}</dt>
+      <dd>{Ui.FormComponents.answer_text(answer)}</dd>
     <% end %>
   </dl>
   <div class="ua-request-actions">
@@ -76,7 +76,7 @@
   <a href={~p"/calendar/request"}>{gettext("Open the page")}</a>
 </p>
 <div class="ua-card">
-  <CabWeb.FormComponents.form_editor
+  <Ui.FormComponents.form_editor
     definition={@definition}
     page={~p"/manage/requests"}
     fields={~p"/manage/requests/form/fields"}
