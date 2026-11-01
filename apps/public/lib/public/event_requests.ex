@@ -131,15 +131,15 @@ defmodule Public.EventRequests do
 
   def accept(_request, _event_id, _user_id), do: {:error, :decided}
 
-  @doc "Declined, with the content manager's optional reason."
+  @doc """
+  Declined, with the content manager's optional reason; a reason that
+  is too long or not plain text is refused (`{:error, message}`), not
+  dropped.
+  """
   def decline(%Request{status: "pending"} = request, reason, user_id) do
-    reason =
-      case Core.Text.clean(reason, max: 1000, multiline: true) do
-        {:ok, text} -> text
-        _ -> nil
-      end
-
-    decide(request, %{status: "declined", reason: reason}, user_id)
+    with {:ok, reason} <- Cab.Text.check(reason, max: 1000, multiline: true) do
+      decide(request, %{status: "declined", reason: reason}, user_id)
+    end
   end
 
   def decline(_request, _reason, _user_id), do: {:error, :decided}
