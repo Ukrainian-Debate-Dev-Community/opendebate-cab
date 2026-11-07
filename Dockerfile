@@ -45,6 +45,8 @@ RUN TW=$(sed -n '/^config :tailwind,/,/^$/s/.*version: "\([0-9.]*\)".*/\1/p' con
 
 # cab's assets need the compiled app (colocated hooks), then digesting
 RUN cd apps/cab && mix assets.setup && mix assets.deploy
+# the public site's CSS and JS the same way (the binaries are in place)
+RUN cd apps/public && mix assets.deploy
 
 RUN mix release full
 

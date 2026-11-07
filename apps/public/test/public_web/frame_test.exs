@@ -10,7 +10,7 @@ defmodule PublicWeb.FrameTest do
     assert html =~ ~s(class="beta-tag")
     assert html =~ ~s(data-cycle="theme")
     assert html =~ ~s(href="/locale/uk")
-    assert html =~ ~s(src="/js/site.js")
+    assert html =~ ~s(src="/assets/js/site.js")
     assert html =~ "public-theme"
   end
 
