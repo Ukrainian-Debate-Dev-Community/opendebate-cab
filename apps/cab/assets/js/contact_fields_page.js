@@ -1,7 +1,7 @@
 // The standalone contact-field helpers (/assets/js/contact-fields.js)
 // for sites that render cab's :phone / :email / :telegram blocks on
 // their own pages: load it with <script defer src=".../assets/js/contact-fields.js">.
-import {installContactFields, mountPhoneFields} from "./contact_fields"
+import {installContactFields, mountPhoneFields} from "../../../ui/assets/js/contact_fields"
 
 const start = () => {
   installContactFields()

@@ -4,10 +4,10 @@
   lead={Public.Tenant.text([:labels, :calendar_lead])}
 >
   <:actions>
-    <a class="ua-btn ua-btn--gold" href={~p"/calendar/request"} id="request-event">
+    <a class="btn-go" href={~p"/calendar/request"} id="request-event">
       {gettext("Request an event")}
     </a>
-    <a :if={@calendar_public} class="ua-btn ua-btn--line" href={~p"/calendar.ics"}>
+    <a :if={@calendar_public} class="btn-quiet" href={~p"/calendar.ics"}>
       {gettext("Subscribe to the calendar")}
     </a>
   </:actions>
@@ -22,17 +22,16 @@
     href={&link(~p"/calendar/#{&1.id}", @period, @kind, nil)}
   />
 
-  <%= for {heading, events} <- groups(@period, @events) do %>
-    <div class="ua-sec">{heading}</div>
+  <.section :for={{heading, events} <- groups(@period, @events)} title={heading} bare>
     <.event_row
       :for={event <- events}
       event={event}
       href={link(~p"/calendar/#{event.id}", @period, @kind, nil)}
     />
-  <% end %>
-  <div :if={@events == []} class="ua-card ua-empty">{empty_text(@period)}</div>
+  </.section>
+  <.empty :if={@events == []}>{empty_text(@period)}</.empty>
 <% else %>
-  <div class="ua-card ua-empty" id="calendar-not-public">
+  <.empty id="calendar-not-public">
     {gettext("The calendar is not public yet. Tournaments will appear here soon.")}
-  </div>
+  </.empty>
 <% end %>

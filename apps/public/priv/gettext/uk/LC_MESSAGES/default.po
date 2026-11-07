@@ -641,7 +641,6 @@ msgstr "червня"
 msgid "Kind"
 msgstr "Вид"
 
-#: lib/public_web/components/site.ex
 #: lib/public_web/controllers/calendar_html.ex
 #: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/manage/html/event_form.html.heex
@@ -658,6 +657,16 @@ msgstr "Мова: %{language}"
 #, elixir-autogen, elixir-format
 msgid "Link"
 msgstr "Посилання"
+
+#: lib/public_web/controllers/manage/html/event.html.heex
+#, elixir-autogen, elixir-format
+msgid "Make private"
+msgstr "Зробити приватною"
+
+#: lib/public_web/controllers/manage/html/event.html.heex
+#, elixir-autogen, elixir-format
+msgid "Make public"
+msgstr "Зробити публічною"
 
 #: lib/public_web/controllers/manage/dash_controller.ex
 #: lib/public_web/controllers/manage/html/dash.html.heex
@@ -966,7 +975,6 @@ msgid "Pending"
 msgstr "Очікують"
 
 #: lib/public_web/components/site.ex
-#: lib/public_web/controllers/manage/html/people.html.heex
 #: lib/public_web/controllers/manage/people_controller.ex
 #, elixir-autogen, elixir-format
 msgid "People"
@@ -1095,7 +1103,6 @@ msgid "Request sent"
 msgstr "Запит надіслано"
 
 #: lib/public_web/components/site.ex
-#: lib/public_web/controllers/manage/html/requests.html.heex
 #: lib/public_web/controllers/manage/request_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Requests"
@@ -1242,7 +1249,8 @@ msgid "Tag saved."
 msgstr "Мітку збережено."
 
 #: lib/public_web/components/site.ex
-#: lib/public_web/controllers/manage/html.ex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
 #: lib/public_web/controllers/manage/html/news_index.html.heex
 #: lib/public_web/controllers/manage/html/tags.html.heex
 #: lib/public_web/controllers/manage/tag_controller.ex
@@ -1336,26 +1344,6 @@ msgstr "Увесь календар приватний: жодна подія н
 #, elixir-autogen, elixir-format
 msgid "Their exact cab username or e-mail."
 msgstr "Точне ім'я користувача в cab або e-mail."
-
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: auto"
-msgstr "Тема: авто"
-
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: dark"
-msgstr "Тема: темна"
-
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: light"
-msgstr "Тема: світла"
-
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: light, auto or dark"
-msgstr "Тема: світла, авто чи темна"
 
 #: lib/public_web/controllers/error_html.ex
 #, elixir-autogen, elixir-format
@@ -1500,11 +1488,6 @@ msgstr "Що ми зберігаємо і навіщо"
 #, elixir-autogen, elixir-format
 msgid "When and where"
 msgstr "Коли і де"
-
-#: lib/public_web/controllers/manage/html/event_form.html.heex
-#, elixir-autogen, elixir-format
-msgid "Which language"
-msgstr "Яка мова"
 
 #: lib/public_web/controllers/manage/html/dash.html.heex
 #: lib/public_web/controllers/manage/html/news_form.html.heex

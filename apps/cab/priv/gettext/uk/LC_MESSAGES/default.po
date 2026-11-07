@@ -780,11 +780,6 @@ msgstr "Контакти:"
 msgid "Continue with %{provider}"
 msgstr "Продовжити з %{provider}"
 
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Copied"
-msgstr "Скопійовано"
-
 #: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
 msgid "Copied %{count} link."
@@ -805,11 +800,6 @@ msgstr[2] ""
 #, elixir-autogen, elixir-format
 msgid "Copied. Paste it into the chat."
 msgstr "Скопійовано. Вставте в чат."
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Copy"
-msgstr "Копіювати"
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
@@ -1336,7 +1326,6 @@ msgid "LO"
 msgstr "ЛО"
 
 #: lib/cab_web/club_profile.ex
-#: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Language"
@@ -2693,27 +2682,6 @@ msgstr "Сесія триває."
 #, elixir-autogen, elixir-format
 msgid "Their name"
 msgstr "Ім'я"
-
-#: lib/cab_web/components/layouts.ex
-#: lib/cab_web/components/ui.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: auto"
-msgstr "Тема: авто"
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: dark"
-msgstr "Тема: темна"
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: light"
-msgstr "Тема: світла"
-
-#: lib/cab_web/components/ui.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: light, auto or dark"
-msgstr "Тема: світла, авто або темна"
 
 #: lib/cab_web/controllers/error_html.ex
 #, elixir-autogen, elixir-format

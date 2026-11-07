@@ -1,0 +1,12 @@
+/* section/1: an uppercase micro-title over a card - the only layout
+   primitive; a page is a stack of them. card/1 is the card alone. */
+.section > h4 { display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+                font-size:var(--fs-label); letter-spacing:.12em; text-transform:uppercase;
+                color:var(--muted); font-weight:700; margin:0 2px 7px; }
+.section > h4 a { font-size:.74rem; letter-spacing:0; text-transform:none; font-weight:650;
+                  color:var(--brand); text-decoration:none; }
+.section > h4 a:hover { text-decoration:underline; }
+.card { border:1px solid var(--line); border-radius:var(--r); background:var(--surface);
+        overflow:hidden; }
+.card .pad { padding:12px var(--px); font-size:var(--fs-base); }
+.card .pad p { color:var(--muted); font-size:.82rem; margin-top:3px; }

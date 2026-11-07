@@ -33,6 +33,11 @@ msgstr ""
 
 #: lib/ui/components.ex
 #, elixir-autogen, elixir-format
+msgid "Copied"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
 msgid "Copy"
 msgstr ""
 
@@ -69,6 +74,11 @@ msgstr ""
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Label"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Language"
 msgstr ""
 
 #: lib/ui/components.ex
@@ -114,6 +124,26 @@ msgstr ""
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Telegram username"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: auto"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: dark"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: light"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: light, auto or dark"
 msgstr ""
 
 #: lib/ui/form.ex

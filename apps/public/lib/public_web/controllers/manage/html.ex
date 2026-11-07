@@ -1,19 +1,26 @@
 defmodule PublicWeb.Manage.HTML do
-  @moduledoc "The /manage pages: cab's form look, the command in the bar above."
+  @moduledoc "The /manage pages: ui's forms and tables, the command in the bar above."
   use PublicWeb, :html
 
   embed_templates "html/*"
 
-  attr :form, :any, required: true
-  attr :field, :atom, required: true
+  @doc """
+  A form's errors as form_for wants them: the field's input name (as
+  `name/2` gives it) => its first message.
+  """
+  def field_errors(%Phoenix.HTML.Form{} = form) do
+    form.errors
+    |> Enum.reverse()
+    |> Map.new(fn {field, error} -> {field_name(form, field), translate(error)} end)
+  end
 
-  def errors(assigns) do
-    assigns =
-      assign(assigns, :messages, Enum.map(assigns.form[assigns.field].errors, &translate/1))
+  @doc "A field's input name in a form, as its params arrive: `post[title]`."
+  def field_name(%Phoenix.HTML.Form{name: form}, field), do: "#{form}[#{field}]"
 
-    ~H"""
-    <div :for={msg <- @messages} class="hint" style="color:var(--warn)">{msg}</div>
-    """
+  @doc "A URL with more query parameters (its own kept)."
+  def with_query(url, params) do
+    sep = if String.contains?(url, "?"), do: "&", else: "?"
+    url <> sep <> URI.encode_query(params)
   end
 
   defp translate({msg, opts}) do
@@ -24,14 +31,14 @@ defmodule PublicWeb.Manage.HTML do
 
   attr :action, :string, required: true
   attr :method, :string, default: "post"
-  attr :class, :string, default: "ua-btn ua-btn--line ua-btn--sm"
+  attr :class, :string, default: "btn-quiet btn-sm"
   attr :confirm, :string, default: nil
   slot :inner_block, required: true
 
   # a one-button form (publish, revoke, delete): POST with the CSRF token
   def button_to(assigns) do
     ~H"""
-    <.form for={%{}} action={@action} method={@method} class="ua-inline-form">
+    <.form for={%{}} action={@action} method={@method} class="btn-form">
       <button type="submit" class={@class}>{render_slot(@inner_block)}</button>
     </.form>
     """
@@ -50,7 +57,7 @@ defmodule PublicWeb.Manage.HTML do
         for={%{}}
         action={@action}
         method="post"
-        class="ua-inline-form"
+        class="btn-form"
       >
         <input type="hidden" name="visibility" value={value} />
         <input :if={@back} type="hidden" name="back" value={@back} />
@@ -99,22 +106,22 @@ defmodule PublicWeb.Manage.HTML do
   attr :tags, :list, required: true
   attr :selected, :list, required: true
 
-  @doc "The editor's tag picker: one checkbox chip per tag; an empty value clears them all."
+  @doc """
+  The editor's tag picker, a form_for :custom block's content: one
+  checkbox chip per tag; an empty value clears them all.
+  """
   def tag_picker(assigns) do
     ~H"""
-    <div class="f-block">
-      <label class="q">{gettext("Tags")}</label>
-      <input type="hidden" name={@name} value="" />
-      <div :if={@tags != []} class="ua-tagpick">
-        <label :for={tag <- @tags} class={["ua-label", "ua-label--#{tag.color}"]}>
-          <input type="checkbox" name={@name} value={tag.id} checked={tag.id in @selected} />
-          {tag.name}
-        </label>
-      </div>
-      <div class="hint">
-        {gettext("Private: only content managers see tags.")}
-        <a href={~p"/manage/tags"}>{gettext("Manage tags")}</a>
-      </div>
+    <input type="hidden" name={@name} value="" />
+    <div :if={@tags != []} class="ua-tagpick">
+      <label :for={tag <- @tags} class={["ua-label", "ua-label--#{tag.color}"]}>
+        <input type="checkbox" name={@name} value={tag.id} checked={tag.id in @selected} />
+        {tag.name}
+      </label>
+    </div>
+    <div class="hint">
+      {gettext("Private: only content managers see tags.")}
+      <a href={~p"/manage/tags"}>{gettext("Manage tags")}</a>
     </div>
     """
   end

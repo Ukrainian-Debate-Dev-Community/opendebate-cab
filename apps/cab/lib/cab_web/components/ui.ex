@@ -1,8 +1,8 @@
 defmodule CabWeb.Ui do
   @moduledoc """
-  cab's own components: the chrome/action bar, the sidenav, the tab
-  row, the club logo, the ballot and the allocator. The shared kit
-  (table, form, banner, section, ...) is `Ui`.
+  cab's own components: the sidenav, the tab row, the club logo, the
+  ballot and the allocator. The shared kit (table, form, banner,
+  section, the chrome/command bar, ...) is `Ui`.
 
   Every page is a chrome bar and a stack of sections - nothing
   actionable exists outside the chrome, and no element outside this
@@ -13,77 +13,12 @@ defmodule CabWeb.Ui do
   use Gettext, backend: CabWeb.Gettext
 
   import Phoenix.Controller, only: [get_csrf_token: 0]
-  import Ui.Components, only: [beta: 1, stepper: 1]
+  import Ui.Components, only: [beta: 1, stepper: 1, switches: 1]
 
   use Phoenix.VerifiedRoutes,
     endpoint: CabWeb.Endpoint,
     router: CabWeb.Router,
     statics: CabWeb.static_paths()
-
-  # ---------------------------------------------------------------
-  # 1. Chrome / action bar
-  # ---------------------------------------------------------------
-
-  @doc """
-  The control mechanism of every page: crumb + THIS page's
-  actions only, as flush tape-deck segments - navigation and the
-  profile live in the sidenav, status lives in the page content as
-  words. Max one `primary` (gold) segment per page; `quiet` =
-  destructive or exit.
-
-  A segment with `form` renders as that form's submit button instead
-  of a link - the design's "submit lives in the chrome" rule for the
-  ballot/compose/edit pages (the components carry no buttons).
-
-      <.chrome crumbs={[{@club.name, ~p"/c/\#{@club.uuid}"}]} here="sessions">
-        <:seg form="open-session-form" primary>Open new session</:seg>
-      </.chrome>
-  """
-  attr :crumbs, :list, default: [], doc: "crumb entries as {label, href} tuples"
-  attr :here, :string, default: nil, doc: "the non-link tail crumb"
-
-  slot :seg do
-    attr :href, :any
-    attr :method, :string, doc: "defaults to get; post renders a method link"
-    attr :form, :string, doc: "renders a submit button for this form id instead of a link"
-    attr :primary, :boolean, doc: "the page's single gold segment"
-    attr :quiet, :boolean, doc: "grey: destructive or exit"
-  end
-
-  def chrome(assigns) do
-    ~H"""
-    <div class="chrome">
-      <div class="crumb">
-        <%= for {label, href} <- @crumbs do %>
-          <.link href={href}>{label}</.link>
-          <span class="sep">/</span>
-        <% end %>
-        <span :if={@here} class="here">{@here}</span>
-      </div>
-      <div :if={@seg != []} class="seg">
-        <%= for seg <- @seg do %>
-          <%= if seg[:form] do %>
-            <button
-              type="submit"
-              form={seg[:form]}
-              class={[seg[:primary] && "go", seg[:quiet] && "quiet"]}
-            >
-              {render_slot(seg)}
-            </button>
-          <% else %>
-            <.link
-              href={seg.href}
-              method={seg[:method] || "get"}
-              class={[seg[:primary] && "go", seg[:quiet] && "quiet"]}
-            >
-              {render_slot(seg)}
-            </.link>
-          <% end %>
-        <% end %>
-      </div>
-    </div>
-    """
-  end
 
   @doc """
   The left sidenav - ONLY navigation: brand script cap -> home, plain
@@ -187,43 +122,14 @@ defmodule CabWeb.Ui do
               <.link href={~p"/signin"}>{gettext("Sign in")}</.link>
             <% end %>
           </div>
-          <div class="switches" id="sidenav-switches" phx-update="ignore">
-            <button
-              type="button"
-              class="cycle"
-              data-cycle="theme"
-              data-state="auto"
-              aria-label={gettext("Theme: auto")}
-              title={gettext("Theme: light, auto or dark")}
-            >
-              <svg class="i-light" viewBox="0 0 16 16" aria-hidden="true">
-                <circle cx="8" cy="8" r="2.6" />
-                <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3" />
-              </svg>
-              <svg class="i-auto" viewBox="0 0 16 16" aria-hidden="true">
-                <circle cx="8" cy="8" r="5.5" /><path d="M8 2.5v11a5.5 5.5 0 0 0 0-11Z" class="fill" />
-              </svg>
-              <svg class="i-dark" viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M13 9.6A5.2 5.2 0 0 1 6.4 3a5.2 5.2 0 1 0 6.6 6.6Z" />
-              </svg>
-            </button>
-            <details class="langs" data-langs>
-              <summary class="cycle" aria-label={gettext("Language")} title={gettext("Language")}>
-                {CabWeb.Locale.short(Gettext.get_locale(CabWeb.Gettext))}
-              </summary>
-              <div class="menu" role="menu">
-                <a
-                  :for={{code, label, name} <- CabWeb.Locale.names()}
-                  href={"/locale/#{code}"}
-                  lang={code}
-                  role="menuitem"
-                  aria-current={Gettext.get_locale(CabWeb.Gettext) == code && "true"}
-                >
-                  <span class="code">{label}</span>{name}
-                </a>
-              </div>
-            </details>
-          </div>
+          <.switches
+            id="sidenav-switches"
+            phx-update="ignore"
+            locale={Gettext.get_locale(CabWeb.Gettext)}
+            locales={CabWeb.Locale.names()}
+            theme_key="cab-theme"
+            up
+          />
         </div>
       </div>
     </nav>

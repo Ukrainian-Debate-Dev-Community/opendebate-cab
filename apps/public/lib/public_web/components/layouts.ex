@@ -31,7 +31,7 @@ defmodule PublicWeb.Layouts do
             active={assigns[:manage_active]}
           />
           <main class="ua-main">
-            <.flashes :if={assigns[:access]} flash={@flash} />
+            <.flash_banners :if={assigns[:access]} flash={@flash} />
             {@inner_content}
           </main>
           <.site_footer />
@@ -45,13 +45,4 @@ defmodule PublicWeb.Layouts do
     do: "#{title} | #{Public.Tenant.get(:name)}"
 
   defp page_title(_assigns), do: Public.Tenant.text(:title)
-
-  attr :flash, :map, required: true
-
-  defp flashes(assigns) do
-    ~H"""
-    <div :if={msg = Phoenix.Flash.get(@flash, :info)} class="ua-flash">{msg}</div>
-    <div :if={msg = Phoenix.Flash.get(@flash, :error)} class="ua-flash ua-flash--error">{msg}</div>
-    """
-  end
 end

@@ -772,11 +772,6 @@ msgstr ""
 msgid "Continue with %{provider}"
 msgstr ""
 
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Copied"
-msgstr ""
-
 #: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
 msgid "Copied %{count} link."
@@ -794,11 +789,6 @@ msgstr[1] ""
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
 msgid "Copied. Paste it into the chat."
-msgstr ""
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Copy"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
@@ -1326,7 +1316,6 @@ msgid "LO"
 msgstr ""
 
 #: lib/cab_web/club_profile.ex
-#: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Language"
@@ -2679,27 +2668,6 @@ msgstr ""
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Their name"
-msgstr ""
-
-#: lib/cab_web/components/layouts.ex
-#: lib/cab_web/components/ui.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: auto"
-msgstr ""
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: dark"
-msgstr ""
-
-#: lib/cab_web/components/layouts.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: light"
-msgstr ""
-
-#: lib/cab_web/components/ui.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: light, auto or dark"
 msgstr ""
 
 #: lib/cab_web/controllers/error_html.ex

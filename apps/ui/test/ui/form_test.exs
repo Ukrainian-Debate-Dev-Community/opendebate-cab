@@ -193,4 +193,24 @@ defmodule Ui.FormTest do
     assert html =~ ~s(value="@debate_ua")
     assert html =~ "data-telegram"
   end
+
+  test "form_for: a put goes as a post with _method; :date, :custom and rows" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form_for action="/events/1" method="put">
+        <:block name="event[starts_on]" type={:date} label="Starts" value="2026-11-07" />
+        <:block name="event[details]" type={:longtext} label="Details" rows={7} />
+        <:block name="event[tags]" type={:custom} label="Tags"><span class="mine">chips</span></:block>
+        <:submit>Save</:submit>
+      </.form_for>
+      """)
+
+    assert html =~ ~s(method="post")
+    assert html =~ ~s(name="_method" value="put")
+    assert html =~ ~s(type="date" name="event[starts_on]" value="2026-11-07")
+    assert html =~ ~s(rows="7")
+    assert html =~ ~s(class="mine">chips</span>)
+  end
 end

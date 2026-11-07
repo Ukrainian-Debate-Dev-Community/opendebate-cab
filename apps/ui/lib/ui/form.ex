@@ -31,7 +31,10 @@ defmodule Ui.Form do
   picker opens on the app's default country, else the visitor's region;
   without JS a plain field taking a +code), `:email` (the e-mail
   keyboard, spaces dropped, the domain lowercased), `:telegram` (a
-  username: the @ added, t.me links read). A `:text` block may name its
+  username: the @ added, t.me links read), `:date` (the date picker
+  alone) and `:custom` (the block's own content: an app's control under
+  the kit's label and hint). A `:longtext` block may ask for more
+  `rows`. A `:text` block may name its
   input type (`input`: email, tel); a `:select` dropdown may lead with
   an empty `prompt` option. A `required` `:text` or `:longtext` block's
   field is `required` in the browser too.
@@ -39,6 +42,9 @@ defmodule Ui.Form do
   Server errors render per block: pass `errors` as a map of
   block-name => message; the failing block gets the amber border +
   message, the rest stay untouched.
+
+  A `method` other than get and post (put, delete) goes as a post with
+  the `_method` field Plug reads.
 
       <.form_for action="/sessions" title="Open a session" description="...">
         <:block name={:name} type={:text} label="Session name" required hint="..." />
@@ -88,6 +94,7 @@ defmodule Ui.Form do
     attr :preview_alt, :string, doc: "that image's text"
     attr :remove, :string, doc: "a :file block's remove box name (shown with a preview)"
     attr :remove_label, :string
+    attr :rows, :integer, doc: "a :longtext block's height in lines"
   end
 
   slot :submit do
@@ -100,9 +107,16 @@ defmodule Ui.Form do
   end
 
   def form_for(assigns) do
+    assigns =
+      assign(assigns,
+        verb: if(assigns.method in ["get", "post"], do: assigns.method, else: "post"),
+        override: if(assigns.method not in ["get", "post"], do: assigns.method)
+      )
+
     ~H"""
-    <form class="form" id={@id} action={@action} method={@method} enctype={@enctype}>
+    <form class="form" id={@id} action={@action} method={@verb} enctype={@enctype}>
       <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+      <input :if={@override} type="hidden" name="_method" value={@override} />
       <input :for={{name, value} <- @hidden} type="hidden" name={name} value={value} />
       <div :if={@title || @description} class={if @logo, do: "f-head with-logo", else: "f-head"}>
         <img :if={@logo} class="club-logo" src={@logo} alt="" />
@@ -115,7 +129,7 @@ defmodule Ui.Form do
         <label :if={block[:label]} class="q">
           {block[:label]} <span :if={block[:required]} class="req">*</span>
         </label>
-        {control(block)}
+        {if block[:type] == :custom, do: render_slot(block), else: control(block)}
         <div :if={@errors[block[:name]]} class="error">{@errors[block[:name]]}</div>
         <div :if={block[:hint] && !@errors[block[:name]]} class="hint">{block[:hint]}</div>
       </div>
@@ -249,12 +263,17 @@ defmodule Ui.Form do
       :longtext ->
         ~H"""
         <textarea
-          rows="3"
+          rows={@b[:rows] || 3}
           name={@name}
           placeholder={@b[:placeholder]}
           maxlength={@b[:maxlength]}
           required={@b[:required]}
         >{@b[:value]}</textarea>
+        """
+
+      :date ->
+        ~H"""
+        <input type="date" name={@name} value={@b[:value]} required={@b[:required]} />
         """
 
       :int ->

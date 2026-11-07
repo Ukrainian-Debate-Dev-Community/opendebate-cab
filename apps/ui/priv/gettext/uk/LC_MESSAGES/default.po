@@ -33,6 +33,11 @@ msgstr "Кого питаємо"
 
 #: lib/ui/components.ex
 #, elixir-autogen, elixir-format
+msgid "Copied"
+msgstr "Скопійовано"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
 msgid "Copy"
 msgstr "Копіювати"
 
@@ -70,6 +75,11 @@ msgstr "Підказка"
 #, elixir-autogen, elixir-format
 msgid "Label"
 msgstr "Назва"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Language"
+msgstr "Мова"
 
 #: lib/ui/components.ex
 #, elixir-autogen, elixir-format
@@ -115,6 +125,26 @@ msgstr "Лише для одного й кількох варіантів: по 
 #, elixir-autogen, elixir-format
 msgid "Telegram username"
 msgstr "ім'я користувача в Telegram"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: auto"
+msgstr "Тема: авто"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: dark"
+msgstr "Тема: темна"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: light"
+msgstr "Тема: світла"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: light, auto or dark"
+msgstr "Тема: світла, авто або темна"
 
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format

@@ -1,9 +1,9 @@
 // Contact fields: phone (per country), e-mail, Telegram - the typing
-// helpers of cab's :phone / :email / :telegram form blocks (CabWeb.Ui
+// helpers of the :phone / :email / :telegram form blocks (Ui.Form
 // form_for). The server checks every value again; these only help people
-// type them. cab's app.js uses this module; other sites load the
-// standalone build, cab's /assets/js/contact-fields.js
-// (contact_fields_page.js), on pages that render these blocks.
+// type them. ui.js uses this module (cab and the public site bundle it);
+// other sites load cab's standalone build, /assets/js/contact-fields.js
+// (cab's contact_fields_page.js), on pages that render these blocks.
 // The messages come from the fields' data-msg-* attributes, which the
 // blocks render in the page's language.
 import * as libphone from "../vendor/libphonenumber-min"

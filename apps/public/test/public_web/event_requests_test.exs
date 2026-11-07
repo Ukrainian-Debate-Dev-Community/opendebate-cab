@@ -37,8 +37,10 @@ defmodule PublicWeb.EventRequestsTest do
 
     page = conn |> get(~p"/calendar/request") |> html_response(200)
     assert page =~ ~s(id="event-request-form")
-    # cab's contact-field helpers run on the form (picker, spacing, checks)
-    assert page =~ "/assets/js/contact-fields.js"
+    # the contact-field helpers (picker, spacing, checks) come with the
+    # site's own script, no second script from cab
+    assert page =~ ~s(src="/assets/js/site.js")
+    refute page =~ "/assets/js/contact-fields.js"
     [first | _] = Regex.scan(~r/name="answers\[([^\]]+)\]"/, page, capture: :all_but_first)
     assert first == ["email"]
     assert page =~ ~s(name="answers[name]")

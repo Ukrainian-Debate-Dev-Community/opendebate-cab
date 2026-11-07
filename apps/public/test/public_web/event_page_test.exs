@@ -161,12 +161,13 @@ defmodule PublicWeb.EventPageTest do
     assert html =~ "Needs judges"
     assert html =~ ~s(href="/manage/events/#{event.id}/edit")
 
+    # the command bar: the switch to the other visibility comes back to
+    # the page with the filters kept; delete sends a DELETE
     assert html =~
-             ~s(action="/manage/events/#{event.id}/visibility?month=2026-11&amp;tag=#{tag.id}")
+             ~s(data-to="/manage/events/#{event.id}/visibility?month=2026-11&amp;tag=#{tag.id}&amp;visibility=public&amp;back=event")
 
-    assert html =~ ~s(name="back" value="event")
-    assert html =~ ~r/<form[^>]*action="\/manage\/events\/#{event.id}"/
-    assert html =~ ~r/name="_method"[^>]*value="delete"/
+    assert html =~ ~s(data-to="/manage/events/#{event.id}" class="quiet")
+    assert html =~ ~s(data-method="delete")
     assert html =~ ~s(href="/manage/calendar?month=2026-11&amp;tag=#{tag.id}")
 
     # the switch on the page comes back to the page, filters kept

@@ -111,7 +111,7 @@ defmodule Ui.ComponentsTest do
       """)
 
     assert flush =~ ~s(class="section")
-    assert flush =~ "<h4>My clubs</h4>"
+    assert flush =~ "<span>My clubs</span>"
     assert flush =~ ~s(class="card")
     refute flush =~ ~s(class="pad")
 
@@ -207,5 +207,90 @@ defmodule Ui.ComponentsTest do
     assert html =~ ~s(datetime="2026-10-09T15:30:00Z")
     assert html =~ ~s(data-when="short")
     assert html =~ "9 Oct, 15:30 UTC"
+  end
+
+  test "section: bare leaves the card out; an action links at the title's right" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.section title="News" bare id="news">
+        <:action href="/news">All news</:action>
+        rows
+      </.section>
+      """)
+
+    assert html =~ ~s(id="news")
+    assert html =~ ~s(href="/news")
+    assert html =~ "All news"
+    refute html =~ ~s(class="card")
+  end
+
+  test "card, empty, tag and page head" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.card id="c" class="extra" pad>text</.card>
+      <.empty id="none">Nothing yet.</.empty>
+      <.tag kind="ok">Published</.tag>
+      <.page_head kicker="Clubs" title="Kyiv" lead="A club" logo="/logo.png">
+        <:actions><a href="/x">Open</a></:actions>
+      </.page_head>
+      """)
+
+    assert html =~ ~s(class="card extra" id="c")
+    assert html =~ ~s(<div class="pad">text</div>)
+    assert html =~ ~s(class="card empty-state" id="none")
+    assert html =~ ~s(class="tag ok")
+    assert html =~ ~s(class="page-head")
+    assert html =~ ~s(class="kicker")
+    assert html =~ ~s(class="logo" src="/logo.png")
+    assert html =~ ~s(class="acts")
+  end
+
+  test "chrome: crumbs, the tail and its segments as links, method links or submits" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.chrome crumbs={[{"Calendar", "/cal"}]} here="Event">
+        <:seg href="/edit">Edit</:seg>
+        <:seg href="/del" method="delete" quiet>Delete</:seg>
+        <:seg form="f" primary>Save</:seg>
+      </.chrome>
+      """)
+
+    assert html =~ ~s(class="chrome")
+    assert html =~ ~s(href="/cal")
+    assert html =~ ~s(class="here">Event)
+    assert html =~ ~s(data-method="delete")
+    assert html =~ ~s(class="quiet")
+    assert html =~ ~s(form="f")
+    assert html =~ ~s(class="go")
+  end
+
+  test "switches: the theme button with its key and words, the language menu" do
+    assigns = %{locales: [{"en", "EN", "English"}, {"uk", "UA", "Ukrainian"}]}
+
+    html =
+      rendered_to_string(~H"""
+      <.switches locale="uk" locales={@locales} theme_key="site-theme" up id="sw" />
+      """)
+
+    assert html =~ ~s(id="sw")
+    assert html =~ ~s(data-theme-key="site-theme")
+    assert html =~ ~s(data-label-dark="Theme: dark")
+    assert html =~ ~s(class="langs up")
+    assert html =~ ~s(href="/locale/uk")
+    assert html =~ ~s(aria-current="true")
+    assert html =~ "UA"
+  end
+
+  test "copy carries its words for the moment after copying" do
+    assigns = %{}
+    html = rendered_to_string(~H|<.copy text="https://x" />|)
+    assert html =~ ~s(data-copy="https://x")
+    assert html =~ ~s(data-label-copied="Copied")
   end
 end

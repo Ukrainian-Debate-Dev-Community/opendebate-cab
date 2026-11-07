@@ -40,10 +40,10 @@ defmodule PublicWeb.ErrorHTML do
           <main class="ua-main">
             <div class="ua-error">
               <.wordmark class="ua-error-mark" />
-              <span class="ua-kicker">{@code}</span>
+              <span class="kicker">{@code}</span>
               <h1>{@title}</h1>
               <p>{@lead}</p>
-              <a class="ua-btn ua-btn--line ua-error-back" href={~p"/"}>
+              <a class="btn-quiet" href={~p"/"}>
                 {gettext("Back to the home page")}
               </a>
             </div>

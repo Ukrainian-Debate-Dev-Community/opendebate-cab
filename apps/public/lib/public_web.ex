@@ -1,7 +1,7 @@
 defmodule PublicWeb do
   @moduledoc "The web layer of the public site: `use PublicWeb, :controller` and friends."
 
-  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+  def static_paths, do: ~w(assets images favicon.ico robots.txt)
 
   def router do
     quote do

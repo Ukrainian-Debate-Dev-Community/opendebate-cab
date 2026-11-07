@@ -1,9 +1,10 @@
 defmodule Ui.Components do
   @moduledoc """
-  The kit both web apps draw pages with: table, section, banner, flash
-  banners, local time, copy, stepper, the split button and the beta
-  tag. Generic: links and texts that belong to an app come in as attrs
-  and slots.
+  The kit both web apps draw pages with: table, section, card, banner,
+  flash banners, the command bar, the page head, tags, the empty line,
+  local time, copy, stepper, the split button, the theme and language
+  switches and the beta tag. Generic: links and texts that belong to an
+  app come in as attrs and slots.
   """
 
   use Phoenix.Component
@@ -117,11 +118,12 @@ defmodule Ui.Components do
   attr :kind, :atom, default: :info, values: [:info, :good, :bad]
   attr :href, :any, default: nil
   attr :link, :string, default: nil
+  attr :id, :string, default: nil
   slot :inner_block, required: true
 
   def banner(assigns) do
     ~H"""
-    <div class={["banner", to_string(@kind)]}>
+    <div class={["banner", to_string(@kind)]} id={@id}>
       <span>{render_slot(@inner_block)}</span>
       <.link :if={@href} href={@href}>{@link}</.link>
     </div>
@@ -294,13 +296,22 @@ defmodule Ui.Components do
 
   @doc """
   The copy-to-clipboard affordance: a small button that writes `text`
-  to the clipboard (vanilla JS `[data-copy]` handler in app.js).
+  to the clipboard (the `[data-copy]` handler in ui.js), saying so for
+  a moment.
   """
   attr :text, :string, required: true
 
   def copy(assigns) do
     ~H"""
-    <button type="button" class="copy" data-copy={@text}>{gettext("Copy")}</button>
+    <button
+      type="button"
+      class="copy"
+      data-copy={@text}
+      data-label-copy={gettext("Copy")}
+      data-label-copied={gettext("Copied")}
+    >
+      {gettext("Copy")}
+    </button>
     """
   end
 
@@ -342,23 +353,238 @@ defmodule Ui.Components do
   The only layout primitive: uppercase micro-title + card. A page is
   a stack of sections. `pad` wraps the content in
   the card's prose padding (summary cards); tables and forms fill the
-  card flush.
+  card flush. `bare` leaves the card out, for content that brings its
+  own (a list of rows, a grid of cards). An `action` is a link at the
+  right of the title (All news).
+
+      <.section title="News" bare>
+        <:action href="/news">All news</:action>
+        ...
+      </.section>
   """
   attr :title, :string, required: true
+  attr :id, :string, default: nil
   attr :pad, :boolean, default: false
+  attr :bare, :boolean, default: false
+
+  slot :action do
+    attr :href, :string, required: true
+  end
+
   slot :inner_block, required: true
 
   def section(assigns) do
     ~H"""
-    <div class="section">
-      <h4>{@title}</h4>
-      <div class="card">
-        <%= if @pad do %>
-          <div class="pad">{render_slot(@inner_block)}</div>
-        <% else %>
-          {render_slot(@inner_block)}
+    <div class="section" id={@id}>
+      <h4>
+        <span>{@title}</span>
+        <.link :for={action <- @action} href={action.href}>{render_slot(action)}</.link>
+      </h4>
+      <%= if @bare do %>
+        {render_slot(@inner_block)}
+      <% else %>
+        <.card pad={@pad}>{render_slot(@inner_block)}</.card>
+      <% end %>
+    </div>
+    """
+  end
+
+  @doc "A card: the bordered surface sections, forms and lists stand on."
+  attr :id, :string, default: nil
+  attr :class, :any, default: nil
+  attr :pad, :boolean, default: false
+  slot :inner_block, required: true
+
+  def card(assigns) do
+    ~H"""
+    <div class={Enum.join(["card" | List.wrap(@class)] |> Enum.filter(& &1), " ")} id={@id}>
+      <%= if @pad do %>
+        <div class="pad">{render_slot(@inner_block)}</div>
+      <% else %>
+        {render_slot(@inner_block)}
+      <% end %>
+    </div>
+    """
+  end
+
+  @doc "The one muted line where a list has nothing (yet), in a card of its own."
+  attr :id, :string, default: nil
+  slot :inner_block, required: true
+
+  def empty(assigns) do
+    ~H"""
+    <div class="card empty-state" id={@id}>{render_slot(@inner_block)}</div>
+    """
+  end
+
+  @doc """
+  A page's head: a kicker over the title, an optional lead and image
+  (a logo), and the page's own actions at its right.
+  """
+  attr :kicker, :string, default: nil
+  attr :title, :string, required: true
+  attr :lead, :string, default: nil
+  attr :logo, :string, default: nil, doc: "an image beside the title"
+  slot :actions
+
+  def page_head(assigns) do
+    ~H"""
+    <div class="page-head">
+      <img :if={@logo} class="logo" src={@logo} alt="" />
+      <div class="text">
+        <span :if={@kicker} class="kicker">{@kicker}</span>
+        <h1>{@title}</h1>
+        <p :if={@lead} class="lead">{@lead}</p>
+      </div>
+      <div :if={@actions != []} class="acts">{render_slot(@actions)}</div>
+    </div>
+    """
+  end
+
+  @doc "A short status or kind beside a title: plain, ok, info, warn, priv or cover."
+  attr :kind, :any, default: nil
+  slot :inner_block, required: true
+
+  def tag(assigns) do
+    ~H"""
+    <span class={["tag", @kind && to_string(@kind)]}>{render_slot(@inner_block)}</span>
+    """
+  end
+
+  # ---------------------------------------------------------------
+  # Command bar
+  # ---------------------------------------------------------------
+
+  @doc """
+  The command bar of a page: crumb + THIS page's actions only, as
+  flush tape-deck segments. Max one `primary` (gold) segment per page;
+  `quiet` = destructive or exit.
+
+  A segment with `form` renders as that form's submit button instead
+  of a link; one with `method` (post, put, delete) is a link that
+  sends that request (data-method, handled by phoenix_html's JS).
+
+      <.chrome crumbs={[{"Club", "/c/x"}]} here="sessions">
+        <:seg form="open-session-form" primary>Open new session</:seg>
+      </.chrome>
+  """
+  attr :crumbs, :list, default: [], doc: "crumb entries as {label, href} tuples"
+  attr :here, :string, default: nil, doc: "the non-link tail crumb"
+
+  slot :seg do
+    attr :href, :any
+    attr :method, :string, doc: "defaults to get; post renders a method link"
+    attr :form, :string, doc: "renders a submit button for this form id instead of a link"
+    attr :primary, :boolean, doc: "the page's single gold segment"
+    attr :quiet, :boolean, doc: "grey: destructive or exit"
+    attr :id, :string
+  end
+
+  def chrome(assigns) do
+    ~H"""
+    <div class="chrome">
+      <div class="crumb">
+        <%= for {label, href} <- @crumbs do %>
+          <.link href={href}>{label}</.link>
+          <span class="sep">/</span>
+        <% end %>
+        <span :if={@here} class="here">{@here}</span>
+      </div>
+      <div :if={@seg != []} class="seg">
+        <%= for seg <- @seg do %>
+          <%= if seg[:form] do %>
+            <button
+              type="submit"
+              form={seg[:form]}
+              id={seg[:id]}
+              class={[seg[:primary] && "go", seg[:quiet] && "quiet"]}
+            >
+              {render_slot(seg)}
+            </button>
+          <% else %>
+            <.link
+              href={seg.href}
+              method={seg[:method] || "get"}
+              id={seg[:id]}
+              class={[seg[:primary] && "go", seg[:quiet] && "quiet"]}
+            >
+              {render_slot(seg)}
+            </.link>
+          <% end %>
         <% end %>
       </div>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------
+  # Theme and language
+  # ---------------------------------------------------------------
+
+  @doc """
+  The theme button (light, auto, dark on each click, kept in this
+  browser under `theme_key`) and the language menu (each of `locales`,
+  `{code, short label, name}`, a link to `<locale_path><code>`). ui.js
+  runs both; without it the language links still work. `up` opens the
+  menu upwards (a switch at the bottom of a column).
+  """
+  attr :locale, :string, required: true
+  attr :locales, :list, required: true
+  attr :theme_key, :string, required: true
+  attr :locale_path, :string, default: "/locale/"
+  attr :up, :boolean, default: false
+  attr :rest, :global
+
+  def switches(assigns) do
+    assigns =
+      assign(assigns,
+        short:
+          Enum.find_value(assigns.locales, assigns.locale, fn {code, label, _name} ->
+            code == assigns.locale && label
+          end)
+      )
+
+    ~H"""
+    <div class="switches" {@rest}>
+      <button
+        type="button"
+        class="cycle"
+        data-cycle="theme"
+        data-theme-key={@theme_key}
+        data-state="auto"
+        data-label-light={gettext("Theme: light")}
+        data-label-auto={gettext("Theme: auto")}
+        data-label-dark={gettext("Theme: dark")}
+        aria-label={gettext("Theme: auto")}
+        title={gettext("Theme: light, auto or dark")}
+      >
+        <svg class="i-light" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="2.6" />
+          <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3" />
+        </svg>
+        <svg class="i-auto" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="5.5" /><path d="M8 2.5v11a5.5 5.5 0 0 0 0-11Z" class="fill" />
+        </svg>
+        <svg class="i-dark" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M13 9.6A5.2 5.2 0 0 1 6.4 3a5.2 5.2 0 1 0 6.6 6.6Z" />
+        </svg>
+      </button>
+      <details class={["langs", @up && "up"]} data-langs>
+        <summary class="cycle" aria-label={gettext("Language")} title={gettext("Language")}>
+          {@short}
+        </summary>
+        <div class="menu" role="menu">
+          <a
+            :for={{code, label, name} <- @locales}
+            href={@locale_path <> code}
+            lang={code}
+            role="menuitem"
+            aria-current={@locale == code && "true"}
+          >
+            <span class="code">{label}</span>{name}
+          </a>
+        </div>
+      </details>
     </div>
     """
   end

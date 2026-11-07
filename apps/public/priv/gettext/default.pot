@@ -638,7 +638,6 @@ msgstr ""
 msgid "Kind"
 msgstr ""
 
-#: lib/public_web/components/site.ex
 #: lib/public_web/controllers/calendar_html.ex
 #: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/manage/html/event_form.html.heex
@@ -654,6 +653,16 @@ msgstr ""
 #: lib/public_web/controllers/manage/html/event_form.html.heex
 #, elixir-autogen, elixir-format
 msgid "Link"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event.html.heex
+#, elixir-autogen, elixir-format
+msgid "Make private"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/event.html.heex
+#, elixir-autogen, elixir-format
+msgid "Make public"
 msgstr ""
 
 #: lib/public_web/controllers/manage/dash_controller.ex
@@ -963,7 +972,6 @@ msgid "Pending"
 msgstr ""
 
 #: lib/public_web/components/site.ex
-#: lib/public_web/controllers/manage/html/people.html.heex
 #: lib/public_web/controllers/manage/people_controller.ex
 #, elixir-autogen, elixir-format
 msgid "People"
@@ -1092,7 +1100,6 @@ msgid "Request sent"
 msgstr ""
 
 #: lib/public_web/components/site.ex
-#: lib/public_web/controllers/manage/html/requests.html.heex
 #: lib/public_web/controllers/manage/request_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Requests"
@@ -1239,7 +1246,8 @@ msgid "Tag saved."
 msgstr ""
 
 #: lib/public_web/components/site.ex
-#: lib/public_web/controllers/manage/html.ex
+#: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
 #: lib/public_web/controllers/manage/html/news_index.html.heex
 #: lib/public_web/controllers/manage/html/tags.html.heex
 #: lib/public_web/controllers/manage/tag_controller.ex
@@ -1332,26 +1340,6 @@ msgstr ""
 #: lib/public_web/controllers/manage/html/people.html.heex
 #, elixir-autogen, elixir-format
 msgid "Their exact cab username or e-mail."
-msgstr ""
-
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: auto"
-msgstr ""
-
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: dark"
-msgstr ""
-
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: light"
-msgstr ""
-
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "Theme: light, auto or dark"
 msgstr ""
 
 #: lib/public_web/controllers/error_html.ex
@@ -1496,11 +1484,6 @@ msgstr ""
 #: lib/public_web/controllers/calendar_html.ex
 #, elixir-autogen, elixir-format
 msgid "When and where"
-msgstr ""
-
-#: lib/public_web/controllers/manage/html/event_form.html.heex
-#, elixir-autogen, elixir-format
-msgid "Which language"
 msgstr ""
 
 #: lib/public_web/controllers/manage/html/dash.html.heex

@@ -4,6 +4,7 @@ defmodule CabWeb.UiTest do
   import Phoenix.Component
   import Phoenix.LiveViewTest
   import CabWeb.Ui
+  import Ui.Components, only: [chrome: 1]
 
   # ---------------------------------------------------------------
   # chrome
