@@ -41,7 +41,7 @@ defmodule PublicWeb.EventRequestsTest do
     # contact-fields bundle, named on this page only for ui.js to load
     # when the form is near (the phone library is large)
     assert page =~ ~s(src="/assets/js/site.js")
-    assert page =~ ~s(<meta name="contact-fields-src" content="/assets/js/contact-fields.js">)
+    assert page =~ ~r{<meta[^>]* name="contact-fields-src" content="/assets/js/contact-fields.js"}
     refute conn |> get(~p"/calendar") |> html_response(200) =~ "contact-fields.js"
     [first | _] = Regex.scan(~r/name="answers\[([^\]]+)\]"/, page, capture: :all_but_first)
     assert first == ["email"]
