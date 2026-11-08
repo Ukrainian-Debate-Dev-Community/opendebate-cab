@@ -170,11 +170,51 @@ const localizeTimes = () => {
 }
 
 // ----------------------------------------------------------------
+// the contact fields, loaded when needed
+// ----------------------------------------------------------------
+
+// A page whose form has phone / e-mail / Telegram fields names the
+// contact-fields bundle in <meta name="contact-fields-src"> instead of
+// loading it: its phone library is large (about 46 KB over the wire).
+// It loads once, when such a field comes near the screen or is touched;
+// a number typed before it arrives is formatted when it does.
+const CONTACT_FIELD = ".phonefield, [data-email], [data-telegram]"
+let contactFieldsAsked = false
+
+function loadContactFields() {
+  if (contactFieldsAsked) return
+  const src = document.querySelector('meta[name="contact-fields-src"]')?.content
+  if (!src) return
+  contactFieldsAsked = true
+  const script = document.createElement("script")
+  script.src = src
+  document.head.appendChild(script)
+}
+
+function watchContactFields() {
+  const fields = document.querySelectorAll(CONTACT_FIELD)
+  if (!fields.length || !document.querySelector('meta[name="contact-fields-src"]')) return
+  if ("IntersectionObserver" in window) {
+    const seen = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting)) { loadContactFields(); seen.disconnect() }
+    }, {rootMargin: "300px"})
+    fields.forEach(el => seen.observe(el))
+  } else {
+    loadContactFields()
+  }
+}
+
+// touching a field before it came near the screen (a jump to it)
+document.addEventListener("focusin", e => { if (e.target.closest?.(CONTACT_FIELD)) loadContactFields() })
+document.addEventListener("pointerdown", e => { if (e.target.closest?.(CONTACT_FIELD)) loadContactFields() })
+
+// ----------------------------------------------------------------
 // start: once the document is there
 // ----------------------------------------------------------------
 
 const start = () => {
   markTheme()
+  watchContactFields()
   localizeTimes()
   // live updates re-render times in UTC; put them back in the viewer's zone
   new MutationObserver(localizeTimes).observe(document.documentElement,

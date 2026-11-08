@@ -36,6 +36,6 @@
 </.card>
 
 <%!-- the contact fields' behaviour (phone formatting and checks): a
-     bundle of its own, loaded only where a form has such fields --%>
-<script defer src={~p"/assets/js/contact-fields.js"}>
-</script>
+     bundle of its own, which ui.js loads when the form comes near the
+     screen or a field is touched --%>
+<meta name="contact-fields-src" content={~p"/assets/js/contact-fields.js"} />
