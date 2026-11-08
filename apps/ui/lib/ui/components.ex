@@ -82,23 +82,42 @@ defmodule Ui.Components do
           data-href={@row_href && @row_href.(row)}
         >
           <td :if={@rank} class="rank">{index}</td>
-          <td
-            :for={col <- @col}
-            data-label={col[:label]}
-            class={[
-              col[:code] && "code",
-              (col[:num] || col[:float]) && "num",
-              col[:center] && "c",
-              col[:class],
-              col[:wide_only] && "wide-only"
-            ]}
-          >
-            {render_slot(col, row)}
-          </td>
+          <.cell :for={col <- @col} col={col} content={render_slot(col, row)} />
         </tr>
       </tbody>
     </table>
     """
+  end
+
+  attr :col, :map, required: true
+  attr :content, :any, required: true, doc: "the column's slot rendered for the row"
+
+  # one table cell; a cell with nothing to show is marked blank, so the
+  # phone cards leave out its label too
+  defp cell(assigns) do
+    ~H"""
+    <td
+      data-label={@col[:label]}
+      class={[
+        @col[:code] && "code",
+        (@col[:num] || @col[:float]) && "num",
+        @col[:center] && "c",
+        @col[:class],
+        @col[:wide_only] && "wide-only",
+        blank?(@content) && "blank"
+      ]}
+    >
+      {@content}
+    </td>
+    """
+  end
+
+  # rendered markup with no text and no element in it
+  defp blank?(content) do
+    content
+    |> Phoenix.HTML.Safe.to_iodata()
+    |> IO.iodata_to_binary()
+    |> String.trim() == ""
   end
 
   @doc "The optional muted sub-line inside a table cell."

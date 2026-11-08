@@ -16,8 +16,11 @@ defmodule Ui.PhoneTablesTest do
 
     assert tables == [{"ui/components.ex", ~s(<table class="t t-rows" id={@id}>)}]
 
+    # every body cell is cell/1, which labels it
     source = File.read!(Path.join(@root, "ui/components.ex"))
     [tbody] = Regex.run(~r/<tbody>.*<\/tbody>/s, source)
-    assert tbody =~ ~s(data-label={col[:label]})
+    assert tbody =~ ~s(<.cell :for={col <- @col})
+    [cell] = Regex.run(~r/defp cell\(assigns\).*?"""\n  end/s, source)
+    assert cell =~ ~s(data-label={@col[:label]})
   end
 end

@@ -1,13 +1,11 @@
 // The behaviour of the shared components (apps/ui), for every app's
 // bundle: copy buttons, the menus of <details> (language, dropdown
 // buttons), local times and date pickers, linked table rows, the theme
-// switch and the contact fields. Everything listens on the document or
+// switch. The contact fields are a bundle of their own
+// (contact_fields_page.js): their phone library is large. Everything
+// listens on the document or
 // watches it, so it works on pages with and without LiveView; importing
 // this module installs it once.
-import {PhoneField, installContactFields} from "./contact_fields"
-
-export {PhoneField}
-
 // ----------------------------------------------------------------
 // the clipboard
 // ----------------------------------------------------------------
@@ -175,19 +173,12 @@ const localizeTimes = () => {
 // start: once the document is there
 // ----------------------------------------------------------------
 
-installContactFields()
-
 const start = () => {
   markTheme()
   localizeTimes()
   // live updates re-render times in UTC; put them back in the viewer's zone
   new MutationObserver(localizeTimes).observe(document.documentElement,
     {subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["value"]})
-  // phone fields outside a LiveView (inside one, the PhoneField hook
-  // mounts them); mounting twice changes nothing
-  document.querySelectorAll(".phonefield").forEach(el => {
-    if (!el.closest("[data-phx-session]")) PhoneField.mounted.call({el})
-  })
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start)
 else start()

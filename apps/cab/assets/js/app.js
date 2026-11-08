@@ -26,7 +26,14 @@ import {hooks as colocatedHooks} from "phoenix-colocated/cab"
 import topbar from "../vendor/topbar"
 // the shared components' behaviour (apps/ui): copy, menus, times,
 // linked rows, the theme switch, the contact fields
-import {PhoneField, copyText, formatWhen, clock, viewerZone, toUtcParts, addLocalizer} from "../../../ui/assets/js/ui"
+import {copyText, formatWhen, clock, viewerZone, toUtcParts, addLocalizer} from "../../../ui/assets/js/ui"
+// cab's forms have contact fields on many pages: bundled here (other
+// apps load contact_fields_page.js only where they need it)
+import {PhoneField, installContactFields, mountPhoneFields} from "../../../ui/assets/js/contact_fields"
+
+installContactFields()
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => mountPhoneFields())
+else mountPhoneFields()
 
 // Words the browser writes itself, in the page's language: the server
 // puts them in <meta name="cab-i18n"> (CabWeb.Layouts.js_strings/0);

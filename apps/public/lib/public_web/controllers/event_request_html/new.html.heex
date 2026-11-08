@@ -34,3 +34,8 @@
     <:submit>{gettext("Send the request")}</:submit>
   </.form_for>
 </.card>
+
+<%!-- the contact fields' behaviour (phone formatting and checks): a
+     bundle of its own, loaded only where a form has such fields --%>
+<script defer src={~p"/assets/js/contact-fields.js"}>
+</script>

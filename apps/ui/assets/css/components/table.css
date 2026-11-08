@@ -51,6 +51,8 @@ table.t tr.linked:hover td { background:var(--brand-50); }
   table.t-rows td:not(:first-child):not(.rank):not([data-label]) ~ td:not(:first-child):not(.rank):not([data-label]),
   table.t-rows td:not(:first-child):not(.rank)[data-label=""] ~ td:not(:first-child):not(.rank)[data-label=""] { grid-column:4; }
   table.t-rows td.wide-only { display:none; }
+  /* a card leaves out the fields a row has nothing for */
+  table.t-rows td.blank { display:none; }
   /* last word: with a rank, the title sits beside it, not across it */
   table.t-rows td.rank { grid-column:1; }
   table.t-rows td.rank + td { grid-column:2 / -1; }

@@ -216,8 +216,11 @@ export function installContactFields() {
   })
 }
 
-// every phone field under `root` set up (a page without LiveView, where
-// no hook runs): the same as the PhoneField hook's mounted()
+// every phone field under `root` outside a LiveView set up (there no
+// hook runs; inside one the PhoneField hook mounts it): the same as the
+// hook's mounted()
 export function mountPhoneFields(root = document) {
-  root.querySelectorAll(".phonefield").forEach(el => PhoneField.mounted.call({el}))
+  root.querySelectorAll(".phonefield").forEach(el => {
+    if (!el.closest("[data-phx-session]")) PhoneField.mounted.call({el})
+  })
 }
