@@ -47,7 +47,7 @@ defmodule PublicWeb.EventRequestController do
         })
 
       {:error, codes} when is_map(codes) ->
-        errors = CabWeb.FormComponents.answer_errors(EventRequests.form(), codes)
+        errors = Ui.FormComponents.answer_errors(EventRequests.form(), codes)
         conn |> put_status(422) |> render_form(answers, errors)
     end
   end

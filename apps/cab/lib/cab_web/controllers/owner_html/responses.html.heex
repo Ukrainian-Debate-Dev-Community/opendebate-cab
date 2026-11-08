@@ -35,10 +35,10 @@
         <:col
           :let={row}
           :for={column <- @columns}
-          label={CabWeb.FormComponents.field_label(column)}
+          label={Ui.FormComponents.field_label(column)}
         >
           <%= if answer = row.answers[column["label"]] do %>
-            <CabWeb.FormComponents.answer_value answer={answer} />
+            <Ui.FormComponents.answer_value answer={answer} />
           <% else %>
             —
           <% end %>

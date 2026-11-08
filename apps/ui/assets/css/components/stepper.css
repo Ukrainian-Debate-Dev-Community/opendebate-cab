@@ -1,0 +1,14 @@
+/* stepper/1: [ < | current | > ] */
+.stepper { display:inline-flex; align-items:stretch; border:1px solid var(--line);
+           border-radius:var(--r-sm); overflow:hidden; background:var(--surface); }
+.stepper > button, .stepper > a, .stepper > .off { font:inherit; font-size:var(--fs-sm); font-weight:700; border:none;
+           background:var(--surface); color:var(--ink); padding:5px 12px; cursor:pointer;
+           text-decoration:none; display:flex; align-items:center; }
+.stepper > button:hover:not(:disabled), .stepper > a:hover { color:var(--brand); }
+.stepper > button:disabled, .stepper > .off { cursor:not-allowed; color:var(--muted); opacity:.55; }
+.stepper .n { min-width:34px; display:flex; align-items:center; justify-content:center; padding:5px 12px;
+           font-size:var(--fs-md); font-weight:750; color:var(--brand); font-variant-numeric:tabular-nums;
+           border-left:1px solid var(--line); border-right:1px solid var(--line); }
+@media (max-width:760px) {
+  .stepper > button, .stepper > a, .stepper > .off { min-width:44px; min-height:44px; justify-content:center; }
+}

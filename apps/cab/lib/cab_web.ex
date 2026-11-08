@@ -17,7 +17,7 @@ defmodule CabWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images vendor apidocs favicon.ico robots.txt)
+  def static_paths, do: ~w(assets images vendor apidocs favicon.ico robots.txt)
 
   def router do
     quote do
@@ -84,8 +84,9 @@ defmodule CabWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
-      # Design-system kit: chrome, sidenav, table, form_for, ballot,
-      # allocator, banner, section
+      # The shared kit (apps/ui): table, form_for, banner, section, chrome, ...
+      use Ui
+      # cab's own: sidenav, selrow, club_logo, ballot, allocator
       import CabWeb.Ui
       # The one source of session/room words
       import CabWeb.SessionFormat

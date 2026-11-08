@@ -8,8 +8,8 @@
   }
 >
   <:actions>
-    <a class="ua-btn ua-btn--line" href={~p"/manage/events/new"}>{gettext("New event")}</a>
-    <a class="ua-btn ua-btn--gold" href={~p"/manage/news/new"}>{gettext("Write news")}</a>
+    <a class="btn-quiet" href={~p"/manage/events/new"}>{gettext("New event")}</a>
+    <a class="btn-go" href={~p"/manage/news/new"}>{gettext("Write news")}</a>
   </:actions>
 </.page_head>
 
@@ -20,13 +20,13 @@
   <div><b>{@private_count}</b><span>{gettext("Of them private")}</span></div>
 </div>
 
-<div class="ua-sec">
-  {gettext("Coming up")} <a href={~p"/manage/calendar"}>{gettext("Calendar")}</a>
-</div>
-<.event_row :for={event <- @upcoming} event={event} href={~p"/manage/events/#{event.id}"}>
-  <.tag_chips tags={event.tags} />
-  <a class="ua-btn ua-btn--line ua-btn--sm" href={~p"/manage/events/#{event.id}/edit"}>
-    {gettext("Edit")}
-  </a>
-</.event_row>
-<div :if={@upcoming == []} class="ua-card ua-empty">{gettext("Nothing planned yet.")}</div>
+<.section title={gettext("Coming up")} bare>
+  <:action href={~p"/manage/calendar"}>{gettext("Calendar")}</:action>
+  <.event_row :for={event <- @upcoming} event={event} href={~p"/manage/events/#{event.id}"}>
+    <.tag_chips tags={event.tags} />
+    <a class="btn-quiet btn-sm" href={~p"/manage/events/#{event.id}/edit"}>
+      {gettext("Edit")}
+    </a>
+  </.event_row>
+  <.empty :if={@upcoming == []}>{gettext("Nothing planned yet.")}</.empty>
+</.section>

@@ -1,0 +1,2 @@
+/* empty/1: the one line that stands where a list has nothing yet */
+.empty-state { padding:30px var(--px); text-align:center; color:var(--muted); font-size:var(--fs-md); }

@@ -4,13 +4,29 @@ The club cabinet of OpenDebate: debate clubs, their members and their
 sessions, on top of the debate engine. An Elixir umbrella (Phoenix):
 
 - `apps/core`: the engine client and the shared mailer
+- `apps/ui`: the component library both web apps share
 - `apps/cab`: the club cabinet, the web app on :4000
 - `apps/public`: the organisation's public site (news, calendar, clubs,
   about), the web app on :4001
 
-Dependencies point down only: public -> cab -> core -> engine. cab and core know
-nothing about the apps built on them; such apps pull this repo in and
-depend on `apps/cab` and `apps/core`.
+Dependencies point down only: public -> cab -> ui -> core -> engine (and
+public -> ui). cab, ui and core know nothing about the apps built on
+them; such apps pull this repo in and depend on `apps/cab`, `apps/ui`
+and `apps/core`.
+
+## The shared components (apps/ui)
+
+The function components cab and the public site draw pages with:
+`table`, `form_for` and its blocks, `section`, `banner`,
+`flash_banners`, `local_time`, `copy`, `copy_banner`, `stepper`,
+`dropdown_button`, `beta` (`use Ui`), and the UI of configurable forms
+(`Ui.FormComponents`: the editor and the answers). A library app: no
+endpoint, no repo. The rule: ui knows no app. Links, records and an
+app's own words come in as attrs and slots from the caller, never as
+routes or modules of cab or public. Its texts go through `Ui.Gettext`
+(`apps/ui/priv/gettext`); each app sets that locale along with its own.
+cab's own components (chrome, sidenav, ballot, allocator, ...) stay in
+`CabWeb.Ui`.
 
 `engine/` is the debate engine, [opendebate-engine](https://github.com/Ukrainian-Debate-Dev-Community/opendebate-engine),
 pinned as a git submodule. Policy and Terms are deployment documents,

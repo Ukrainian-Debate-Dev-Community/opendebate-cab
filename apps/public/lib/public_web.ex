@@ -1,7 +1,7 @@
 defmodule PublicWeb do
   @moduledoc "The web layer of the public site: `use PublicWeb, :controller` and friends."
 
-  def static_paths, do: ~w(css fonts images js favicon.ico robots.txt)
+  def static_paths, do: ~w(assets images favicon.ico robots.txt)
 
   def router do
     quote do
@@ -26,6 +26,8 @@ defmodule PublicWeb do
       use Phoenix.Component
       import Phoenix.Controller, only: [get_csrf_token: 0]
       use Gettext, backend: PublicWeb.Gettext
+      # the kit both web apps share (apps/ui)
+      use Ui
       import PublicWeb.Site
       unquote(verified_routes())
     end

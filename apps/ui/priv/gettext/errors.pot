@@ -1,0 +1,112 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "%{count} characters at most."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "A form holds %{count} fields at most."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "An option is %{count} characters at most."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose a type."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose at least one."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose from the options."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose one."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Choose who is asked."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Each option must be different."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter a Telegram username: 5 to 32 letters, digits or _, like @name or t.me/name."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter a full phone number for its country, like +380 50 123 4567."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter a label."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter a number, like 12 or 3.5."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Enter an e-mail address like name@example.com."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Fill this in."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Give %{min} to %{max} options, one per line."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Something went wrong, try again."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "This field is always asked: it cannot be moved or removed."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Tick this box."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Use plain text without control characters."
+msgstr ""

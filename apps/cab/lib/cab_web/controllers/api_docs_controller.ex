@@ -19,8 +19,10 @@ defmodule CabWeb.ApiDocsController do
   defp page(conn, doc, title) do
     conn = fetch_cookies(conn)
     # the language cab's footer chose, read from its cookie (no session here)
-    if conn.cookies["cab_locale"] in ~w(en uk),
-      do: Gettext.put_locale(CabWeb.Gettext, conn.cookies["cab_locale"])
+    if conn.cookies["cab_locale"] in ~w(en uk) do
+      Gettext.put_locale(CabWeb.Gettext, conn.cookies["cab_locale"])
+      Gettext.put_locale(Ui.Gettext, conn.cookies["cab_locale"])
+    end
 
     conn
     |> put_root_layout(false)

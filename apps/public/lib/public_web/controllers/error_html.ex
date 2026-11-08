@@ -30,8 +30,8 @@ defmodule PublicWeb.ErrorHTML do
             if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme
           } catch (_e) {}
         </script>
-        <link rel="stylesheet" href={~p"/css/app.css"} />
-        <script defer src={~p"/js/site.js"}>
+        <link rel="stylesheet" href={~p"/assets/css/app.css"} />
+        <script defer src={~p"/assets/js/site.js"}>
         </script>
       </head>
       <body>
@@ -40,10 +40,10 @@ defmodule PublicWeb.ErrorHTML do
           <main class="ua-main">
             <div class="ua-error">
               <.wordmark class="ua-error-mark" />
-              <span class="ua-kicker">{@code}</span>
+              <span class="kicker">{@code}</span>
               <h1>{@title}</h1>
               <p>{@lead}</p>
-              <a class="ua-btn ua-btn--line ua-error-back" href={~p"/"}>
+              <a class="btn-quiet" href={~p"/"}>
                 {gettext("Back to the home page")}
               </a>
             </div>

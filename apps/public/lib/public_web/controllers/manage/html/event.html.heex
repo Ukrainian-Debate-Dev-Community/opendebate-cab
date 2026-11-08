@@ -1,27 +1,23 @@
-<div class="ua-cmd">
-  <div class="cr">
-    <a href={@back} id="back-to-calendar">{gettext("Calendar")}</a> / {@event.title}
-  </div>
-  <div class="seg">
-    <.visibility_switch event={@event} action={@visibility_action} back="event" />
-    <a class="ua-btn ua-btn--line ua-btn--sm" href={~p"/manage/events/#{@event.id}/edit"}>
-      {gettext("Edit")}
-    </a>
-    <.button_to action={~p"/manage/events/#{@event.id}"} method="delete">
-      {gettext("Delete")}
-    </.button_to>
-  </div>
-</div>
+<.chrome crumbs={[{gettext("Calendar"), @back}]} here={@event.title}>
+  <:seg
+    id="event-visibility"
+    href={
+      with_query(@visibility_action,
+        visibility: if(@event.visibility == "private", do: "public", else: "private"),
+        back: "event"
+      )
+    }
+    method="post"
+  >
+    {if @event.visibility == "private", do: gettext("Make public"), else: gettext("Make private")}
+  </:seg>
+  <:seg href={~p"/manage/events/#{@event.id}/edit"}>{gettext("Edit")}</:seg>
+  <:seg href={~p"/manage/events/#{@event.id}"} method="delete" quiet>{gettext("Delete")}</:seg>
+</.chrome>
 
 <.page_head kicker={gettext("Calendar")} title={@event.title}>
   <:actions :if={@event.link}>
-    <a
-      class="ua-btn ua-btn--gold"
-      href={@event.link}
-      target="_blank"
-      rel="noopener"
-      id="event-link"
-    >
+    <a class="btn-go" href={@event.link} target="_blank" rel="noopener" id="event-link">
       {gettext("Event website")}
     </a>
   </:actions>

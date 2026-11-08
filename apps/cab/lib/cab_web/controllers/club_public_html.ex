@@ -7,7 +7,7 @@ defmodule CabWeb.ClubPublicHTML do
 
   import CabWeb.StandingsHTML, only: [standings_tabs: 1, standings_body: 1]
 
-  import CabWeb.FormComponents,
+  import Ui.FormComponents,
     only: [
       answer_name: 1,
       block_type: 1,

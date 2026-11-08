@@ -1,0 +1,262 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Add a field"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Always asked. You can choose whether it is required and give it a hint."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Answer"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Asked of"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Copied"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Copy"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Country"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Date"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Edit field: %{label}"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Field"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Guests see the label as the question and the hint below it."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Hint"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Label"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Language"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "More options"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "No"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "No fields yet."
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Nothing here yet."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Optional: a line under the question."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Options"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Required"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Single and multiple choice only: one option per line, 2 to 20 options."
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Telegram username"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: auto"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: dark"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: light"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Theme: light, auto or dark"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Time"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Type"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Yes"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "Your e-mail"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "always asked"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "beta"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "choose one"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "down"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "e-mail"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "edit"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "long text"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "multiple choice"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "no"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "number"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "optional"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "phone"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "remove"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "required"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "short text"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "single choice"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "up"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "yes"
+msgstr ""
+
+#: lib/ui/form_components.ex
+#, elixir-autogen, elixir-format
+msgid "yes/no"
+msgstr ""
