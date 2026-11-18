@@ -6,8 +6,11 @@
 // toolbar, the link and image-description fields and the messages are
 // the block's own markup, in the page's language. Images go to the
 // block's data-upload address; the server answers {url} or {error}.
+// A gallery is one node holding several images (and a caption), kept as
+// <figure class="gallery"><img ...>...<figcaption>...</figcaption></figure>;
+// it is edited in the block's gallery field, under the toolbar.
 // The server sanitises whatever arrives: this only helps people write.
-import {Editor, StarterKit, Image, Placeholder} from "../vendor/tiptap.min.js"
+import {Editor, Node, StarterKit, Image, Placeholder} from "../vendor/tiptap.min.js"
 
 // links the editor makes: http(s), mailto or a path on this site
 const ALLOWED_LINK = /^(https?:\/\/|mailto:|\/(?![\/\\]))/i
@@ -23,6 +26,43 @@ function linkHref(text) {
   return "https://" + value
 }
 
+// a gallery: one block of images with an optional caption, both kept
+// in its attributes (it holds no editable text of its own)
+const Gallery = Node.create({
+  name: "gallery",
+  group: "block",
+  atom: true,
+  selectable: true,
+  draggable: true,
+
+  addAttributes() {
+    return {
+      images: {
+        default: [],
+        rendered: false,
+        parseHTML: el => [...el.children].filter(c => c.tagName === "IMG" && c.getAttribute("src"))
+          .map(img => ({src: img.getAttribute("src"), alt: img.getAttribute("alt") || ""}))
+      },
+      caption: {
+        default: "",
+        rendered: false,
+        parseHTML: el => [...el.children].find(c => c.tagName === "FIGCAPTION")?.textContent.trim() || ""
+      }
+    }
+  },
+
+  parseHTML() {
+    return [{tag: "figure.gallery", priority: 60}]
+  },
+
+  renderHTML({node}) {
+    const {images, caption} = node.attrs
+    return ["figure", {class: "gallery"},
+      ...images.map(({src, alt}) => ["img", {src, alt: alt || ""}]),
+      ...(caption ? [["figcaption", {}, caption]] : [])]
+  }
+})
+
 function csrfToken(el) {
   const field = el.closest("form")?.querySelector('input[name="_csrf_token"]')
   return field?.value || document.querySelector('meta[name="csrf-token"]')?.content || ""
@@ -37,9 +77,11 @@ export function mountRichEditor(root) {
   const status = root.querySelector(".rich-status")
   const linkPop = root.querySelector('[data-pop="link"]')
   const imagePop = root.querySelector('[data-pop="image"]')
+  const galleryPop = root.querySelector('[data-pop="gallery"]')
   const linkField = root.querySelector("[data-link]")
   const altField = root.querySelector("[data-alt]")
   const fileField = root.querySelector("[data-file]")
+  const filesField = root.querySelector("[data-files]")
   const upload = root.dataset.upload
 
   const area = document.createElement("div")
@@ -67,24 +109,48 @@ export function mountRichEditor(root) {
   // images: uploaded, then put in at the cursor (or where dropped)
   // ---------------------------------------------------------------
 
-  const uploadImage = (file, pos) => {
-    if (!upload || !IMAGE_TYPES.includes(file.type)) return false
+  // one file to the upload address: its URL, or a rejection with the
+  // server's words
+  const send = file => {
     const body = new FormData()
     body.append("image", file)
-    say(root.dataset.msgUploading)
-    fetch(upload, {method: "POST", body, headers: {"x-csrf-token": csrfToken(root)}, credentials: "same-origin"})
+    return fetch(upload, {method: "POST", body, headers: {"x-csrf-token": csrfToken(root)}, credentials: "same-origin"})
       .then(r => r.json().catch(() => ({})).then(data => ({ok: r.ok, data})))
       .then(({ok, data}) => {
         if (!ok || !data.url) throw new Error(data.error || "")
+        return data.url
+      })
+  }
+
+  const uploadImage = (file, pos) => {
+    if (!upload || !IMAGE_TYPES.includes(file.type)) return false
+    say(root.dataset.msgUploading)
+    send(file)
+      .then(url => {
         say("")
         const chain = editor.chain().focus()
-        if (typeof pos === "number") chain.insertContentAt(pos, {type: "image", attrs: {src: data.url, alt: ""}})
-        else chain.setImage({src: data.url, alt: ""})
+        if (typeof pos === "number") chain.insertContentAt(pos, {type: "image", attrs: {src: url, alt: ""}})
+        else chain.setImage({src: url, alt: ""})
         chain.run()
         openImage()
       })
       .catch(e => say(e.message || root.dataset.msgUploadFailed, true))
     return true
+  }
+
+  // several files, in the order picked; done(urls) with those that went
+  // up, the first failure said
+  const uploadImages = (files, done) => {
+    const list = imageFiles(files)
+    if (!upload || !list.length) return say(root.dataset.msgUploadFailed, true)
+    say(root.dataset.msgUploadingMany)
+    Promise.allSettled(list.map(send)).then(results => {
+      const urls = results.filter(r => r.status === "fulfilled").map(r => r.value)
+      const failed = results.find(r => r.status === "rejected")
+      if (failed) say(failed.reason?.message || root.dataset.msgUploadFailed, true)
+      else say("")
+      if (urls.length) done(urls)
+    })
   }
 
   const imageFiles = list => [...(list || [])].filter(f => IMAGE_TYPES.includes(f.type))
@@ -107,6 +173,7 @@ export function mountRichEditor(root) {
         }
       }),
       Image.configure({inline: false, allowBase64: false}),
+      Gallery,
       Placeholder.configure({placeholder: root.dataset.placeholder || ""})
     ],
     editorProps: {
@@ -157,7 +224,8 @@ export function mountRichEditor(root) {
     ordered: () => editor.isActive("orderedList"),
     quote: () => editor.isActive("blockquote"),
     link: () => editor.isActive("link"),
-    image: () => editor.isActive("image")
+    image: () => editor.isActive("image"),
+    gallery: () => editor.isActive("gallery")
   }
 
   function refresh() {
@@ -168,11 +236,13 @@ export function mountRichEditor(root) {
       if (cmd === "undo" || cmd === "redo") btn.disabled = !editor.can()[cmd]()
     })
     if (imagePop && !imagePop.hidden && !editor.isActive("image")) imagePop.hidden = true
+    if (galleryPop && !galleryPop.hidden && galleryAt() === null) galleryPop.hidden = true
   }
 
   const closePops = () => {
     linkPop.hidden = true
     if (imagePop) imagePop.hidden = true
+    if (galleryPop) galleryPop.hidden = true
   }
 
   // back to the text once a small field is done with; past an image
@@ -180,7 +250,7 @@ export function mountRichEditor(root) {
   const backToText = () => {
     closePops()
     editor.view.focus()
-    if (editor.isActive("image")) {
+    if (editor.isActive("image") || editor.isActive("gallery")) {
       const after = editor.state.selection.to
       if (editor.state.doc.resolve(after).nodeAfter?.isTextblock) editor.commands.setTextSelection(after + 1)
     }
@@ -219,6 +289,109 @@ export function mountRichEditor(root) {
     backToText()
   }
 
+  // ---------------------------------------------------------------
+  // galleries: picked files go up together and become one gallery;
+  // its field lists the images (description, remove), adds more and
+  // keeps the caption. Changes apply as they are typed.
+  // ---------------------------------------------------------------
+
+  // the position of the selected gallery, or null
+  function galleryAt() {
+    const {selection} = editor.state
+    return selection.node?.type.name === "gallery" ? selection.from : null
+  }
+
+  const galleryAttrs = () => {
+    const at = galleryAt()
+    return at === null ? null : editor.state.doc.nodeAt(at).attrs
+  }
+
+  // a change to the selected gallery's attributes; it stays selected
+  const setGallery = (attr, value) => {
+    const at = galleryAt()
+    if (at === null) return
+    editor.view.dispatch(editor.state.tr.setNodeAttribute(at, attr, value))
+  }
+
+  const galleryRows = () => {
+    const list = galleryPop.querySelector("[data-gallery-list]")
+    const row = galleryPop.querySelector("template[data-gallery-row]")
+    const {images} = galleryAttrs()
+    list.replaceChildren(...images.map(({src, alt}, i) => {
+      const item = row.content.firstElementChild.cloneNode(true)
+      item.dataset.index = i
+      item.querySelector("img").src = src
+      item.querySelector("[data-photo-alt]").value = alt || ""
+      return item
+    }))
+  }
+
+  function openGallery() {
+    if (!galleryPop || galleryAt() === null) return
+    linkPop.hidden = true
+    if (imagePop) imagePop.hidden = true
+    galleryRows()
+    galleryPop.querySelector("[data-caption]").value = galleryAttrs().caption || ""
+    galleryPop.hidden = false
+  }
+
+  const newGallery = urls => {
+    const images = urls.map(src => ({src, alt: ""}))
+    editor.chain().focus().insertContent({type: "gallery", attrs: {images, caption: ""}}).run()
+    // the cursor lands after what was put in: select the gallery itself
+    const {$from} = editor.state.selection
+    for (let at = $from.pos; at >= 0; at = at - 1) {
+      if (editor.state.doc.nodeAt(at)?.type.name === "gallery") { editor.commands.setNodeSelection(at); break }
+      if (at < $from.pos - 2) break
+    }
+    openGallery()
+    galleryPop.querySelector("[data-photo-alt]")?.focus()
+  }
+
+  // more images for the gallery selected when the files were picked
+  let addingTo = null
+  const addToGallery = urls => {
+    const node = addingTo === null ? null : editor.state.doc.nodeAt(addingTo)
+    if (node?.type.name !== "gallery") return newGallery(urls)
+    editor.commands.setNodeSelection(addingTo)
+    setGallery("images", [...node.attrs.images, ...urls.map(src => ({src, alt: ""}))])
+    openGallery()
+  }
+
+  const removeFromGallery = index => {
+    const {images} = galleryAttrs()
+    if (images.length <= 1) {
+      editor.chain().focus().deleteSelection().run()
+      closePops()
+      return
+    }
+    setGallery("images", images.filter((_img, i) => i !== index))
+    galleryRows()
+  }
+
+  galleryPop?.addEventListener("input", e => {
+    if (galleryAt() === null) return
+    if (e.target.matches("[data-caption]")) setGallery("caption", e.target.value.trim())
+    const item = e.target.closest("[data-index]")
+    if (item && e.target.matches("[data-photo-alt]")) {
+      const index = Number(item.dataset.index)
+      setGallery("images", galleryAttrs().images.map((img, i) => i === index ? {...img, alt: e.target.value.trim()} : img))
+    }
+  })
+
+  filesField?.addEventListener("change", () => {
+    const files = [...filesField.files]
+    filesField.value = ""
+    uploadImages(files, urls => (filesField.dataset.adding ? addToGallery(urls) : newGallery(urls)))
+  })
+
+  const pickFiles = adding => {
+    addingTo = adding ? galleryAt() : null
+    if (adding) filesField.dataset.adding = "true"
+    else delete filesField.dataset.adding
+    filesField.click()
+  }
+
   bar.addEventListener("mousedown", e => { if (e.target.closest("[data-cmd]")) e.preventDefault() })
   bar.addEventListener("click", e => {
     const btn = e.target.closest("[data-cmd]")
@@ -226,6 +399,7 @@ export function mountRichEditor(root) {
     const cmd = btn.dataset.cmd
     if (cmd === "link") return openLink()
     if (cmd === "image") return editor.isActive("image") ? openImage() : fileField?.click()
+    if (cmd === "gallery") return galleryAt() !== null ? openGallery() : pickFiles(false)
     closePops()
     commands[cmd](editor.chain().focus()).run()
   })
@@ -235,19 +409,29 @@ export function mountRichEditor(root) {
     if (act === "link-apply") applyLink()
     else if (act === "link-remove") { linkField.value = ""; applyLink() }
     else if (act === "alt-apply") applyAlt()
+    else if (act === "gallery-add") pickFiles(true)
+    else if (act === "photo-remove") removeFromGallery(Number(e.target.closest("[data-index]").dataset.index))
     else if (act === "close") backToText()
   })
 
   // Enter in the small fields applies them (never submits the form);
   // Escape closes them
   root.addEventListener("keydown", e => {
+    if (e.target.matches("[data-caption], [data-photo-alt]")) {
+      if (e.key === "Enter" || e.key === "Escape") { e.preventDefault(); backToText() }
+      return
+    }
     if (!e.target.matches("[data-link], [data-alt]")) return
     if (e.key === "Enter") { e.preventDefault(); e.target.matches("[data-link]") ? applyLink() : applyAlt() }
     else if (e.key === "Escape") { e.preventDefault(); backToText() }
   })
 
-  // a click on an image in the text opens its description
-  area.addEventListener("click", e => { if (e.target.closest("img")) setTimeout(openImage, 0) })
+  // a click on an image in the text opens its description, on a
+  // gallery its field
+  area.addEventListener("click", e => {
+    if (e.target.closest("figure.gallery")) setTimeout(openGallery, 0)
+    else if (e.target.closest("img")) setTimeout(openImage, 0)
+  })
 
   fileField?.addEventListener("change", () => {
     const [file] = fileField.files

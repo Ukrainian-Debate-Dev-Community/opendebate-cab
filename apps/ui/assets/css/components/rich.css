@@ -44,6 +44,14 @@
 .form .rich-pop input { flex:1 1 14rem; width:auto; min-width:0; min-height:40px; }
 .rich-pop .btn-quiet, .rich-pop .btn-link { min-height:40px; }
 
+/* the gallery field: one row per image (thumbnail, description,
+   remove), then the caption and the buttons */
+.rich-photos { display:flex; flex-direction:column; gap:6px; flex:1 1 100%; margin:0; padding:0; list-style:none; }
+.rich-photo { display:flex; align-items:center; gap:10px; }
+.rich-photo img { flex:none; width:40px; height:40px; object-fit:cover; border-radius:var(--r-xs);
+                  background:var(--surface-2); }
+.form .rich-photo input { flex:1 1 auto; }
+
 .rich-status:empty { display:none; }
 .rich-status { padding:6px 10px; font-size:var(--fs-xs); color:var(--muted); border-bottom:1px solid var(--line); }
 .rich-status.bad { color:var(--warn); font-weight:650; }
@@ -67,6 +75,13 @@
 .rich-text img { display:block; max-width:100%; height:auto; border-radius:var(--r-md); }
 .rich-text img.ProseMirror-selectednode { outline:var(--focus-ring); outline-offset:2px; }
 .rich-text hr.ProseMirror-selectednode { outline:var(--focus-ring); }
+/* a gallery while writing: its images as even thumbnails, the caption
+   under them */
+.rich-text figure.gallery { display:grid; grid-template-columns:repeat(auto-fill, minmax(7rem, 1fr)); gap:6px;
+                            padding:6px; border:1px dashed var(--line); border-radius:var(--r-md); cursor:pointer; }
+.rich-text figure.gallery img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:var(--r-xs); }
+.rich-text figure.gallery figcaption { grid-column:1 / -1; font-size:var(--fs-sm); color:var(--muted); }
+.rich-text figure.gallery.ProseMirror-selectednode { outline:var(--focus-ring); outline-offset:2px; }
 .rich-text p.is-editor-empty:first-child::before { content:attr(data-placeholder); float:left; height:0;
                                                     color:var(--muted); pointer-events:none; }
 /* ProseMirror's own needs */
