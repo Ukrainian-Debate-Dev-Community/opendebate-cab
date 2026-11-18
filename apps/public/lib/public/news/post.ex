@@ -11,6 +11,7 @@ defmodule Public.News.Post do
     field :slug, :string
     field :rubric, :string, default: "community"
     field :summary, :string
+    # HTML from the editor, kept to Public.News.Html's allow-list
     field :body, :string, default: ""
     # nil while the post is a draft
     field :published_at, :utc_datetime
@@ -38,7 +39,8 @@ defmodule Public.News.Post do
     |> Text.clean_text(:slug, max: 200)
     |> Text.clean_text(:image_alt, max: 200)
     |> Text.clean_text(:summary, max: 1000, multiline: true)
-    |> Text.clean_text(:body, max: 20_000, multiline: true)
+    |> Text.clean_text(:body, max: 100_000, multiline: true)
+    |> update_change(:body, &Public.News.Html.sanitize/1)
     |> then(&if(get_field(&1, :body), do: &1, else: put_change(&1, :body, "")))
     |> update_change(:slug, &slugify/1)
     |> put_slug()

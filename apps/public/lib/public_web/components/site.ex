@@ -493,9 +493,9 @@ defmodule PublicWeb.Site do
 
   @words_per_minute 200
 
-  @doc "Minutes to read a body at #{@words_per_minute} words a minute, rounded up; at least one."
+  @doc "Minutes to read an HTML body at #{@words_per_minute} words a minute, rounded up; at least one."
   def read_minutes(body) do
-    words = length(String.split(body || ""))
+    words = length(String.split(Public.News.Html.text(body)))
     max(1, div(words + @words_per_minute - 1, @words_per_minute))
   end
 
@@ -505,22 +505,11 @@ defmodule PublicWeb.Site do
   end
 
   @doc """
-  A post's excerpt for its card: its summary, else the start of its
-  body as plain text (no Markdown marks, cut at a word).
+  A post's excerpt for its card: its summary, else its body's first
+  paragraph as plain text, cut at a word.
   """
   def excerpt(%{summary: summary}) when is_binary(summary) and summary != "", do: summary
-
-  def excerpt(%{body: body}) do
-    (body || "")
-    |> String.split(~r/\n\s*\n/, trim: true)
-    |> Enum.reject(&String.match?(&1, ~r/^\s*(#|>|```|-{3,}|!\[|[-*+]\s|\d+\.\s)/))
-    |> List.first("")
-    |> String.replace(~r/!?\[([^\]]*)\]\([^)]*\)/, "\\1")
-    |> String.replace(~r/[*_`#>]+/, "")
-    |> String.replace(~r/\s+/, " ")
-    |> String.trim()
-    |> cut(220)
-  end
+  def excerpt(%{body: body}), do: body |> Public.News.Html.first_paragraph() |> cut(220)
 
   defp cut(text, max) do
     if String.length(text) <= max do

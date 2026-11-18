@@ -1,3 +1,6 @@
+<%!-- the rich text block's editor, loaded by ui.js on this page only --%>
+<meta name="rich-editor-src" content={~p"/assets/js/rich-editor.js"} />
+
 <.chrome
   crumbs={[{gettext("News"), ~p"/manage/news"}]}
   here={if @post, do: gettext("Edit"), else: gettext("New")}
@@ -78,13 +81,17 @@
     />
     <:block
       name={field_name(@form, :body)}
-      type={:longtext}
+      type={:rich}
       label={gettext("Text")}
       rows={14}
-      maxlength={20000}
       value={@form[:body].value}
+      upload={@images}
+      placeholder={gettext("Write the article...")}
       hint={
-        gettext("Markdown: ## for a heading, **bold**, [a link](https://...), > for a quote.")
+        gettext(
+          "Select words to make them bold or a link. Images: JPEG, PNG or WebP, up to %{mb} MB.",
+          mb: @max_mb
+        )
       }
     />
     <:block name="post[tag_ids][]" type={:custom} label={gettext("Tags")}>

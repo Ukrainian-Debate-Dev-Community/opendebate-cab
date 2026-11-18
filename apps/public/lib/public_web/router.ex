@@ -76,6 +76,7 @@ defmodule PublicWeb.Router do
     get "/news", NewsController, :index
     get "/news/new", NewsController, :new
     post "/news", NewsController, :create
+    post "/news/images", NewsController, :image
     get "/news/:id/edit", NewsController, :edit
     put "/news/:id", NewsController, :update
     post "/news/:id/publish", NewsController, :publish

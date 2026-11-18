@@ -26,7 +26,8 @@ defmodule PublicWeb.NewsController do
       active: :news,
       page_title: post.title,
       post: post,
-      body: MDEx.to_html!(post.body),
+      # sanitised when saved (Public.News.Html)
+      body: post.body,
       more: News.related(post, 3)
     )
   end
