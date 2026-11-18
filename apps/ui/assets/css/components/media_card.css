@@ -1,0 +1,42 @@
+/* media_card/1: a card that leads with a picture. The title's link
+   covers the whole card; the text sizes follow the card's own width,
+   so the same card reads well in a wide grid and in a side column.
+   featured: the lead story, the picture beside the text on wide
+   screens. */
+.mcard { position:relative; display:flex; flex-direction:column; min-width:0; background:var(--surface);
+         border:1px solid var(--line); border-radius:var(--r); overflow:hidden; container-type:inline-size;
+         transition:box-shadow .15s ease, border-color .15s ease; }
+.mcard:hover { border-color:color-mix(in srgb, var(--brand) 35%, var(--line)); box-shadow:var(--shadow-card); }
+.mcard:focus-within { outline:var(--focus-ring); outline-offset:var(--focus-offset); }
+.mcard a:focus-visible { outline:none; }
+.mcard-media { position:relative; aspect-ratio:16 / 9; overflow:hidden; background:var(--surface-2); }
+.mcard-media > * { position:absolute; inset:0; width:100%; height:100%; }
+.mcard-media img { object-fit:cover; }
+.mcard-body { flex:1; display:flex; flex-direction:column; gap:var(--sp-2); padding:var(--sp-4) var(--sp-5) var(--sp-5); }
+.mcard-title { font-size:1.12rem; line-height:1.3; font-weight:750; letter-spacing:-.012em; text-wrap:balance; }
+.mcard-title a { color:var(--ink); text-decoration:none; }
+.mcard-title a::after { content:""; position:absolute; inset:0; z-index:1; }
+.mcard:hover .mcard-title a { color:var(--brand); }
+.mcard-text { color:var(--muted); font-size:.92rem; line-height:1.55; overflow:hidden;
+              display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; line-clamp:3; }
+.mcard-meta { margin-top:auto; padding-top:var(--sp-1); font-size:var(--fs-xs); font-weight:600; color:var(--muted); }
+
+/* a narrow card (three in a side column) */
+@container (max-width:280px) {
+  .mcard-body { gap:6px; padding:var(--sp-3) var(--px) var(--px); }
+  .mcard-title { font-size:.96rem; }
+  .mcard-text { font-size:.84rem; -webkit-line-clamp:2; line-clamp:2; }
+}
+
+/* the lead story */
+.mcard--featured .mcard-body { gap:var(--sp-3); padding:var(--sp-5) var(--sp-6) var(--sp-6); }
+.mcard--featured .mcard-title { font-size:1.6rem; line-height:1.15; font-weight:800; letter-spacing:-.022em; }
+.mcard--featured .mcard-text { font-size:1rem; line-height:1.6; -webkit-line-clamp:4; line-clamp:4; }
+.mcard--featured .mcard-meta { font-size:var(--fs-sm); }
+@media (min-width:861px) {
+  .mcard--featured { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); }
+  .mcard--featured .mcard-media { aspect-ratio:3 / 2; }
+  .mcard--featured .mcard-body { justify-content:center; padding:var(--sp-8); }
+  .mcard--featured .mcard-title { font-size:2.1rem; }
+  .mcard--featured .mcard-meta { margin-top:var(--sp-2); }
+}

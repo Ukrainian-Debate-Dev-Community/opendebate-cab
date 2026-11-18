@@ -249,6 +249,36 @@ defmodule Ui.ComponentsTest do
     assert html =~ ~s(class="acts")
   end
 
+  test "media_card: media, a linked title, the excerpt and meta; featured as the lead story" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.media_card href="/news/a" title="Season opens" text="The first club night." id="a">
+        <:media><img src="/a.png" alt="" /></:media>
+        <:meta>9 October 2026</:meta>
+      </.media_card>
+      """)
+
+    assert html =~ ~s(class="mcard" id="a")
+    assert html =~ ~r{<div class="mcard-media"><img[^>]* src="/a.png" alt=""></div>}
+    assert html =~ ~s(<h3 class="mcard-title"><a href="/news/a">Season opens</a></h3>)
+    assert html =~ ~s(<p class="mcard-text">The first club night.</p>)
+    assert html =~ ~s(<div class="mcard-meta">9 October 2026</div>)
+
+    html =
+      rendered_to_string(~H"""
+      <.media_card href="/news/b" title="Lead" featured>
+        <:media>x</:media>
+      </.media_card>
+      """)
+
+    assert html =~ ~s(class="mcard mcard--featured")
+    assert html =~ ~s(<h2 class="mcard-title">)
+    refute html =~ "mcard-text"
+    refute html =~ "mcard-meta"
+  end
+
   test "chrome: crumbs, the tail and its segments as links, method links or submits" do
     assigns = %{}
 

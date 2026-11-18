@@ -64,6 +64,7 @@
   --shadow-menu:  0 8px 24px rgba(28,23,34,.16);
   --shadow-drag:  0 6px 18px rgba(0,0,0,.25);
   --shadow-split: inset 1px 0 0 rgba(0,0,0,.18);
+  --shadow-card:  0 1px 2px rgba(28,23,34,.04), 0 10px 28px rgba(28,23,34,.08);
 
   /* focus ring */
   --focus-ring:   2px solid var(--brand);
@@ -83,6 +84,8 @@
   --fs-lg:    1.02rem;  /* a form's title */
   --fs-xl:    1.4rem;
   --fs-2xl:   1.75rem;  /* a page's title */
+  --fs-3xl:   2.6rem;   /* an article's title */
+  --fs-read:  1.125rem; /* long-form reading text */
 
   /* spacing */
   --px:   14px;         /* the shared horizontal padding everywhere */
@@ -107,6 +110,8 @@
   --w-page:   1180px;
   --w-form:   760px;
   --w-prose:  72ch;
+  --w-read:   42rem;    /* an article's column: about 70 characters of reading text */
+  --w-media:  1000px;   /* an article's cover */
   --w-narrow: 520px;
 
   color-scheme: light;
@@ -121,6 +126,7 @@
     --warn: #E3876A; --warn-bg: #3A221B; --warn-ink: #F4B8A4; --warn-surface: #2A1D1A;
     --bg: #141017; --surface: #1C1720; --surface-2: #211B26;
     --me-tint: #2E2618;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px rgba(0,0,0,.35);
     --og: #B48BD0; --og-bg: #2B2034;
     --oo: #7FA8D8; --oo-bg: #1B2633;
     --cg: #6CC6A6; --cg-bg: #172A24; --cg-ink: #6CC6A6;
@@ -144,6 +150,7 @@
   --warn: #E3876A; --warn-bg: #3A221B; --warn-ink: #F4B8A4; --warn-surface: #2A1D1A;
   --bg: #141017; --surface: #1C1720; --surface-2: #211B26;
   --me-tint: #2E2618;
+  --shadow-card: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px rgba(0,0,0,.35);
   --og: #B48BD0; --og-bg: #2B2034;
   --oo: #7FA8D8; --oo-bg: #1B2633;
   --cg: #6CC6A6; --cg-bg: #172A24; --cg-ink: #6CC6A6;

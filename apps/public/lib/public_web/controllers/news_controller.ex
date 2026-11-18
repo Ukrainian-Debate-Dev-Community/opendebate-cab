@@ -6,12 +6,16 @@ defmodule PublicWeb.NewsController do
 
   def index(conn, params) do
     rubric = if params["rubric"] in Post.rubrics(), do: params["rubric"]
+    posts = News.list_published(rubric: rubric)
+    used = News.published_rubrics()
 
     render(conn, :index,
       active: :news,
       page_title: gettext("News"),
       rubric: rubric,
-      posts: News.list_published(rubric: rubric)
+      rubrics: Enum.filter(Post.rubrics(), &(&1 in used or &1 == rubric)),
+      featured: List.first(posts),
+      posts: Enum.drop(posts, 1)
     )
   end
 
@@ -23,7 +27,7 @@ defmodule PublicWeb.NewsController do
       page_title: post.title,
       post: post,
       body: MDEx.to_html!(post.body),
-      more: News.list_published(limit: 4) |> Enum.reject(&(&1.id == post.id)) |> Enum.take(3)
+      more: News.related(post, 3)
     )
   end
 end

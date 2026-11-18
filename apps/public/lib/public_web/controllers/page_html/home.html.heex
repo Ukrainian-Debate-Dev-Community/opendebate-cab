@@ -46,7 +46,7 @@
   <div>
     <.section title={gettext("News")} bare>
       <:action href={~p"/news"}>{gettext("All news")}</:action>
-      <div :if={@news != []} class="ua-grid3">
+      <div :if={@news != []} class="ua-cards ua-cards--side">
         <.news_card :for={post <- @news} post={post} />
       </div>
       <.empty :if={@news == []}>{gettext("No news yet.")}</.empty>
