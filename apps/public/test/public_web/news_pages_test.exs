@@ -120,6 +120,8 @@ defmodule PublicWeb.NewsPagesTest do
     assert html =~ "<h2>Rounds</h2>"
     assert html =~ "<blockquote>"
     assert html =~ ~s(data-copy="#{PublicWeb.Endpoint.url()}/news/season-opens")
+    # no image, no cover: the article starts with its text
+    refute html =~ "ua-article-cover"
 
     [_, more] = String.split(html, ~s(id="more-news"), parts: 2)
     assert more =~ ~r/Old result.*Latest tip.*Another tip/s

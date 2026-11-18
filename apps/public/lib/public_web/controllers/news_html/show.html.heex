@@ -10,7 +10,10 @@
     <div class="ua-byline"><.news_meta post={@post} /></div>
   </header>
 
-  <div class="ua-article-cover"><.cover post={@post} class="ua-cover--wide" /></div>
+  <%!-- a cover only when the post has an image: no gradient band here --%>
+  <div :if={@post.image} class="ua-article-cover">
+    <.cover post={@post} class="ua-cover--wide" />
+  </div>
 
   <div class="ua-body">{Phoenix.HTML.raw(@body)}</div>
 

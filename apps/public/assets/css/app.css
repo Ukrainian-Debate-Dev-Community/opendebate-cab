@@ -149,8 +149,7 @@ a { color:var(--brand); }
 .ua-byline { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2) var(--sp-3); font-size:var(--fs-sm);
              font-weight:600; color:var(--muted); padding-bottom:var(--sp-5); border-bottom:1px solid var(--line); }
 .ua-article-cover { max-width:var(--w-media); margin:var(--sp-7) auto var(--sp-8); }
-.ua-cover--wide { aspect-ratio:4 / 1; border-radius:var(--r); }
-.ua-cover--wide.ua-cover--img { aspect-ratio:16 / 9; }
+.ua-cover--wide { aspect-ratio:16 / 9; border-radius:var(--r); }
 
 .ua-body { max-width:var(--w-read); margin:0 auto; font-size:var(--fs-read); line-height:1.72; color:var(--ink);
            overflow-wrap:break-word; }
