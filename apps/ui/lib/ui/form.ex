@@ -32,9 +32,9 @@ defmodule Ui.Form do
   without JS a plain field taking a +code), `:email` (the e-mail
   keyboard, spaces dropped, the domain lowercased), `:telegram` (a
   username: the @ added, t.me links read), `:date` (the date picker
-  alone) and `:custom` (the block's own content: an app's control under
-  the kit's label and hint). A `:longtext` block may ask for more
-  `rows`. A `:text` block may name its
+  alone), `:rich` (formatted text, see `rich/1`) and `:custom` (the
+  block's own content: an app's control under the kit's label and
+  hint). A `:longtext` or `:rich` block may ask for more `rows`. A `:text` block may name its
   input type (`input`: email, tel); a `:select` dropdown may lead with
   an empty `prompt` option. A `required` `:text` or `:longtext` block's
   field is `required` in the browser too.
@@ -94,7 +94,8 @@ defmodule Ui.Form do
     attr :preview_alt, :string, doc: "that image's text"
     attr :remove, :string, doc: "a :file block's remove box name (shown with a preview)"
     attr :remove_label, :string
-    attr :rows, :integer, doc: "a :longtext block's height in lines"
+    attr :rows, :integer, doc: "a :longtext or :rich block's height in lines"
+    attr :upload, :string, doc: "a :rich block's image upload address (none: no Image button)"
   end
 
   slot :submit do
@@ -271,6 +272,18 @@ defmodule Ui.Form do
         >{@b[:value]}</textarea>
         """
 
+      :rich ->
+        ~H"""
+        <.rich
+          name={@name}
+          value={@b[:value]}
+          rows={@b[:rows]}
+          placeholder={@b[:placeholder]}
+          upload={@b[:upload]}
+          label={@b[:label]}
+        />
+        """
+
       :date ->
         ~H"""
         <input type="date" name={@name} value={@b[:value]} required={@b[:required]} />
@@ -417,6 +430,165 @@ defmodule Ui.Form do
         </div>
         """
     end
+  end
+
+  @doc """
+  A rich text field (a form block of type `:rich`): a toolbar (headings
+  2 and 3, bold, italic, lists, quote, link, image, divider, undo,
+  redo) over an editable area, the HTML going out in the textarea named
+  `name`. ui.js loads the editor (rich_editor_page.js, TipTap) when the
+  page names its bundle in `<meta name="rich-editor-src">`; without
+  JavaScript the textarea shows the HTML itself. Images go to `upload`
+  (a POST of the file as `image` with the CSRF token, answering JSON
+  `{"url": ...}` or `{"error": ...}`); without it there is no Image
+  button. The server must sanitise what arrives: the editor only helps.
+  """
+  attr :name, :string, required: true
+  attr :value, :string, default: nil
+  attr :rows, :integer, default: nil
+  attr :placeholder, :string, default: nil
+  attr :upload, :string, default: nil
+  attr :label, :string, default: nil
+
+  def rich(assigns) do
+    assigns =
+      assign(assigns,
+        id:
+          "rich-" <>
+            (assigns.name |> String.replace(~r/[^A-Za-z0-9_-]+/, "-") |> String.trim("-")),
+        tools: rich_tools(assigns.upload)
+      )
+
+    ~H"""
+    <div
+      class="rich"
+      id={@id}
+      data-rich
+      data-upload={@upload}
+      data-placeholder={@placeholder}
+      data-msg-uploading={gettext("Uploading the image...")}
+      data-msg-upload-failed={gettext("The image could not be uploaded.")}
+      phx-update="ignore"
+    >
+      <div class="rich-head">
+        <div class="rich-bar" role="toolbar" aria-label={gettext("Formatting")} hidden>
+          <%= for group <- @tools do %>
+            <span class="rich-group">
+              <button
+                :for={{cmd, label} <- group}
+                type="button"
+                class="rich-tool"
+                data-cmd={cmd}
+                title={label}
+                aria-label={label}
+              >
+                <.rich_icon name={cmd} />
+              </button>
+            </span>
+          <% end %>
+        </div>
+        <div class="rich-pop" data-pop="link" hidden>
+          <input
+            type="text"
+            inputmode="url"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder={gettext("Paste or type the address")}
+            aria-label={gettext("Link address")}
+            data-link
+          />
+          <button type="button" class="btn-quiet btn-sm" data-act="link-apply">
+            {gettext("Apply")}
+          </button>
+          <button type="button" class="btn-link" data-act="link-remove">
+            {gettext("Remove link")}
+          </button>
+          <button type="button" class="btn-link" data-act="close">{gettext("Cancel")}</button>
+        </div>
+        <div :if={@upload} class="rich-pop" data-pop="image" hidden>
+          <input
+            type="text"
+            maxlength="200"
+            placeholder={gettext("What the image shows")}
+            aria-label={gettext("Image description")}
+            data-alt
+          />
+          <button type="button" class="btn-quiet btn-sm" data-act="alt-apply">
+            {gettext("Apply")}
+          </button>
+          <button type="button" class="btn-link" data-act="close">{gettext("Close")}</button>
+        </div>
+        <input
+          :if={@upload}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+          data-file
+          aria-label={gettext("Image")}
+        />
+        <div class="rich-status" role="status" aria-live="polite"></div>
+      </div>
+      <textarea class="rich-source" name={@name} rows={@rows || 14} aria-label={@label}>{@value}</textarea>
+    </div>
+    """
+  end
+
+  defp rich_tools(upload) do
+    [
+      [{"h2", gettext("Heading 2")}, {"h3", gettext("Heading 3")}],
+      [{"bold", gettext("Bold")}, {"italic", gettext("Italic")}],
+      [
+        {"bullet", gettext("Bullet list")},
+        {"ordered", gettext("Numbered list")},
+        {"quote", gettext("Quote")}
+      ],
+      [{"link", gettext("Link")}] ++
+        if(upload, do: [{"image", gettext("Image")}], else: []) ++
+        [{"rule", gettext("Divider")}],
+      [{"undo", gettext("Undo")}, {"redo", gettext("Redo")}]
+    ]
+  end
+
+  attr :name, :string, required: true
+
+  defp rich_icon(%{name: name} = assigns) when name in ~w(h2 h3 bold italic) do
+    assigns =
+      assign(assigns,
+        text: %{"h2" => "H2", "h3" => "H3", "bold" => "B", "italic" => "I"}[name]
+      )
+
+    ~H"""
+    <span class={["rich-glyph", "rich-glyph--" <> @name]} aria-hidden="true">{@text}</span>
+    """
+  end
+
+  defp rich_icon(assigns) do
+    ~H"""
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <%= case @name do %>
+        <% "bullet" -> %>
+          <circle cx="4" cy="5" r="1.4" /><circle cx="4" cy="10" r="1.4" /><circle
+            cx="4"
+            cy="15"
+            r="1.4"
+          /><path d="M8 5h9M8 10h9M8 15h9" />
+        <% "ordered" -> %>
+          <path d="M3 3.5h1.5v4M3 7.5h3M2.8 12.2c.4-.6 2.6-.8 2.6.6 0 1-2.6 1.6-2.6 3h2.8M9 5h8M9 10h8M9 15h8" />
+        <% "quote" -> %>
+          <path d="M4 4v12M8 6h8M8 10h8M8 14h5" />
+        <% "link" -> %>
+          <path d="M8.5 11.5a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2l-1 1M11.5 8.5a3 3 0 0 0-4.2 0l-2.6 2.6a3 3 0 0 0 4.2 4.2l1-1" />
+        <% "image" -> %>
+          <rect x="2.5" y="4" width="15" height="12" rx="2" /><circle cx="7" cy="8.2" r="1.4" /><path d="M3 14.5l4.5-4 3.5 3 2.5-2 4 3.5" />
+        <% "rule" -> %>
+          <path d="M3 10h14" />
+        <% "undo" -> %>
+          <path d="M7.5 5L4 8.5 7.5 12M4 8.5h8a4 4 0 0 1 0 8H9" />
+        <% "redo" -> %>
+          <path d="M12.5 5L16 8.5 12.5 12M16 8.5H8a4 4 0 0 0 0 8h3" />
+      <% end %>
+    </svg>
+    """
   end
 
   defp option({label, value}), do: {label, value}

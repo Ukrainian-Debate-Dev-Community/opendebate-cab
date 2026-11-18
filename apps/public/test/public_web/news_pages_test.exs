@@ -16,22 +16,33 @@ defmodule PublicWeb.NewsPagesTest do
   end
 
   defp words(n), do: List.duplicate("word", n) |> Enum.join(" ")
+  defp para(n), do: "<p>" <> words(n) <> "</p>"
 
   describe "reading time" do
     test "is the body's words at 200 a minute, rounded up, at least one" do
       assert Site.read_minutes(nil) == 1
       assert Site.read_minutes("") == 1
-      assert Site.read_minutes(words(200)) == 1
-      assert Site.read_minutes(words(201)) == 2
-      assert Site.read_minutes(words(650)) == 4
+      assert Site.read_minutes(para(200)) == 1
+      assert Site.read_minutes(para(201)) == 2
+      assert Site.read_minutes(para(650)) == 4
+    end
+
+    test "counts the text of the HTML, not its tags" do
+      # 200 words as text, but split by tags and attributes that would add more
+      html =
+        ~s(<h2>word word</h2><p><a href="https://x.org/a b c">word</a> <strong>word</strong> ) <>
+          words(196) <> ~s(</p><img src="/uploads/a.png" alt="many words here" />)
+
+      assert Site.read_minutes(html) == 1
+      assert Site.read_minutes(html <> "<p>word</p>") == 2
     end
 
     test "reads in the page's language, one form per count" do
-      assert Site.reading_time(words(650)) == "4 min read"
+      assert Site.reading_time(para(650)) == "4 min read"
       assert Site.reading_time("short") == "1 min read"
 
       Gettext.with_locale(PublicWeb.Gettext, "uk", fn ->
-        uk = Site.reading_time(words(650))
+        uk = Site.reading_time(para(650))
         assert uk =~ ~r/^4 \S+/u
         refute uk == "4 min read"
       end)
@@ -41,17 +52,21 @@ defmodule PublicWeb.NewsPagesTest do
   test "a card's excerpt is the summary, else the body's first paragraph as plain text" do
     assert Site.excerpt(%{summary: "The summary.", body: "Body."}) == "The summary."
 
-    body = "## A heading\n\nThe **first** [club night](/calendar) of the season.\n\n- a list"
-    assert Site.excerpt(%{summary: nil, body: body}) == "The first club night of the season."
+    body =
+      ~s(<h2>A heading</h2><p>The <strong>first</strong> <a href="/calendar">club night</a> ) <>
+        "of the season &amp; more.</p><ul><li>a list</li></ul>"
 
-    long = Site.excerpt(%{summary: "", body: words(100)})
+    assert Site.excerpt(%{summary: nil, body: body}) ==
+             "The first club night of the season & more."
+
+    long = Site.excerpt(%{summary: "", body: para(100)})
     assert String.length(long) <= 223
     assert String.ends_with?(long, "word...")
   end
 
   test "the newest post leads the list; the rest follow as cards", %{conn: conn} do
     published(%{"title" => "Older story", "rubric" => "tips"}, 5)
-    published(%{"title" => "Newest story", "summary" => "The lead.", "body" => words(450)}, 1)
+    published(%{"title" => "Newest story", "summary" => "The lead.", "body" => para(450)}, 1)
     published(%{"title" => "Middle story", "rubric" => "results"}, 3)
 
     html = conn |> get(~p"/news") |> html_response(200)
@@ -101,7 +116,9 @@ defmodule PublicWeb.NewsPagesTest do
           "title" => "Season opens",
           "rubric" => "results",
           "summary" => "Lead paragraph.",
-          "body" => "## Rounds\n\n> A quote\n\n" <> words(390)
+          "body" =>
+            "<h2>Rounds</h2><blockquote><p>A quote</p></blockquote>" <>
+              para(390) <> ~s|<p onclick="x()">Safe<script>alert(1)</script></p>|
         },
         0
       )
@@ -118,7 +135,10 @@ defmodule PublicWeb.NewsPagesTest do
     assert html =~ "2 min read"
     assert html =~ ~s(href="/news?rubric=results")
     assert html =~ "<h2>Rounds</h2>"
-    assert html =~ "<blockquote>"
+    assert html =~ "<blockquote><p>A quote</p></blockquote>"
+    # sanitised when saved, shown as stored
+    assert html =~ "<p>Safe</p>"
+    refute html =~ "alert(1)"
     assert html =~ ~s(data-copy="#{PublicWeb.Endpoint.url()}/news/season-opens")
     # no image, no cover: the article starts with its text
     refute html =~ "ua-article-cover"

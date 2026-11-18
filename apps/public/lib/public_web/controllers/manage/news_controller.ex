@@ -65,17 +65,40 @@ defmodule PublicWeb.Manage.NewsController do
     |> redirect(to: ~p"/manage/news")
   end
 
+  @doc """
+  An image inside a post's text, from the editor: stored as a cover is
+  (Public.Uploads, the same checks), answered as JSON {url} or {error}.
+  The file stays even if the post is never saved with it.
+  """
+  def image(conn, %{"image" => %Plug.Upload{path: path}}) do
+    case Uploads.store(path) do
+      {:ok, name} ->
+        json(conn, %{url: Uploads.url(name)})
+
+      {:error, reason} ->
+        conn
+        |> put_status(if reason == :size, do: 413, else: 422)
+        |> json(%{error: upload_error(reason)})
+    end
+  end
+
+  def image(conn, _params) do
+    conn |> put_status(422) |> json(%{error: upload_error(:type)})
+  end
+
   # a new file goes into the uploads first; a refused one never reaches the post
   defp image_change(%{"image" => %Plug.Upload{path: path}}) do
     case Uploads.store(path) do
       {:ok, name} -> {:ok, {:new, name}}
-      {:error, :size} -> {:error, {:image, gettext("The image is larger than 3 MB.")}}
-      {:error, :type} -> {:error, {:image, gettext("Only JPEG, PNG or WebP images.")}}
+      {:error, reason} -> {:error, {:image, upload_error(reason)}}
     end
   end
 
   defp image_change(%{"remove_image" => yes}) when yes in ["yes", "true"], do: {:ok, :remove}
   defp image_change(_attrs), do: {:ok, :keep}
+
+  defp upload_error(:size), do: gettext("The image is larger than 3 MB.")
+  defp upload_error(:type), do: gettext("Only JPEG, PNG or WebP images.")
 
   defp refused({:image, message}, post, attrs) do
     (post || %News.Post{})
@@ -94,6 +117,7 @@ defmodule PublicWeb.Manage.NewsController do
       form: to_form(changeset, as: :post),
       tags: Tags.list(),
       selected_tags: HTML.selected_tag_ids(attrs, post),
+      images: ~p"/manage/news/images",
       max_mb: div(Uploads.max_bytes(), 1024 * 1024)
     )
   end

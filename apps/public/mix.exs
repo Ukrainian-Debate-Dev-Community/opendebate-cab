@@ -52,6 +52,7 @@ defmodule Public.MixProject do
       {:jason, "~> 1.2"},
       {:bandit, "~> 1.5"},
       {:mdex, "~> 0.14.2"},
+      {:html_sanitize_ex, "~> 1.5"},
       {:lazy_html, ">= 0.1.0", only: :test}
     ]
   end

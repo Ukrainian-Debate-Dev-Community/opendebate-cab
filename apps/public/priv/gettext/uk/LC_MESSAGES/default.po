@@ -704,11 +704,6 @@ msgctxt "in a date"
 msgid "March"
 msgstr "березня"
 
-#: lib/public_web/controllers/manage/html/news_form.html.heex
-#, elixir-autogen, elixir-format
-msgid "Markdown: ## for a heading, **bold**, [a link](https://...), > for a quote."
-msgstr "Markdown: ## для заголовка, **жирний**, [посилання](https://...), > для цитати."
-
 #: lib/public_web/components/site.ex
 #, elixir-autogen, elixir-format
 msgctxt "in a date"
@@ -1184,6 +1179,11 @@ msgstr "Школярі"
 msgid "See all news"
 msgstr "Переглянути всі новини"
 
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Select words to make them bold or a link. Images: JPEG, PNG or WebP, up to %{mb} MB."
+msgstr "Виділіть слова, щоб зробити їх жирними чи посиланням. Зображення: JPEG, PNG або WebP, до %{mb} МБ."
+
 #: lib/public_web/controllers/event_request_html/new.html.heex
 #, elixir-autogen, elixir-format
 msgid "Send the request"
@@ -1524,6 +1524,11 @@ msgstr "Коли і де"
 #, elixir-autogen, elixir-format
 msgid "Write news"
 msgstr "Написати новину"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Write the article..."
+msgstr "Напишіть статтю..."
 
 #: lib/public_web/controllers/calendar_html.ex
 #, elixir-autogen, elixir-format

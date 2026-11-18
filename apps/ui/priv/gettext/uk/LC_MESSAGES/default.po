@@ -26,10 +26,35 @@ msgstr "Питаємо завжди. Можна вибрати, чи воно о
 msgid "Answer"
 msgstr "Відповідь"
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Apply"
+msgstr "Застосувати"
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Asked of"
 msgstr "Кого питаємо"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Bold"
+msgstr "Жирний"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Bullet list"
+msgstr "Маркований список"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Close"
+msgstr "Закрити"
 
 #: lib/ui/components.ex
 #, elixir-autogen, elixir-format
@@ -51,6 +76,11 @@ msgstr "Країна"
 msgid "Date"
 msgstr "Дата"
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Divider"
+msgstr "Розділювач"
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Edit field: %{label}"
@@ -61,15 +91,45 @@ msgstr "Редагування поля: %{label}"
 msgid "Field"
 msgstr "Поле"
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Formatting"
+msgstr "Форматування"
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Guests see the label as the question and the hint below it."
 msgstr "Гості бачать назву як запитання, а підказку під ним."
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Heading 2"
+msgstr "Заголовок 2"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Heading 3"
+msgstr "Заголовок 3"
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Hint"
 msgstr "Підказка"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Image"
+msgstr "Зображення"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Image description"
+msgstr "Опис зображення"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Italic"
+msgstr "Курсив"
 
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
@@ -80,6 +140,16 @@ msgstr "Назва"
 #, elixir-autogen, elixir-format
 msgid "Language"
 msgstr "Мова"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Link"
+msgstr "Посилання"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Link address"
+msgstr "Адреса посилання"
 
 #: lib/ui/components.ex
 #, elixir-autogen, elixir-format
@@ -101,6 +171,11 @@ msgstr "Полів ще немає."
 msgid "Nothing here yet."
 msgstr "Тут поки нічого немає."
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Numbered list"
+msgstr "Нумерований список"
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Optional: a line under the question."
@@ -110,6 +185,26 @@ msgstr "Необов'язково: рядок під запитанням."
 #, elixir-autogen, elixir-format
 msgid "Options"
 msgstr "Варіанти"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Paste or type the address"
+msgstr "Вставте або введіть адресу"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Quote"
+msgstr "Цитата"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Redo"
+msgstr "Повторити"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Remove link"
+msgstr "Прибрати посилання"
 
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
@@ -125,6 +220,11 @@ msgstr "Лише для одного й кількох варіантів: по 
 #, elixir-autogen, elixir-format
 msgid "Telegram username"
 msgstr "ім'я користувача в Telegram"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "The image could not be uploaded."
+msgstr "Не вдалося завантажити зображення."
 
 #: lib/ui/components.ex
 #, elixir-autogen, elixir-format
@@ -155,6 +255,21 @@ msgstr "Час"
 #, elixir-autogen, elixir-format
 msgid "Type"
 msgstr "Тип"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Undo"
+msgstr "Скасувати дію"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Uploading the image..."
+msgstr "Завантажуємо зображення..."
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "What the image shows"
+msgstr "Що на зображенні"
 
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format

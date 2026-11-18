@@ -72,7 +72,7 @@ defmodule PublicWeb.RequiredFieldsTest do
             {"slug", String.duplicate("x", 201)},
             {"image_alt", String.duplicate("x", 201)},
             {"summary", String.duplicate("x", 1001)},
-            {"body", String.duplicate("x", 20_001)}
+            {"body", String.duplicate("x", 100_001)}
           ] do
         html =
           signed

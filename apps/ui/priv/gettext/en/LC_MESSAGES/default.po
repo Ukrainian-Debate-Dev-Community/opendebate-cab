@@ -26,9 +26,34 @@ msgstr ""
 msgid "Answer"
 msgstr ""
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Apply"
+msgstr ""
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Asked of"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Bold"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Bullet list"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Close"
 msgstr ""
 
 #: lib/ui/components.ex
@@ -51,6 +76,11 @@ msgstr ""
 msgid "Date"
 msgstr ""
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Divider"
+msgstr ""
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Edit field: %{label}"
@@ -61,14 +91,44 @@ msgstr ""
 msgid "Field"
 msgstr ""
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Formatting"
+msgstr ""
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Guests see the label as the question and the hint below it."
 msgstr ""
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Heading 2"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Heading 3"
+msgstr ""
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Hint"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Image"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Image description"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Italic"
 msgstr ""
 
 #: lib/ui/form_components.ex
@@ -79,6 +139,16 @@ msgstr ""
 #: lib/ui/components.ex
 #, elixir-autogen, elixir-format
 msgid "Language"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Link"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Link address"
 msgstr ""
 
 #: lib/ui/components.ex
@@ -101,6 +171,11 @@ msgstr ""
 msgid "Nothing here yet."
 msgstr ""
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Numbered list"
+msgstr ""
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Optional: a line under the question."
@@ -109,6 +184,26 @@ msgstr ""
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Options"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Paste or type the address"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Quote"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Redo"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Remove link"
 msgstr ""
 
 #: lib/ui/form_components.ex
@@ -124,6 +219,11 @@ msgstr ""
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Telegram username"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "The image could not be uploaded."
 msgstr ""
 
 #: lib/ui/components.ex
@@ -154,6 +254,21 @@ msgstr ""
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Type"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Undo"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Uploading the image..."
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "What the image shows"
 msgstr ""
 
 #: lib/ui/form.ex

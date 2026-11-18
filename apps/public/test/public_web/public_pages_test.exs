@@ -32,7 +32,12 @@ defmodule PublicWeb.PublicPagesTest do
   end
 
   test "published news is public; drafts stay hidden", %{conn: conn} do
-    {:ok, shown} = News.create(%{"title" => "Northport Open results", "body" => "**Winners**"}, 1)
+    {:ok, shown} =
+      News.create(
+        %{"title" => "Northport Open results", "body" => "<p><strong>Winners</strong></p>"},
+        1
+      )
+
     {:ok, _} = News.publish(shown, 1)
     {:ok, draft} = News.create(%{"title" => "Secret plans"}, 1)
 
