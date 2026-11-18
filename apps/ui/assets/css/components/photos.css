@@ -1,0 +1,16 @@
+/* the full-screen photo viewer (photo_viewer.js on PhotoSwipe, whose
+   own stylesheet is vendor/photoswipe.css): the images of a
+   [data-photos] block invite a click once it runs; the viewer in the
+   tokens' colours, the description under the image */
+[data-photos].photos-on img[data-photo] { cursor:zoom-in; }
+[data-photos].photos-on img[data-photo]:focus-visible { outline:var(--focus-ring); outline-offset:3px; }
+
+.pswp { --pswp-bg:var(--viewer-bg); --pswp-icon-color:var(--viewer-ink); --pswp-error-text-color:var(--viewer-ink);
+        font-family:var(--font-sans); }
+.pswp__counter { font-size:var(--fs-sm); font-weight:650; font-variant-numeric:tabular-nums; }
+.pswp__button:focus-visible { outline:2px solid var(--viewer-ink); outline-offset:-4px; }
+.pswp__caption { position:absolute; left:0; right:0; bottom:0; padding:var(--sp-6) var(--sp-5)
+                 calc(var(--sp-4) + env(safe-area-inset-bottom)); color:var(--viewer-ink); font-size:var(--fs-base);
+                 line-height:1.45; text-align:center; text-wrap:balance;
+                 background:linear-gradient(transparent, var(--viewer-shade)); }
+.pswp__caption:empty { display:none; }

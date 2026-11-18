@@ -154,6 +154,33 @@ a { color:var(--brand); }
                       font-size:1.32em; line-height:1.42; font-weight:650; letter-spacing:-.01em; color:var(--brand-700); }
 .ua-body blockquote > * + * { margin-top:.6em; }
 .ua-body img { display:block; max-width:100%; height:auto; border-radius:var(--r-md); }
+/* a gallery: its images as one collage, cropped to one rhythm, as wide
+   as the text; the layout follows the number of images - 2 side by
+   side, 3 one large and two stacked, 4 two by two, 5 and more the
+   first large and the rest in threes, the last row filled; on phones
+   two a row, the first across when the number is odd. The caption
+   under it, muted. Single images keep their own shape. */
+.ua-body figure.gallery { display:grid; grid-template-columns:repeat(6, 1fr); gap:6px; margin:2em 0; }
+.ua-body figure.gallery img { width:100%; height:auto; object-fit:cover; border-radius:var(--r-xs);
+                              background:var(--surface-2); }
+.ua-body figure.gallery figcaption { grid-column:1 / -1; margin-top:var(--sp-1); font-size:var(--fs-sm); line-height:1.5;
+                                     color:var(--muted); }
+@media (min-width:761px) {
+  .ua-body figure.gallery img { grid-column:span 2; aspect-ratio:1; }
+  /* the large first image takes the height of the rows beside it */
+  .ua-body figure.gallery img:first-of-type { grid-column:span 4; grid-row:span 2; aspect-ratio:auto; height:100%;
+                                              contain:size; }
+  .ua-body figure.gallery:has(> img:first-of-type:nth-last-of-type(3n+2)) img:nth-last-of-type(-n+2) {
+    grid-column:span 3; aspect-ratio:3 / 2; }
+  .ua-body figure.gallery:has(> img:first-of-type:nth-last-of-type(3n+1)) img:last-of-type {
+    grid-column:span 6; aspect-ratio:3; }
+  .ua-body figure.gallery:has(> img:first-of-type:nth-last-of-type(3)) img:not(:first-of-type) { aspect-ratio:4 / 3; }
+  .ua-body figure.gallery:has(> img:first-of-type:nth-last-of-type(2)) img:nth-of-type(n),
+  .ua-body figure.gallery:has(> img:first-of-type:nth-last-of-type(4)) img:nth-of-type(n) {
+    grid-column:span 3; grid-row:auto; aspect-ratio:4 / 3; height:auto; contain:none; }
+  .ua-body figure.gallery:has(> img:first-of-type:last-of-type) img:nth-of-type(n) {
+    grid-column:span 6; grid-row:auto; aspect-ratio:3 / 2; height:auto; contain:none; }
+}
 .ua-body hr { border:none; height:1px; background:var(--line); margin:2.4em 0; }
 .ua-body code { font-family:var(--font-mono); font-size:.86em; background:var(--surface-2); border:1px solid var(--line);
                 border-radius:var(--r-xs); padding:.08em .35em; }
@@ -436,6 +463,10 @@ a { color:var(--brand); }
   .ua-article-head + .ua-body { margin-top:var(--sp-5); }
   .ua-cover--wide { border-radius:0; }
   .ua-body { font-size:1.0625rem; line-height:1.7; }
+  .ua-body figure.gallery { grid-template-columns:repeat(2, 1fr); width:auto; margin:1.6em 0; }
+  .ua-body figure.gallery img { aspect-ratio:1; }
+  .ua-body figure.gallery:has(> img:first-of-type:nth-last-of-type(odd)) img:first-of-type {
+    grid-column:span 2; aspect-ratio:3 / 2; }
   .ua-body blockquote { font-size:1.2em; }
   .ua-article-head .ua-crumbs a, .ua-back { min-height:44px; display:inline-flex; align-items:center; }
   .ua-share .copy { min-height:40px; }

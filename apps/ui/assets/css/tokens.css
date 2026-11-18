@@ -55,6 +55,11 @@
   --google: #FFFFFF; --google-hover: #F8F9FA; --google-ink: #3C4043; --google-line: #DADCE0;
   --provider-off-ink: #5F6368;
 
+  /* the full-screen photo viewer: dark in both themes */
+  --viewer-bg:    #0E0B11;
+  --viewer-ink:   #FFFFFF;
+  --viewer-shade: rgba(0,0,0,.55);
+
   /* light on a brand ground (the sign-in panel's glows) */
   --glow-light: rgba(255,255,255,.10);
   --glow-faint: rgba(255,255,255,.08);

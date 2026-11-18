@@ -28,6 +28,7 @@ defmodule PublicWeb.NewsController do
       post: post,
       # sanitised when saved (Public.News.Html)
       body: post.body,
+      photos: Public.News.Html.images?(post.body),
       more: News.related(post, 3)
     )
   end

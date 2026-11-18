@@ -2,7 +2,7 @@ defmodule Ui.Components do
   @moduledoc """
   The kit both web apps draw pages with: table, section, card, banner,
   flash banners, the command bar, the page head, tags, the empty line,
-  local time, copy, stepper, the split button, the theme and language
+  local time, copy, the photo viewer, stepper, the split button, the theme and language
   switches and the beta tag. Generic: links and texts that belong to an
   app come in as attrs and slots.
   """
@@ -331,6 +331,31 @@ defmodule Ui.Components do
     >
       {gettext("Copy")}
     </button>
+    """
+  end
+
+  @doc """
+  The full-screen photo viewer for a page: names its bundle (`src`, the
+  app's photo_viewer_page.js build) for ui.js to load, with the
+  viewer's words in the page's language. The images of every
+  `[data-photos]` block on the page then open full screen, those of one
+  `<figure>` together. Render it only on pages with such images.
+  """
+  attr :src, :string, required: true
+
+  def photo_viewer(assigns) do
+    ~H"""
+    <meta
+      name="photo-viewer-src"
+      content={@src}
+      data-open={gettext("Open full screen")}
+      data-close={gettext("Close")}
+      data-zoom={gettext("Zoom")}
+      data-prev={gettext("Previous")}
+      data-next={gettext("Next")}
+      data-of={gettext("of")}
+      data-error={gettext("The image could not be loaded.")}
+    />
     """
   end
 

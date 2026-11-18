@@ -1,9 +1,9 @@
 // The behaviour of the shared components (apps/ui), for every app's
 // bundle: copy buttons, the menus of <details> (language, dropdown
 // buttons), local times and date pickers, linked table rows, the theme
-// switch. The contact fields and the rich text editor are bundles of
-// their own (contact_fields_page.js, rich_editor_page.js): their
-// libraries are large. Everything
+// switch. The contact fields, the rich text editor and the photo viewer
+// are bundles of their own (contact_fields_page.js, rich_editor_page.js,
+// photo_viewer_page.js): their libraries are large. Everything
 // listens on the document or
 // watches it, so it works on pages with and without LiveView; importing
 // this module installs it once.
@@ -229,6 +229,25 @@ function loadRichEditor() {
 }
 
 // ----------------------------------------------------------------
+// the photo viewer, loaded when needed
+// ----------------------------------------------------------------
+
+// A page whose images open full screen names the viewer's bundle in
+// <meta name="photo-viewer-src"> (Ui.Components.photo_viewer/1); it
+// loads at once when a [data-photos] block with images is on the page
+let photoViewerAsked = false
+
+function loadPhotoViewer() {
+  if (photoViewerAsked || !document.querySelector("[data-photos] img")) return
+  const src = document.querySelector('meta[name="photo-viewer-src"]')?.content
+  if (!src) return
+  photoViewerAsked = true
+  const script = document.createElement("script")
+  script.src = src
+  document.head.appendChild(script)
+}
+
+// ----------------------------------------------------------------
 // start: once the document is there
 // ----------------------------------------------------------------
 
@@ -236,10 +255,11 @@ const start = () => {
   markTheme()
   watchContactFields()
   loadRichEditor()
+  loadPhotoViewer()
   localizeTimes()
   // live updates re-render times in UTC; put them back in the viewer's
-  // zone, and may bring a rich text block
-  new MutationObserver(() => { localizeTimes(); loadRichEditor() }).observe(document.documentElement,
+  // zone, and may bring a rich text block or photos
+  new MutationObserver(() => { localizeTimes(); loadRichEditor(); loadPhotoViewer() }).observe(document.documentElement,
     {subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["value"]})
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start)

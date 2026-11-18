@@ -26,7 +26,7 @@ npm install --no-audit --no-fund --save-exact \
   "esbuild@$ESBUILD" >/dev/null
 
 cat > entry.js <<'JS'
-export {Editor} from "@tiptap/core"
+export {Editor, Node} from "@tiptap/core"
 export {StarterKit} from "@tiptap/starter-kit"
 export {Image} from "@tiptap/extension-image"
 export {Placeholder} from "@tiptap/extensions"
@@ -54,7 +54,7 @@ packages=$(node -e '
 /*!
  * TipTap $TIPTAP (https://tiptap.dev, https://github.com/ueberdosis/tiptap)
  * on ProseMirror (https://prosemirror.net), vendored for ui's rich text
- * editor (rich_editor.js): Editor, StarterKit, Image and Placeholder as
+ * editor (rich_editor.js): Editor, Node, StarterKit, Image and Placeholder as
  * one ES module, built by tools/vendor/tiptap.sh with esbuild $ESBUILD;
  * non-ASCII characters written as \\u escapes. Do not edit by hand.
  *

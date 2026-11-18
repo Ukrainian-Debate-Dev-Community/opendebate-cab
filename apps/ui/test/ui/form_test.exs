@@ -253,6 +253,7 @@ defmodule Ui.FormTest do
           {"quote", "Quote"},
           {"link", "Link"},
           {"image", "Image"},
+          {"gallery", "Gallery"},
           {"rule", "Divider"},
           {"undo", "Undo"},
           {"redo", "Redo"}
@@ -265,6 +266,18 @@ defmodule Ui.FormTest do
     assert html =~ ~s(aria-label="Link address")
     assert html =~ ~s(data-pop="image")
     assert html =~ ~s(type="file" accept="image/jpeg,image/png,image/webp")
+    # a gallery: several files at once, a field for its images and caption
+    assert html =~
+             ~s(type="file" accept="image/jpeg,image/png,image/webp" multiple hidden data-files)
+
+    assert html =~ ~s(data-pop="gallery")
+    assert html =~ ~s(aria-label="Gallery caption")
+    assert html =~ ~s(data-act="gallery-add")
+
+    assert html =~
+             ~r{<template data-gallery-row>.*data-photo-alt.*data-act="photo-remove".*</template>}s
+
+    assert html =~ ~s(data-msg-uploading-many="Uploading the images...")
   end
 
   test "a :rich block without an upload has no image button; words follow the locale" do
@@ -276,7 +289,9 @@ defmodule Ui.FormTest do
       """)
 
     refute html =~ ~s(data-cmd="image")
+    refute html =~ ~s(data-cmd="gallery")
     refute html =~ ~s(data-pop="image")
+    refute html =~ ~s(data-pop="gallery")
     refute html =~ ~s(type="file")
     assert html =~ ~s(data-cmd="link")
 
@@ -288,6 +303,7 @@ defmodule Ui.FormTest do
       end)
 
     refute uk =~ ~s(aria-label="Bold")
+    refute uk =~ ~s(aria-label="Gallery")
     refute uk =~ ~s(aria-label="Formatting")
   end
 end

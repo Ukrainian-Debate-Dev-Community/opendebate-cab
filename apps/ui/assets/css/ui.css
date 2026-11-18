@@ -21,3 +21,5 @@
 @import "./components/media_card.css";
 @import "./components/switches.css";
 @import "./components/beta.css";
+@import "../vendor/photoswipe.css";
+@import "./components/photos.css";

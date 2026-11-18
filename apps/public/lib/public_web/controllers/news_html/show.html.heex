@@ -1,3 +1,6 @@
+<%!-- the full-screen viewer, only when the text has images --%>
+<.photo_viewer :if={@photos} src={~p"/assets/js/photo-viewer.js"} />
+
 <article class="ua-article">
   <header class="ua-article-head">
     <nav class="ua-crumbs" aria-label={gettext("Breadcrumbs")}>
@@ -15,7 +18,7 @@
     <.cover post={@post} class="ua-cover--wide" />
   </div>
 
-  <div class="ua-body">{Phoenix.HTML.raw(@body)}</div>
+  <div class="ua-body" data-photos={@photos}>{Phoenix.HTML.raw(@body)}</div>
 
   <footer class="ua-article-foot">
     <span class="ua-share">{gettext("Share this article")}

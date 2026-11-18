@@ -323,4 +323,41 @@ defmodule Ui.ComponentsTest do
     assert html =~ ~s(data-copy="https://x")
     assert html =~ ~s(data-label-copied="Copied")
   end
+
+  # ---------------------------------------------------------------
+  # photo viewer
+  # ---------------------------------------------------------------
+
+  test "the photo viewer names its bundle with its words, in the page's language" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.photo_viewer src="/assets/js/photo-viewer.js" />
+      """)
+
+    assert html =~ ~r{<meta[^>]* name="photo-viewer-src" content="/assets/js/photo-viewer.js"}
+
+    for {key, word} <- [
+          open: "Open full screen",
+          close: "Close",
+          zoom: "Zoom",
+          prev: "Previous",
+          next: "Next",
+          of: "of",
+          error: "The image could not be loaded."
+        ] do
+      assert html =~ ~s(data-#{key}="#{word}"), to_string(key)
+    end
+
+    uk =
+      Gettext.with_locale(Ui.Gettext, "uk", fn ->
+        rendered_to_string(~H"""
+        <.photo_viewer src="/v.js" />
+        """)
+      end)
+
+    refute uk =~ ~s(data-close="Close")
+    refute uk =~ ~s(data-of="of")
+  end
 end
