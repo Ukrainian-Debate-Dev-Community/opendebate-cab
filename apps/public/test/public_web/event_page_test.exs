@@ -131,8 +131,15 @@ defmodule PublicWeb.EventPageTest do
     assert page =~ ~s(id="back-to-calendar")
     assert page =~ ~s(href="/calendar?view=year&amp;year=2026&amp;kind=tournament")
 
+    # the home page lists only upcoming events: one a week from today
+    soon =
+      event(%{
+        "title" => "Soon Open",
+        "starts_on" => Date.to_iso8601(Date.add(Date.utc_today(), 7))
+      })
+
     home = conn |> get(~p"/") |> html_response(200)
-    assert home =~ ~s(href="/calendar/#{event.id}")
+    assert home =~ ~s(href="/calendar/#{soon.id}")
   end
 
   test "the manage page shows any event, its tags and the calendar's actions",
