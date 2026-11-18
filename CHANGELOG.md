@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.5.0 - 2026-11-18
+
+2 features, 1 fix, 2 chore; breaking: 0
+
+### Features
+
+- ui: apps/ui - one set of tokens, one stylesheet, the components both apps share (#57) by @merv1n34k
+- the dev stack runs cab and the public site from a fresh checkout (#54) by @merv1n34k
+
+### Fixes
+
+- public: a decline reason that is too long is refused, not dropped (#53) by @merv1n34k
+
+### Other
+
+- chore: bump plug to 1.20.4 and fix a dated public test (#59) by @merv1n34k
+- chore(deps): bump ecto to 3.14.3 for CVE-2026-118391 (#58) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 5 commits
+
 ## v0.4.0 - 2026-10-31
 
 4 features, 2 fixes, 2 chore; breaking: 0
