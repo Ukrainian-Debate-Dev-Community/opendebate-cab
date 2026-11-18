@@ -149,6 +149,8 @@ a { color:var(--brand); }
 .ua-byline { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2) var(--sp-3); font-size:var(--fs-sm);
              font-weight:600; color:var(--muted); padding-bottom:var(--sp-5); border-bottom:1px solid var(--line); }
 .ua-article-cover { max-width:var(--w-media); margin:var(--sp-7) auto var(--sp-8); }
+/* no cover: the text keeps a cover's distance from the byline's rule */
+.ua-article-head + .ua-body { margin-top:var(--sp-7); }
 .ua-cover--wide { aspect-ratio:16 / 9; border-radius:var(--r); }
 
 .ua-body { max-width:var(--w-read); margin:0 auto; font-size:var(--fs-read); line-height:1.72; color:var(--ink);
@@ -447,6 +449,7 @@ a { color:var(--brand); }
   .ua-article h1 { font-size:1.9rem; line-height:1.12; }
   .ua-lead { font-size:1.12rem; }
   .ua-article-cover { margin:var(--sp-5) calc(-1 * var(--sp-4)) var(--sp-6); }
+  .ua-article-head + .ua-body { margin-top:var(--sp-5); }
   .ua-cover--wide { border-radius:0; }
   .ua-body { font-size:1.0625rem; line-height:1.7; }
   .ua-body blockquote { font-size:1.2em; }
