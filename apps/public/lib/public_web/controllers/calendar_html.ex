@@ -35,21 +35,15 @@ defmodule PublicWeb.CalendarHTML do
           {gettext("All events")}
         </a>
       </div>
-      <div :if={@period.view != :all} class="ua-month">
-        <a
-          class="ua-btn ua-btn--line ua-btn--sm"
-          href={link(@base, Period.prev(@period), @kind, @tag)}
-        >
-          {step_label(Period.prev(@period))}
-        </a>
-        <b>{period_title(@period)}</b>
-        <a
-          class="ua-btn ua-btn--line ua-btn--sm"
-          href={link(@base, Period.next(@period), @kind, @tag)}
-        >
-          {step_label(Period.next(@period))}
-        </a>
-      </div>
+      <.stepper
+        :if={@period.view != :all}
+        prev={link(@base, Period.prev(@period), @kind, @tag)}
+        next={link(@base, Period.next(@period), @kind, @tag)}
+        prev_label={step_label(Period.prev(@period))}
+        next_label={step_label(Period.next(@period))}
+      >
+        {period_title(@period)}
+      </.stepper>
       <div class="ua-seg">
         <a class={is_nil(@kind) && "on"} href={link(@base, @period, nil, @tag)}>{gettext("All")}</a>
         <a
@@ -77,28 +71,26 @@ defmodule PublicWeb.CalendarHTML do
       )
 
     ~H"""
-    <div class="ua-tags">
+    <div class="tags">
       <.tag kind={if @event.kind == "tournament", do: "ok", else: "info"}>
         {kind_label(@event.kind)}
       </.tag>
       {render_slot(@tags)}
     </div>
     <div class="ua-grid2">
-      <div :if={@paragraphs != []}>
-        <div class="ua-sec">{gettext("Details")}</div>
-        <div class="ua-card ua-pad ua-prose ua-evtext" id="event-details">
+      <.section :if={@paragraphs != []} title={gettext("Details")} pad>
+        <div class="ua-prose ua-evtext" id="event-details">
           <p :for={paragraph <- @paragraphs}>{paragraph}</p>
         </div>
-      </div>
-      <div>
-        <div class="ua-sec">{gettext("When and where")}</div>
-        <div class="ua-card ua-pad ua-dl" id="event-facts">
+      </.section>
+      <.section title={gettext("When and where")} pad>
+        <div class="ua-dl" id="event-facts">
           <div><span>{gettext("Dates")}</span>{event_dates(@event)}</div>
           <div :if={@event.city}><span>{gettext("City")}</span>{@event.city}</div>
           <div :if={@event.format}><span>{gettext("Format")}</span>{@event.format}</div>
           <div :if={@language}><span>{gettext("Language")}</span>{@language}</div>
         </div>
-      </div>
+      </.section>
     </div>
     """
   end

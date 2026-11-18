@@ -1,0 +1,41 @@
+/* the menus of a <details>: the language menu and dropdown_button's;
+   they close on an outside click or Escape (ui.js) */
+.langs, .dd-more { position:relative; }
+.langs .menu, .dd-more .menu { position:absolute; right:0; top:calc(100% + 6px); z-index:20; min-width:150px;
+               padding:4px; border-radius:9px; background:var(--surface); border:1px solid var(--line);
+               box-shadow:var(--shadow-menu); display:grid; gap:2px;
+               transform-origin:top right; animation:menu-down .16s ease-out; }
+.langs:not([open]) .menu, .dd-more:not([open]) .menu { display:none; }
+/* a menu at the bottom of its column opens upwards */
+.langs.up .menu { top:auto; bottom:calc(100% + 6px); transform-origin:bottom right; animation-name:menu-up; }
+.langs .menu a, .dd-more .menu a { color:var(--ink); text-decoration:none; font-weight:600; border-radius:6px; }
+.langs .menu a:hover, .dd-more .menu a:hover { background:var(--brand-50); }
+.langs .menu a[aria-current="true"], .dd-more .menu a[aria-current="true"] { color:var(--brand); }
+@keyframes menu-down { from { opacity:0; transform:translateY(-4px) scale(.97); } to { opacity:1; transform:none; } }
+@keyframes menu-up { from { opacity:0; transform:translateY(4px) scale(.97); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) { .langs .menu, .dd-more .menu { animation:none; } }
+
+/* dropdown_button: the main action + a caret menu, one button (the
+   halves take .btn-go / .btn-quiet's look; the menu opens downwards) */
+.dd-btn { display:inline-flex; align-items:stretch; }
+.dd-btn .dd-main, .dd-btn .dd-caret { font:inherit; font-size:var(--fs-sm); font-weight:700; cursor:pointer;
+               text-decoration:none; display:inline-flex; align-items:center; }
+.dd-btn .dd-main { padding:8px 20px; border-radius:var(--r-sm); }
+.dd-btn.split .dd-main { border-top-right-radius:0; border-bottom-right-radius:0; }
+.dd-btn .dd-caret { list-style:none; padding:8px 10px; border-radius:0 var(--r-sm) var(--r-sm) 0; height:100%; }
+.dd-btn .dd-caret::-webkit-details-marker { display:none; }
+.dd-btn .dd-caret svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; }
+.dd-btn.go .dd-main, .dd-btn.go .dd-caret { border:none; background:var(--gold); color:var(--gold-ink); }
+.dd-btn.go .dd-caret { box-shadow:var(--shadow-split); }
+.dd-btn.go .dd-main:hover, .dd-btn.go .dd-caret:hover { background:var(--gold-hover); }
+.dd-btn.quiet .dd-main, .dd-btn.quiet .dd-caret { border:1px solid var(--line); background:var(--surface);
+               color:var(--ink); }
+.dd-btn.quiet.split .dd-caret { border-left:none; }
+.dd-btn.quiet .dd-main:hover, .dd-btn.quiet .dd-caret:hover { border-color:var(--brand); color:var(--brand); }
+.dd-btn .dd-main:disabled { cursor:not-allowed; opacity:.55; }
+.dd-more .menu { min-width:220px; }
+.dd-more .menu a { display:flex; flex-wrap:wrap; justify-content:space-between; gap:2px 12px; padding:7px 9px; }
+.dd-more .menu a .at { color:var(--muted); font-weight:500; font-variant-numeric:tabular-nums; }
+/* a card clips its content to its rounded corners; an open menu must
+   reach past it */
+.card:has(.dd-more[open]) { overflow:visible; }

@@ -1,8 +1,9 @@
 defmodule PublicWeb.Site do
   @moduledoc """
   The site's pieces, ported from the design board: the
-  header and footer every page shares, the ribbon under /manage, page
-  heads, tags, news cards, event rows, the month grid and the maps.
+  header and footer every page shares, the ribbon under /manage, news
+  cards, event rows, the month grid and the maps. The generic pieces
+  (page heads, tags, sections, the switches, ...) are apps/ui's.
   """
   use Phoenix.Component
   use Gettext, backend: PublicWeb.Gettext
@@ -11,6 +12,8 @@ defmodule PublicWeb.Site do
     endpoint: PublicWeb.Endpoint,
     router: PublicWeb.Router,
     statics: PublicWeb.static_paths()
+
+  import Ui.Components, only: [beta: 1, switches: 1, tag: 1]
 
   alias Public.{Geo, Tenant}
 
@@ -29,13 +32,6 @@ defmodule PublicWeb.Site do
 
     ~H"""
     <a class={["wordmark", @class]} href={~p"/"}>{@name}<.beta /></a>
-    """
-  end
-
-  @doc "The beta tag beside the wordmark, until the site leaves beta."
-  def beta(assigns) do
-    ~H"""
-    <span class="beta-tag">{gettext("beta")}</span>
     """
   end
 
@@ -58,63 +54,14 @@ defmodule PublicWeb.Site do
         <a :for={{key, href, label} <- @items} class={key == @active && "on"} href={href}>{label}</a>
       </nav>
       <div class="ua-right">
-        <.switches />
-        <a class="ua-btn ua-btn--line ua-btn--sm" href={cab_url()}>{gettext("Cabinet")}</a>
+        <.switches
+          locale={Gettext.get_locale(PublicWeb.Gettext)}
+          locales={PublicWeb.Locale.names()}
+          theme_key="public-theme"
+        />
+        <a class="btn-quiet btn-sm" href={cab_url()}>{gettext("Cabinet")}</a>
       </div>
     </header>
-    """
-  end
-
-  @doc """
-  The theme button (light, auto, dark on each click, kept in this
-  browser) and the language menu, as in cab. Both work without the
-  sign-in session: the theme lives in localStorage, the language in
-  its own cookie.
-  """
-  def switches(assigns) do
-    assigns = assign(assigns, :locale, Gettext.get_locale(PublicWeb.Gettext))
-
-    ~H"""
-    <div class="ua-switches">
-      <button
-        type="button"
-        class="cycle"
-        data-cycle="theme"
-        data-state="auto"
-        data-label-light={gettext("Theme: light")}
-        data-label-auto={gettext("Theme: auto")}
-        data-label-dark={gettext("Theme: dark")}
-        aria-label={gettext("Theme: auto")}
-        title={gettext("Theme: light, auto or dark")}
-      >
-        <svg class="i-light" viewBox="0 0 16 16" aria-hidden="true">
-          <circle cx="8" cy="8" r="2.6" />
-          <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3" />
-        </svg>
-        <svg class="i-auto" viewBox="0 0 16 16" aria-hidden="true">
-          <circle cx="8" cy="8" r="5.5" /><path d="M8 2.5v11a5.5 5.5 0 0 0 0-11Z" class="fill" />
-        </svg>
-        <svg class="i-dark" viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M13 9.6A5.2 5.2 0 0 1 6.4 3a5.2 5.2 0 1 0 6.6 6.6Z" />
-        </svg>
-      </button>
-      <details class="langs" data-langs>
-        <summary class="cycle" aria-label={gettext("Language")} title={gettext("Language")}>
-          {PublicWeb.Locale.short(@locale)}
-        </summary>
-        <div class="menu" role="menu">
-          <a
-            :for={{code, label, name} <- PublicWeb.Locale.names()}
-            href={"/locale/#{code}"}
-            lang={code}
-            role="menuitem"
-            aria-current={@locale == code && "true"}
-          >
-            <span class="code">{label}</span>{name}
-          </a>
-        </div>
-      </details>
-    </div>
     """
   end
 
@@ -158,7 +105,7 @@ defmodule PublicWeb.Site do
 
     ~H"""
     <footer class="ua-foot">
-      <div class="ua-foot-in ua-foot-in--3">
+      <div class="ua-foot-in">
         <div>
           <.wordmark class="ua-foot-mark" />
           <p>{Tenant.text(:org)}</p>
@@ -190,44 +137,15 @@ defmodule PublicWeb.Site do
   # page pieces
   # ---------------------------------------------------------------
 
-  attr :kicker, :string, required: true
-  attr :title, :string, required: true
-  attr :lead, :string, default: nil
-  attr :logo, :string, default: nil, doc: "an image beside the title (a club's logo)"
-  slot :actions
-
-  def page_head(assigns) do
-    ~H"""
-    <div class="ua-head">
-      <img :if={@logo} class="ua-logo ua-logo--lg" src={@logo} alt="" />
-      <div class="ua-head-text">
-        <span class="ua-kicker">{@kicker}</span>
-        <h1>{@title}</h1>
-        <p :if={@lead} class="ua-lead">{@lead}</p>
-      </div>
-      <div :if={@actions != []} class="ua-head-act">{render_slot(@actions)}</div>
-    </div>
-    """
-  end
-
-  attr :kind, :string, default: nil
-  slot :inner_block, required: true
-
-  def tag(assigns) do
-    ~H"""
-    <span class={["ua-tag", @kind && "ua-tag--#{@kind}"]}>{render_slot(@inner_block)}</span>
-    """
-  end
-
   attr :post, :map, required: true
 
   def news_card(assigns) do
     ~H"""
-    <article class="ua-card ua-news">
+    <article class="card ua-news">
       <.cover post={@post}>
         <.tag kind="cover">{rubric_label(@post.rubric)}</.tag>
       </.cover>
-      <div class="ua-pad">
+      <div class="pad">
         <h3><a href={~p"/news/#{@post.slug}"}>{@post.title}</a></h3>
         <div class="ua-meta">
           {long_date(@post.published_at)}, {gettext("%{n} min read", n: read_minutes(@post.body))}

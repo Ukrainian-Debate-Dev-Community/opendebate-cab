@@ -8,7 +8,7 @@ defmodule CabWeb.SessionPageHTML do
 
   # this module's ballot/1 is the ballot PAGE; the kit's ballot
   # component stays qualified as Ui.ballot
-  import CabWeb.Ui, except: [ballot: 1]
+  import CabWeb.Ui, only: []
   alias CabWeb.Ui
 
   embed_templates "session_page_html/*"

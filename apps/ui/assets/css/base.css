@@ -1,0 +1,33 @@
+/* The base every page stands on. Plain CSS, no reset library: an app
+   may add one (cab keeps Tailwind's preflight), the components below
+   render the same with or without it. */
+
+/* the wordmark face, served by each app at /fonts from apps/ui: no
+   third party sees visitors (Cedarville Cursive, SIL Open Font
+   License, see /fonts/cedarville-cursive-OFL.txt) */
+@font-face {
+  font-family: "Cedarville Cursive";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/cedarville-cursive.woff2") format("woff2");
+}
+
+*, *::before, *::after { box-sizing:border-box; }
+html, body { margin:0; padding:0; }
+body { font-family:var(--font-sans); background:var(--bg); color:var(--ink);
+       font-size:var(--fs-body); line-height:1.5; }
+h1, h2, h3, h4, h5, h6, p, ul, ol, dl, dd, figure, blockquote { margin:0; }
+/* links take their colour from where they stand; a component or a
+   page colours its own */
+a { color:inherit; text-decoration:inherit; }
+button, input, select, textarea { font:inherit; color:inherit; letter-spacing:inherit; }
+:focus-visible { outline:var(--focus-ring); outline-offset:var(--focus-offset); }
+
+/* the wordmark: the app's name in the script face */
+.wordmark { font-family:var(--font-script); font-weight:400; color:var(--brand); letter-spacing:0; }
+
+/* fields never trigger the iPhone's zoom-on-focus */
+@media (max-width:760px) {
+  input, select, textarea { font-size:16px; }
+}

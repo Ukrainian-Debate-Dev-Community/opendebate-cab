@@ -38,7 +38,7 @@ defmodule CabWeb.Api.JoinRequestController do
 
   defp answer_details(fields, codes) do
     for field <- fields, code = codes[field["id"]], into: %{} do
-      {field["id"], CabWeb.FormComponents.answer_error(code, field["type"])}
+      {field["id"], Ui.FormComponents.answer_error(code, field["type"])}
     end
   end
 

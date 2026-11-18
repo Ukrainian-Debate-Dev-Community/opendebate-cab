@@ -2,8 +2,8 @@ defmodule CabWeb.BotGuard do
   @moduledoc """
   Bot protection for cab's public forms (a guest's registration at
   /r/:session_uuid, a join request at /c/:club_uuid/join): the form
-  renders `<.form_for guard>`, its action calls `check/3` before
-  creating anything.
+  renders `<.form_for guard={CabWeb.Turnstile.site_key()}>`, its action
+  calls `check/3` before creating anything.
 
     * a rate limit per form (opt-in): token buckets (CabWeb.RateLimit.Buckets)
       per client IP and per session for a guest's registration, per

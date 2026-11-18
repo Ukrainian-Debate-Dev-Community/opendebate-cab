@@ -44,7 +44,7 @@
           )}
         </p>
       </div>
-      <CabWeb.FormComponents.form_editor
+      <Ui.FormComponents.form_editor
         id="guest-form-editor"
         definition={@definition}
         page={~p"/c/#{@club.uuid}/owner/form"}
@@ -53,7 +53,9 @@
         values={@values}
         errors={@errors}
         fixed={[gettext("Your name")]}
-        scoped
+        attrs={Cab.Clubs.Club.form_attrs()}
+        scopes={Enum.map(Cab.Clubs.Club.scopes(), &{scope_name(&1), &1})}
+        fixed_scope="guests"
       />
     </.section>
   </div>

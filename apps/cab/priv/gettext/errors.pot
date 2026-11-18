@@ -1,5 +1,4 @@
 #: lib/cab/text.ex
-#: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "%{count} characters at most."
 msgstr ""
@@ -31,44 +30,9 @@ msgstr ""
 msgid "A finished session cannot be cancelled."
 msgstr ""
 
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "A form holds %{count} fields at most."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "An option is %{count} characters at most."
-msgstr ""
-
 #: lib/cab/accounts.ex
 #, elixir-autogen, elixir-format
 msgid "Both accounts took part in the same session. Ask the club head to remove one of them from it first."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Choose a type."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Choose at least one."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Choose from the options."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Choose one."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Choose who is asked."
 msgstr ""
 
 #: lib/cab/links.ex
@@ -81,39 +45,9 @@ msgstr ""
 msgid "Could not link that sign-in. Try again."
 msgstr ""
 
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Each option must be different."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Enter a Telegram username: 5 to 32 letters, digits or _, like @name or t.me/name."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Enter a full phone number for its country, like +380 50 123 4567."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Enter a label."
-msgstr ""
-
 #: lib/cab/links.ex
 #, elixir-autogen, elixir-format
 msgid "Enter a name."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Enter a number, like 12 or 3.5."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Enter an e-mail address like name@example.com."
 msgstr ""
 
 #: lib/cab/sessions.ex
@@ -152,14 +86,8 @@ msgid "Every score needs a speaker_participant_id."
 msgstr ""
 
 #: lib/cab/text.ex
-#: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Fill this in."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Give %{min} to %{max} options, one per line."
 msgstr ""
 
 #: lib/cab/invitations.ex
@@ -258,7 +186,6 @@ msgstr ""
 #: lib/cab/invitations.ex
 #: lib/cab/links.ex
 #: lib/cab/sessions.ex
-#: lib/cab_web/components/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Something went wrong, try again."
 msgstr ""
@@ -348,11 +275,6 @@ msgstr ""
 msgid "This ballot doesn't match the room's draw."
 msgstr ""
 
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "This field is always asked: it cannot be moved or removed."
-msgstr ""
-
 #: lib/cab/clubs.ex
 #, elixir-autogen, elixir-format
 msgid "This join request was already answered."
@@ -376,11 +298,6 @@ msgstr ""
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
 msgid "This session is finished, so its people stay on record."
-msgstr ""
-
-#: lib/cab_web/components/form_components.ex
-#, elixir-autogen, elixir-format
-msgid "Tick this box."
 msgstr ""
 
 #: lib/cab/sessions.ex

@@ -1,0 +1,30 @@
+/* banner/1, flash_banners/1, copy_banner/1: a notice in one of three
+   kinds, one optional trailing link or a shared URL with its copy */
+.banner { display:flex; align-items:center; gap:10px; font-size:.82rem;
+          border-radius:var(--r); padding:9px var(--px); width:100%; }
+.banner a { font-weight:700; margin-left:auto; text-decoration:none; white-space:nowrap; }
+.banner.info { background:var(--brand-50); color:var(--brand-700); }
+.banner.info a { color:var(--brand); }
+.banner.good { background:var(--ok-bg); color:var(--ok-ink); }
+.banner.good a { color:var(--ok); }
+.banner.bad  { background:var(--warn-bg); color:var(--warn-ink); }
+.banner.bad a { color:var(--warn); }
+.banner code.url { font-family:var(--font-mono); font-size:var(--fs-xs);
+                   background:var(--surface); border:1px solid var(--line); border-radius:5px;
+                   padding:2px 8px; overflow-wrap:anywhere; min-width:0; }
+.banner .copy { margin-left:auto; }
+.banner .actions { margin-left:auto; display:flex; align-items:center; gap:8px; }
+.banner.refused ul { margin:4px 0 0; padding-left:18px; }
+/* a banner at the top of a card, flush with its edges */
+.card > .banner.flush { border-radius:0; border-bottom:1px solid var(--line); }
+
+@media (max-width:760px) {
+  /* a shared link: the label above, the link on one line with its Copy */
+  .banner:has(code.url) { flex-wrap:wrap; gap:6px 10px; }
+  .banner:has(code.url) > span { flex:1 1 100%; }
+  .banner code.url { flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+                     word-break:normal; }
+  .banner .copy { min-height:40px; }
+  .banner .actions { flex:1 1 100%; }
+  .banner .actions button { flex:1 1 auto; min-height:44px; }
+}

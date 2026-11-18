@@ -55,7 +55,7 @@ defmodule CabWeb.MeController do
 
         {:error, {:answers, codes}} ->
           errors =
-            CabWeb.FormComponents.answer_errors(Clubs.member_fields(membership.club), codes)
+            Ui.FormComponents.answer_errors(Clubs.member_fields(membership.club), codes)
 
           conn |> put_status(422) |> render_answers(membership, answers, errors)
       end

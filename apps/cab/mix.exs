@@ -48,6 +48,7 @@ defmodule Cab.MixProject do
   defp deps do
     [
       {:core, in_umbrella: true},
+      {:ui, in_umbrella: true},
       {:mdex, "~> 0.14.2"},
       {:phoenix, "~> 1.8.13"},
       {:phoenix_ecto, "~> 4.5"},

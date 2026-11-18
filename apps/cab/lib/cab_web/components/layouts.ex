@@ -31,7 +31,7 @@ defmodule CabWeb.Layouts do
 
   @doc """
   The words assets/js writes itself (ballot hints, the prep clock, the
-  room card, copy buttons, the theme button), in the page's language,
+  room card), in the page's language,
   for `<meta name="cab-i18n">`. `{name}` marks a value the browser
   fills in.
   """
@@ -66,12 +66,7 @@ defmodule CabWeb.Layouts do
         gettext("This browser cannot copy pictures. Right-click or hold the picture to save it."),
       "card_no_copy_text" => gettext("This browser cannot copy. Select the text and copy it."),
       "text_motion" => gettext("Motion: {motion}"),
-      "text_infoslide" => gettext("Infoslide: {text}"),
-      "copy" => gettext("Copy"),
-      "copied" => gettext("Copied"),
-      "theme_light" => gettext("Theme: light"),
-      "theme_auto" => gettext("Theme: auto"),
-      "theme_dark" => gettext("Theme: dark")
+      "text_infoslide" => gettext("Infoslide: {text}")
     }
   end
 end

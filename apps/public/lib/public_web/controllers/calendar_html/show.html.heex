@@ -6,7 +6,7 @@
   <:actions>
     <a
       :if={@event.link}
-      class="ua-btn ua-btn--gold"
+      class="btn-go"
       href={@event.link}
       target="_blank"
       rel="noopener"
@@ -14,7 +14,7 @@
     >
       {gettext("Event website")}
     </a>
-    <a class="ua-btn ua-btn--line" href={~p"/calendar/#{@event.id}/ics"} id="event-ics">
+    <a class="btn-quiet" href={~p"/calendar/#{@event.id}/ics"} id="event-ics">
       {gettext("Add to my calendar")}
     </a>
   </:actions>

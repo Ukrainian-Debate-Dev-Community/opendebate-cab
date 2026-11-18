@@ -12,6 +12,11 @@ defmodule CabWeb.OwnerHTML do
 
   # template helpers
 
+  # who the registration form asks a field of, as the editor shows it
+  defp scope_name("guests"), do: gettext("Guests only")
+  defp scope_name("members"), do: gettext("Members only")
+  defp scope_name(_both), do: gettext("Guests and members")
+
   # the allocator's people: participant id => %{id, name}
   defp people(signups) do
     Map.new(signups, fn participant ->

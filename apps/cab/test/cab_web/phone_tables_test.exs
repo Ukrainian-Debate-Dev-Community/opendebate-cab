@@ -1,8 +1,9 @@
 defmodule CabWeb.PhoneTablesTest do
   @moduledoc """
   On a phone every table folds into cards. That holds because every table
-  is drawn by CabWeb.Ui.table/1 (class "t t-rows", each cell labelled);
-  the one exception is the allocator, which has its own phone layout.
+  is drawn by Ui.Components.table/1 (apps/ui: class "t t-rows", each cell
+  labelled); the one exception is the allocator, which has its own phone
+  layout.
   """
   use ExUnit.Case, async: true
 
@@ -17,9 +18,9 @@ defmodule CabWeb.PhoneTablesTest do
     {allocator, others} = Enum.split_with(tables, fn {_file, tag} -> tag == "<table>" end)
 
     assert [{"components/ui.ex", _}] = allocator,
-           "a bare <table> outside the allocator: use CabWeb.Ui.table/1 so it folds into cards"
+           "a bare <table> outside the allocator: use the table component so it folds into cards"
 
-    assert others == [{"components/ui.ex", ~s(<table class="t t-rows" id={@id}>)}],
-           "tables must come from CabWeb.Ui.table/1: " <> inspect(others)
+    assert others == [],
+           "tables must come from Ui.Components.table/1: " <> inspect(others)
   end
 end

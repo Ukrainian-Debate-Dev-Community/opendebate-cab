@@ -8,11 +8,10 @@
     {long_date(@post.published_at)}, {gettext("%{n} min read", n: read_minutes(@post.body))}
   </div>
   <.cover post={@post} class="ua-cover--wide" />
-  <p :if={@post.summary} class="ua-lead">{@post.summary}</p>
+  <p :if={@post.summary} class="lead">{@post.summary}</p>
   {Phoenix.HTML.raw(@body)}
 </article>
 
-<div :if={@more != []}>
-  <div class="ua-sec">{gettext("More news")}</div>
+<.section :if={@more != []} title={gettext("More news")} bare>
   <div class="ua-grid3"><.news_card :for={post <- @more} post={post} /></div>
-</div>
+</.section>

@@ -37,11 +37,29 @@ defmodule PublicWeb.EventRequestsTest do
 
     page = conn |> get(~p"/calendar/request") |> html_response(200)
     assert page =~ ~s(id="event-request-form")
-    # cab's contact-field helpers run on the form (picker, spacing, checks)
-    assert page =~ "/assets/js/contact-fields.js"
+    # the contact-field helpers (picker, spacing, checks): the site's own
+    # contact-fields bundle, named on this page only for ui.js to load
+    # when the form is near (the phone library is large)
+    assert page =~ ~s(src="/assets/js/site.js")
+    assert page =~ ~r{<meta[^>]* name="contact-fields-src" content="/assets/js/contact-fields.js"}
+    refute conn |> get(~p"/calendar") |> html_response(200) =~ "contact-fields.js"
     [first | _] = Regex.scan(~r/name="answers\[([^\]]+)\]"/, page, capture: :all_but_first)
     assert first == ["email"]
     assert page =~ ~s(name="answers[name]")
+  end
+
+  test "the request form's shared words (apps/ui) follow the page language", %{conn: conn} do
+    page =
+      conn
+      |> put_req_cookie("public_locale", "uk")
+      |> get(~p"/calendar/request")
+      |> html_response(200)
+
+    # the locked e-mail field's label and its check's message are ui's
+    assert page =~ "\u0412\u0430\u0448 e-mail"
+
+    assert page =~
+             ~s(data-msg-required="\u0417\u0430\u043f\u043e\u0432\u043d\u0456\u0442\u044c \u0446\u0435 \u043f\u043e\u043b\u0435.")
   end
 
   test "a request is kept and e-mailed to the requester and the receiving address",

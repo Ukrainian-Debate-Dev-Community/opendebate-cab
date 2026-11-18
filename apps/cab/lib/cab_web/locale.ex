@@ -30,14 +30,20 @@ defmodule CabWeb.Locale do
       chosen(conn.cookies[@cookie]) || from_header(get_req_header(conn, "accept-language")) ||
         "en"
 
-    Gettext.put_locale(CabWeb.Gettext, locale)
+    put_locale(locale)
     conn |> put_session(:locale, locale) |> assign(:locale, locale)
   end
 
   def on_mount(:default, _params, session, socket) do
     locale = chosen(session["locale"]) || "en"
-    Gettext.put_locale(CabWeb.Gettext, locale)
+    put_locale(locale)
     {:cont, Phoenix.Component.assign(socket, :locale, locale)}
+  end
+
+  # cab's words and the shared components' (apps/ui) in one language
+  defp put_locale(locale) do
+    Gettext.put_locale(CabWeb.Gettext, locale)
+    Gettext.put_locale(Ui.Gettext, locale)
   end
 
   def chosen(locale) when locale in @locales, do: locale

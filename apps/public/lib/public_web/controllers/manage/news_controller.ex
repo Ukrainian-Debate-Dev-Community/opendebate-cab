@@ -74,7 +74,7 @@ defmodule PublicWeb.Manage.NewsController do
     end
   end
 
-  defp image_change(%{"remove_image" => "true"}), do: {:ok, :remove}
+  defp image_change(%{"remove_image" => yes}) when yes in ["yes", "true"], do: {:ok, :remove}
   defp image_change(_attrs), do: {:ok, :keep}
 
   defp refused({:image, message}, post, attrs) do

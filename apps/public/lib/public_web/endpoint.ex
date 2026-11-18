@@ -11,6 +11,8 @@ defmodule PublicWeb.Endpoint do
     same_site: "Lax"
   ]
 
+  # the shared files of apps/ui: the wordmark font
+  plug Plug.Static, at: "/", from: :ui, gzip: false, only: ~w(fonts)
   plug Plug.Static, at: "/", from: :public, gzip: false, only: PublicWeb.static_paths()
   plug PublicWeb.UploadsStatic
 

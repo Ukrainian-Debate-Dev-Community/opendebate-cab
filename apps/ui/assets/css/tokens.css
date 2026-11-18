@@ -1,0 +1,160 @@
+/* ================================================================
+   The design tokens of every web app: the only place that defines a
+   colour. Light by default; dark follows the system unless the theme
+   switch set data-theme on <html> (light or dark).
+   ================================================================ */
+:root {
+  /* brand violet and its scale */
+  --brand:      #66347E;
+  --brand-700:  #4C2A64;
+  --brand-50:   #F7F3FA;
+  --brand-deep: #3A1D4E;
+  /* fills under white text: the brand violet in both themes */
+  --brand-fill:     #66347E;
+  --brand-fill-700: #4C2A64;
+  --on-brand:       #FFFFFF;
+
+  /* text, lines, grounds */
+  --ink:       #1C1722;
+  --muted:     #716779;
+  --line:      #ECE7F0;
+  --bg:        #FCFBFD;
+  --surface:   #FFFFFF;
+  --surface-2: #FBF9FC;
+
+  /* the one action: gold */
+  --gold:        #D99A2B;
+  --gold-ink:    #3A2A08;
+  --gold-hover:  #C98D22;
+  --gold-active: #B37D1E;
+
+  /* states */
+  --ok:     #2E8B6E; --ok-bg:   #EAF5F0; --ok-ink:   #1E5C48;
+  --warn:   #B4552D; --warn-bg: #FAF0EA; --warn-ink: #8A3F1E;
+  --warn-surface: #FFFDFB;
+  --me-tint: #FBF7EE;
+
+  /* the four BP sides: stripe colour and tint */
+  --og: #66347E; --og-bg: #F3EDF8;
+  --oo: #3E6FA3; --oo-bg: #EEF3F9;
+  --cg: #2E8B6E; --cg-bg: #EDF6F2; --cg-ink: #1F6A53;
+  --co: #D99A2B; --co-bg: #FBF4E7; --co-ink: #7C5714;
+
+  /* labels: a fixed palette of eight */
+  --tag-gray:#F0EEF2;   --tag-gray-ink:#4F4756;
+  --tag-red:#FCE8E8;    --tag-red-ink:#A12626;
+  --tag-orange:#FDEEDF; --tag-orange-ink:#9A4A10;
+  --tag-yellow:#FBF3D0; --tag-yellow-ink:#735600;
+  --tag-green:#E5F4E8;  --tag-green-ink:#23683A;
+  --tag-teal:#E0F3F2;   --tag-teal-ink:#136862;
+  --tag-blue:#E4EEFB;   --tag-blue-ink:#1F4F94;
+  --tag-purple:#F1E8F8; --tag-purple-ink:#5E2E80;
+
+  /* sign-in providers keep their own faces in both themes */
+  --github: #24292F; --github-hover: #31383F; --on-github: #FFFFFF;
+  --google: #FFFFFF; --google-hover: #F8F9FA; --google-ink: #3C4043; --google-line: #DADCE0;
+  --provider-off-ink: #5F6368;
+
+  /* light on a brand ground (the sign-in panel's glows) */
+  --glow-light: rgba(255,255,255,.10);
+  --glow-faint: rgba(255,255,255,.08);
+  --glow-gold:  rgba(224,168,60,.22);
+
+  /* shadows */
+  --shadow-menu:  0 8px 24px rgba(28,23,34,.16);
+  --shadow-drag:  0 6px 18px rgba(0,0,0,.25);
+  --shadow-split: inset 1px 0 0 rgba(0,0,0,.18);
+
+  /* focus ring */
+  --focus-ring:   2px solid var(--brand);
+  --focus-offset: 2px;
+
+  /* type */
+  --font-sans:   -apple-system, "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono:   ui-monospace, Menlo, monospace;
+  --font-script: "Cedarville Cursive", cursive;
+  --fs-micro: .64rem;   /* uppercase column labels */
+  --fs-label: .66rem;   /* section micro-titles, kickers */
+  --fs-xs:    .72rem;   /* hints, errors */
+  --fs-sm:    .8rem;    /* buttons, field labels */
+  --fs-md:    .84rem;   /* tables, banners */
+  --fs-base:  .86rem;   /* forms, card text */
+  --fs-body:  15px;
+  --fs-lg:    1.02rem;  /* a form's title */
+  --fs-xl:    1.4rem;
+  --fs-2xl:   1.75rem;  /* a page's title */
+
+  /* spacing */
+  --px:   14px;         /* the shared horizontal padding everywhere */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 28px;
+  --sp-8: 32px;
+  --stack: 18px;        /* between the blocks of a page */
+
+  /* radius */
+  --r-xs:   4px;
+  --r-sm:   7px;        /* fields and buttons */
+  --r-md:   8px;
+  --r:      10px;       /* cards and banners */
+  --r-pill: 999px;
+
+  /* widths */
+  --w-page:   1180px;
+  --w-form:   760px;
+  --w-prose:  72ch;
+  --w-narrow: 520px;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --brand: #C9A2DD; --brand-700: #E2CBEE; --brand-50: #2B2232;
+    --ink: #EEE8F2; --muted: #A99FB2; --line: #352D3C;
+    --gold-ink: #2A1E05;
+    --ok: #6CC6A6; --ok-bg: #16302A; --ok-ink: #9FE0C8;
+    --warn: #E3876A; --warn-bg: #3A221B; --warn-ink: #F4B8A4; --warn-surface: #2A1D1A;
+    --bg: #141017; --surface: #1C1720; --surface-2: #211B26;
+    --me-tint: #2E2618;
+    --og: #B48BD0; --og-bg: #2B2034;
+    --oo: #7FA8D8; --oo-bg: #1B2633;
+    --cg: #6CC6A6; --cg-bg: #172A24; --cg-ink: #6CC6A6;
+    --co: #E3B262; --co-bg: #2E2416; --co-ink: #E9C27C;
+    --tag-gray:#2A2530;   --tag-gray-ink:#CFC6D6;
+    --tag-red:#3A1C1E;    --tag-red-ink:#F2A7A7;
+    --tag-orange:#3A2616; --tag-orange-ink:#F4B98A;
+    --tag-yellow:#35300F; --tag-yellow-ink:#EBD27A;
+    --tag-green:#183022;  --tag-green-ink:#96D9A8;
+    --tag-teal:#142F2E;   --tag-teal-ink:#8AD5CF;
+    --tag-blue:#18263A;   --tag-blue-ink:#9CC0F0;
+    --tag-purple:#2C2036; --tag-purple-ink:#D3B2EA;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --brand: #C9A2DD; --brand-700: #E2CBEE; --brand-50: #2B2232;
+  --ink: #EEE8F2; --muted: #A99FB2; --line: #352D3C;
+  --gold-ink: #2A1E05;
+  --ok: #6CC6A6; --ok-bg: #16302A; --ok-ink: #9FE0C8;
+  --warn: #E3876A; --warn-bg: #3A221B; --warn-ink: #F4B8A4; --warn-surface: #2A1D1A;
+  --bg: #141017; --surface: #1C1720; --surface-2: #211B26;
+  --me-tint: #2E2618;
+  --og: #B48BD0; --og-bg: #2B2034;
+  --oo: #7FA8D8; --oo-bg: #1B2633;
+  --cg: #6CC6A6; --cg-bg: #172A24; --cg-ink: #6CC6A6;
+  --co: #E3B262; --co-bg: #2E2416; --co-ink: #E9C27C;
+  --tag-gray:#2A2530;   --tag-gray-ink:#CFC6D6;
+  --tag-red:#3A1C1E;    --tag-red-ink:#F2A7A7;
+  --tag-orange:#3A2616; --tag-orange-ink:#F4B98A;
+  --tag-yellow:#35300F; --tag-yellow-ink:#EBD27A;
+  --tag-green:#183022;  --tag-green-ink:#96D9A8;
+  --tag-teal:#142F2E;   --tag-teal-ink:#8AD5CF;
+  --tag-blue:#18263A;   --tag-blue-ink:#9CC0F0;
+  --tag-purple:#2C2036; --tag-purple-ink:#D3B2EA;
+  color-scheme: dark;
+}

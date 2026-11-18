@@ -1,0 +1,24 @@
+/* switches/1: the theme button (light / auto / dark on each click) and
+   the language menu, side by side */
+.switches { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.cycle { position:relative; display:flex; align-items:center; justify-content:center;
+         width:30px; height:24px; padding:0; border-radius:var(--r-sm); cursor:pointer; list-style:none;
+         background:var(--surface-2); border:1px solid var(--line); color:var(--brand);
+         font:inherit; font-size:.62rem; font-weight:800; letter-spacing:.04em;
+         transition:background .2s, border-color .2s; }
+.cycle::-webkit-details-marker { display:none; }
+.cycle:hover { border-color:var(--brand); }
+.cycle:focus-visible { outline:var(--focus-ring); outline-offset:var(--focus-offset); }
+.cycle svg { position:absolute; width:13px; height:13px; fill:none; stroke:currentColor;
+             stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round;
+             opacity:0; transform:rotate(-90deg) scale(.6);
+             transition:opacity .22s, transform .32s cubic-bezier(.2,.8,.2,1); }
+.cycle svg .fill { fill:currentColor; stroke:none; }
+.cycle[data-state="light"] .i-light, .cycle[data-state="auto"] .i-auto,
+.cycle[data-state="dark"] .i-dark { opacity:1; transform:none; }
+.langs .menu a { display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:var(--fs-md); }
+.langs .menu .code { width:22px; font-size:.62rem; font-weight:800; color:var(--muted); }
+@media (prefers-reduced-motion: reduce) { .cycle svg { transition:none; } }
+@media (max-width:760px) {
+  .switches .cycle { min-width:44px; min-height:44px; }
+}

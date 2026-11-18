@@ -8,35 +8,34 @@
   }
 />
 
-<div :if={@errors[:form]} class="ua-flash ua-flash--error" id="request-limited">
-  {@errors[:form]}
-</div>
+<.banner :if={@errors[:form]} kind={:bad} id="request-limited">{@errors[:form]}</.banner>
 
-<CabWeb.Ui.form_for
-  id="event-request-form"
-  action={~p"/calendar/request"}
-  title={gettext("Your event")}
-  errors={@errors}
-  guard
->
-  <:block
-    :for={field <- @fields}
-    name={answer_name(field)}
-    type={block_type(field)}
-    label={field_label(field)}
-    required={field["required"]}
-    hint={field["hint"]}
-    options={field["options"]}
-    value={@answers[field["id"]]}
-    input={input_type(field)}
-    placeholder={placeholder(field)}
-    prompt={prompt(field)}
-  />
-  <:submit>{gettext("Send the request")}</:submit>
-</CabWeb.Ui.form_for>
+<.card class="ua-form">
+  <.form_for
+    id="event-request-form"
+    action={~p"/calendar/request"}
+    title={gettext("Your event")}
+    errors={@errors}
+    guard={CabWeb.Turnstile.site_key()}
+  >
+    <:block
+      :for={field <- @fields}
+      name={answer_name(field)}
+      type={block_type(field)}
+      label={field_label(field)}
+      required={field["required"]}
+      hint={field["hint"]}
+      options={field["options"]}
+      value={@answers[field["id"]]}
+      input={input_type(field)}
+      placeholder={placeholder(field)}
+      prompt={prompt(field)}
+    />
+    <:submit>{gettext("Send the request")}</:submit>
+  </.form_for>
+</.card>
 
-<%!-- cab's contact-field helpers for the form's phone, e-mail and
-     telegram fields: the country picker and spacing, the checks when a
-     field is left (the messages come with the fields) --%>
-<script defer src={cab_url("/assets/js/contact-fields.js")}>
-</script>
+<%!-- the contact fields' behaviour (phone formatting and checks): a
+     bundle of its own, which ui.js loads when the form comes near the
+     screen or a field is touched --%>
+<meta name="contact-fields-src" content={~p"/assets/js/contact-fields.js"} />

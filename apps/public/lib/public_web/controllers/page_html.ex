@@ -103,24 +103,28 @@ defmodule PublicWeb.PageHTML do
     <div class={length(@sides) > 1 && "ua-grid2"}>
       <div :for={side <- @sides}>
         <%= if side == :documents do %>
-          <div class="ua-sec">{gettext("Documents")}</div>
-          <div class="ua-card ua-docs">
-            <a href={cab_url("/policy")}>
-              <b>{gettext("Privacy policy")}</b><span>{gettext("What we store and why")}</span>
-            </a>
-            <a href={cab_url("/terms")}>
-              <b>{gettext("Terms of use")}</b><span>{gettext("The rules for the site and the cabinet")}</span>
-            </a>
-          </div>
-        <% else %>
-          <div class="ua-sec">{gettext("Contact")}</div>
-          <div class="ua-card ua-pad ua-dl">
-            <div :for={contact <- Tenant.get(:contacts)}>
-              <span>{Tenant.translate(contact["label"])}</span><a href={contact["href"]}>{contact[
-                "text"
-              ]}</a>
+          <.section title={gettext("Documents")} bare>
+            <div class="card ua-docs">
+              <a href={cab_url("/policy")}>
+                <b>{gettext("Privacy policy")}</b><span>{gettext("What we store and why")}</span>
+              </a>
+              <a href={cab_url("/terms")}>
+                <b>{gettext("Terms of use")}</b><span>{gettext(
+                  "The rules for the site and the cabinet"
+                )}</span>
+              </a>
             </div>
-          </div>
+          </.section>
+        <% else %>
+          <.section title={gettext("Contact")} pad>
+            <div class="ua-dl">
+              <div :for={contact <- Tenant.get(:contacts)}>
+                <span>{Tenant.translate(contact["label"])}</span><a href={contact["href"]}>{contact[
+                  "text"
+                ]}</a>
+              </div>
+            </div>
+          </.section>
         <% end %>
       </div>
     </div>

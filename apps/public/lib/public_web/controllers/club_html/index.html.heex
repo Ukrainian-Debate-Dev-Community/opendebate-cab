@@ -9,7 +9,7 @@
     <div class="ua-filters">
       <form action={~p"/clubs"} method="get" class="ua-inline">
         {gettext("City")}
-        <select name="city">
+        <select name="city" class="ua-select">
           <option value="">{gettext("All cities")}</option>
           <option :for={city <- @cities} value={city} selected={@filters["city"] == city}>
             {city_label(city)}
@@ -22,7 +22,7 @@
           name={k}
           value={v}
         />
-        <button type="submit" class="ua-btn ua-btn--line ua-btn--sm">{gettext("Show")}</button>
+        <button type="submit" class="btn-quiet btn-sm">{gettext("Show")}</button>
       </form>
       <.filter_seg
         name="format"
@@ -55,43 +55,30 @@
       )}
     </div>
 
-    <div class="ua-card">
-      <table :if={@clubs != []} class="ua-t">
-        <thead>
-          <tr>
-            <th>{gettext("Club")}</th>
-            <th>{gettext("City")}</th>
-            <th>{gettext("Format")}</th>
-            <th>{gettext("Language")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr :for={club <- @clubs}>
-            <td>
-              <div class="ua-clubname">
-                <img :if={Clubs.logo_url(club)} class="ua-logo" src={Clubs.logo_url(club)} alt="" />
-                <div>
-                  <a href={~p"/clubs/#{club.uuid}"}><b>{club.name}</b></a>
-                  <div :if={club.meeting_info} class="ua-meta">{club.meeting_info}</div>
-                </div>
-              </div>
-            </td>
-            <td data-label={gettext("City")}>{city_label(club.city)}</td>
-            <td data-label={gettext("Format")}>
-              {labels(club.formats, &format_label(&1, club.format_other))}
-            </td>
-            <td data-label={gettext("Language")}>
-              {labels(club.languages, &language_label(&1, club.language_other))}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div :if={@clubs == []} class="ua-empty">{gettext("No club matches these filters.")}</div>
+    <div class="card">
+      <.table id="clubs" rows={@clubs} empty={gettext("No club matches these filters.")}>
+        <:col :let={club} label={gettext("Club")}>
+          <div class="ua-clubname">
+            <img :if={Clubs.logo_url(club)} class="ua-logo" src={Clubs.logo_url(club)} alt="" />
+            <div>
+              <a href={~p"/clubs/#{club.uuid}"}>{club.name}</a>
+              <.sub :if={club.meeting_info}>{club.meeting_info}</.sub>
+            </div>
+          </div>
+        </:col>
+        <:col :let={club} label={gettext("City")}>{city_label(club.city)}</:col>
+        <:col :let={club} label={gettext("Format")}>
+          {labels(club.formats, &format_label(&1, club.format_other))}
+        </:col>
+        <:col :let={club} label={gettext("Language")}>
+          {labels(club.languages, &language_label(&1, club.language_other))}
+        </:col>
+      </.table>
     </div>
   </div>
 
-  <aside class="ua-mapcard ua-card">
-    <div class="ua-pad">
+  <aside class="ua-mapcard card">
+    <div class="pad">
       <b>{gettext("Club map")}</b>
       <div class="ua-meta">{gettext("Click a city to show its clubs")}</div>
     </div>

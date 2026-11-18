@@ -5,7 +5,7 @@ defmodule CabWeb.MeHTML do
   """
   use CabWeb, :html
 
-  import CabWeb.FormComponents,
+  import Ui.FormComponents,
     only: [
       answer_name: 1,
       block_type: 1,

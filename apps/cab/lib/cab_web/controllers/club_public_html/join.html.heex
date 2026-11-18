@@ -18,7 +18,7 @@
         title={gettext("Join %{club}", club: @club.name)}
         description={gettext("The club head reads your answers before approving.")}
         errors={@errors}
-        guard
+        guard={CabWeb.Turnstile.site_key()}
       >
         <:block
           :for={field <- @fields}

@@ -20,4 +20,4 @@
 <div :if={@posts != []} class="ua-grid3">
   <.news_card :for={post <- @posts} post={post} />
 </div>
-<div :if={@posts == []} class="ua-card ua-empty">{gettext("No news here yet.")}</div>
+<.empty :if={@posts == []}>{gettext("No news here yet.")}</.empty>

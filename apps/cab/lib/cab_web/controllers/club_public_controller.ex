@@ -59,7 +59,7 @@ defmodule CabWeb.ClubPublicController do
 
       {:error, {:answers, codes}} ->
         {_kind, fields, _values} = Cab.Registrations.form_for(session.club, user)
-        errors = CabWeb.FormComponents.answer_errors(fields, codes)
+        errors = Ui.FormComponents.answer_errors(fields, codes)
 
         conn
         |> put_status(422)
@@ -137,7 +137,7 @@ defmodule CabWeb.ClubPublicController do
   defp guest_errors(fields, errors) do
     {answers, rest} = Map.split_with(errors, &match?({{:answer, _id}, _code}, &1))
     codes = Map.new(answers, fn {{:answer, id}, code} -> {id, code} end)
-    Map.merge(rest, CabWeb.FormComponents.answer_errors(fields, codes))
+    Map.merge(rest, Ui.FormComponents.answer_errors(fields, codes))
   end
 
   defp render_show(conn, registration) do
@@ -475,7 +475,7 @@ defmodule CabWeb.ClubPublicController do
         |> redirect(to: ~p"/c/#{club.uuid}")
 
       {:error, {:answers, codes}} ->
-        errors = CabWeb.FormComponents.answer_errors(Clubs.member_fields(club), codes)
+        errors = Ui.FormComponents.answer_errors(Clubs.member_fields(club), codes)
         conn |> put_status(422) |> render_join(params, errors)
 
       # the row itself refused: already a member or a pending request

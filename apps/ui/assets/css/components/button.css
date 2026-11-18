@@ -1,0 +1,21 @@
+/* buttons: gold is the page's one action; quiet is everything else;
+   link is a button that reads as a link */
+.btn-go { border:none; cursor:pointer; font:inherit; font-size:var(--fs-sm);
+          font-weight:700; padding:8px 20px; border-radius:var(--r-sm);
+          background:var(--gold); color:var(--gold-ink); }
+.btn-go:hover { background:var(--gold-hover); }
+.btn-go:disabled { cursor:not-allowed; opacity:.55; }
+.btn-quiet { cursor:pointer; font:inherit; font-size:var(--fs-sm); font-weight:700; padding:7px 19px;
+             border-radius:var(--r-sm); border:1px solid var(--line); background:var(--surface);
+             color:var(--ink); }
+.btn-quiet:hover { border-color:var(--brand); color:var(--brand); }
+/* destructive or exit */
+.btn-quiet.quiet { color:var(--muted); font-weight:550; }
+.btn-quiet.quiet:hover { border-color:var(--warn); color:var(--warn); }
+a.btn-go, a.btn-quiet { display:inline-block; text-decoration:none; text-align:center; }
+.btn-sm { padding:4px 12px; font-size:.76rem; }
+.btn-link { cursor:pointer; font:inherit; font-size:var(--fs-sm); font-weight:650; padding:7px 6px;
+            border:none; background:none; color:var(--brand); }
+.btn-link:hover { text-decoration:underline; }
+/* a button that is a one-button form (publish, revoke, delete) */
+.btn-form { display:inline; margin:0; }

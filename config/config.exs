@@ -63,6 +63,10 @@ config :cab, :default_phone_country, nil
 # (DEFAULT_TIME_ZONE in production; Cab.TimeZones)
 config :cab, :default_time_zone, "Etc/UTC"
 
+# the shared components' words (apps/ui); the apps set its locale
+# along with their own
+config :ui, Ui.Gettext, default_locale: "en", locales: ~w(en uk)
+
 # Configure the endpoint
 # English by default; Ukrainian when the browser or the footer asks
 config :cab, CabWeb.Gettext, default_locale: "en", locales: ~w(en uk)
@@ -87,8 +91,14 @@ config :esbuild,
   version: "0.25.4",
   cab: [
     args:
-      ~w(js/app.js contact-fields=js/contact_fields_page.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
+      ~w(js/app.js contact-fields=../../ui/assets/js/contact_fields_page.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
     cd: Path.expand("../apps/cab/assets", __DIR__),
+    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
+  ],
+  public: [
+    args:
+      ~w(js/site.js contact-fields=../../ui/assets/js/contact_fields_page.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/*),
+    cd: Path.expand("../apps/public/assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
@@ -106,6 +116,15 @@ config :tailwind,
       --output=priv/static/assets/css/app.css
     ),
     cd: Path.expand("../apps/cab", __DIR__),
+    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
+  ],
+  # the public site's own CSS, plain (no Tailwind utilities or reset)
+  public: [
+    args: ~w(
+      --input=assets/css/app.css
+      --output=priv/static/assets/css/app.css
+    ),
+    cd: Path.expand("../apps/public", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 

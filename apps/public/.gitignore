@@ -1,0 +1,4 @@
+# built by tailwind and esbuild from assets/ (mix assets.build / deploy)
+/priv/static/assets/
+# the digested assets' manifest (mix phx.digest)
+/priv/static/cache_manifest.json

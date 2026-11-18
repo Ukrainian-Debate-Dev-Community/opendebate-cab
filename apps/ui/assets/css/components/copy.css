@@ -1,0 +1,6 @@
+/* copy/1: a small button that puts its text on the clipboard */
+.copy { border:1px solid var(--line); background:var(--surface); border-radius:5px;
+        font:inherit; font-size:var(--fs-label); font-weight:700; color:var(--brand);
+        padding:2px 9px; cursor:pointer; white-space:nowrap; }
+.copy:hover { background:var(--brand-50); }
+.copy.copied { color:var(--ok); border-color:var(--ok); background:var(--ok-bg); }

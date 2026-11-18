@@ -32,6 +32,10 @@ config :public, PublicWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
+  watchers: [
+    esbuild: {Esbuild, :install_and_run, [:public, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:public, ~w(--watch)]}
+  ],
   secret_key_base: "Wq3oV0bKq8fD2n7mS5yH1cR4tL9xE6jA0pZ3uG8vN2kT7wB5sY1dF4hJ6mQ9rX2c"
 
 config :public, :uploads_dir, Path.expand("../uploads/public", __DIR__)

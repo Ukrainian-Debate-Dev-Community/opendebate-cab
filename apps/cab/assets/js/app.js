@@ -24,7 +24,16 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/cab"
 import topbar from "../vendor/topbar"
-import {PhoneField, installContactFields} from "./contact_fields"
+// the shared components' behaviour (apps/ui): copy, menus, times,
+// linked rows, the theme switch, the contact fields
+import {copyText, formatWhen, clock, viewerZone, toUtcParts, addLocalizer} from "../../../ui/assets/js/ui"
+// cab's forms have contact fields on many pages: bundled here (other
+// apps load contact_fields_page.js only where they need it)
+import {PhoneField, installContactFields, mountPhoneFields} from "../../../ui/assets/js/contact_fields"
+
+installContactFields()
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => mountPhoneFields())
+else mountPhoneFields()
 
 // Words the browser writes itself, in the page's language: the server
 // puts them in <meta name="cab-i18n"> (CabWeb.Layouts.js_strings/0);
@@ -271,71 +280,13 @@ const CARD = {
   sans: '-apple-system, "Inter", "Segoe UI", system-ui, sans-serif',
 }
 
-// Times: the server sends UTC instants; they show in the account's
-// time zone (<html data-tz>) or the device's, in the page's language.
-const viewerZone = () => document.documentElement.dataset.tz || undefined
-const viewerLocale = () => (document.documentElement.lang === "uk" ? "uk" : "en-GB")
-const WHEN = {
-  date: {day: "numeric", month: "short", year: "numeric"},
-  day: {day: "numeric", month: "short"},
-  datetime: {day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"},
-  short: {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"},
-  weekday_time: {weekday: "short", hour: "2-digit", minute: "2-digit"},
-  time: {hour: "2-digit", minute: "2-digit"},
-}
-const formatWhen = (iso, as) =>
-  new Intl.DateTimeFormat(viewerLocale(), {...WHEN[as], hour12: false, timeZone: viewerZone()}).format(new Date(iso))
-const clock = (iso) => formatWhen(iso, "time")
-
-const localizeTimes = () => {
-  document.querySelectorAll("time[data-when]").forEach(t => {
-    const text = formatWhen(t.getAttribute("datetime"), t.dataset.when)
-    if (t.textContent !== text) t.textContent = text
-  })
-  // the prep end arrives as a UTC instant; the head reads and types HH:MM
+// the prep end arrives as a UTC instant; the head reads and types HH:MM
+addLocalizer(() => {
   document.querySelectorAll('input[name="prep_until"]').forEach(input => {
     if (/T/.test(input.value)) input.value = clock(input.value)
   })
-  localizePickers()
-}
+})
 
-// the date and time pickers arrive in the server's zone (the account's,
-// else the deployment's); here they show the viewer's, and the form
-// tells the server which zone they were typed in
-const localizePickers = () => {
-  const zone = viewerZone() || Intl.DateTimeFormat().resolvedOptions().timeZone
-  document.querySelectorAll('.half > input[type="hidden"][name="zone"]').forEach(input => {
-    if (input.value === zone) return
-    const box = input.parentElement
-    if (box.dataset.at) {
-      const [date, time] = zonedParts(box.dataset.at, zone)
-      box.querySelector('input[type="date"]').value = date
-      box.querySelector('input[type="time"]').value = time
-    }
-    input.value = zone
-  })
-}
-const zonedParts = (iso, zone) => {
-  const parts = new Intl.DateTimeFormat("en-GB", {timeZone: zone, year: "numeric", month: "2-digit",
-    day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23"}).formatToParts(new Date(iso))
-  const p = Object.fromEntries(parts.map(part => [part.type, part.value]))
-  return [`${p.year}-${p.month}-${p.day}`, `${p.hour}:${p.minute}`]
-}
-// live updates re-render times in UTC; put them back in the viewer's zone
-new MutationObserver(localizeTimes).observe(document.documentElement,
-  {subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["value"]})
-document.addEventListener("DOMContentLoaded", localizeTimes)
-localizeTimes()
-
-// a date and time typed in the viewer's zone, as the UTC "YYYY-MM-DD"
-// and "HH:MM" the server stores
-const toUtcParts = (date, time, zone) => {
-  const guess = new Date(`${date}T${time || "00:00"}:00Z`)
-  const shown = new Date(guess.toLocaleString("en-US", {timeZone: zone || Intl.DateTimeFormat().resolvedOptions().timeZone}))
-  const offset = shown.getTime() - new Date(guess.toLocaleString("en-US", {timeZone: "UTC"})).getTime()
-  const utc = new Date(guess.getTime() - offset)
-  return [utc.toISOString().slice(0, 10), utc.toISOString().slice(11, 16)]
-}
 // the prep end typed as HH:MM in the viewer's zone goes out as a UTC
 // instant: today, or tomorrow when that time is already long past
 document.addEventListener("submit", e => {
@@ -607,29 +558,6 @@ const ShareCard = {
   updated() { this.render && this.render() },
 }
 
-// Contact fields (phone, e-mail, Telegram): contact_fields.js, shared
-// with other sites through its standalone build
-installContactFields()
-
-// put text on the clipboard: the Clipboard API on secure pages, the
-// old textarea + execCommand path elsewhere; done(ok) either way
-function copyText(text, done) {
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(() => done(true), () => done(false))
-  } else {
-    const area = document.createElement("textarea")
-    area.value = text
-    area.style.position = "fixed"
-    area.style.opacity = "0"
-    document.body.appendChild(area)
-    area.select()
-    let ok = false
-    try { ok = document.execCommand("copy") } catch (_e) { ok = false }
-    area.remove()
-    done(ok)
-  }
-}
-
 // the People list's Copy links: the server renders the checked guests'
 // lines into data-links; after copying, it says how many went
 const CopyLinks = {
@@ -676,48 +604,6 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
-// the sidebar theme button: each click moves light -> auto -> dark.
-// auto follows the system; the choice is kept in this browser.
-const themeKey = "cab-theme"
-const THEMES = ["light", "auto", "dark"]
-const storedTheme = () => {
-  try { return localStorage.getItem(themeKey) || "auto" } catch (_e) { return "auto" }
-}
-const applyTheme = (choice) => {
-  if (choice === "auto") delete document.documentElement.dataset.theme
-  else document.documentElement.dataset.theme = choice
-  try { choice === "auto" ? localStorage.removeItem(themeKey) : localStorage.setItem(themeKey, choice) } catch (_e) { /* private mode */ }
-  markTheme()
-}
-const markTheme = () => {
-  const current = storedTheme()
-  document.querySelectorAll('[data-cycle="theme"]').forEach(b => {
-    b.dataset.state = current
-    b.setAttribute("aria-label", t("theme_" + current, "Theme: " + current))
-  })
-}
-// a linked table row opens its page; links, buttons and fields inside
-// keep their own click, and a text selection is left alone
-document.addEventListener("click", e => {
-  const row = e.target.closest("tr[data-href]")
-  if (!row || e.target.closest("a, button, input, select, textarea, label")) return
-  if (String(window.getSelection())) return
-  if (e.metaKey || e.ctrlKey) window.open(row.dataset.href, "_blank")
-  else window.location.assign(row.dataset.href)
-})
-
-document.addEventListener("click", e => {
-  const theme = e.target.closest('[data-cycle="theme"]')
-  if (theme) applyTheme(THEMES[(THEMES.indexOf(storedTheme()) + 1) % THEMES.length])
-  // the language menu and dropdown buttons close on any click outside them
-  document.querySelectorAll("details[data-langs][open], details[data-menu][open]").forEach(d => { if (!d.contains(e.target)) d.open = false })
-})
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") document.querySelectorAll("details[data-langs][open], details[data-menu][open]").forEach(d => { d.open = false })
-})
-markTheme()
-window.addEventListener("phx:page-loading-stop", markTheme)
-
 // the phone menu: the sidenav folds into a top bar with a Menu button.
 // The open state lives on <html>, which LiveView never patches, so a
 // server update cannot close it under the reader's thumb.
@@ -731,22 +617,6 @@ document.addEventListener("click", e => {
 })
 document.addEventListener("keydown", e => { if (e.key === "Escape") setNav(false) })
 window.addEventListener("phx:page-loading-stop", () => setNav(false))
-
-// copy affordance: [data-copy] buttons put their payload on the
-// clipboard (shared registration URL, personal guest links)
-document.addEventListener("click", e => {
-  const btn = e.target.closest("[data-copy]")
-  if (!btn) return
-  const done = ok => {
-    btn.classList.toggle("copied", ok)
-    btn.textContent = ok ? t("copied", "Copied") : t("copy", "Copy")
-    setTimeout(() => {
-      btn.classList.remove("copied")
-      btn.textContent = t("copy", "Copy")
-    }, 1500)
-  }
-  copyText(btn.dataset.copy, done)
-})
 
 // The lines below enable quality of life phoenix_live_reload
 // development features:

@@ -7,6 +7,7 @@
       names={[:date, :time]}
       type={:datetime}
       at={@current.scheduled_at}
+      value={Cab.TimeZones.local_parts(@current.scheduled_at, @zone)}
       zone={@zone}
       hint={gettext("In your time zone; members see it in theirs. No date removes it.")}
     />

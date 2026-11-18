@@ -9,11 +9,11 @@
   logo={Clubs.logo_url(@club)}
 >
   <:actions>
-    <a class="ua-btn ua-btn--gold" href={cab_url("/c/#{@club.uuid}")}>{gettext("Open in cab")}</a>
+    <a class="btn-go" href={cab_url("/c/#{@club.uuid}")}>{gettext("Open in cab")}</a>
   </:actions>
 </.page_head>
 
-<div class="ua-tags">
+<div class="tags">
   <.tag :for={f <- @club.formats || []} kind="info">{format_label(f, @club.format_other)}</.tag>
   <.tag :for={l <- @club.languages || []} kind="info">
     {language_label(l, @club.language_other)}
@@ -23,19 +23,19 @@
 
 <div class="ua-grid2">
   <div>
-    <div class="ua-sec">{gettext("About the club")}</div>
-    <div class="ua-card ua-pad ua-dl">
-      <div :if={@club.meeting_info}><span>{gettext("Meets")}</span>{@club.meeting_info}</div>
-      <div><span>{gettext("Members")}</span>{@members}</div>
-      <div :if={@head}><span>{gettext("Head")}</span>{@head}</div>
-      <div :if={@club.contacts}><span>{gettext("Contact")}</span>{@club.contacts}</div>
-    </div>
+    <.section title={gettext("About the club")} pad>
+      <div class="ua-dl">
+        <div :if={@club.meeting_info}><span>{gettext("Meets")}</span>{@club.meeting_info}</div>
+        <div><span>{gettext("Members")}</span>{@members}</div>
+        <div :if={@head}><span>{gettext("Head")}</span>{@head}</div>
+        <div :if={@club.contacts}><span>{gettext("Contact")}</span>{@club.contacts}</div>
+      </div>
+    </.section>
     <p class="ua-meta" style="margin-top:10px">
       {gettext("Club details are kept by the club in cab.")}
     </p>
   </div>
-  <div>
-    <div class="ua-sec">{gettext("On the map")}</div>
-    <div class="ua-card"><.club_map counts={@counts} selected={@club.city} /></div>
-  </div>
+  <.section title={gettext("On the map")}>
+    <.club_map counts={@counts} selected={@club.city} />
+  </.section>
 </div>
