@@ -17,5 +17,6 @@
 @import "./components/page_head.css";
 @import "./components/tag.css";
 @import "./components/empty.css";
+@import "./components/media_card.css";
 @import "./components/switches.css";
 @import "./components/beta.css";

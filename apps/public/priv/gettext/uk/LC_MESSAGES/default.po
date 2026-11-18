@@ -37,16 +37,18 @@ msgstr[0] "%{count} клуб"
 msgstr[1] "%{count} клуби"
 msgstr[2] "%{count} клубів"
 
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "%{count} min read"
+msgid_plural "%{count} min read"
+msgstr[0] "%{count} хв читання"
+msgstr[1] "%{count} хв читання"
+msgstr[2] "%{count} хв читання"
+
 #: lib/public_web/controllers/manage/people_controller.ex
 #, elixir-autogen, elixir-format
 msgid "%{name} can now manage the site. Send them the link %{link}."
 msgstr "%{name} тепер може керувати сайтом. Надішліть людині посилання %{link}."
-
-#: lib/public_web/components/site.ex
-#: lib/public_web/controllers/news_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "%{n} min read"
-msgstr "%{n} хв читання"
 
 #: lib/public_web/emails.ex
 #, elixir-autogen, elixir-format
@@ -115,6 +117,7 @@ msgstr "Усі міста"
 msgid "All events"
 msgstr "Усі події"
 
+#: lib/public_web/controllers/news_html/show.html.heex
 #: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "All news"
@@ -199,6 +202,11 @@ msgstr "На головну"
 #, elixir-autogen, elixir-format
 msgid "Blue"
 msgstr "Синій"
+
+#: lib/public_web/controllers/news_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Breadcrumbs"
+msgstr "Навігаційний ланцюжок"
 
 #: lib/public_web/components/site.ex
 #, elixir-autogen, elixir-format
@@ -795,8 +803,13 @@ msgstr "Подій поки немає."
 
 #: lib/public_web/controllers/news_html/index.html.heex
 #, elixir-autogen, elixir-format
-msgid "No news here yet."
-msgstr "Тут поки немає новин."
+msgid "No news here yet. Announcements and results will appear here."
+msgstr "Новин поки немає. Тут з'являтимуться оголошення та результати."
+
+#: lib/public_web/controllers/news_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "No news in this rubric yet."
+msgstr "У цій рубриці поки немає новин."
 
 #: lib/public_web/controllers/manage/html/news_index.html.heex
 #, elixir-autogen, elixir-format
@@ -1124,6 +1137,11 @@ msgstr "Забрати"
 msgid "Rubric"
 msgstr "Рубрика"
 
+#: lib/public_web/controllers/news_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Rubrics"
+msgstr "Рубрики"
+
 #: lib/public_web/components/site.ex
 #, elixir-autogen, elixir-format
 msgid "Sat"
@@ -1161,6 +1179,11 @@ msgstr "Збережено."
 msgid "School students"
 msgstr "Школярі"
 
+#: lib/public_web/controllers/news_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "See all news"
+msgstr "Переглянути всі новини"
+
 #: lib/public_web/controllers/event_request_html/new.html.heex
 #, elixir-autogen, elixir-format
 msgid "Send the request"
@@ -1182,6 +1205,11 @@ msgstr "Вересень"
 msgctxt "in a date"
 msgid "September"
 msgstr "вересня"
+
+#: lib/public_web/controllers/news_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Share this article"
+msgstr "Поділитися статтею"
 
 #: lib/public_web/controllers/club_html/index.html.heex
 #, elixir-autogen, elixir-format

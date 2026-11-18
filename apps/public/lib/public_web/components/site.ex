@@ -13,7 +13,7 @@ defmodule PublicWeb.Site do
     router: PublicWeb.Router,
     statics: PublicWeb.static_paths()
 
-  import Ui.Components, only: [beta: 1, switches: 1, tag: 1]
+  import Ui.Components, only: [beta: 1, media_card: 1, switches: 1, tag: 1]
 
   alias Public.{Geo, Tenant}
 
@@ -138,20 +138,40 @@ defmodule PublicWeb.Site do
   # ---------------------------------------------------------------
 
   attr :post, :map, required: true
+  attr :featured, :boolean, default: false, doc: "the lead story at the head of the list"
 
+  @doc "A post as a card: its cover with the rubric, the title, an excerpt, the date and reading time."
   def news_card(assigns) do
     ~H"""
-    <article class="card ua-news">
-      <.cover post={@post}>
-        <.tag kind="cover">{rubric_label(@post.rubric)}</.tag>
-      </.cover>
-      <div class="pad">
-        <h3><a href={~p"/news/#{@post.slug}"}>{@post.title}</a></h3>
-        <div class="ua-meta">
-          {long_date(@post.published_at)}, {gettext("%{n} min read", n: read_minutes(@post.body))}
-        </div>
-      </div>
-    </article>
+    <.media_card
+      href={~p"/news/#{@post.slug}"}
+      title={@post.title}
+      text={excerpt(@post)}
+      featured={@featured}
+      class="ua-news"
+    >
+      <:media>
+        <.cover post={@post}>
+          <.tag kind="cover">{rubric_label(@post.rubric)}</.tag>
+        </.cover>
+      </:media>
+      <:meta><.news_meta post={@post} /></:meta>
+    </.media_card>
+    """
+  end
+
+  attr :post, :map, required: true
+
+  @doc "A post's date and reading time."
+  def news_meta(assigns) do
+    ~H"""
+    <span class="ua-newsmeta">
+      <time :if={@post.published_at} datetime={DateTime.to_iso8601(@post.published_at)}>
+        {long_date(@post.published_at)}
+      </time>
+      <span :if={@post.published_at} class="ua-sep" aria-hidden="true"></span>
+      <span>{reading_time(@post.body)}</span>
+    </span>
     """
   end
 
@@ -471,7 +491,44 @@ defmodule PublicWeb.Site do
     )
   end
 
-  def read_minutes(body), do: max(1, div(length(String.split(body || "")), 200))
+  @words_per_minute 200
+
+  @doc "Minutes to read a body at #{@words_per_minute} words a minute, rounded up; at least one."
+  def read_minutes(body) do
+    words = length(String.split(body || ""))
+    max(1, div(words + @words_per_minute - 1, @words_per_minute))
+  end
+
+  def reading_time(body) do
+    n = read_minutes(body)
+    ngettext("%{count} min read", "%{count} min read", n)
+  end
+
+  @doc """
+  A post's excerpt for its card: its summary, else the start of its
+  body as plain text (no Markdown marks, cut at a word).
+  """
+  def excerpt(%{summary: summary}) when is_binary(summary) and summary != "", do: summary
+
+  def excerpt(%{body: body}) do
+    (body || "")
+    |> String.split(~r/\n\s*\n/, trim: true)
+    |> Enum.reject(&String.match?(&1, ~r/^\s*(#|>|```|-{3,}|!\[|[-*+]\s|\d+\.\s)/))
+    |> List.first("")
+    |> String.replace(~r/!?\[([^\]]*)\]\([^)]*\)/, "\\1")
+    |> String.replace(~r/[*_`#>]+/, "")
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
+    |> cut(220)
+  end
+
+  defp cut(text, max) do
+    if String.length(text) <= max do
+      text
+    else
+      text |> String.slice(0, max) |> String.replace(~r/\s+\S*$/, "") |> Kernel.<>("...")
+    end
+  end
 
   def display_name(user), do: user.name || user.username
 

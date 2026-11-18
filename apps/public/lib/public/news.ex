@@ -12,6 +12,21 @@ defmodule Public.News do
     |> Repo.all()
   end
 
+  @doc "The rubrics that have published posts."
+  def published_rubrics do
+    Repo.all(from p in Post, where: not is_nil(p.published_at), distinct: true, select: p.rubric)
+  end
+
+  @doc "Up to `n` other published posts to read next: the post's rubric first, then the latest."
+  def related(%Post{} = post, n \\ 3) do
+    Repo.all(
+      from p in Post,
+        where: not is_nil(p.published_at) and p.id != ^post.id,
+        order_by: [desc: p.rubric == ^post.rubric, desc: p.published_at, desc: p.id],
+        limit: ^n
+    )
+  end
+
   def list_all(tag \\ nil) do
     from(p in Post,
       order_by: [desc_nulls_first: p.published_at, desc: p.updated_at],

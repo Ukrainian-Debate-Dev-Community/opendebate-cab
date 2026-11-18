@@ -2,7 +2,8 @@ defmodule PublicWeb.NewsImagesTest do
   @moduledoc """
   News cover images: taken by their first bytes, up to 3 MB, stored
   under a random name and served from /uploads; a replaced or removed
-  file leaves the disk. Without one, the gradient stays.
+  file leaves the disk. Without one, a card keeps its gradient and the
+  article shows no cover.
   """
   use PublicWeb.ConnCase
 
@@ -83,7 +84,8 @@ defmodule PublicWeb.NewsImagesTest do
 
     html = conn |> get(~p"/news/season-opens") |> html_response(200)
     refute html =~ "/uploads/"
-    assert html =~ ~r/class="ua-cover c[123] ua-cover--wide"/
+    # the article shows no cover without an image (cards keep a gradient)
+    refute html =~ "ua-article-cover"
   end
 
   test "without an image the card keeps its gradient", %{conn: conn} do

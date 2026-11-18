@@ -426,6 +426,42 @@ defmodule Ui.Components do
     """
   end
 
+  @doc """
+  A card that leads with a picture: the media on top (beside the text
+  when `featured`, on wide screens), a title linking to `href` over the
+  whole card, an optional excerpt (`text`, clamped to a few lines) and
+  a meta line. The app brings the media (an image, a cover).
+
+      <.media_card href="/news/x" title="Season opens" text="The first club night.">
+        <:media><img src="/x.png" alt="" /></:media>
+        <:meta>9 October 2026</:meta>
+      </.media_card>
+  """
+  attr :href, :string, required: true
+  attr :title, :string, required: true
+  attr :text, :string, default: nil, doc: "the excerpt under the title"
+  attr :featured, :boolean, default: false, doc: "the larger story at the head of a list"
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :media, required: true
+  slot :meta
+
+  def media_card(assigns) do
+    ~H"""
+    <article class={card_class(["mcard", @featured && "mcard--featured" | List.wrap(@class)])} {@rest}>
+      <div class="mcard-media">{render_slot(@media)}</div>
+      <div class="mcard-body">
+        <h2 :if={@featured} class="mcard-title"><a href={@href}>{@title}</a></h2>
+        <h3 :if={!@featured} class="mcard-title"><a href={@href}>{@title}</a></h3>
+        <p :if={@text not in [nil, ""]} class="mcard-text">{@text}</p>
+        <div :if={@meta != []} class="mcard-meta">{render_slot(@meta)}</div>
+      </div>
+    </article>
+    """
+  end
+
+  defp card_class(parts), do: parts |> Enum.filter(& &1) |> Enum.join(" ")
+
   @doc "The one muted line where a list has nothing (yet), in a card of its own."
   attr :id, :string, default: nil
   slot :inner_block, required: true
