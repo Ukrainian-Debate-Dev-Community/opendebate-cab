@@ -171,14 +171,12 @@ a { color:var(--brand); }
 .ua-body blockquote > * + * { margin-top:.6em; }
 .ua-body img { display:block; max-width:100%; height:auto; border-radius:var(--r-md); }
 /* a gallery: its images as one collage, cropped to one rhythm, as wide
-   as a cover; the layout follows the number of images - 2 side by
+   as the text; the layout follows the number of images - 2 side by
    side, 3 one large and two stacked, 4 two by two, 5 and more the
    first large and the rest in threes, the last row filled; on phones
    two a row, the first across when the number is odd. The caption
    under it, muted. Single images keep their own shape. */
-.ua-body figure.gallery { --gallery-w:min(var(--w-media), 100vw - 2 * var(--sp-7));
-                          display:grid; grid-template-columns:repeat(6, 1fr); gap:6px;
-                          width:var(--gallery-w); margin:2em 0 2em calc(50% - var(--gallery-w) / 2); }
+.ua-body figure.gallery { display:grid; grid-template-columns:repeat(6, 1fr); gap:6px; margin:2em 0; }
 .ua-body figure.gallery img { width:100%; height:auto; object-fit:cover; border-radius:var(--r-xs);
                               background:var(--surface-2); }
 .ua-body figure.gallery figcaption { grid-column:1 / -1; margin-top:var(--sp-1); font-size:var(--fs-sm); line-height:1.5;
