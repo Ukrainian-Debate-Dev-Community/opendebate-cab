@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+<!-- rows of seats facing a board: the cover of a news post without an image -->
+<defs>
+<linearGradient id="bg" x1=".6" y1="0" x2=".4" y2="1">
+<stop offset="0" stop-color="#eaf5f0"/><stop offset=".6" stop-color="#6cc6a6"/><stop offset="1" stop-color="#1e5c48"/></linearGradient>
+</defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<path d="M80 470a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.55"/>
+<path d="M265 470a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.7"/>
+<path d="M450 470a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#d99a2b" fill-opacity="0.85"/>
+<path d="M635 470a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.55"/>
+<path d="M820 470a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.7"/>
+<path d="M1005 470a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.85"/>
+<path d="M1190 470a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.55"/>
+<path d="M1375 470a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#d99a2b" fill-opacity="0.7"/>
+<path d="M80 620a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.85"/>
+<path d="M265 620a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.55"/>
+<path d="M450 620a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.7"/>
+<path d="M635 620a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.85"/>
+<path d="M820 620a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#d99a2b" fill-opacity="0.55"/>
+<path d="M1005 620a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.7"/>
+<path d="M1190 620a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.85"/>
+<path d="M1375 620a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.55"/>
+<path d="M80 770a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.7"/>
+<path d="M265 770a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#d99a2b" fill-opacity="0.85"/>
+<path d="M450 770a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.55"/>
+<path d="M635 770a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.7"/>
+<path d="M820 770a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.85"/>
+<path d="M1005 770a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.55"/>
+<path d="M1190 770a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#d99a2b" fill-opacity="0.7"/>
+<path d="M1375 770a50 50 0 0 1 50-50h45a50 50 0 0 1 50 50v46a14 14 0 0 1-14 14h-117a14 14 0 0 1-14-14z" fill="#1f6a53" fill-opacity="0.85"/>
+<rect x="640" y="90" width="320" height="200" rx="24" fill="#fff" fill-opacity=".87"/>
+<rect x="690" y="150" width="220" height="16" rx="8" fill="#2e8b6e"/>
+<rect x="690" y="190" width="160" height="16" rx="8" fill="#9fe0c8"/>
+</svg>

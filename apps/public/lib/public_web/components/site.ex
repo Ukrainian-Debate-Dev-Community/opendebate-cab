@@ -179,17 +179,21 @@ defmodule PublicWeb.Site do
   attr :class, :string, default: nil
   slot :inner_block
 
-  @doc "A post's cover: its image when it has one, else one of three gradients."
+  @drawings ~w(stage.svg podium.svg seats.svg)
+
+  @doc "A post's cover: its image when it has one, else one of three drawings, the same for a post every time."
   def cover(assigns) do
+    assigns = assign(assigns, :drawing, Enum.at(@drawings, rem(assigns.post.id, 3)))
+
     ~H"""
-    <div
-      :if={@post.image}
-      class={["ua-cover", "ua-cover--img", @class]}
-    >
-      <img src={Public.Uploads.url(@post.image)} alt={@post.image_alt || ""} loading="lazy" />
-      {render_slot(@inner_block)}
-    </div>
-    <div :if={!@post.image} class={["ua-cover", "c#{rem(@post.id, 3) + 1}", @class]}>
+    <div class={["ua-cover", @class]}>
+      <img
+        :if={@post.image}
+        src={Public.Uploads.url(@post.image)}
+        alt={@post.image_alt || ""}
+        loading="lazy"
+      />
+      <img :if={!@post.image} src={~p"/images/covers/#{@drawing}"} alt="" loading="lazy" />
       {render_slot(@inner_block)}
     </div>
     """

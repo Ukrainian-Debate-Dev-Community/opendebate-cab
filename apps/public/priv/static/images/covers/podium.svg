@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+<!-- a podium with a trophy: the cover of a news post without an image -->
+<defs>
+<linearGradient id="bg" x1=".4" y1="0" x2=".6" y2="1">
+<stop offset="0" stop-color="#1e3a5f"/><stop offset=".55" stop-color="#3e6fa3"/><stop offset="1" stop-color="#9cc0f0"/></linearGradient>
+</defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<circle cx="195" cy="145" r="45" fill="#fff" fill-opacity=".2"/>
+<circle cx="1370" cy="230" r="70" fill="#fff" fill-opacity=".13"/>
+<rect x="300" y="520" width="300" height="380" fill="#d9e6f5"/>
+<rect x="650" y="420" width="300" height="480" fill="#f2f6fb"/>
+<rect x="1000" y="600" width="300" height="300" fill="#c0d4ea"/>
+<path d="M740 220h120v70a60 60 0 0 1-60 60a60 60 0 0 1-60-60z" fill="#e3b262"/>
+<rect x="785" y="345" width="30" height="50" fill="#e3b262"/>
+<rect x="750" y="390" width="100" height="22" rx="4" fill="#c98d22"/>
+</svg>

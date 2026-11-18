@@ -586,7 +586,7 @@ msgstr ""
 
 #: lib/public_web/controllers/manage/html/news_form.html.heex
 #, elixir-autogen, elixir-format
-msgid "JPEG, PNG or WebP, up to %{mb} MB. Without an image the card shows a gradient."
+msgid "JPEG, PNG or WebP, up to %{mb} MB. Without an image the card shows a drawing."
 msgstr ""
 
 #: lib/public_web/components/site.ex

@@ -18,7 +18,7 @@ defmodule Public.News.Post do
     # cab account ids, read downward; never a foreign key into cab
     field :author_user_id, :integer
     field :editor_user_id, :integer
-    # a file name in Public.Uploads; nil shows the gradient
+    # a file name in Public.Uploads; nil shows a drawing
     field :image, :string
     field :image_alt, :string
     # private labels, loaded only under /manage

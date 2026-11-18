@@ -99,26 +99,10 @@ a { color:var(--brand); }
    news: covers, the list (a lead story, then a grid of cards) and
    the article
    ================================================================ */
-/* a cover: the post's picture, or a gradient with soft rings */
+/* a cover: the post's picture, or one of three drawings */
 .ua-cover { position:relative; overflow:hidden; display:flex; align-items:flex-end; padding:var(--sp-3);
-            background:linear-gradient(135deg, color-mix(in srgb, var(--brand) 78%, var(--surface)),
-                                               color-mix(in srgb, var(--brand) 22%, var(--surface))); }
-.ua-cover.c2 { background:linear-gradient(150deg, color-mix(in srgb, var(--brand) 55%, var(--surface)),
-                                                 color-mix(in srgb, var(--co) 40%, var(--surface))); }
-.ua-cover.c3 { background:linear-gradient(120deg, color-mix(in srgb, var(--brand) 18%, var(--surface)),
-                                                 color-mix(in srgb, var(--brand) 66%, var(--surface))); }
-.ua-cover:not(.ua-cover--img)::before,
-.ua-cover:not(.ua-cover--img)::after { content:""; position:absolute; border-radius:50%; pointer-events:none; }
-.ua-cover:not(.ua-cover--img)::before { width:58%; aspect-ratio:1; right:-12%; top:-34%;
-                                        background:color-mix(in srgb, var(--surface) 24%, transparent); }
-.ua-cover:not(.ua-cover--img)::after { width:30%; aspect-ratio:1; left:18%; bottom:-20%;
-                                       border:2px solid color-mix(in srgb, var(--surface) 45%, transparent); }
-.ua-cover.c2::before { right:auto; left:-14%; top:-40%; }
-.ua-cover.c2::after { left:auto; right:14%; bottom:-24%; }
-.ua-cover.c3::before { right:20%; top:auto; bottom:-48%; }
-.ua-cover.c3::after { left:auto; right:-6%; top:-18%; bottom:auto; }
-.ua-cover--img { background:var(--surface-2); }
-.ua-cover--img img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+            background:var(--surface-2); }
+.ua-cover > img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .ua-cover > :not(img) { position:relative; z-index:1; }
 .ua-cover .tag.cover { box-shadow:0 1px 2px color-mix(in srgb, var(--ink) 18%, transparent); }
 

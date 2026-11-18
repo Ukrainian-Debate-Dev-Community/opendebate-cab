@@ -2,8 +2,8 @@ defmodule PublicWeb.NewsImagesTest do
   @moduledoc """
   News cover images: taken by their first bytes, up to 3 MB, stored
   under a random name and served from /uploads; a replaced or removed
-  file leaves the disk. Without one, a card keeps its gradient and the
-  article shows no cover.
+  file leaves the disk. Without one, a card shows one of three drawings
+  and the article shows no cover.
   """
   use PublicWeb.ConnCase
 
@@ -84,17 +84,21 @@ defmodule PublicWeb.NewsImagesTest do
 
     html = conn |> get(~p"/news/season-opens") |> html_response(200)
     refute html =~ "/uploads/"
-    # the article shows no cover without an image (cards keep a gradient)
+    # the article shows no cover without an image (cards keep a drawing)
     refute html =~ "ua-article-cover"
   end
 
-  test "without an image the card keeps its gradient", %{conn: conn} do
+  test "without an image the card shows a drawing, the same one every time", %{conn: conn} do
     {:ok, post} = News.create(%{"title" => "Plain"}, 1)
     {:ok, _} = News.publish(post, 1)
+    drawing = Enum.at(~w(stage podium seats), rem(post.id, 3))
 
     html = conn |> get(~p"/news") |> html_response(200)
-    assert html =~ ~r/class="ua-cover c[123]"/
-    refute html =~ "ua-cover--img"
+    assert html =~ ~r{src="/images/covers/#{drawing}\.svg[^"]*" alt=""}
+    refute html =~ "/uploads/"
+
+    resp = get(conn, "/images/covers/#{drawing}.svg")
+    assert response(resp, 200) =~ "<svg"
   end
 
   test "anything but JPEG, PNG or WebP, or over 3 MB, is refused", %{conn: conn} do
