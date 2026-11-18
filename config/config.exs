@@ -97,7 +97,7 @@ config :esbuild,
   ],
   public: [
     args:
-      ~w(js/site.js contact-fields=../../ui/assets/js/contact_fields_page.js rich-editor=../../ui/assets/js/rich_editor_page.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/*),
+      ~w(js/site.js contact-fields=../../ui/assets/js/contact_fields_page.js rich-editor=../../ui/assets/js/rich_editor_page.js photo-viewer=../../ui/assets/js/photo_viewer_page.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/*),
     cd: Path.expand("../apps/public/assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]

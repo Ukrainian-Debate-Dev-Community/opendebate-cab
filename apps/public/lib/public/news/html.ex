@@ -3,12 +3,19 @@ defmodule Public.News.Html do
   A news body is HTML, written in the manage editor and kept safe here:
   `sanitize/1` keeps only paragraphs, line breaks, h2/h3 (other levels
   become one of them), bold, italic,
-  strike, links, lists, quotes, rules and this site's own uploaded
-  images, and drops every other tag and attribute (no style, class,
-  on* handlers, scripts or frames). Links go only to http, https,
-  mailto or a path on this site; links that leave the site open in a
-  new tab with rel="noopener nofollow ugc". Images come only from
-  /uploads/.
+  strike, links, lists, quotes, rules, this site's own uploaded
+  images and galleries of them, and drops every other tag and attribute
+  (no style, class, on* handlers, scripts or frames). Links go only to
+  http, https, mailto or a path on this site; links that leave the site
+  open in a new tab with rel="noopener nofollow ugc". Images come only
+  from /uploads/.
+
+  A gallery is `<figure class="gallery">` holding only images and at
+  most one `<figcaption>` (text with inline formatting) at its end; the
+  figure keeps no other class or attribute. Anything else inside it is
+  dropped; a figure that is no gallery gives up its frame (its images
+  stay, its caption becomes a paragraph), and so does a caption outside
+  a figure.
 
   `text/1` and `paragraphs/1` read a body as plain text (reading time,
   card excerpts); `from_markdown/1` converts the Markdown bodies posts
@@ -62,6 +69,18 @@ defmodule Public.News.Html do
       end
     end
 
+    def scrub({"figure", attributes, children}) do
+      class = with {"class", class} <- List.keyfind(attributes, "class", 0), do: class
+
+      if is_binary(class) and "gallery" in String.split(class) do
+        gallery(children)
+      else
+        Enum.map(children, &unframe/1)
+      end
+    end
+
+    def scrub({"figcaption", _attributes, children}), do: {"figcaption", [], inline(children)}
+
     allow_tag_with_these_attributes("p", [])
     allow_tag_with_these_attributes("br", [])
     allow_tag_with_these_attributes("h2", [])
@@ -76,6 +95,54 @@ defmodule Public.News.Html do
     allow_tag_with_these_attributes("li", [])
     allow_tag_with_these_attributes("blockquote", [])
     allow_tag_with_these_attributes("hr", [])
+
+    # a gallery's images in order and its first caption, if it has text;
+    # no images, no gallery
+    defp gallery(children) do
+      images = for {"img", _, _} = image <- children, do: image
+
+      caption =
+        Enum.find(children, &match?({"figcaption", _, _}, &1))
+        |> case do
+          {"figcaption", _, inner} = caption -> if blank?(inner), do: [], else: [caption]
+          nil -> []
+        end
+
+      if images == [], do: "", else: {"figure", [{"class", "gallery"}], images ++ caption}
+    end
+
+    defp unframe({"figcaption", _, inner}), do: {"p", [], inner}
+    defp unframe(node), do: node
+
+    # a caption's content: text, bold, italic, strike, links and line
+    # breaks; other tags give up their frame, images go
+    @inline ~w(strong b em i s a br)
+
+    defp inline(nodes) when is_list(nodes), do: nodes |> Enum.map(&inline/1) |> List.flatten()
+    defp inline({"img", _, _}), do: []
+
+    defp inline({tag, attributes, children}) when tag in @inline,
+      do: {tag, attributes, inline(children)}
+
+    defp inline({_tag, _attributes, children}), do: inline(children)
+    defp inline(text) when is_binary(text), do: text
+    defp inline(_other), do: []
+
+    defp blank?(nodes) do
+      nodes
+      |> List.flatten()
+      |> Enum.all?(&(is_binary(&1) and String.trim(String.replace(&1, placeholders(), "")) == ""))
+    end
+
+    # what HtmlSanitizeEx's parser puts in for whitespace between tags
+    defp placeholders do
+      [
+        HtmlSanitizeEx.Parser.replacement_for_linebreak(),
+        HtmlSanitizeEx.Parser.replacement_for_space(),
+        HtmlSanitizeEx.Parser.replacement_for_tab()
+      ]
+      |> Enum.map(&List.to_string/1)
+    end
 
     # http(s) and mailto by their scheme, else a path on this site
     # ("/..." but not "//host"); anything else (javascript:, data:, a
@@ -97,15 +164,36 @@ defmodule Public.News.Html do
   @doc "The body with only the allowed markup left (see the moduledoc)."
   def sanitize(nil), do: ""
 
+  def sanitize(""), do: ""
+
   def sanitize(html) when is_binary(html) do
     html
-    |> Scrubber.sanitize()
+    |> Scrubber.before_scrub()
+    |> HtmlSanitizeEx.Parser.parse()
+    |> HtmlSanitizeEx.Traverser.traverse(Scrubber)
+    |> captions(nil)
+    |> HtmlSanitizeEx.Parser.to_html()
     |> String.replace(~r{(\s*<p>\s*</p>)+\s*\z}, "")
     |> String.trim()
   end
 
+  # a caption stays only right inside a figure (a gallery, by then);
+  # elsewhere it becomes a paragraph
+  defp captions(nodes, parent) when is_list(nodes), do: Enum.map(nodes, &captions(&1, parent))
+
+  defp captions({"figcaption", _attributes, children}, parent) when parent != "figure",
+    do: {"p", [], captions(children, "p")}
+
+  defp captions({tag, attributes, children}, _parent),
+    do: {tag, attributes, captions(children, tag)}
+
+  defp captions(other, _parent), do: other
+
   @doc "A Markdown body (before the editor) as sanitised HTML, rendered as the article did."
   def from_markdown(markdown), do: markdown |> Kernel.||("") |> MDEx.to_html!() |> sanitize()
+
+  @doc "Whether the (sanitised) body shows any image."
+  def images?(html), do: is_binary(html) and String.contains?(html, "<img ")
 
   @doc "The body's text, its blocks apart by blank lines, tags dropped, entities read."
   def text(html), do: html |> paragraphs() |> Enum.join("\n\n")
@@ -116,7 +204,7 @@ defmodule Public.News.Html do
   def paragraphs(html) do
     html
     |> String.replace(~r{<br\s*/?>}i, " ")
-    |> String.split(~r{</?(p|h[1-6]|li|blockquote|ul|ol|hr|img)\b[^>]*>}i)
+    |> String.split(~r{</?(p|h[1-6]|li|blockquote|ul|ol|hr|img|figure|figcaption)\b[^>]*>}i)
     |> Enum.map(&plain/1)
     |> Enum.reject(&(&1 == ""))
   end

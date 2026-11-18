@@ -434,14 +434,16 @@ defmodule Ui.Form do
 
   @doc """
   A rich text field (a form block of type `:rich`): a toolbar (headings
-  2 and 3, bold, italic, lists, quote, link, image, divider, undo,
-  redo) over an editable area, the HTML going out in the textarea named
+  2 and 3, bold, italic, lists, quote, link, image, gallery, divider,
+  undo, redo) over an editable area, the HTML going out in the textarea named
   `name`. ui.js loads the editor (rich_editor_page.js, TipTap) when the
   page names its bundle in `<meta name="rich-editor-src">`; without
   JavaScript the textarea shows the HTML itself. Images go to `upload`
   (a POST of the file as `image` with the CSRF token, answering JSON
-  `{"url": ...}` or `{"error": ...}`); without it there is no Image
-  button. The server must sanitise what arrives: the editor only helps.
+  `{"url": ...}` or `{"error": ...}`); without it there are no Image
+  and Gallery buttons. A gallery (several images picked at once, with
+  their descriptions and a caption) goes out as
+  `<figure class="gallery"><img ...>...<figcaption>...</figcaption></figure>`. The server must sanitise what arrives: the editor only helps.
   """
   attr :name, :string, required: true
   attr :value, :string, default: nil
@@ -467,6 +469,7 @@ defmodule Ui.Form do
       data-upload={@upload}
       data-placeholder={@placeholder}
       data-msg-uploading={gettext("Uploading the image...")}
+      data-msg-uploading-many={gettext("Uploading the images...")}
       data-msg-upload-failed={gettext("The image could not be uploaded.")}
       phx-update="ignore"
     >
@@ -518,6 +521,35 @@ defmodule Ui.Form do
           </button>
           <button type="button" class="btn-link" data-act="close">{gettext("Close")}</button>
         </div>
+        <div :if={@upload} class="rich-pop rich-pop--gallery" data-pop="gallery" hidden>
+          <ul class="rich-photos" data-gallery-list></ul>
+          <input
+            type="text"
+            maxlength="300"
+            placeholder={gettext("A caption under the images (optional)")}
+            aria-label={gettext("Gallery caption")}
+            data-caption
+          />
+          <button type="button" class="btn-quiet btn-sm" data-act="gallery-add">
+            {gettext("Add images")}
+          </button>
+          <button type="button" class="btn-link" data-act="close">{gettext("Close")}</button>
+          <template data-gallery-row>
+            <li class="rich-photo">
+              <img src="" alt="" />
+              <input
+                type="text"
+                maxlength="200"
+                placeholder={gettext("What the image shows")}
+                aria-label={gettext("Image description")}
+                data-photo-alt
+              />
+              <button type="button" class="btn-link" data-act="photo-remove">
+                {gettext("Remove")}
+              </button>
+            </li>
+          </template>
+        </div>
         <input
           :if={@upload}
           type="file"
@@ -525,6 +557,15 @@ defmodule Ui.Form do
           hidden
           data-file
           aria-label={gettext("Image")}
+        />
+        <input
+          :if={@upload}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          hidden
+          data-files
+          aria-label={gettext("Gallery")}
         />
         <div class="rich-status" role="status" aria-live="polite"></div>
       </div>
@@ -543,7 +584,7 @@ defmodule Ui.Form do
         {"quote", gettext("Quote")}
       ],
       [{"link", gettext("Link")}] ++
-        if(upload, do: [{"image", gettext("Image")}], else: []) ++
+        if(upload, do: [{"image", gettext("Image")}, {"gallery", gettext("Gallery")}], else: []) ++
         [{"rule", gettext("Divider")}],
       [{"undo", gettext("Undo")}, {"redo", gettext("Redo")}]
     ]
@@ -580,6 +621,8 @@ defmodule Ui.Form do
           <path d="M8.5 11.5a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2l-1 1M11.5 8.5a3 3 0 0 0-4.2 0l-2.6 2.6a3 3 0 0 0 4.2 4.2l1-1" />
         <% "image" -> %>
           <rect x="2.5" y="4" width="15" height="12" rx="2" /><circle cx="7" cy="8.2" r="1.4" /><path d="M3 14.5l4.5-4 3.5 3 2.5-2 4 3.5" />
+        <% "gallery" -> %>
+          <rect x="2.5" y="5.5" width="11" height="11" rx="1.5" /><path d="M6.5 3h9a2 2 0 0 1 2 2v9" /><path d="M3 14l3-2.6 2.5 2 2-1.4 2.5 2.2" />
         <% "rule" -> %>
           <path d="M3 10h14" />
         <% "undo" -> %>

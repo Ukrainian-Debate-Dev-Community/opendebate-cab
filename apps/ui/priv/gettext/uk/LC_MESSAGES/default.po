@@ -11,10 +11,20 @@ msgstr ""
 "Language: uk\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100 != 11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "A caption under the images (optional)"
+msgstr "Підпис під зображеннями (необов'язково)"
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Add a field"
 msgstr "Додати поле"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Add images"
+msgstr "Додати зображення"
 
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
@@ -51,6 +61,7 @@ msgstr "Маркований список"
 msgid "Cancel"
 msgstr "Скасувати"
 
+#: lib/ui/components.ex
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
 msgid "Close"
@@ -95,6 +106,16 @@ msgstr "Поле"
 #, elixir-autogen, elixir-format
 msgid "Formatting"
 msgstr "Форматування"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Gallery"
+msgstr "Галерея"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Gallery caption"
+msgstr "Підпис галереї"
 
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
@@ -156,6 +177,11 @@ msgstr "Адреса посилання"
 msgid "More options"
 msgstr "Інші варіанти"
 
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Next"
+msgstr "Наступне"
+
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
 msgid "No"
@@ -176,6 +202,11 @@ msgstr "Тут поки нічого немає."
 msgid "Numbered list"
 msgstr "Нумерований список"
 
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Open full screen"
+msgstr "Відкрити на весь екран"
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Optional: a line under the question."
@@ -191,6 +222,11 @@ msgstr "Варіанти"
 msgid "Paste or type the address"
 msgstr "Вставте або введіть адресу"
 
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Previous"
+msgstr "Попереднє"
+
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
 msgid "Quote"
@@ -200,6 +236,11 @@ msgstr "Цитата"
 #, elixir-autogen, elixir-format
 msgid "Redo"
 msgstr "Повторити"
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Remove"
+msgstr "Прибрати"
 
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
@@ -220,6 +261,11 @@ msgstr "Лише для одного й кількох варіантів: по 
 #, elixir-autogen, elixir-format
 msgid "Telegram username"
 msgstr "ім'я користувача в Telegram"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "The image could not be loaded."
+msgstr "Не вдалося показати зображення."
 
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
@@ -268,6 +314,11 @@ msgstr "Завантажуємо зображення..."
 
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
+msgid "Uploading the images..."
+msgstr "Завантажуємо зображення..."
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
 msgid "What the image shows"
 msgstr "Що на зображенні"
 
@@ -280,6 +331,11 @@ msgstr "Так"
 #, elixir-autogen, elixir-format
 msgid "Your e-mail"
 msgstr "Ваш e-mail"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Zoom"
+msgstr "Збільшити"
 
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
@@ -330,6 +386,11 @@ msgstr "ні"
 #, elixir-autogen, elixir-format
 msgid "number"
 msgstr "число"
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "of"
+msgstr "з"
 
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format

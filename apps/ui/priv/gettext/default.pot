@@ -11,9 +11,19 @@
 msgid ""
 msgstr ""
 
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "A caption under the images (optional)"
+msgstr ""
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Add a field"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Add images"
 msgstr ""
 
 #: lib/ui/form_components.ex
@@ -51,6 +61,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
+#: lib/ui/components.ex
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
 msgid "Close"
@@ -94,6 +105,16 @@ msgstr ""
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
 msgid "Formatting"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Gallery"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Gallery caption"
 msgstr ""
 
 #: lib/ui/form_components.ex
@@ -156,6 +177,11 @@ msgstr ""
 msgid "More options"
 msgstr ""
 
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Next"
+msgstr ""
+
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
 msgid "No"
@@ -176,6 +202,11 @@ msgstr ""
 msgid "Numbered list"
 msgstr ""
 
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Open full screen"
+msgstr ""
+
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Optional: a line under the question."
@@ -191,6 +222,11 @@ msgstr ""
 msgid "Paste or type the address"
 msgstr ""
 
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Previous"
+msgstr ""
+
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
 msgid "Quote"
@@ -199,6 +235,11 @@ msgstr ""
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
 msgid "Redo"
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
+msgid "Remove"
 msgstr ""
 
 #: lib/ui/form.ex
@@ -219,6 +260,11 @@ msgstr ""
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Telegram username"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "The image could not be loaded."
 msgstr ""
 
 #: lib/ui/form.ex
@@ -268,6 +314,11 @@ msgstr ""
 
 #: lib/ui/form.ex
 #, elixir-autogen, elixir-format
+msgid "Uploading the images..."
+msgstr ""
+
+#: lib/ui/form.ex
+#, elixir-autogen, elixir-format
 msgid "What the image shows"
 msgstr ""
 
@@ -279,6 +330,11 @@ msgstr ""
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "Your e-mail"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "Zoom"
 msgstr ""
 
 #: lib/ui/form_components.ex
@@ -329,6 +385,11 @@ msgstr ""
 #: lib/ui/form_components.ex
 #, elixir-autogen, elixir-format
 msgid "number"
+msgstr ""
+
+#: lib/ui/components.ex
+#, elixir-autogen, elixir-format
+msgid "of"
 msgstr ""
 
 #: lib/ui/form_components.ex
