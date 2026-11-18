@@ -133,4 +133,87 @@ defmodule Public.News.HtmlTest do
     assert Html.first_paragraph("<h2>Only a heading</h2>") == ""
     assert Html.text(nil) == ""
   end
+
+  describe "galleries" do
+    test "a gallery from the editor is kept as it is" do
+      html =
+        ~s(<figure class="gallery"><img src="/uploads/a1.jpg" alt="One" />) <>
+          ~s(<img src="/uploads/b2.png" alt="" /><figcaption>The <em>final</em>, <a href="/news">more</a></figcaption></figure>)
+
+      assert Html.sanitize(html) == html
+
+      assert Html.sanitize(~s(<figure class="gallery"><img src="/uploads/a1.webp"></figure>)) ==
+               ~s(<figure class="gallery"><img src="/uploads/a1.webp" alt="" /></figure>)
+    end
+
+    test "the figure keeps only class gallery; other classes and attributes go" do
+      assert Html.sanitize(
+               ~s|<figure class="wide gallery big" id="g" style="color:red" onclick="x()" data-x="1">| <>
+                 ~s(<img src="/uploads/a1.jpg" alt="A"></figure>)
+             ) == ~s(<figure class="gallery"><img src="/uploads/a1.jpg" alt="A" /></figure>)
+    end
+
+    test "a figure that is no gallery loses its frame; its caption becomes a paragraph" do
+      assert Html.sanitize(
+               ~s(<figure class="other"><img src="/uploads/a1.jpg" alt="A"><figcaption>Cap</figcaption></figure>)
+             ) == ~s(<img src="/uploads/a1.jpg" alt="A" /><p>Cap</p>)
+
+      assert Html.sanitize(
+               ~s(<p>x</p><figcaption>stray</figcaption><ul><li><figcaption>y</figcaption></li></ul>)
+             ) ==
+               "<p>x</p><p>stray</p><ul><li><p>y</p></li></ul>"
+    end
+
+    test "foreign images in a gallery are dropped; without images there is no gallery" do
+      assert Html.sanitize(
+               ~s(<figure class="gallery"><img src="https://evil.example/x.jpg" alt="X">) <>
+                 ~s(<img src="/uploads/a1.jpg" alt="A"><img src="/uploads/../x.jpg"></figure>)
+             ) == ~s(<figure class="gallery"><img src="/uploads/a1.jpg" alt="A" /></figure>)
+
+      assert Html.sanitize(
+               ~s(<figure class="gallery"><img src="data:image/png;base64,AAAA"><figcaption>Only</figcaption></figure><p>after</p>)
+             ) == "<p>after</p>"
+    end
+
+    test "nested junk in a gallery is stripped: only its direct images and one caption stay" do
+      html =
+        Html.sanitize(
+          ~s(<figure class="gallery">\n  <img src="/uploads/a1.jpg" alt="A">\n  <p>text<img src="/uploads/b2.jpg"></p>) <>
+            ~s(<figure class="gallery"><img src="/uploads/c3.jpg"></figure><div>d</div><ul><li>e</li></ul>) <>
+            ~s(<img src="/uploads/d4.jpg" alt="D"><figcaption>One</figcaption><figcaption>Two</figcaption></figure>)
+        )
+
+      assert html ==
+               ~s(<figure class="gallery"><img src="/uploads/a1.jpg" alt="A" /><img src="/uploads/d4.jpg" alt="D" />) <>
+                 ~s(<figcaption>One</figcaption></figure>)
+    end
+
+    test "a caption keeps inline formatting only; scripts, blocks and images in it go" do
+      html =
+        Html.sanitize(
+          ~s|<figure class="gallery"><img src="/uploads/a1.jpg" alt="A"><figcaption onclick="x()">| <>
+            ~s|<strong>Bold</strong> <script>alert(1)</script><h2>head</h2><img src="/uploads/b2.jpg">| <>
+            ~s|<a href="javascript:alert(1)">link</a></figcaption></figure>|
+        )
+
+      assert html ==
+               ~s(<figure class="gallery"><img src="/uploads/a1.jpg" alt="A" />) <>
+                 ~s(<figcaption><strong>Bold</strong> headlink</figcaption></figure>)
+
+      assert Html.sanitize(
+               ~s(<figure class="gallery"><img src="/uploads/a1.jpg"><figcaption> <script>x</script> </figcaption></figure>)
+             ) == ~s(<figure class="gallery"><img src="/uploads/a1.jpg" alt="" /></figure>)
+    end
+
+    test "a caption reads as text; images? sees galleries and single images" do
+      html =
+        ~s(<p>a</p><figure class="gallery"><img src="/uploads/a1.jpg" alt="" /><figcaption>cap</figcaption></figure>)
+
+      assert Html.paragraphs(html) == ["a", "cap"]
+      assert Html.images?(html)
+      assert Html.images?(~s(<img src="/uploads/a1.jpg" alt="" />))
+      refute Html.images?("<p>no images</p>")
+      refute Html.images?(nil)
+    end
+  end
 end

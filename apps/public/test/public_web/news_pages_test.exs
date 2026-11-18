@@ -149,6 +149,40 @@ defmodule PublicWeb.NewsPagesTest do
     refute more =~ "Season opens"
   end
 
+  test "an article with images names the photo viewer and marks its body; one without does not",
+       %{conn: conn} do
+    with_photos =
+      published(
+        %{
+          "title" => "Finals in photos",
+          "body" =>
+            "<p>Text.</p>" <>
+              ~s(<figure class="gallery"><img src="/uploads/a1.jpg" alt="One" />) <>
+              ~s(<img src="/uploads/b2.jpg" alt="Two" /><figcaption>The final</figcaption></figure>)
+        },
+        0
+      )
+
+    without = published(%{"title" => "Words only", "body" => para(20)}, 1)
+
+    html = conn |> get(~p"/news/#{with_photos.slug}") |> html_response(200)
+
+    assert html =~
+             ~r{<meta[^>]* name="photo-viewer-src" content="/assets/js/photo-viewer.js"[^>]* data-close="Close"}
+
+    assert html =~ ~s(data-of="of")
+    assert html =~ ~s(<div class="ua-body" data-photos>)
+
+    # the gallery as stored: the collage is the stylesheet's
+    assert html =~
+             ~s(<figure class="gallery"><img src="/uploads/a1.jpg" alt="One" />) <>
+               ~s(<img src="/uploads/b2.jpg" alt="Two" /><figcaption>The final</figcaption></figure>)
+
+    html = conn |> get(~p"/news/#{without.slug}") |> html_response(200)
+    refute html =~ "photo-viewer-src"
+    refute html =~ "data-photos"
+  end
+
   test "home shows the latest news as the same cards", %{conn: conn} do
     published(%{"title" => "Home story", "summary" => "On the home page."}, 1)
 
