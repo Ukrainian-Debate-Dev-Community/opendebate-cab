@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+<!-- a lectern under a spotlight: the cover of a news post without an image -->
+<defs>
+<radialGradient id="bg" gradientUnits="userSpaceOnUse" cx="800" cy="-90" r="1273">
+<stop offset="0" stop-color="#f6d38a"/><stop offset=".3" stop-color="#c9783a"/><stop offset=".75" stop-color="#3b1d2e"/></radialGradient>
+<linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#fff" stop-opacity=".4"/><stop offset=".9" stop-color="#fff" stop-opacity="0"/></linearGradient>
+</defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<polygon points="744,-100 856,-100 1080,900 520,900" fill="url(#beam)"/>
+<rect x="680" y="430" width="240" height="340" rx="10" fill="#2a1520"/>
+<rect x="650" y="400" width="300" height="50" rx="8" fill="#4a2632"/>
+<rect y="760" width="1600" height="140" fill="#1d0e16"/>
+<rect x="760" y="330" width="12" height="80" fill="#111" transform="rotate(-15 766 370)"/>
+</svg>

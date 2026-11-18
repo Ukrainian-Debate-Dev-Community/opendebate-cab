@@ -590,8 +590,8 @@ msgstr "Інтерв'ю"
 
 #: lib/public_web/controllers/manage/html/news_form.html.heex
 #, elixir-autogen, elixir-format
-msgid "JPEG, PNG or WebP, up to %{mb} MB. Without an image the card shows a gradient."
-msgstr "JPEG, PNG або WebP, до %{mb} МБ. Без зображення картка показує градієнт."
+msgid "JPEG, PNG or WebP, up to %{mb} MB. Without an image the card shows a drawing."
+msgstr "JPEG, PNG або WebP, до %{mb} МБ. Без зображення картка показує малюнок."
 
 #: lib/public_web/components/site.ex
 #, elixir-autogen, elixir-format
