@@ -213,4 +213,81 @@ defmodule Ui.FormTest do
     assert html =~ ~s(rows="7")
     assert html =~ ~s(class="mine">chips</span>)
   end
+
+  test "a :rich block: a toolbar over the HTML's textarea, an image button with an upload" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.form_for action="/news">
+        <:block
+          name="post[body]"
+          type={:rich}
+          label="Text"
+          rows={9}
+          value="<p>Hi &amp; bye</p>"
+          upload="/news/images"
+          placeholder="Write..."
+        />
+      </.form_for>
+      """)
+
+    assert html =~ ~s(id="rich-post-body")
+    assert html =~ ~s(data-rich)
+    assert html =~ ~s(phx-update="ignore")
+    assert html =~ ~s(data-upload="/news/images")
+    assert html =~ ~s(data-placeholder="Write...")
+    # the toolbar waits hidden for the editor; without it the textarea holds the HTML
+    assert html =~ ~r{class="rich-bar" role="toolbar" aria-label="Formatting" hidden}
+
+    assert html =~
+             ~r{<textarea class="rich-source" name="post\[body\]" rows="9" aria-label="Text">&lt;p&gt;Hi &amp;amp; bye&lt;/p&gt;</textarea>}
+
+    for {cmd, label} <- [
+          {"h2", "Heading 2"},
+          {"h3", "Heading 3"},
+          {"bold", "Bold"},
+          {"italic", "Italic"},
+          {"bullet", "Bullet list"},
+          {"ordered", "Numbered list"},
+          {"quote", "Quote"},
+          {"link", "Link"},
+          {"image", "Image"},
+          {"rule", "Divider"},
+          {"undo", "Undo"},
+          {"redo", "Redo"}
+        ] do
+      assert html =~
+               ~s(type="button" class="rich-tool" data-cmd="#{cmd}" title="#{label}" aria-label="#{label}"),
+             cmd
+    end
+
+    assert html =~ ~s(aria-label="Link address")
+    assert html =~ ~s(data-pop="image")
+    assert html =~ ~s(type="file" accept="image/jpeg,image/png,image/webp")
+  end
+
+  test "a :rich block without an upload has no image button; words follow the locale" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.rich name="body" />
+      """)
+
+    refute html =~ ~s(data-cmd="image")
+    refute html =~ ~s(data-pop="image")
+    refute html =~ ~s(type="file")
+    assert html =~ ~s(data-cmd="link")
+
+    uk =
+      Gettext.with_locale(Ui.Gettext, "uk", fn ->
+        rendered_to_string(~H"""
+        <.rich name="body" />
+        """)
+      end)
+
+    refute uk =~ ~s(aria-label="Bold")
+    refute uk =~ ~s(aria-label="Formatting")
+  end
 end

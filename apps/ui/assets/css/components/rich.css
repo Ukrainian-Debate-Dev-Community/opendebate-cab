@@ -1,0 +1,83 @@
+/* a :rich form block (Ui.Form.rich/1): a toolbar over an editable
+   area. Without JavaScript only its textarea shows (the HTML). The
+   toolbar stays in view while a long text scrolls, wraps on phones and
+   keeps 40px targets. */
+/* a card clips its content; the sticky toolbar needs it not to */
+.card:has(.rich.on) { overflow:visible; }
+.card:has(.rich.on) .f-head { border-radius:var(--r) var(--r) 0 0; }
+.card:has(.rich.on) .f-submit { border-radius:0 0 var(--r) var(--r); }
+.rich { position:relative; border:1px solid var(--line); border-radius:var(--r-sm); background:var(--surface); }
+.rich:not(.on) { border:none; background:none; }
+.rich.on:focus-within { border-color:var(--brand); }
+.f-block.err .rich.on { border-color:var(--warn); }
+.rich .rich-source { display:block; font-family:var(--font-mono); font-size:var(--fs-sm); }
+.rich .rich-source[hidden] { display:none; }
+
+/* the toolbar with the small fields and messages under it */
+.rich.on .rich-head { position:sticky; top:0; z-index:2; border-radius:var(--r-sm) var(--r-sm) 0 0;
+                      background:var(--surface); }
+.rich-bar { display:flex; flex-wrap:wrap; gap:2px 6px; padding:4px;
+            background:var(--surface-2); border-bottom:1px solid var(--line);
+            border-radius:var(--r-sm) var(--r-sm) 0 0; }
+.rich-bar[hidden] { display:none; }
+.rich-group { display:inline-flex; gap:2px; }
+.rich-group + .rich-group { padding-left:6px; border-left:1px solid var(--line); }
+.rich-tool { display:inline-flex; align-items:center; justify-content:center; min-width:40px; height:40px;
+             padding:0 8px; border:1px solid transparent; border-radius:var(--r-sm); background:none;
+             color:var(--ink); cursor:pointer; font:inherit; }
+.rich-tool:hover { border-color:var(--line); background:var(--surface); color:var(--brand); }
+.rich-tool:focus-visible { outline:var(--focus-ring); outline-offset:-2px; }
+.rich-tool[aria-pressed="true"] { background:var(--brand-50); color:var(--brand); border-color:var(--brand-50); }
+.rich-tool:disabled { opacity:.4; cursor:default; }
+.rich-tool:disabled:hover { border-color:transparent; background:none; color:var(--ink); }
+.rich-tool svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.6;
+                 stroke-linecap:round; stroke-linejoin:round; }
+.rich-tool svg circle[r="1.4"] { fill:currentColor; stroke:none; }
+.rich-glyph { font-size:var(--fs-sm); font-weight:780; letter-spacing:-.01em; line-height:1; }
+.rich-glyph--italic { font-family:Georgia, serif; font-style:italic; font-weight:700; font-size:1rem; }
+.rich-glyph--bold { font-size:.95rem; font-weight:850; }
+
+/* the link and image-description fields, under the toolbar */
+.rich-pop { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px;
+            padding:8px; background:var(--surface); border-bottom:1px solid var(--line); }
+.rich-pop[hidden] { display:none; }
+.form .rich-pop input { flex:1 1 14rem; width:auto; min-width:0; min-height:40px; }
+.rich-pop .btn-quiet, .rich-pop .btn-link { min-height:40px; }
+
+.rich-status:empty { display:none; }
+.rich-status { padding:6px 10px; font-size:var(--fs-xs); color:var(--muted); border-bottom:1px solid var(--line); }
+.rich-status.bad { color:var(--warn); font-weight:650; }
+
+/* the text being written: plain reading styles, close to an article */
+.rich-text { min-height:16rem; padding:12px 14px 18px; outline:none; font-size:1rem; line-height:1.65;
+             color:var(--ink); overflow-wrap:break-word; }
+.rich-text > * + * { margin-top:.8em; }
+.rich-text h2 { font-size:1.35em; line-height:1.25; font-weight:780; margin-top:1.3em; }
+.rich-text h3 { font-size:1.12em; line-height:1.3; font-weight:750; margin-top:1.1em; }
+.rich-text ul, .rich-text ol { padding-left:1.4em; }
+.rich-text ul { list-style:disc; }
+.rich-text ol { list-style:decimal; }
+.rich-text li + li { margin-top:.3em; }
+.rich-text li > p { margin:0; }
+.rich-text a { color:var(--brand); text-decoration:underline; text-underline-offset:.18em; }
+.rich-text strong, .rich-text b { font-weight:700; }
+.rich-text em, .rich-text i { font-style:italic; }
+.rich-text blockquote { padding-left:1em; border-left:4px solid var(--brand); color:var(--brand-700); font-weight:600; }
+.rich-text hr { border:none; height:1px; background:var(--line); margin:1.4em 0; }
+.rich-text img { display:block; max-width:100%; height:auto; border-radius:var(--r-md); }
+.rich-text img.ProseMirror-selectednode { outline:var(--focus-ring); outline-offset:2px; }
+.rich-text hr.ProseMirror-selectednode { outline:var(--focus-ring); }
+.rich-text p.is-editor-empty:first-child::before { content:attr(data-placeholder); float:left; height:0;
+                                                    color:var(--muted); pointer-events:none; }
+/* ProseMirror's own needs */
+.rich-text.ProseMirror { white-space:pre-wrap; word-wrap:break-word; }
+.rich-text .ProseMirror-gapcursor { display:none; pointer-events:none; position:absolute; }
+.rich-text .ProseMirror-gapcursor:after { content:""; display:block; position:absolute; top:-2px; width:20px;
+                                          border-top:1px solid var(--ink); animation:rich-blink 1.1s steps(2, start) infinite; }
+.rich-text.ProseMirror-focused .ProseMirror-gapcursor { display:block; }
+@keyframes rich-blink { to { visibility:hidden; } }
+
+@media (max-width:760px) {
+  .rich-text { font-size:16px; }
+  .rich-group + .rich-group { padding-left:0; border-left:none; }
+}

@@ -1,8 +1,9 @@
 // The behaviour of the shared components (apps/ui), for every app's
 // bundle: copy buttons, the menus of <details> (language, dropdown
 // buttons), local times and date pickers, linked table rows, the theme
-// switch. The contact fields are a bundle of their own
-// (contact_fields_page.js): their phone library is large. Everything
+// switch. The contact fields and the rich text editor are bundles of
+// their own (contact_fields_page.js, rich_editor_page.js): their
+// libraries are large. Everything
 // listens on the document or
 // watches it, so it works on pages with and without LiveView; importing
 // this module installs it once.
@@ -209,15 +210,36 @@ document.addEventListener("focusin", e => { if (e.target.closest?.(CONTACT_FIELD
 document.addEventListener("pointerdown", e => { if (e.target.closest?.(CONTACT_FIELD)) loadContactFields() })
 
 // ----------------------------------------------------------------
+// the rich text editor, loaded when needed
+// ----------------------------------------------------------------
+
+// A page with a :rich form block names the editor's bundle in
+// <meta name="rich-editor-src">; it loads at once when such a block is
+// on the page (or arrives later), since the block is unusable without it
+let richEditorAsked = false
+
+function loadRichEditor() {
+  if (richEditorAsked || !document.querySelector("[data-rich]")) return
+  const src = document.querySelector('meta[name="rich-editor-src"]')?.content
+  if (!src) return
+  richEditorAsked = true
+  const script = document.createElement("script")
+  script.src = src
+  document.head.appendChild(script)
+}
+
+// ----------------------------------------------------------------
 // start: once the document is there
 // ----------------------------------------------------------------
 
 const start = () => {
   markTheme()
   watchContactFields()
+  loadRichEditor()
   localizeTimes()
-  // live updates re-render times in UTC; put them back in the viewer's zone
-  new MutationObserver(localizeTimes).observe(document.documentElement,
+  // live updates re-render times in UTC; put them back in the viewer's
+  // zone, and may bring a rich text block
+  new MutationObserver(() => { localizeTimes(); loadRichEditor() }).observe(document.documentElement,
     {subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["value"]})
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start)
