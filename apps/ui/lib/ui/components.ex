@@ -541,7 +541,8 @@ defmodule Ui.Components do
   `quiet` = destructive or exit.
 
   A segment with `form` renders as that form's submit button instead
-  of a link; one with `method` (post, put, delete) is a link that
+  of a link (`formaction` and `formtarget` send it elsewhere, e.g. a
+  preview in a new tab); one with `method` (post, put, delete) is a link that
   sends that request (data-method, handled by phoenix_html's JS).
 
       <.chrome crumbs={[{"Club", "/c/x"}]} here="sessions">
@@ -555,6 +556,8 @@ defmodule Ui.Components do
     attr :href, :any
     attr :method, :string, doc: "defaults to get; post renders a method link"
     attr :form, :string, doc: "renders a submit button for this form id instead of a link"
+    attr :formaction, :string, doc: "that button sends the form here instead of its action"
+    attr :formtarget, :string, doc: "and opens the answer there (_blank: a new tab)"
     attr :primary, :boolean, doc: "the page's single gold segment"
     attr :quiet, :boolean, doc: "grey: destructive or exit"
     attr :id, :string
@@ -576,6 +579,8 @@ defmodule Ui.Components do
             <button
               type="submit"
               form={seg[:form]}
+              formaction={seg[:formaction]}
+              formtarget={seg[:formtarget]}
               id={seg[:id]}
               class={[seg[:primary] && "go", seg[:quiet] && "quiet"]}
             >

@@ -832,6 +832,11 @@ msgstr ""
 msgid "Nobody holds the role yet."
 msgstr ""
 
+#: lib/public_web/controllers/news_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Not saved: close this tab to go back to the editor."
+msgstr ""
+
 #: lib/public_web/controllers/manage/html/requests.html.heex
 #, elixir-autogen, elixir-format
 msgid "Nothing decided yet."
@@ -992,6 +997,13 @@ msgstr ""
 #: lib/public_web/components/site.ex
 #, elixir-autogen, elixir-format
 msgid "Platform"
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/news_controller.ex
+#: lib/public_web/controllers/news_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Preview"
 msgstr ""
 
 #: lib/public_web/components/site.ex
