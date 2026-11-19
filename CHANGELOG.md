@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.6.0 - 2026-11-19
+
+6 features, 1 fix, 1 chore; breaking: 0
+
+### Features
+
+- public: news posts in several languages (#68) by @merv1n34k
+- public: preview a news post before saving or publishing (#67) by @merv1n34k
+- public: show a drawing on news covers without an image (#64) by @merv1n34k
+- photo collages in news and a full-screen viewer (#63) by @merv1n34k
+- a rich text editor for news, bodies as sanitised HTML (#62) by @merv1n34k
+- public: a news section with a featured story, cards and articles (#61) by @merv1n34k
+
+### Fixes
+
+- public: romanise Cyrillic titles into news slugs (#65) by @merv1n34k
+
+### Other
+
+- chore(deps): bump idna to 8.0.0 for CVE-2026-117678 (#66) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 8 commits
+
 ## v0.5.0 - 2026-11-18
 
 2 features, 1 fix, 2 chore; breaking: 0
