@@ -162,10 +162,14 @@ defmodule PublicWeb.Site do
 
   attr :post, :map, required: true
 
-  @doc "A post's date and reading time."
+  @doc "A post's date and reading time, and its language when not the page's."
   def news_meta(assigns) do
     ~H"""
     <span class="ua-newsmeta">
+      <span :if={elsewhere?(@post)} class="ua-lang" lang={@post.lang}>
+        {PublicWeb.Locale.short(@post.lang)}
+      </span>
+      <span :if={elsewhere?(@post)} class="ua-sep" aria-hidden="true"></span>
       <time :if={@post.published_at} datetime={DateTime.to_iso8601(@post.published_at)}>
         {long_date(@post.published_at)}
       </time>
@@ -174,6 +178,9 @@ defmodule PublicWeb.Site do
     </span>
     """
   end
+
+  @doc "Whether a post is shown in a language other than the page's (it has no translation)."
+  def elsewhere?(post), do: post.lang != Gettext.get_locale(PublicWeb.Gettext)
 
   attr :post, :map, required: true
   attr :class, :string, default: nil

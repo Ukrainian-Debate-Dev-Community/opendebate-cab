@@ -6,7 +6,7 @@
   {gettext("Not saved: close this tab to go back to the editor.")}
 </div>
 
-<article class="ua-article">
+<article class="ua-article" lang={@post.lang}>
   <header class="ua-article-head">
     <nav class="ua-crumbs" aria-label={gettext("Breadcrumbs")}>
       <a href={~p"/news"}>{gettext("News")}</a>
@@ -16,6 +16,13 @@
     <h1>{@post.title}</h1>
     <p :if={@post.summary} class="ua-lead">{@post.summary}</p>
     <div class="ua-byline"><.news_meta post={@post} /></div>
+    <p
+      :if={elsewhere?(@post)}
+      class="ua-untranslated"
+      lang={Gettext.get_locale(PublicWeb.Gettext)}
+    >
+      {gettext("This article has not been translated yet, so it is shown as it was written.")}
+    </p>
   </header>
 
   <%!-- a cover only when the post has an image: no drawing here --%>

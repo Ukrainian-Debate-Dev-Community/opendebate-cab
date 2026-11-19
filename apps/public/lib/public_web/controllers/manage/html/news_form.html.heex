@@ -35,14 +35,28 @@
     enctype="multipart/form-data"
     title={if @post, do: @post.title, else: gettext("Write news")}
     description={gettext("Saved as a draft until you publish it.")}
-    errors={field_errors(@form)}
+    errors={news_errors(@form)}
+    switch="post[edit_lang]"
   >
     <:block
-      name={field_name(@form, :title)}
+      name="post[edit_lang]"
+      type={:select}
+      label={gettext("Language")}
+      options={for {code, _short, name} <- PublicWeb.Locale.names(), do: {name, code}}
+      value={@edit_lang}
+      hint={
+        gettext(
+          "Write the post in one language or both. Visitors read their own language when the post has it, else the one it has."
+        )
+      }
+    />
+    <:block
+      :for={lang <- Public.News.Post.langs()}
+      name={"post[i18n][#{lang}][title]"}
+      group={lang}
       label={gettext("Title")}
-      required
       maxlength={200}
-      value={@form[:title].value}
+      value={@i18n[lang]["title"]}
     />
     <:block
       name={field_name(@form, :slug)}
@@ -74,27 +88,33 @@
       }
     />
     <:block
-      name={field_name(@form, :image_alt)}
+      :for={lang <- Public.News.Post.langs()}
+      name={"post[i18n][#{lang}][image_alt]"}
+      group={lang}
       label={gettext("Image description")}
       maxlength={200}
-      value={@form[:image_alt].value}
+      value={@i18n[lang]["image_alt"]}
       hint={gettext("What the image shows, for people who cannot see it.")}
     />
     <:block
-      name={field_name(@form, :summary)}
+      :for={lang <- Public.News.Post.langs()}
+      name={"post[i18n][#{lang}][summary]"}
+      group={lang}
       type={:longtext}
       label={gettext("Summary")}
       rows={3}
       maxlength={1000}
-      value={@form[:summary].value}
+      value={@i18n[lang]["summary"]}
       hint={gettext("One or two sentences shown above the article.")}
     />
     <:block
-      name={field_name(@form, :body)}
+      :for={lang <- Public.News.Post.langs()}
+      name={"post[i18n][#{lang}][body]"}
+      group={lang}
       type={:rich}
       label={gettext("Text")}
       rows={14}
-      value={@form[:body].value}
+      value={@i18n[lang]["body"]}
       upload={@images}
       placeholder={gettext("Write the article...")}
       hint={

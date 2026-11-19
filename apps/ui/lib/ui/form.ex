@@ -39,6 +39,12 @@ defmodule Ui.Form do
   an empty `prompt` option. A `required` `:text` or `:longtext` block's
   field is `required` in the browser too.
 
+  A form can hold versions of the same blocks (a text in two languages):
+  give each such block a `group` and name, as `switch`, the `:select`
+  block that chooses between them; only the chosen group's blocks show,
+  and choosing another pill swaps them in place (ui.js) - every field
+  is still sent.
+
   Server errors render per block: pass `errors` as a map of
   block-name => message; the failing block gets the amber border +
   message, the rest stay untouched.
@@ -61,6 +67,10 @@ defmodule Ui.Form do
   attr :hidden, :list, default: [], doc: "extra hidden inputs as {name, value}"
   attr :enctype, :string, default: nil, doc: "multipart/form-data for a :file block"
   attr :logo, :string, default: nil, doc: "an image beside the head block (a logo)"
+
+  attr :switch, :string,
+    default: nil,
+    doc: "the :select block whose value shows that `group` only"
 
   attr :guard, :string,
     default: nil,
@@ -96,6 +106,7 @@ defmodule Ui.Form do
     attr :remove_label, :string
     attr :rows, :integer, doc: "a :longtext or :rich block's height in lines"
     attr :upload, :string, doc: "a :rich block's image upload address (none: no Image button)"
+    attr :group, :string, doc: "shown only while the form's `switch` block has this value"
   end
 
   slot :submit do
@@ -111,11 +122,19 @@ defmodule Ui.Form do
     assigns =
       assign(assigns,
         verb: if(assigns.method in ["get", "post"], do: assigns.method, else: "post"),
-        override: if(assigns.method not in ["get", "post"], do: assigns.method)
+        override: if(assigns.method not in ["get", "post"], do: assigns.method),
+        shown: switched(assigns)
       )
 
     ~H"""
-    <form class="form" id={@id} action={@action} method={@verb} enctype={@enctype}>
+    <form
+      class="form"
+      id={@id}
+      action={@action}
+      method={@verb}
+      enctype={@enctype}
+      data-switch={@switch}
+    >
       <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
       <input :if={@override} type="hidden" name="_method" value={@override} />
       <input :for={{name, value} <- @hidden} type="hidden" name={name} value={value} />
@@ -126,7 +145,12 @@ defmodule Ui.Form do
           <p :if={@description}>{@description}</p>
         </div>
       </div>
-      <div :for={block <- @block} class={["f-block", @errors[block[:name]] && "err"]}>
+      <div
+        :for={block <- @block}
+        class={["f-block", @errors[block[:name]] && "err"]}
+        data-group={block[:group]}
+        hidden={block[:group] && to_string(block[:group]) != @shown}
+      >
         <label :if={block[:label]} class="q">
           {block[:label]} <span :if={block[:required]} class="req">*</span>
         </label>
@@ -156,6 +180,13 @@ defmodule Ui.Form do
       </div>
     </form>
     """
+  end
+
+  # the value of the block named by `switch`: the group shown first
+  defp switched(%{switch: nil}), do: nil
+
+  defp switched(%{switch: name, block: blocks}) do
+    Enum.find_value(blocks, fn b -> to_string(b[:name]) == name && to_string(b[:value]) end)
   end
 
   # the Turnstile widget (when configured) in its own block; it follows

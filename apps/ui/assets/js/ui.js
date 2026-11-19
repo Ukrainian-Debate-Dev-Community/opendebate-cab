@@ -47,6 +47,13 @@ document.addEventListener("click", e => {
   copyText(btn.dataset.copy, done)
 })
 
+// form_for's switch: its pills show only the blocks of the chosen group
+document.addEventListener("change", e => {
+  const form = e.target.form
+  if (!form || !form.dataset.switch || e.target.name !== form.dataset.switch) return
+  form.querySelectorAll(".f-block[data-group]").forEach(b => { b.hidden = b.dataset.group !== e.target.value })
+})
+
 // ----------------------------------------------------------------
 // menus, linked rows
 // ----------------------------------------------------------------

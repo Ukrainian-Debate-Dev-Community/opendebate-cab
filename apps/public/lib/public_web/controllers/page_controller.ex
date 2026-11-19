@@ -12,7 +12,7 @@ defmodule PublicWeb.PageController do
 
     render(conn, :home,
       active: :home,
-      news: News.list_published(limit: 3),
+      news: Enum.map(News.list_published(limit: 3), &News.localize(&1, conn.assigns.locale)),
       upcoming: upcoming,
       next_tournament: Enum.find(upcoming, &(&1.kind == "tournament")),
       counts: counts,

@@ -68,18 +68,23 @@ defmodule PublicWeb.Manage.NewsController do
   @doc """
   The article as visitors will see it, from the editor's unsaved
   fields: nothing is stored. A newly chosen cover shows once saved.
+  It is shown in the language being edited, the page around it too.
   """
   def preview(conn, %{"post" => attrs} = params) do
     saved = if params["id"], do: News.get!(params["id"]), else: %News.Post{}
+    lang = PublicWeb.Locale.chosen(attrs["edit_lang"]) || conn.assigns.locale
+    PublicWeb.Locale.put(lang)
 
     post =
       saved
       |> News.change(attrs)
       |> Ecto.Changeset.apply_changes()
-      |> Map.update!(:body, &Public.News.Html.sanitize/1)
       |> drop_cover(image_change(Map.delete(attrs, "image")))
+      |> News.localize(lang)
+      |> Map.update!(:body, &Public.News.Html.sanitize/1)
 
     conn
+    |> assign(:locale, lang)
     |> put_view(PublicWeb.NewsHTML)
     |> render(:show,
       active: :news,
@@ -87,7 +92,7 @@ defmodule PublicWeb.Manage.NewsController do
       post: post,
       body: post.body,
       photos: Public.News.Html.images?(post.body),
-      more: News.related(%{post | id: post.id || 0}, 3),
+      more: Enum.map(News.related(%{post | id: post.id || 0}, 3), &News.localize(&1, lang)),
       preview: true
     )
   end
@@ -145,6 +150,12 @@ defmodule PublicWeb.Manage.NewsController do
       page_title: if(post, do: post.title, else: gettext("Write news")),
       post: post,
       form: to_form(changeset, as: :post),
+      i18n: attrs["i18n"] || News.Post.i18n(post || %News.Post{}),
+      # a version with a refused field opens first, else the one being
+      # written, else the post's own, else the manager's language
+      edit_lang:
+        HTML.error_lang(changeset) || PublicWeb.Locale.chosen(attrs["edit_lang"]) ||
+          (post && post.lang) || conn.assigns.locale,
       tags: Tags.list(),
       selected_tags: HTML.selected_tag_ids(attrs, post),
       images: ~p"/manage/news/images",
