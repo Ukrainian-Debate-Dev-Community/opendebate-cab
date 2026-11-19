@@ -45,7 +45,12 @@ defmodule PublicWeb.NewsEditorTest do
     assert html =~ ~r{<meta[^>]* name="rich-editor-src" content="/assets/js/rich-editor.js"}
     assert html =~ ~s(data-rich)
     assert html =~ ~s(data-upload="/manage/news/images")
-    assert html =~ ~r{<textarea[^>]*class="rich-source"[^>]*name="post\[body\]"}
+
+    for lang <- ~w(en uk) do
+      assert html =~
+               ~r{<textarea[^>]*class="rich-source"[^>]*name="post\[i18n\]\[#{lang}\]\[body\]"}
+    end
+
     refute html =~ "Markdown"
 
     refute conn |> get(~p"/news") |> html_response(200) =~ "rich-editor"

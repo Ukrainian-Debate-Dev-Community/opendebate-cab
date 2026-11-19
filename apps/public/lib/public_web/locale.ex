@@ -32,15 +32,18 @@ defmodule PublicWeb.Locale do
       chosen(conn.cookies[@cookie]) || from_header(get_req_header(conn, "accept-language")) ||
         "en"
 
-    Gettext.put_locale(PublicWeb.Gettext, locale)
-    # cab's messages (Cab.Text form errors) and the shared components'
-    # (apps/ui) in the same language
-    Gettext.put_locale(CabWeb.Gettext, locale)
-    Gettext.put_locale(Ui.Gettext, locale)
+    put(locale)
 
     conn
     |> assign(:locale, locale)
     |> put_resp_header("vary", "cookie, accept-language")
+  end
+
+  @doc "Pages, cab's messages (Cab.Text form errors) and the shared components (apps/ui) in `locale`."
+  def put(locale) do
+    Gettext.put_locale(PublicWeb.Gettext, locale)
+    Gettext.put_locale(CabWeb.Gettext, locale)
+    Gettext.put_locale(Ui.Gettext, locale)
   end
 
   def chosen(locale) when locale in @locales, do: locale

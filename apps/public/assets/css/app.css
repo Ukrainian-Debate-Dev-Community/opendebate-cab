@@ -111,6 +111,11 @@ a { color:var(--brand); }
 .ua-cards { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:var(--sp-6) var(--sp-5); }
 .ua-cards--side { gap:var(--px); }
 .ua-newsmeta { display:inline-flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-2); }
+/* a post shown in another language than the page's */
+.ua-lang { font-size:var(--fs-label); font-weight:800; letter-spacing:.08em; padding:1px 6px; border-radius:var(--r-sm);
+           border:1px solid var(--line); color:var(--muted); }
+.ua-untranslated { margin-top:var(--sp-4); padding:var(--sp-3) var(--sp-4); border-radius:var(--r); background:var(--surface-2);
+                   font-size:var(--fs-sm); color:var(--muted); }
 .ua-sep { width:3px; height:3px; border-radius:50%; background:currentColor; opacity:.6; }
 /* a narrow card puts the reading time under the date */
 @container (max-width:280px) {

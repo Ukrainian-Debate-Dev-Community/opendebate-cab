@@ -5,6 +5,10 @@ defmodule Public.News.Post do
   alias Cab.Text
 
   @rubrics ~w(announcements results interviews tips community)
+  # the site's languages (PublicWeb.Locale.locales/0)
+  @langs ~w(en uk)
+  # the fields a post has in each of its languages
+  @texts ~w(title summary body image_alt)
 
   schema "news_posts" do
     field :title, :string
@@ -21,6 +25,11 @@ defmodule Public.News.Post do
     # a file name in Public.Uploads; nil shows a drawing
     field :image, :string
     field :image_alt, :string
+    # the language the fields above are in: the post's first version,
+    # or, on a post from News.localize/2, the language it is shown in
+    field :lang, :string, default: "en"
+    # the post in the other site languages, each optional
+    embeds_many :translations, Public.News.Translation, on_replace: :delete
     # private labels, loaded only under /manage
     many_to_many :tags, Public.Tags.Tag,
       join_through: "news_tags",
@@ -31,24 +40,80 @@ defmodule Public.News.Post do
   end
 
   def rubrics, do: @rubrics
+  def langs, do: @langs
 
+  @doc """
+  The editor's fields arrive per language, `i18n: %{lang => %{title,
+  summary, body, image_alt}}`: the version with a title becomes the
+  post's own fields (the one it had first, when both have one), the
+  other filled one its translation, an empty one is dropped.
+  """
   def changeset(post, attrs) do
     post
-    |> cast(attrs, [:title, :slug, :rubric, :summary, :body, :image_alt])
-    |> Text.clean_text(:title, required: true, max: 200)
+    |> cast(from_i18n(attrs, post), [:title, :slug, :rubric, :summary, :body, :image_alt, :lang])
+    |> clean_texts()
     |> Text.clean_text(:slug, max: 200)
+    |> cast_embed(:translations, with: &Public.News.Translation.changeset/2)
+    |> update_change(:slug, &slugify/1)
+    |> put_slug()
+    |> validate_required([:title, :slug, :rubric])
+    |> validate_inclusion(:rubric, @rubrics)
+    |> validate_inclusion(:lang, @langs)
+    |> validate_format(:slug, ~r/^[a-z0-9]+(-[a-z0-9]+)*$/)
+    |> unique_constraint(:slug)
+  end
+
+  @doc "A post's language versions' text fields cleaned, the body to the HTML allow-list (shared with Translation)."
+  def clean_texts(changeset) do
+    changeset
+    |> Text.clean_text(:title, required: true, max: 200)
     |> Text.clean_text(:image_alt, max: 200)
     |> Text.clean_text(:summary, max: 1000, multiline: true)
     |> Text.clean_text(:body, max: 100_000, multiline: true)
     |> update_change(:body, &Public.News.Html.sanitize/1)
     |> then(&if(get_field(&1, :body), do: &1, else: put_change(&1, :body, "")))
-    |> update_change(:slug, &slugify/1)
-    |> put_slug()
-    |> validate_required([:title, :slug, :rubric])
-    |> validate_inclusion(:rubric, @rubrics)
-    |> validate_format(:slug, ~r/^[a-z0-9]+(-[a-z0-9]+)*$/)
-    |> unique_constraint(:slug)
   end
+
+  @doc "The editor's fields per language, the post's own and its translations': %{lang => %{field => value}}."
+  def i18n(%__MODULE__{} = post) do
+    own = {post.lang, Map.new(@texts, &{&1, Map.get(post, String.to_existing_atom(&1))})}
+
+    translated =
+      for t <- post.translations,
+          do: {t.lang, Map.new(@texts, &{&1, Map.get(t, String.to_existing_atom(&1))})}
+
+    Map.new(for(lang <- @langs, do: {lang, %{}}) ++ translated ++ [own])
+  end
+
+  defp from_i18n(%{"i18n" => %{} = i18n} = attrs, post) do
+    filled = for lang <- @langs, filled?(i18n[lang]), do: lang
+    lang = first_lang(filled, post.lang, attrs["edit_lang"])
+
+    attrs
+    |> Map.merge(Map.take(i18n[lang] || %{}, @texts))
+    |> Map.put("lang", lang)
+    |> Map.put("translations", for(l <- filled, l != lang, do: Map.put(i18n[l], "lang", l)))
+  end
+
+  defp from_i18n(attrs, _post), do: attrs
+
+  # the post's own language while it still has text, else the first filled
+  # one, else (nothing written yet) the one being edited
+  defp first_lang(filled, own, editing) do
+    cond do
+      own in filled -> own
+      filled != [] -> hd(filled)
+      editing in @langs -> editing
+      true -> own
+    end
+  end
+
+  defp filled?(%{} = fields) do
+    Enum.any?(~w(title summary image_alt), &(String.trim(fields[&1] || "") != "")) or
+      String.trim(Public.News.Html.text(fields["body"] || "")) != ""
+  end
+
+  defp filled?(_fields), do: false
 
   defp put_slug(changeset) do
     case get_field(changeset, :slug) do

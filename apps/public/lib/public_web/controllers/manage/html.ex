@@ -14,6 +14,53 @@ defmodule PublicWeb.Manage.HTML do
     |> Map.new(fn {field, error} -> {field_name(form, field), translate(error)} end)
   end
 
+  @doc """
+  The news form's errors by block name: a text field's under the
+  language version it belongs to (`post[i18n][uk][title]`), the
+  translations' included.
+  """
+  def news_errors(%Phoenix.HTML.Form{source: changeset} = form) do
+    lang = Ecto.Changeset.get_field(changeset, :lang)
+
+    own =
+      Map.new(form.errors |> Enum.reverse(), fn {field, error} ->
+        if to_string(field) in ~w(title summary body image_alt),
+          do: {"post[i18n][#{lang}][#{field}]", translate(error)},
+          else: {field_name(form, field), translate(error)}
+      end)
+
+    translated =
+      for t <- translation_changesets(changeset),
+          {field, error} <- Enum.reverse(t.errors),
+          into: %{},
+          do: {"post[i18n][#{Ecto.Changeset.get_field(t, :lang)}][#{field}]", translate(error)}
+
+    Map.merge(own, translated)
+  end
+
+  @doc "The language of the first version with a refused field, nil when none is refused."
+  def error_lang(%Ecto.Changeset{valid?: true}), do: nil
+
+  def error_lang(%Ecto.Changeset{} = changeset) do
+    own = Ecto.Changeset.get_field(changeset, :lang)
+
+    if Enum.any?(changeset.errors, fn {f, _} ->
+         to_string(f) in ~w(title summary body image_alt)
+       end),
+       do: own,
+       else:
+         Enum.find_value(translation_changesets(changeset), fn t ->
+           t.errors != [] && Ecto.Changeset.get_field(t, :lang)
+         end)
+  end
+
+  defp translation_changesets(changeset) do
+    case changeset.changes[:translations] do
+      list when is_list(list) -> Enum.filter(list, &match?(%Ecto.Changeset{}, &1))
+      _ -> []
+    end
+  end
+
   @doc "A field's input name in a form, as its params arrive: `post[title]`."
   def field_name(%Phoenix.HTML.Form{name: form}, field), do: "#{form}[#{field}]"
 

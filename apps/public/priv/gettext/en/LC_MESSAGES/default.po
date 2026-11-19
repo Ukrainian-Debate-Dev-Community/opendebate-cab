@@ -648,6 +648,7 @@ msgstr ""
 #: lib/public_web/controllers/calendar_html.ex
 #: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/manage/html/news_form.html.heex
 #, elixir-autogen, elixir-format
 msgid "Language"
 msgstr ""
@@ -1386,6 +1387,11 @@ msgstr ""
 msgid "There is nothing at this address. It may have moved, or the link is mistyped."
 msgstr ""
 
+#: lib/public_web/controllers/news_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "This article has not been translated yet, so it is shown as it was written."
+msgstr ""
+
 #: lib/public_web/controllers/error_html.ex
 #, elixir-autogen, elixir-format
 msgid "This page cannot be shown."
@@ -1536,6 +1542,11 @@ msgstr ""
 #: lib/public_web/controllers/manage/html/news_form.html.heex
 #, elixir-autogen, elixir-format
 msgid "Write the article..."
+msgstr ""
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Write the post in one language or both. Visitors read their own language when the post has it, else the one it has."
 msgstr ""
 
 #: lib/public_web/controllers/calendar_html.ex

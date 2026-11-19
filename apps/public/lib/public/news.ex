@@ -27,6 +27,30 @@ defmodule Public.News do
     )
   end
 
+  @doc """
+  The post as a visitor reading in `locale` sees it: its translation
+  into `locale` when it has one, else as written; `lang` says which.
+  The cover's description falls back to the written one.
+  """
+  def localize(%Post{lang: locale} = post, locale), do: post
+
+  def localize(%Post{} = post, locale) do
+    case Enum.find(post.translations, &(&1.lang == locale)) do
+      nil ->
+        post
+
+      t ->
+        %{
+          post
+          | lang: locale,
+            title: t.title,
+            summary: t.summary,
+            body: t.body,
+            image_alt: t.image_alt || post.image_alt
+        }
+    end
+  end
+
   def list_all(tag \\ nil) do
     from(p in Post,
       order_by: [desc_nulls_first: p.published_at, desc: p.updated_at],

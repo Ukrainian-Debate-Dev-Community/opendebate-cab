@@ -6,7 +6,7 @@ defmodule PublicWeb.NewsController do
 
   def index(conn, params) do
     rubric = if params["rubric"] in Post.rubrics(), do: params["rubric"]
-    posts = News.list_published(rubric: rubric)
+    posts = [rubric: rubric] |> News.list_published() |> localize(conn)
     used = News.published_rubrics()
 
     render(conn, :index,
@@ -21,6 +21,7 @@ defmodule PublicWeb.NewsController do
 
   def show(conn, %{"slug" => slug}) do
     post = News.get_published(slug) || raise PublicWeb.NotFound
+    post = News.localize(post, conn.assigns.locale)
 
     render(conn, :show,
       active: :news,
@@ -29,7 +30,9 @@ defmodule PublicWeb.NewsController do
       # sanitised when saved (Public.News.Html)
       body: post.body,
       photos: Public.News.Html.images?(post.body),
-      more: News.related(post, 3)
+      more: post |> News.related(3) |> localize(conn)
     )
   end
+
+  defp localize(posts, conn), do: Enum.map(posts, &News.localize(&1, conn.assigns.locale))
 end
