@@ -79,6 +79,9 @@ defmodule PublicWeb.Router do
     post "/news/images", NewsController, :image
     get "/news/:id/edit", NewsController, :edit
     put "/news/:id", NewsController, :update
+    # the editor's unsaved text (post: a new post, put: an edited one)
+    post "/news/preview", NewsController, :preview
+    put "/news/:id/preview", NewsController, :preview
     post "/news/:id/publish", NewsController, :publish
     post "/news/:id/unpublish", NewsController, :unpublish
 

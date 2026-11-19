@@ -5,6 +5,16 @@
   crumbs={[{gettext("News"), ~p"/manage/news"}]}
   here={if @post, do: gettext("Edit"), else: gettext("New")}
 >
+  <:seg
+    form="news-form"
+    formaction={
+      if @post, do: ~p"/manage/news/#{@post.id}/preview", else: ~p"/manage/news/preview"
+    }
+    formtarget="_blank"
+    quiet
+  >
+    {gettext("Preview")}
+  </:seg>
   <:seg :if={@post && @post.published_at} href={~p"/news/#{@post.slug}"}>
     {gettext("View")}
   </:seg>

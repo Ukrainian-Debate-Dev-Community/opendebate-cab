@@ -190,6 +190,11 @@ a { color:var(--brand); }
 .ua-body table { border-collapse:collapse; display:block; overflow-x:auto; font-size:.9em; }
 .ua-body th, .ua-body td { border:1px solid var(--line); padding:.4em .7em; text-align:left; }
 
+/* the editor's preview: a band above the article */
+.ua-preview { max-width:var(--w-read); margin:0 auto var(--sp-6); padding:var(--sp-3) var(--sp-4); border-radius:var(--r);
+              border:1px dashed color-mix(in srgb, var(--brand) 55%, var(--line)); background:var(--surface-2);
+              font-size:var(--fs-sm); color:var(--muted); }
+.ua-preview b { color:var(--brand); margin-right:var(--sp-2); text-transform:uppercase; letter-spacing:.08em; font-size:var(--fs-label); }
 .ua-article-foot { max-width:var(--w-read); margin:var(--sp-8) auto 0; padding-top:var(--sp-5); border-top:1px solid var(--line);
                    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-3); }
 .ua-share { display:inline-flex; align-items:center; gap:var(--sp-3); font-size:var(--fs-sm); font-weight:650; color:var(--muted); }

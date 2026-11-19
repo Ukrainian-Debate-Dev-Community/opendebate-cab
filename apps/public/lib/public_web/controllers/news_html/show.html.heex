@@ -1,6 +1,11 @@
 <%!-- the full-screen viewer, only when the text has images --%>
 <.photo_viewer :if={@photos} src={~p"/assets/js/photo-viewer.js"} />
 
+<div :if={assigns[:preview]} class="ua-preview" role="status">
+  <b>{gettext("Preview")}</b>
+  {gettext("Not saved: close this tab to go back to the editor.")}
+</div>
+
 <article class="ua-article">
   <header class="ua-article-head">
     <nav class="ua-crumbs" aria-label={gettext("Breadcrumbs")}>
@@ -21,7 +26,7 @@
   <div class="ua-body" data-photos={@photos}>{Phoenix.HTML.raw(@body)}</div>
 
   <footer class="ua-article-foot">
-    <span class="ua-share">{gettext("Share this article")}
+    <span :if={!assigns[:preview]} class="ua-share">{gettext("Share this article")}
     <.copy text={url(@conn, ~p"/news/#{@post.slug}")} /></span>
     <a class="ua-back" href={~p"/news"}>
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" /></svg>

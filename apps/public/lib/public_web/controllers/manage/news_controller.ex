@@ -66,6 +66,33 @@ defmodule PublicWeb.Manage.NewsController do
   end
 
   @doc """
+  The article as visitors will see it, from the editor's unsaved
+  fields: nothing is stored. A newly chosen cover shows once saved.
+  """
+  def preview(conn, %{"post" => attrs} = params) do
+    saved = if params["id"], do: News.get!(params["id"]), else: %News.Post{}
+
+    post =
+      saved
+      |> News.change(attrs)
+      |> Ecto.Changeset.apply_changes()
+      |> Map.update!(:body, &Public.News.Html.sanitize/1)
+      |> drop_cover(image_change(Map.delete(attrs, "image")))
+
+    conn
+    |> put_view(PublicWeb.NewsHTML)
+    |> render(:show,
+      active: :news,
+      page_title: post.title || gettext("Preview"),
+      post: post,
+      body: post.body,
+      photos: Public.News.Html.images?(post.body),
+      more: News.related(%{post | id: post.id || 0}, 3),
+      preview: true
+    )
+  end
+
+  @doc """
   An image inside a post's text, from the editor: stored as a cover is
   (Public.Uploads, the same checks), answered as JSON {url} or {error}.
   The file stays even if the post is never saved with it.
@@ -96,6 +123,9 @@ defmodule PublicWeb.Manage.NewsController do
 
   defp image_change(%{"remove_image" => yes}) when yes in ["yes", "true"], do: {:ok, :remove}
   defp image_change(_attrs), do: {:ok, :keep}
+
+  defp drop_cover(post, {:ok, :remove}), do: %{post | image: nil}
+  defp drop_cover(post, _keep), do: post
 
   defp upload_error(:size), do: gettext("The image is larger than 3 MB.")
   defp upload_error(:type), do: gettext("Only JPEG, PNG or WebP images.")

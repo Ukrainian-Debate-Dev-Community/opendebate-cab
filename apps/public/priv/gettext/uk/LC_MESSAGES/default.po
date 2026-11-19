@@ -836,6 +836,11 @@ msgstr "Міток ще немає."
 msgid "Nobody holds the role yet."
 msgstr "Цієї ролі поки ні в кого немає."
 
+#: lib/public_web/controllers/news_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Not saved: close this tab to go back to the editor."
+msgstr "Не збережено: закрийте цю вкладку, щоб повернутися до редактора."
+
 #: lib/public_web/controllers/manage/html/requests.html.heex
 #, elixir-autogen, elixir-format
 msgid "Nothing decided yet."
@@ -997,6 +1002,13 @@ msgstr "Людина"
 #, elixir-autogen, elixir-format
 msgid "Platform"
 msgstr "Платформа"
+
+#: lib/public_web/controllers/manage/html/news_form.html.heex
+#: lib/public_web/controllers/manage/news_controller.ex
+#: lib/public_web/controllers/news_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Preview"
+msgstr "Попередній перегляд"
 
 #: lib/public_web/components/site.ex
 #: lib/public_web/controllers/page_html.ex
