@@ -80,6 +80,15 @@
   </.section>
 </div>
 
+<.section title={gettext("Our story")} pad>
+  <:action :if={Tenant.page("about")} href={~p"/about"}>
+    {Tenant.text([:home, :about_link])}
+  </:action>
+  <ol class="ua-story">
+    <li :for={{year, text} <- story()}><b>{year}</b><span>{text}</span></li>
+  </ol>
+</.section>
+
 <.section title={gettext("News")} bare>
   <:action href={~p"/news"}>{gettext("All news")}</:action>
   <div :if={@news != []} class="ua-newslist">
@@ -89,13 +98,4 @@
     </div>
   </div>
   <.empty :if={@news == []}>{gettext("No news yet.")}</.empty>
-</.section>
-
-<.section title={gettext("Our story")} pad>
-  <:action :if={Tenant.page("about")} href={~p"/about"}>
-    {Tenant.text([:home, :about_link])}
-  </:action>
-  <ol class="ua-story">
-    <li :for={{year, text} <- story()}><b>{year}</b><span>{text}</span></li>
-  </ol>
 </.section>
