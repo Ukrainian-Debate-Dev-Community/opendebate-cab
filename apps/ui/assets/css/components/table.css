@@ -1,21 +1,21 @@
 /* table/1: dense, every cell format; on a phone every row is a card */
-table.t { width:100%; border-collapse:collapse; font-size:var(--fs-md); }
-.t th { text-align:left; font-size:var(--fs-micro); letter-spacing:.08em;
-        text-transform:uppercase; font-weight:700; color:var(--muted);
-        padding:7px var(--px); border-bottom:1px solid var(--line);
+table.t { width:100%; border-collapse:collapse; font-size:var(--step-m1); }
+.t th { text-align:left; font-size:var(--step-m2); letter-spacing:.07em;
+        text-transform:uppercase; font-weight:750; color:var(--muted); background:var(--surface-2);
+        padding:var(--sp-2) var(--px); border-bottom:1px solid var(--line);
         white-space:nowrap; user-select:none; }
-.t td { padding:6px var(--px); border-bottom:1px solid var(--line); }
+.t td { padding:var(--sp-2) var(--px); border-bottom:1px solid var(--line); vertical-align:middle; }
 .t tbody tr:last-child td { border-bottom:none; }
 .t tbody tr:hover { background:var(--brand-50); }
 .t th.num, .t td.num { text-align:right; }
 .t td.num { font-variant-numeric:tabular-nums; font-weight:600; }
 .t td.rank { color:var(--brand); font-weight:750; width:40px; }
-.t td .sub { display:block; font-size:.7rem; color:var(--muted); line-height:1.3; }
-.t td.code { font-family:var(--font-mono); font-size:.74rem; color:var(--brand-700); }
+.t td .sub { display:block; font-size:var(--step-m2); color:var(--muted); line-height:1.35; }
+.t td.code { font-family:var(--font-mono); font-size:var(--step-m2); color:var(--brand-700); }
 .t td.c, .t th.c { text-align:center; }
 .t td a { color:var(--brand); font-weight:650; text-decoration:none; }
 .t td a:hover { text-decoration:underline; }
-.t .empty { padding:30px var(--px); text-align:center; color:var(--muted); font-size:var(--fs-md); }
+.t .empty { padding:var(--sp-8) var(--px); text-align:center; color:var(--muted); font-size:var(--step-m1); }
 /* the viewer's own row */
 .t tr.me td { background:var(--me-tint); }
 /* a row that opens a page as a whole; its own links still win */
@@ -35,10 +35,10 @@ table.t tr.linked:hover td { background:var(--brand-50); }
                     gap:12px; padding:3px 0; border:none; text-align:right; min-width:0;
                     overflow-wrap:anywhere; }
   table.t-rows td::before { content:attr(data-label); flex:none; text-align:left; color:var(--muted);
-                            font-size:.62rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+                            font-size:var(--step-m2); font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
   table.t-rows td:not([data-label])::before, table.t-rows td[data-label=""]::before { content:none; }
   table.t-rows td.rank { grid-column:1; width:auto; padding-right:0; }
-  table.t-rows td:first-child, table.t-rows td.rank + td { display:block; text-align:left; font-size:.95rem;
+  table.t-rows td:first-child, table.t-rows td.rank + td { display:block; text-align:left; font-size:var(--step-0);
                                                           font-weight:650; padding-bottom:5px; }
   table.t-rows td.rank + td { grid-column:2 / 3; }
   table.t-rows td:first-child:not(.rank) { grid-column:1 / 3; }

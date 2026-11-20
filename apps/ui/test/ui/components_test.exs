@@ -360,4 +360,45 @@ defmodule Ui.ComponentsTest do
     refute uk =~ ~s(data-close="Close")
     refute uk =~ ~s(data-of="of")
   end
+
+  # ---------------------------------------------------------------
+  # stats and steps
+  # ---------------------------------------------------------------
+
+  test "stats: a label over each figure, a note beside it" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.stats>
+        <:stat label="Members" note="+5 this month">42</:stat>
+        <:stat label="Sessions">18</:stat>
+      </.stats>
+      """)
+
+    assert html =~ ~r{<dl[^>]* class="stats">}
+    assert html =~ ~r{<dt>Members</dt>\s*<dd>42<span class="note">\+5 this month</span></dd>}
+    assert html =~ ~r{<dt>Sessions</dt>\s*<dd>18</dd>}
+  end
+
+  test "steps: the current one is marked for screen readers, a break dashed" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.steps label="Rounds">
+        <:step state={:done} note="Done">R1</:step>
+        <:step state={:now} note="5 of 6 ballots in">R2</:step>
+        <:step note="Top 8" dashed>Semis</:step>
+      </.steps>
+      """)
+
+    assert html =~ ~r{<ol[^>]* class="steps" aria-label="Rounds">}
+    assert html =~ ~r{<li class="done">\s*<span class="name">R1</span>}
+
+    assert html =~
+             ~r{<li class="now" aria-current="step">\s*<span class="name">R2</span>\s*<small>5 of 6 ballots in</small>}
+
+    assert html =~ ~r{<li class="dashed">\s*<span class="name">Semis</span>}
+  end
 end

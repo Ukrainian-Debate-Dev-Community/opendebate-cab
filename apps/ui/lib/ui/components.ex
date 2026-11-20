@@ -531,6 +531,65 @@ defmodule Ui.Components do
     """
   end
 
+  @doc """
+  A row of key numbers, each a label over its figure (figures line up:
+  tabular digits). `note` is a short addition beside the figure.
+
+      <.stats>
+        <:stat label="Members" note="+5 this month">42</:stat>
+        <:stat label="Sessions">18</:stat>
+      </.stats>
+  """
+  slot :stat, required: true do
+    attr :label, :string, required: true
+    attr :note, :string
+  end
+
+  def stats(assigns) do
+    ~H"""
+    <dl class="stats">
+      <div :for={stat <- @stat} class="stat">
+        <dt>{stat.label}</dt>
+        <dd>{render_slot(stat)}<span :if={stat[:note]} class="note">{stat.note}</span></dd>
+      </div>
+    </dl>
+    """
+  end
+
+  @doc """
+  A sequence and where it stands: rounds of a tournament, the pages of a
+  long form. Each step is `done`, `now` (the current one) or upcoming;
+  `dashed` marks a different phase (a break).
+
+      <.steps label="Rounds">
+        <:step state={:done} note="Done">R1</:step>
+        <:step state={:now} note="5 of 6 ballots in">R2</:step>
+        <:step note="Top 8" dashed>Semis</:step>
+      </.steps>
+  """
+  attr :label, :string, required: true, doc: "what the steps are, for screen readers"
+
+  slot :step, required: true do
+    attr :state, :atom, values: [:done, :now, nil]
+    attr :note, :string
+    attr :dashed, :boolean
+  end
+
+  def steps(assigns) do
+    ~H"""
+    <ol class="steps" aria-label={@label}>
+      <li
+        :for={step <- @step}
+        class={[step[:state] && to_string(step.state), step[:dashed] && "dashed"]}
+        aria-current={step[:state] == :now && "step"}
+      >
+        <span class="name">{render_slot(step)}</span>
+        <small :if={step[:note]}>{step.note}</small>
+      </li>
+    </ol>
+    """
+  end
+
   # ---------------------------------------------------------------
   # Command bar
   # ---------------------------------------------------------------

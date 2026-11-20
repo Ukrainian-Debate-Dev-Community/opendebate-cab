@@ -61,7 +61,7 @@ a { color:var(--brand); }
                     text-transform:uppercase; color:var(--brand); margin-bottom:6px; }
 .ua-error h1 { font-size:var(--fs-xl); margin:4px 0 8px; }
 .ua-error p { color:var(--muted); margin:0 0 22px; }
-.ua-error .btn-quiet { display:block; padding:11px 18px; }
+.ua-error .btn-quiet { display:flex; }
 
 /* small print and the way back */
 .ua-meta { font-size:.74rem; color:var(--muted); }

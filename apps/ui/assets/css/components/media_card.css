@@ -13,25 +13,25 @@
 .mcard-media > * { position:absolute; inset:0; width:100%; height:100%; }
 .mcard-media img { object-fit:cover; }
 .mcard-body { flex:1; display:flex; flex-direction:column; gap:var(--sp-2); padding:var(--sp-4) var(--sp-5) var(--sp-5); }
-.mcard-title { font-size:1.12rem; line-height:1.3; font-weight:750; letter-spacing:-.012em; text-wrap:balance; }
+.mcard-title { font-size:var(--step-1); line-height:1.3; font-weight:750; letter-spacing:-.012em; text-wrap:balance; }
 .mcard-title a { color:var(--ink); text-decoration:none; }
 .mcard-title a::after { content:""; position:absolute; inset:0; z-index:1; }
 .mcard:hover .mcard-title a { color:var(--brand); }
-.mcard-text { color:var(--muted); font-size:.92rem; line-height:1.55; overflow:hidden;
+.mcard-text { color:var(--muted); font-size:var(--step-m1); line-height:1.55; overflow:hidden;
               display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; line-clamp:3; }
 .mcard-meta { margin-top:auto; padding-top:var(--sp-1); font-size:var(--fs-xs); font-weight:600; color:var(--muted); }
 
 /* a narrow card (three in a side column) */
 @container (max-width:280px) {
   .mcard-body { gap:6px; padding:var(--sp-3) var(--px) var(--px); }
-  .mcard-title { font-size:.96rem; }
-  .mcard-text { font-size:.84rem; -webkit-line-clamp:2; line-clamp:2; }
+  .mcard-title { font-size:var(--step-0); }
+  .mcard-text { font-size:var(--step-m1); -webkit-line-clamp:2; line-clamp:2; }
 }
 
 /* the lead story */
 .mcard--featured .mcard-body { gap:var(--sp-3); padding:var(--sp-5) var(--sp-6) var(--sp-6); }
-.mcard--featured .mcard-title { font-size:1.6rem; line-height:1.15; font-weight:800; letter-spacing:-.022em; }
-.mcard--featured .mcard-text { font-size:1rem; line-height:1.6; -webkit-line-clamp:4; line-clamp:4; }
+.mcard--featured .mcard-title { font-size:var(--step-3); line-height:1.15; font-weight:800; letter-spacing:-.022em; }
+.mcard--featured .mcard-text { font-size:var(--step-0); line-height:1.6; -webkit-line-clamp:4; line-clamp:4; }
 .mcard--featured .mcard-meta { font-size:var(--fs-sm); }
 @media (min-width:861px) {
   .mcard--featured { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); }

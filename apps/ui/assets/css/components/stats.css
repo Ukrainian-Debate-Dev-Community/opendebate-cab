@@ -1,0 +1,7 @@
+/* stats/1: key numbers, a label over each figure */
+.stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap:var(--sp-3); margin:0; }
+.stats .stat { border:1px solid var(--line); border-radius:var(--r); background:var(--surface); padding:var(--sp-3) var(--sp-5); }
+.stats dt { font-size:var(--step-m1); font-weight:600; color:var(--muted); }
+.stats dd { margin:var(--sp-1) 0 0; font-size:var(--step-3); font-weight:760; letter-spacing:-.02em; line-height:1.15;
+            font-variant-numeric:tabular-nums; color:var(--ink); }
+.stats .note { margin-left:var(--sp-2); font-size:var(--step-m1); font-weight:650; letter-spacing:0; color:var(--muted); }
