@@ -30,7 +30,8 @@ cab's own components (chrome, sidenav, ballot, allocator, ...) stay in
 
 `engine/` is the debate engine, [opendebate-engine](https://github.com/Ukrainian-Debate-Dev-Community/opendebate-engine),
 pinned as a git submodule. Policy and Terms are deployment documents,
-read from `LEGAL_DIR`; without them the pages answer 404.
+read from the tenant folder's `legal/` (or `LEGAL_DIR`); without them
+the pages answer 404.
 
 ## Getting started
 
@@ -59,9 +60,9 @@ the local stack:
 | `make dev:image` | build the release image locally (Docker needed) |
 
 The dev stack reads `.env` at the repo root: the OAuth keys, the engine
-secret (`ENGINE_JWT_SECRET`), `LEGAL_DIR` (Policy and Terms) and
-`TENANT_DIR` (the public site's tenant folder, e.g. a deployment's
-`tenant/`; without it the neutral test tenant). The engine reads
+secret (`ENGINE_JWT_SECRET`) and `TENANT_DIR` (the tenant folder, e.g.
+a deployment's `tenant/`, with its Policy and Terms and theme; without
+it the neutral test tenant and no legal pages). The engine reads
 `engine/.env`; without one `make dev:up` starts it with development
 settings and the same secret. Tooling comes from `nix develop`.
 
@@ -111,7 +112,7 @@ bin/full eval "Cab.Release.migrate(); Public.Release.migrate()"
 | `ENGINE_JWT_SECRET` | yes | shared with the engine's `JWT_SECRET`; the dev default is refused |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | yes | sign-in with GitHub |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | yes | sign-in with Google |
-| `LEGAL_DIR` | yes | folder with `en/policy.md`, `en/terms.md` (and other languages); 404 without |
+| `LEGAL_DIR` | no | folder with `en/policy.md`, `en/terms.md` (and other languages); the tenant folder's `legal/` by default, 404 without |
 | `CAB_UPLOADS_DIR` | yes | folder for club logos, served at `/uploads`; in the image `/app/cab-uploads`, a persistent volume kept in the backups |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` | for mail | without `SMTP_HOST` mail is kept in memory and not sent |
 | `MAIL_FROM` | for mail | `Name <address>`, e.g. `cab <noreply@example.org>` |
@@ -206,6 +207,17 @@ boot by `Public.Tenant`:
   (`{"City": [x, y]}`), `branches`, and optionally `names` (a city's
   name per language) and `label_side` (`"left"` or `"below"` for a
   branch label that would cover a neighbour).
+- `pages/<slug>.<lang>.md`: the tenant's own pages, such as /about.
+- `legal/<lang>/policy.md`, `legal/<lang>/terms.md`: cab's Policy and
+  Terms, read on each request (unless `LEGAL_DIR` points elsewhere).
+- `static/`, optional: files served at `/tenant/...` by cab and the
+  public site (`Ui.TenantStatic`). A `static/theme.css` is the tenant's
+  theme, loaded after the apps' own CSS: token overrides on `:root`
+  (`--brand: ...`; dark values under both selectors `tokens.css`
+  uses, `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) }`
+  and `:root[data-theme="dark"]`) and
+  `@font-face` rules for fonts beside it. Without it the apps keep the
+  default purple look.
 
 The site refuses to boot when a key it needs is missing and names every
 one. It hands cab its operator (`PublicWeb.CabOperator`, from the

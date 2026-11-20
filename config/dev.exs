@@ -41,6 +41,7 @@ config :public, PublicWeb.Endpoint,
 config :public, :uploads_dir, Path.expand("../uploads/public", __DIR__)
 
 config :public, :tenant_dir, Path.expand("../apps/public/test/support/tenant", __DIR__)
+config :ui, :tenant_dir, Path.expand("../apps/public/test/support/tenant", __DIR__)
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

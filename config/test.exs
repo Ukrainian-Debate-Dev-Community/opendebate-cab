@@ -40,6 +40,7 @@ config :public, Public.Repo,
 config :public, :uploads_dir, Path.join(System.tmp_dir!(), "public-uploads-test")
 
 config :public, :tenant_dir, Path.expand("../apps/public/test/support/tenant", __DIR__)
+config :ui, :tenant_dir, Path.expand("../apps/public/test/support/tenant", __DIR__)
 
 # the umbrella's test run starts every app before cab's tests, which
 # expect cab without an operator: the site hands cab its operator in

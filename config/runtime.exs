@@ -62,8 +62,20 @@ if config_env() != :test do
     site_key: System.get_env("TURNSTILE_SITE_KEY"),
     secret_key: System.get_env("TURNSTILE_SECRET_KEY")
 
-  if legal_dir = System.get_env("LEGAL_DIR") do
-    config :cab, :legal_dir, legal_dir
+  cond do
+    legal_dir = System.get_env("LEGAL_DIR") ->
+      config :cab, :legal_dir, legal_dir
+
+    tenant_dir = System.get_env("TENANT_DIR") ->
+      config :cab, :legal_dir, Path.join(tenant_dir, "legal")
+
+    true ->
+      :ok
+  end
+
+  # the tenant's static files and theme (Ui.TenantStatic), for every app
+  if tenant_dir = System.get_env("TENANT_DIR") do
+    config :ui, :tenant_dir, tenant_dir
   end
 end
 
