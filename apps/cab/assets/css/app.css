@@ -33,7 +33,7 @@
 
 /* ---- page scheme (pages-v6): the shell fills the viewport; the
         sidenav runs the FULL height; the footer belongs to the main
-        column only, pinned under the content ---- */
+        column only, pinned under the content, on its background ---- */
 body { min-height:100vh; display:flex; flex-direction:column; }
 .shell { flex:1 0 auto; display:flex; align-items:stretch; width:100%; }
 .mainc { flex:1; min-width:0; display:flex; flex-direction:column; }
@@ -60,7 +60,7 @@ main.page-main { width:100%; flex:1 0 auto; }
 
 /* ---- sidenav: the ONLY navigation (brand cap, place names,
         profile pinned to the bottom) ---- */
-.sidenav { width:180px; flex-shrink:0; background:var(--surface);
+.sidenav { width:11.5rem; flex-shrink:0; background:var(--surface);
            border-right:1px solid var(--line); padding:10px 0 0;
            font-size:.8rem; display:flex; flex-direction:column;
            position:sticky; top:0; height:100vh; overflow-y:auto; }
@@ -92,9 +92,10 @@ main.page-main { width:100%; flex:1 0 auto; }
 
 .pbody { max-width:var(--w-page); margin:0 auto; padding:18px 22px 26px;
          display:flex; flex-direction:column; gap:18px; }
-.footer { flex-shrink:0; border-top:1px solid var(--line); background:var(--surface);
-          font-size:.76rem; color:var(--muted); margin-top:26px; }
-.footer .in { max-width:var(--w-page); margin:0 auto; padding:22px 22px 45px; }
+.footer { flex-shrink:0; font-size:.76rem; color:var(--muted); margin-top:26px; padding:0 22px; }
+/* the rule spans the content, not the column: no seam at the sidenav */
+.footer .in { max-width:calc(var(--w-page) - 44px); margin:0 auto; padding:22px 0 45px;
+              border-top:1px solid var(--line); }
 .footer .cols { display:grid; grid-template-columns:1.2fr 1.6fr 1.2fr; gap:28px; }
 .footer h6 { font-size:.74rem; font-weight:750; color:var(--ink); margin:0 0 3px; }
 .footer p { margin:0; line-height:1.5; }
@@ -418,7 +419,8 @@ input.pick { width:15px; height:15px; margin:0 8px 0 0; vertical-align:-2px; acc
   .sidenav .profile .av { width:28px; height:28px; font-size:.7rem; }
 
   .pbody { padding:14px 12px 22px; gap:14px; }
-  .footer .in { padding:18px 14px 32px; }
+  .footer { padding:0 12px; }
+  .footer .in { padding:18px 0 32px; }
   .footer .flinks { flex-wrap:wrap; gap:6px 18px; }
   .footer .flinks a { padding:8px 0; }
 

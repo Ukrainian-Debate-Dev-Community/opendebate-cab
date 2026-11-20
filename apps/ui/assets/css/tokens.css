@@ -85,7 +85,7 @@
   --fs-sm:    .8rem;    /* buttons, field labels */
   --fs-md:    .84rem;   /* tables, banners */
   --fs-base:  .86rem;   /* forms, card text */
-  --fs-body:  15px;
+  --fs-body:  1rem;     /* the root grows with the screen (base.css) */
   --fs-lg:    1.02rem;  /* a form's title */
   --fs-xl:    1.4rem;
   --fs-2xl:   1.75rem;  /* a page's title */
@@ -112,7 +112,7 @@
   --r-pill: 999px;
 
   /* widths */
-  --w-page:   1180px;
+  --w-page:   1600px;   /* the panel fills the screen up to this */
   --w-form:   760px;
   --w-prose:  72ch;
   --w-read:   42rem;    /* an article's column: about 70 characters of reading text */
