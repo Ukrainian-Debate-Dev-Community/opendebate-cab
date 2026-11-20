@@ -60,6 +60,17 @@ defmodule CabWeb.ClubPublicHTML do
     |> then(&if(&1 == "", do: nil, else: &1))
   end
 
+  @doc "Whether the About card has anything the page does not show already."
+  def about?(club, members) do
+    Enum.any?([
+      club.description,
+      head_name(members),
+      club.contacts,
+      CabWeb.ClubProfile.languages(club.languages, club.language_other),
+      CabWeb.ClubProfile.audiences(club.audiences)
+    ])
+  end
+
   @doc "The soonest session still taking or closing sign-ups (the club's next one), nil without one."
   def next_session(rows) do
     rows

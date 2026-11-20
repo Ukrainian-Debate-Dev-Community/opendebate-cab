@@ -47,27 +47,13 @@
     <%!-- the registration beside the club when a session takes sign-ups --%>
     <div class={if @registration, do: "split", else: "stack"}>
       <div class="stack">
-        <.section title={gettext("About")} pad>
-          <p class="club-facts">
-            {ngettext("%{count} member", "%{count} members", length(@members))}{if head_name(
-                                                                                     @members
-                                                                                   ),
-                                                                                   do:
-                                                                                     ", " <>
-                                                                                       gettext(
-                                                                                         "head: %{name}",
-                                                                                         name:
-                                                                                           head_name(
-                                                                                             @members
-                                                                                           )
-                                                                                       )}
-          </p>
+        <%!-- what the head, the numbers and the lead line do not say already --%>
+        <.section :if={about?(@club, @members)} title={gettext("About")} pad>
           <p :if={@club.description}>{@club.description}</p>
-          <p :if={@club.meeting_info}>{gettext("Meetings:")} {@club.meeting_info}</p>
-          <p :if={@club.contacts}>{gettext("Contacts:")} {@club.contacts}</p>
-          <p :if={CabWeb.ClubProfile.formats(@club.formats, @club.format_other)}>
-            {gettext("Format:")} {CabWeb.ClubProfile.formats(@club.formats, @club.format_other)}
+          <p :if={head_name(@members)}>
+            {gettext("Head")}: <b>{head_name(@members)}</b>
           </p>
+          <p :if={@club.contacts}>{gettext("Contacts:")} {@club.contacts}</p>
           <p :if={CabWeb.ClubProfile.languages(@club.languages, @club.language_other)}>
             {gettext("Language:")} {CabWeb.ClubProfile.languages(
               @club.languages,
