@@ -102,7 +102,7 @@ defmodule Ui.ComponentsTest do
     refute plain =~ "<a"
   end
 
-  test "section renders the micro-title and card, flush or padded" do
+  test "section renders its title in the card's head, flush or padded; bare above" do
     assigns = %{}
 
     flush =
@@ -110,9 +110,9 @@ defmodule Ui.ComponentsTest do
       <.section title="My clubs">table goes here</.section>
       """)
 
-    assert flush =~ ~s(class="section")
-    assert flush =~ "<span>My clubs</span>"
-    assert flush =~ ~s(class="card")
+    assert flush =~
+             ~r{<section[^>]* class="section">\s*<div class="card">\s*<header class="card-head">\s*<h2>My clubs</h2>}
+
     refute flush =~ ~s(class="pad")
 
     padded =
@@ -121,6 +121,19 @@ defmodule Ui.ComponentsTest do
       """)
 
     assert padded =~ ~s(class="pad")
+
+    bare =
+      rendered_to_string(~H"""
+      <.section title="News" bare>
+        <:action href="/news">All news</:action>
+        cards
+      </.section>
+      """)
+
+    assert bare =~
+             ~r{<header class="section-head">\s*<h2>News</h2>\s*<a[^>]* href="/news" class="more">All news</a>}
+
+    refute bare =~ ~s(class="card")
   end
 
   test "flash banners map info and error flashes onto banner kinds" do

@@ -394,12 +394,12 @@ defmodule Ui.Components do
   end
 
   @doc """
-  The only layout primitive: uppercase micro-title + card. A page is
-  a stack of sections. `pad` wraps the content in
-  the card's prose padding (summary cards); tables and forms fill the
-  card flush. `bare` leaves the card out, for content that brings its
-  own (a list of rows, a grid of cards). An `action` is a link at the
-  right of the title (All news).
+  The only layout primitive: a card with its title in a header row, the
+  action at the right of it. A page is a stack of sections. `pad` wraps
+  the content in the card's padding (summary cards); tables and forms
+  fill the card flush. `bare` leaves the card out, for content that
+  brings its own (a list of rows, a grid of cards): the title then
+  heads the section above it. An `action` is a link (All news).
 
       <.section title="News" bare>
         <:action href="/news">All news</:action>
@@ -419,17 +419,26 @@ defmodule Ui.Components do
 
   def section(assigns) do
     ~H"""
-    <div class="section" id={@id}>
-      <h4>
-        <span>{@title}</span>
-        <.link :for={action <- @action} href={action.href}>{render_slot(action)}</.link>
-      </h4>
+    <section class={if @bare, do: "section bare", else: "section"} id={@id}>
       <%= if @bare do %>
+        <header class="section-head">
+          <h2>{@title}</h2>
+          <.link :for={action <- @action} class="more" href={action.href}>{render_slot(action)}</.link>
+        </header>
         {render_slot(@inner_block)}
       <% else %>
-        <.card pad={@pad}>{render_slot(@inner_block)}</.card>
+        <div class="card">
+          <header class="card-head">
+            <h2>{@title}</h2>
+            <.link :for={action <- @action} class="more" href={action.href}>{render_slot(action)}</.link>
+          </header>
+          <div :if={@pad} class="pad">{render_slot(@inner_block)}</div>
+          <%= if !@pad do %>
+            {render_slot(@inner_block)}
+          <% end %>
+        </div>
       <% end %>
-    </div>
+    </section>
     """
   end
 

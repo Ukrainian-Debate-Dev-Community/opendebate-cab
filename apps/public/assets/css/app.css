@@ -18,7 +18,7 @@ a { color:var(--brand); }
 .ua-main > .banner { margin-bottom:var(--px); }
 .ua-main > .chrome { border:1px solid var(--line); border-radius:var(--r); overflow:hidden; margin-bottom:var(--px); }
 .ua-main .section { margin-top:26px; }
-.ua-main .section > h4 { margin-bottom:10px; }
+.ua-main .section-head { margin-bottom:var(--sp-3); }
 /* a form stands at a readable width */
 .ua-form { max-width:var(--w-form); }
 
