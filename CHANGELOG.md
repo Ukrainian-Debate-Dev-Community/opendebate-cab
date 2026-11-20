@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.6.1 - 2026-11-20
+
+1 feature; breaking: 0
+
+### Features
+
+- tenant theme and legal texts from the tenant folder (#69) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 1 commit
+
 ## v0.6.0 - 2026-11-19
 
 6 features, 1 fix, 1 chore; breaking: 0
