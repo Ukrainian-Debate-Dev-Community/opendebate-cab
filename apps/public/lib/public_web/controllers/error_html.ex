@@ -31,6 +31,7 @@ defmodule PublicWeb.ErrorHTML do
           } catch (_e) {}
         </script>
         <link rel="stylesheet" href={~p"/assets/css/app.css"} />
+        <Ui.Components.tenant_theme />
         <script defer src={~p"/assets/js/site.js"}>
         </script>
       </head>

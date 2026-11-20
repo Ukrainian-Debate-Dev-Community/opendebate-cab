@@ -674,6 +674,15 @@ defmodule Ui.Components do
     """
   end
 
+  @doc "The tenant's theme (Ui.TenantStatic), after the app's stylesheet; nothing without one."
+  def tenant_theme(assigns) do
+    assigns = assign(assigns, :href, Ui.TenantStatic.theme_href())
+
+    ~H"""
+    <link :if={@href} rel="stylesheet" href={@href} />
+    """
+  end
+
   @doc "The beta tag beside an app's wordmark, until the app leaves beta."
   def beta(assigns) do
     ~H"""

@@ -1,6 +1,6 @@
 # The opendebate-cab image: the `full` release, cab on 4000 and the public
-# site on 4001. Policy and Terms and the tenant folder are not baked in:
-# the server mounts them (LEGAL_DIR, TENANT_DIR).
+# site on 4001. The tenant folder (its texts, Policy and Terms, theme)
+# is not baked in: the server mounts it (TENANT_DIR).
 
 ARG ELIXIR_IMAGE=hexpm/elixir:1.18.5-erlang-27.3.4.18-debian-bookworm-20261005-slim
 ARG RUNTIME_IMAGE=debian:bookworm-20261005-slim

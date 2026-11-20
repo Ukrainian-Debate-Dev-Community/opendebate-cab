@@ -38,11 +38,11 @@ config :cab, CabWeb.BotGuard,
   join_per_ip: {30, 3600}
 
 # Policy and Terms are the deployment's own documents, one folder per
-# language (en/policy.md, en/terms.md, ...); cab only serves them.
-# LEGAL_DIR (runtime.exs, also read from .env) points at them; without it
-# development looks in an opendebate-server checkout next to this repo,
-# and without the documents the pages answer 404
-config :cab, :legal_dir, Path.expand("../../opendebate-server/legal", __DIR__)
+# language (en/policy.md, en/terms.md, ...); cab only serves them. They
+# live in the tenant folder's legal/ (TENANT_DIR), or wherever LEGAL_DIR
+# says (runtime.exs, also read from .env); without them the pages
+# answer 404
+config :cab, :legal_dir, nil
 
 # sibling sites a sign-in may return to (CabWeb.ReturnTo; RETURN_HOSTS
 # in production, e.g. "example.org"); none by default
