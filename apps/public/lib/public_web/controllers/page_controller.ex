@@ -17,6 +17,8 @@ defmodule PublicWeb.PageController do
       next_tournament: Enum.find(upcoming, &(&1.kind == "tournament")),
       counts: counts,
       club_count: length(clubs),
+      # the home page's clubs: the first few, the rest on /clubs
+      clubs: Enum.take(clubs, 6),
       city_count: map_size(counts)
     )
   end
