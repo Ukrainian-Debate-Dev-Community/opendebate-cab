@@ -230,6 +230,11 @@ defmodule CabWeb.UiTest do
              ~r/class="on"[^>]*href="\/standings\/speakers"|href="\/standings\/speakers"[^>]*class="on"/
 
     refute html =~ ~s(class="n")
+    # the current tab is announced as such; the others are not
+    assert html =~
+             ~r/href="\/standings\/speakers"[^>]*aria-current="page"|aria-current="page"[^>]*href="\/standings\/speakers"/
+
+    assert length(Regex.scan(~r/aria-current="page"/, html)) == 1
   end
 
   # ---------------------------------------------------------------

@@ -192,7 +192,12 @@ defmodule CabWeb.Ui do
   def selrow(assigns) do
     ~H"""
     <div class="selrow" id={@id}>
-      <.link :for={{key, label, href} <- @tabs} href={href} class={key == @active && "on"}>
+      <.link
+        :for={{key, label, href} <- @tabs}
+        href={href}
+        class={key == @active && "on"}
+        aria-current={key == @active && "page"}
+      >
         {label}
       </.link>
     </div>

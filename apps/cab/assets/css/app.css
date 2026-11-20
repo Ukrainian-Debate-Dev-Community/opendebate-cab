@@ -215,15 +215,18 @@ main.page-main { width:100%; flex:1 0 auto; }
 .dnd .touch-hint { display:none; }
 @media (pointer:coarse) { .dnd .touch-hint { display:block; margin-top:4px; } }
 
-/* tab row under the chrome (pages-v6 .selrow): real borders, no
-   shadows - the active tab carries a bottom border */
-.selrow { display:flex; align-items:stretch; height:30px; background:var(--surface);
-          border-bottom:1px solid var(--line); font-size:var(--step-m1); }
-.selrow a { display:flex; align-items:center; padding:0 14px; color:var(--muted);
-            text-decoration:none; font-weight:650; border-right:1px solid var(--line); }
-.selrow a.on { background:var(--brand-50); color:var(--brand-700);
-               border-bottom:2px solid var(--brand); }
-.selrow a:hover { color:var(--brand); }
+/* tab row under the chrome: underline tabs - the current one in ink
+   over a brand line, the others muted; on a phone the row scrolls */
+.selrow { display:flex; align-items:stretch; gap:var(--sp-1); padding:0 var(--sp-6);
+          border-bottom:1px solid var(--line); font-size:var(--step-0); overflow-x:auto;
+          scrollbar-width:none; }
+.selrow a { display:flex; align-items:center; min-height:var(--target); padding:0 var(--sp-3);
+            margin-bottom:-1px; border-bottom:2px solid transparent; color:var(--muted);
+            text-decoration:none; font-weight:650; white-space:nowrap;
+            border-radius:var(--r-sm) var(--r-sm) 0 0; transition:color .15s, background-color .15s; }
+.selrow a:hover { color:var(--ink); background:var(--surface-2); }
+.selrow a.on { color:var(--ink); border-bottom-color:var(--brand-fill); }
+@media (max-width:760px) { .selrow { padding:0 var(--sp-2); } }
 
 /* draw table cells (P6/P8): side color bands */
 .t td.side { border-left:3px solid; font-size:var(--step-m1); }
