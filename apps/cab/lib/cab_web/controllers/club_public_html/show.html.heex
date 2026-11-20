@@ -29,44 +29,60 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.registration_section :if={@registration} club={@club} registration={@registration} />
+    <.page_head
+      kicker={gettext("Club")}
+      title={@club.name}
+      lead={club_lead(@club)}
+      logo={CabWeb.ClubProfile.logo_path(@club)}
+    />
 
-    <.section title={gettext("About")} pad>
-      <div :if={@club.logo} class="club-id">
-        <.club_logo club={@club} size={:lg} />
+    <.stats>
+      <:stat label={gettext("Members")}>{length(@members)}</:stat>
+      <:stat label={gettext("Club sessions")}>{length(@recent)}</:stat>
+      <:stat :if={next_session(@recent)} label={gettext("Next session")}>
+        <.local_time at={next_session(@recent).date} as={:short} />
+      </:stat>
+    </.stats>
+
+    <div class="split">
+      <div class="stack">
+        <CabWeb.MemberHTML.archive_section club={@club} archive={@recent} mine={@mine} />
       </div>
-      <b id="club-name">{@club.name}</b>{if @club.city, do: ", #{@club.city}"}
-      <p>
-        {ngettext("%{count} member", "%{count} members", length(@members))}{if head_name(
-                                                                                 @members
-                                                                               ),
-                                                                               do:
-                                                                                 ", " <>
-                                                                                   gettext(
-                                                                                     "head: %{name}",
-                                                                                     name:
-                                                                                       head_name(
-                                                                                         @members
-                                                                                       )
-                                                                                   )}
-      </p>
-      <p :if={@club.description}>{@club.description}</p>
-      <p :if={@club.meeting_info}>{gettext("Meetings:")} {@club.meeting_info}</p>
-      <p :if={@club.contacts}>{gettext("Contacts:")} {@club.contacts}</p>
-      <p :if={CabWeb.ClubProfile.formats(@club.formats, @club.format_other)}>
-        {gettext("Format:")} {CabWeb.ClubProfile.formats(@club.formats, @club.format_other)}
-      </p>
-      <p :if={CabWeb.ClubProfile.languages(@club.languages, @club.language_other)}>
-        {gettext("Language:")} {CabWeb.ClubProfile.languages(
-          @club.languages,
-          @club.language_other
-        )}
-      </p>
-      <p :if={CabWeb.ClubProfile.audiences(@club.audiences)}>
-        {gettext("Audience:")} {CabWeb.ClubProfile.audiences(@club.audiences)}
-      </p>
-    </.section>
+      <div class="stack">
+        <.registration_section :if={@registration} club={@club} registration={@registration} />
 
-    <CabWeb.MemberHTML.archive_section club={@club} archive={@recent} mine={@mine} />
+        <.section title={gettext("About")} pad>
+          <p class="club-facts">
+            {ngettext("%{count} member", "%{count} members", length(@members))}{if head_name(
+                                                                                     @members
+                                                                                   ),
+                                                                                   do:
+                                                                                     ", " <>
+                                                                                       gettext(
+                                                                                         "head: %{name}",
+                                                                                         name:
+                                                                                           head_name(
+                                                                                             @members
+                                                                                           )
+                                                                                       )}
+          </p>
+          <p :if={@club.description}>{@club.description}</p>
+          <p :if={@club.meeting_info}>{gettext("Meetings:")} {@club.meeting_info}</p>
+          <p :if={@club.contacts}>{gettext("Contacts:")} {@club.contacts}</p>
+          <p :if={CabWeb.ClubProfile.formats(@club.formats, @club.format_other)}>
+            {gettext("Format:")} {CabWeb.ClubProfile.formats(@club.formats, @club.format_other)}
+          </p>
+          <p :if={CabWeb.ClubProfile.languages(@club.languages, @club.language_other)}>
+            {gettext("Language:")} {CabWeb.ClubProfile.languages(
+              @club.languages,
+              @club.language_other
+            )}
+          </p>
+          <p :if={CabWeb.ClubProfile.audiences(@club.audiences)}>
+            {gettext("Audience:")} {CabWeb.ClubProfile.audiences(@club.audiences)}
+          </p>
+        </.section>
+      </div>
+    </div>
   </div>
 </Layouts.app>

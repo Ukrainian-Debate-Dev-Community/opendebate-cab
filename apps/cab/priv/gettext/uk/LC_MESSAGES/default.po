@@ -685,6 +685,7 @@ msgstr "Натисніть на зображення або текст, щоб �
 
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
+#: lib/cab_web/controllers/club_public_html/show.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/delete_session.html.heex
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex
@@ -738,6 +739,11 @@ msgstr "Профіль клубу"
 #, elixir-autogen, elixir-format
 msgid "Club profile saved."
 msgstr "Профіль клубу збережено."
+
+#: lib/cab_web/controllers/club_public_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Club sessions"
+msgstr "Сесії клубу"
 
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -1404,6 +1410,7 @@ msgid "Member, registered user or guest"
 msgstr "Член клубу, зареєстрований користувач або гість"
 
 #: lib/cab_web/components/ui.ex
+#: lib/cab_web/controllers/club_public_html/show.html.heex
 #: lib/cab_web/controllers/member_html/members.html.heex
 #: lib/cab_web/controllers/owner_html/members.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
@@ -1539,6 +1546,7 @@ msgstr "Ім'я"
 msgid "New head"
 msgstr "Новий голова"
 
+#: lib/cab_web/controllers/club_public_html/show.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format

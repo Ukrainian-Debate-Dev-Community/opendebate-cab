@@ -7,15 +7,15 @@
     <:col :let={row} label={gettext("Status")} class="st">
       <%= case row.status do %>
         <% :open -> %>
-          {gettext("registration open")}
+          <.tag kind={:info}>{gettext("registration open")}</.tag>
         <% :full -> %>
-          {gettext("registration full")}
+          <.tag kind={:warn}>{gettext("registration full")}</.tag>
         <% :closed -> %>
-          {gettext("registration closed")}
+          <.tag kind={:warn}>{gettext("registration closed")}</.tag>
         <% :running -> %>
-          <b>{gettext("running")}</b>
+          <.tag kind={:ok}>{gettext("running")}</.tag>
         <% :finished -> %>
-          {gettext("finished")}
+          <.tag>{gettext("finished")}</.tag>
       <% end %>
     </:col>
     <:col :let={row} label={gettext("Action")}>
