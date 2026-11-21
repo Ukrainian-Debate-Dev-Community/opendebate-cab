@@ -1,11 +1,11 @@
 /* form_for/1: one flowing piece - title block, field blocks, submit -
    divided by hairlines inside one container (google-form style) */
 .form { font-size:var(--fs-base); }
-.form .f-head { padding:16px var(--px) 14px; border-bottom:1px solid var(--line);
+.form .f-head { padding:var(--sp-4) var(--px) var(--sp-3); border-bottom:1px solid var(--line);
                 border-top:3px solid var(--brand); }
 .form .f-head h3 { font-size:var(--fs-lg); font-weight:720; }
 .form .f-head p { font-size:var(--step-m1); color:var(--muted); margin-top:var(--sp-1); }
-.form .f-head.with-logo { display:flex; align-items:center; gap:12px; }
+.form .f-head.with-logo { display:flex; align-items:center; gap:var(--sp-3); }
 .form .f-block { padding:var(--sp-3) var(--px) var(--sp-4); border-bottom:1px solid var(--line); }
 .form .f-block label.q { display:block; font-size:var(--step-m1); font-weight:650; margin-bottom:var(--sp-2); }
 .form .f-block label.q .req { color:var(--warn); }
@@ -18,23 +18,23 @@
 .form textarea { min-height:5.5rem; }
 .form select { font:inherit; font-size:var(--step-0); color:var(--ink); min-height:var(--target);
   padding:0 var(--sp-3); border:1px solid var(--field-line); border-radius:var(--r-sm);
-  background:var(--surface); outline:none; min-width:min(230px, 100%); max-width:100%; }
+  background:var(--surface); outline:none; min-width:min(14.375rem, 100%); max-width:100%; }
 .form input:hover, .form textarea:hover, .form select:hover { border-color:var(--ink); }
 /* the focus ring: the field's edge in brand, a soft halo around it */
 .form input:focus-visible, .form textarea:focus-visible, .form select:focus-visible {
   border-color:var(--brand); box-shadow:0 0 0 3px color-mix(in oklch, var(--brand) 25%, transparent); }
-.form input[type=number] { width:110px; }
+.form input[type=number] { width:6.875rem; }
 .form input[type=file] { font:inherit; font-size:var(--fs-sm); max-width:100%; }
 /* a phone block: the country picker, then the number */
-.form .phonefield { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; }
+.form .phonefield { display:flex; flex-wrap:wrap; gap:var(--sp-2); align-items:stretch; }
 .form .phonefield .phonecountry { flex:0 0 auto; width:6.5rem; min-width:0; }
 .form .phonefield input[type=tel] { flex:1 1 12rem; min-width:0; }
-.form .half { display:flex; gap:10px; }
+.form .half { display:flex; gap:var(--sp-2); }
 .form .half > * { flex:1; min-width:0; }
-.form .hint { font-size:var(--fs-xs); color:var(--muted); margin-top:5px; }
-.form .hint a { color:var(--brand); font-weight:650; margin-left:6px; }
+.form .hint { font-size:var(--fs-xs); color:var(--muted); margin-top:var(--sp-1); }
+.form .hint a { color:var(--brand); font-weight:650; margin-left:var(--sp-1); }
 .form .f-block.err input, .form .f-block.err textarea, .form .f-block.err select { border-color:var(--warn); background:var(--warn-surface); }
-.form .f-block.err .error { font-size:var(--fs-xs); color:var(--warn); margin-top:5px; font-weight:650; }
+.form .f-block.err .error { font-size:var(--fs-xs); color:var(--warn); margin-top:var(--sp-1); font-weight:650; }
 
 /* a scale: flush integer segments */
 .scale { display:flex; border:1px solid var(--line); border-radius:var(--r-sm);
@@ -58,36 +58,36 @@
 .pills label:last-child { border-right:none; }
 .pills label:has(input:checked) { background:var(--brand-fill); color:var(--on-brand); }
 /* a pills choice can open a text field for its own words while chosen */
-.pills-field { display:flex; flex-direction:column; gap:8px; }
+.pills-field { display:flex; flex-direction:column; gap:var(--sp-2); }
 .pills-other { display:none; max-width:22rem; }
 .pills-field:has(.pills input[value=other]:checked) .pills-other { display:block; }
 /* stacked checks */
-.opts { display:flex; flex-direction:column; gap:7px; }
-.opts label { display:flex; align-items:center; gap:9px; font-size:var(--fs-md);
+.opts { display:flex; flex-direction:column; gap:var(--sp-2); }
+.opts label { display:flex; align-items:center; gap:var(--sp-2); font-size:var(--fs-md);
               cursor:pointer; margin:0; }
 .opts input[type=checkbox], .opts input[type=radio]
   { width:1.1rem; height:1.1rem; margin:0; accent-color:var(--brand-fill); flex:none; }
 /* an image picker: the current image, the picker, the remove box */
-.form .club-logo { display:inline-block; width:24px; height:24px; max-width:100%; object-fit:contain;
-                   border-radius:6px; background:var(--surface); vertical-align:middle; flex:none; }
-.form .f-head.with-logo .club-logo { width:44px; height:44px; border-radius:var(--r-md); }
-.form .club-logo.lg { width:72px; height:72px; border-radius:var(--r); }
-.file-field { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; }
+.form .club-logo { display:inline-block; width:1.5rem; height:1.5rem; max-width:100%; object-fit:contain;
+                   border-radius:var(--r-sm); background:var(--surface); vertical-align:middle; flex:none; }
+.form .f-head.with-logo .club-logo { width:2.75rem; height:2.75rem; border-radius:var(--r-md); }
+.form .club-logo.lg { width:4.5rem; height:4.5rem; border-radius:var(--r); }
+.file-field { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2) var(--sp-3); }
 .file-field input[type=file] { font:inherit; font-size:var(--fs-sm); max-width:100%; }
-.file-remove { display:flex; align-items:center; gap:7px; font-size:var(--fs-sm); cursor:pointer; }
+.file-remove { display:flex; align-items:center; gap:var(--sp-2); font-size:var(--fs-sm); cursor:pointer; }
 .file-remove input { width:1.1rem; height:1.1rem; margin:0; accent-color:var(--brand-fill); }
 /* the Turnstile widget keeps its own size; the block reserves its height */
-.form .f-guard .cf-turnstile { min-height:65px; }
+.form .f-guard .cf-turnstile { min-height:4.0625rem; }
 .form .f-submit { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-3);
                   padding:var(--sp-3) var(--px); background:var(--surface-2); }
 .f-submit .note { font-size:var(--step-m2); color:var(--muted); }
 /* the form editor's row actions */
-.field-actions { display:inline-flex; flex-wrap:wrap; gap:4px 12px; }
+.field-actions { display:inline-flex; flex-wrap:wrap; gap:var(--sp-1) var(--sp-3); }
 
 @media (max-width:760px) {
   .form input[type=text], .form input[type=email], .form input[type=number],
   .form input[type=tel], .form input[type=url], .form input[type=date], .form input[type=time],
   .form textarea, .form select { font-size:16px; }
-  .form .club-logo.lg { width:56px; height:56px; }
-  .field-actions a { display:inline-block; padding:8px 0; }
+  .form .club-logo.lg { width:3.5rem; height:3.5rem; }
+  .field-actions a { display:inline-block; padding:var(--sp-2) 0; }
 }

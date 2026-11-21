@@ -10,7 +10,7 @@
 .btn-go:active { background:var(--gold-active); }
 .btn-go:disabled { cursor:not-allowed; opacity:.55; }
 .btn-quiet { padding:0 var(--sp-5); border:1px solid color-mix(in oklch, var(--field-line) 45%, var(--line));
-             background:var(--surface); color:var(--ink); box-shadow:0 1px 1px rgb(0 0 0 / .04); }
+             background:var(--surface); color:var(--ink); box-shadow:var(--shadow-sm); }
 .btn-quiet:hover { border-color:var(--brand); color:var(--brand); }
 .btn-quiet:disabled { cursor:not-allowed; opacity:.55; }
 /* destructive or exit */
