@@ -6,9 +6,9 @@
            text-decoration:none; display:flex; align-items:center; }
 .stepper > button:hover:not(:disabled), .stepper > a:hover { color:var(--brand); }
 .stepper > button:disabled, .stepper > .off { cursor:not-allowed; color:var(--muted); opacity:.55; }
-.stepper .n { min-width:34px; display:flex; align-items:center; justify-content:center; padding:5px 12px;
+.stepper .n { min-width:2.125rem; display:flex; align-items:center; justify-content:center; padding:var(--sp-1) var(--sp-3);
            font-size:var(--fs-md); font-weight:750; color:var(--brand); font-variant-numeric:tabular-nums;
            border-left:1px solid var(--line); border-right:1px solid var(--line); }
 @media (max-width:760px) {
-  .stepper > button, .stepper > a, .stepper > .off { min-width:44px; min-height:44px; justify-content:center; }
+  .stepper > button, .stepper > a, .stepper > .off { min-width:2.75rem; min-height:2.75rem; justify-content:center; }
 }

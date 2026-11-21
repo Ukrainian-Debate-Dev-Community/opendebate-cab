@@ -23,7 +23,7 @@
 
 /* a narrow card (three in a side column) */
 @container (max-width:280px) {
-  .mcard-body { gap:6px; padding:var(--sp-3) var(--px) var(--px); }
+  .mcard-body { gap:var(--sp-1); padding:var(--sp-3) var(--px) var(--px); }
   .mcard-title { font-size:var(--step-0); }
   .mcard-text { font-size:var(--step-m1); -webkit-line-clamp:2; line-clamp:2; }
 }
@@ -33,10 +33,10 @@
 .mcard--featured .mcard-title { font-size:var(--step-3); line-height:1.15; font-weight:800; letter-spacing:-.022em; }
 .mcard--featured .mcard-text { font-size:var(--step-0); line-height:1.6; -webkit-line-clamp:4; line-clamp:4; }
 .mcard--featured .mcard-meta { font-size:var(--fs-sm); }
-@media (min-width:861px) {
+@media (min-width:1001px) {
   .mcard--featured { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); }
   .mcard--featured .mcard-media { aspect-ratio:3 / 2; }
   .mcard--featured .mcard-body { justify-content:center; padding:var(--sp-8); }
-  .mcard--featured .mcard-title { font-size:2.1rem; }
+  .mcard--featured .mcard-title { font-size:var(--step-4); }
   .mcard--featured .mcard-meta { margin-top:var(--sp-2); }
 }
