@@ -87,7 +87,8 @@ defmodule CabWeb.ClubProfileTest do
       })
 
     page = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
-    assert page =~ "Format: Karl Popper"
+    # the format leads the page, under the club's name
+    assert page =~ ~r/class="lead">[^<]*Karl Popper/
     assert page =~ "Language: Polish"
     assert conn |> get(~p"/") |> html_response(200) =~ "Karl Popper"
 
@@ -124,7 +125,7 @@ defmodule CabWeb.ClubProfileTest do
       })
 
     page = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
-    assert page =~ "Format: APF"
+    assert page =~ ~r/class="lead">[^<]*APF/
     assert page =~ "Language: English"
     assert page =~ "Audience: university students"
 

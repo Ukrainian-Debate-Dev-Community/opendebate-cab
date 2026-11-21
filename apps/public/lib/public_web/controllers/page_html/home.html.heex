@@ -42,42 +42,60 @@
   </div>
 </div>
 
-<div class="ua-grid2">
-  <div>
-    <.section title={gettext("News")} bare>
-      <:action href={~p"/news"}>{gettext("All news")}</:action>
-      <div :if={@news != []} class="ua-cards ua-cards--side">
-        <.news_card :for={post <- @news} post={post} />
-      </div>
-      <.empty :if={@news == []}>{gettext("No news yet.")}</.empty>
-    </.section>
+<.stats>
+  <:stat label={gettext("Active clubs")}>{@club_count}</:stat>
+  <:stat label={gettext("Cities")}>{@city_count}</:stat>
+  <:stat label={Tenant.text([:labels, :branches])}>{length(Public.Geo.branches())}</:stat>
+  <:stat label={gettext("Upcoming events")}>{length(@upcoming)}</:stat>
+</.stats>
 
-    <.section title={gettext("Our story")} pad>
-      <:action :if={Tenant.page("about")} href={~p"/about"}>
-        {Tenant.text([:home, :about_link])}
-      </:action>
-      <ol class="ua-story">
-        <li :for={{year, text} <- story()}><b>{year}</b><span>{text}</span></li>
-      </ol>
-    </.section>
-  </div>
-
-  <div>
-    <.section title={gettext("Upcoming events")} bare>
-      <:action href={~p"/calendar"}>{gettext("Calendar")}</:action>
+<div class="ua-duo">
+  <.section title={gettext("Upcoming events")}>
+    <:action href={~p"/calendar"}>{gettext("Calendar")}</:action>
+    <div :if={@upcoming != []} class="ua-events">
       <.event_row :for={event <- @upcoming} event={event} href={~p"/calendar/#{event.id}"} />
-      <.empty :if={@upcoming == []}>{gettext("Nothing planned yet.")}</.empty>
-    </.section>
+    </div>
+    <div :if={@upcoming == []} class="pad">{gettext("Nothing planned yet.")}</div>
+  </.section>
 
-    <.section title={gettext("Community")} bare>
-      <div class="ua-stats">
-        <div><b>{@club_count}</b><span>{gettext("Active clubs")}</span></div>
-        <div><b>{@city_count}</b><span>{gettext("Cities")}</span></div>
-        <div>
-          <b>{length(Public.Geo.branches())}</b><span>{Tenant.text([:labels, :branches])}</span>
+  <.section title={gettext("Clubs")}>
+    <:action href={~p"/clubs"}>{gettext("All clubs")}</:action>
+    <.table id="home-clubs" rows={@clubs} empty={gettext("No clubs yet.")}>
+      <:col :let={club} label={gettext("Club")}>
+        <div class="ua-clubname">
+          <img
+            :if={PublicWeb.Clubs.logo_url(club)}
+            class="ua-logo"
+            src={PublicWeb.Clubs.logo_url(club)}
+            alt=""
+          />
+          <a href={~p"/clubs/#{club.uuid}"}>{club.name}</a>
         </div>
-        <div><b>{length(@upcoming)}</b><span>{gettext("Upcoming events")}</span></div>
-      </div>
-    </.section>
-  </div>
+      </:col>
+      <:col :let={club} label={gettext("City")}>{city_label(club.city)}</:col>
+      <:col :let={club} label={gettext("Format")}>
+        {PublicWeb.ClubHTML.labels(club.formats, &format_label(&1, club.format_other))}
+      </:col>
+    </.table>
+  </.section>
 </div>
+
+<.section title={gettext("Our story")} pad>
+  <:action :if={Tenant.page("about")} href={~p"/about"}>
+    {Tenant.text([:home, :about_link])}
+  </:action>
+  <ol class="ua-story">
+    <li :for={{year, text} <- story()}><b>{year}</b><span>{text}</span></li>
+  </ol>
+</.section>
+
+<.section title={gettext("News")} bare>
+  <:action href={~p"/news"}>{gettext("All news")}</:action>
+  <div :if={@news != []} class="ua-newslist">
+    <.news_card post={hd(@news)} featured />
+    <div :if={tl(@news) != []} class="ua-cards">
+      <.news_card :for={post <- tl(@news)} post={post} />
+    </div>
+  </div>
+  <.empty :if={@news == []}>{gettext("No news yet.")}</.empty>
+</.section>

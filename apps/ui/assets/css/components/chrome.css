@@ -1,8 +1,9 @@
 /* chrome/1: the command bar - the place (crumbs) and this page's
    commands as flush, full-height segments; one gold at most */
-.chrome { display:flex; align-items:stretch; height:34px; background:var(--surface);
-          font-size:var(--fs-sm); border-bottom:1px solid var(--line); }
-.chrome .crumb { display:flex; align-items:center; gap:7px; padding:0 var(--px);
+.chrome { display:flex; align-items:stretch; min-height:3.25rem; font-size:var(--step-m1);
+          border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20;
+          background:color-mix(in oklch, var(--surface) 88%, transparent); backdrop-filter:blur(8px); }
+.chrome .crumb { display:flex; align-items:center; gap:var(--sp-2); padding:0 var(--sp-7);
                  font-weight:600; min-width:0; }
 .chrome .crumb a { color:var(--ink); text-decoration:none; }
 .chrome .crumb a:hover { color:var(--brand); }
@@ -10,7 +11,7 @@
 .chrome .crumb .here { color:var(--muted); font-weight:500; }
 .chrome .seg { margin-left:auto; display:flex; align-items:stretch;
                border-left:1px solid var(--line); }
-.chrome .seg > * { display:flex; align-items:center; padding:0 14px;
+.chrome .seg > * { display:flex; align-items:center; padding:0 var(--sp-5);
                    border:none; border-right:1px solid var(--line);
                    background:var(--surface); font:inherit; font-weight:650;
                    color:var(--ink); cursor:pointer; text-decoration:none;
@@ -27,8 +28,8 @@
 /* phones: the place on one row, the commands on the next, the gold
    one first */
 @media (max-width:760px) {
-  .chrome { height:auto; flex-wrap:wrap; }
-  .chrome .crumb { flex:1 1 100%; min-height:44px; padding:6px 14px; overflow:hidden; white-space:nowrap; }
+  .chrome { height:auto; flex-wrap:wrap; position:static; }
+  .chrome .crumb { flex:1 1 100%; min-height:44px; padding:6px var(--px); overflow:hidden; white-space:nowrap; }
   .chrome .crumb a, .chrome .crumb .here { overflow:hidden; text-overflow:ellipsis; min-width:0; }
   .chrome .seg { flex:1 1 100%; margin-left:0; border-left:none; border-top:1px solid var(--line); flex-wrap:wrap; }
   .chrome .seg > * { flex:1 1 auto; justify-content:center; min-height:46px; padding:0 12px; text-align:center; }

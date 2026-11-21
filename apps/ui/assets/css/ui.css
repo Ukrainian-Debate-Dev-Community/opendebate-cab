@@ -5,6 +5,7 @@
    ================================================================ */
 @import "./tokens.css";
 @import "./base.css";
+@import "./components/layout.css";
 @import "./components/section.css";
 @import "./components/table.css";
 @import "./components/form.css";

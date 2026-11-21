@@ -1,0 +1,9 @@
+/* page layout: a main column with a side column beside it (stacked on
+   narrower screens), and a stack of blocks with the page's gap. Grid
+   children may shrink below their content: wide tables scroll inside */
+.split { display:grid; grid-template-columns:minmax(0, 2fr) minmax(20rem, 1fr); gap:var(--sp-6); align-items:start; }
+.stack { display:grid; gap:var(--sp-6); align-content:start; }
+.split > *, .stack > * { min-width:0; }
+@media (max-width:80rem) {
+  .split { grid-template-columns:minmax(0, 1fr); }
+}

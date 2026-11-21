@@ -1,19 +1,19 @@
 /* page_head/1: kicker, title, lead, an optional image and the page's
    actions */
 .page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--sp-5); }
-.page-head .kicker { display:block; font-size:var(--fs-label); font-weight:800; letter-spacing:.12em;
-                     text-transform:uppercase; color:var(--brand); margin-bottom:6px; }
-.page-head h1 { font-size:var(--fs-2xl); line-height:1.15; font-weight:780; letter-spacing:-.015em;
+.page-head .kicker { display:block; font-size:var(--step-m2); font-weight:800; letter-spacing:.1em;
+                     text-transform:uppercase; color:var(--brand); margin-bottom:var(--sp-1); }
+.page-head h1 { font-size:var(--step-4); line-height:1.1; font-weight:780; letter-spacing:-.02em;
                 text-wrap:balance; }
-.page-head .lead { color:var(--muted); font-size:var(--step-0); max-width:var(--w-prose); margin-top:6px; }
+.page-head .lead { color:var(--muted); font-size:var(--step-0); max-width:var(--w-prose); margin-top:var(--sp-2); }
 .page-head .text { flex:1; min-width:0; }
-.page-head .logo { display:block; width:84px; height:84px; max-width:100%; object-fit:contain;
-                   border-radius:12px; background:var(--surface); border:1px solid var(--line);
+.page-head .logo { display:block; width:5.5rem; height:5.5rem; max-width:100%; object-fit:contain;
+                   border-radius:var(--r); background:var(--surface); border:1px solid var(--line);
                    flex:none; align-self:center; }
-.page-head .acts { display:flex; flex-wrap:wrap; gap:8px; flex:none; }
+.page-head .acts { display:flex; flex-wrap:wrap; gap:var(--sp-2); flex:none; }
 @media (max-width:760px) {
-  .page-head { flex-direction:column; align-items:stretch; gap:14px; }
-  .page-head .logo { width:64px; height:64px; align-self:flex-start; }
-  .page-head .acts > * { flex:1 1 auto; justify-content:center; text-align:center; min-height:44px;
-                         display:inline-flex; align-items:center; }
+  .page-head { flex-direction:column; align-items:stretch; gap:var(--sp-3); }
+  .page-head h1 { font-size:var(--step-3); }
+  .page-head .logo { width:4rem; height:4rem; align-self:flex-start; }
+  .page-head .acts > * { flex:1 1 auto; }
 }

@@ -83,7 +83,6 @@ msgid "%{club}: you are invited to be its head"
 msgstr "%{club}: вас запрошують стати головою клубу"
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
-#: lib/cab_web/controllers/club_public_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "%{count} member"
 msgid_plural "%{count} members"
@@ -685,6 +684,7 @@ msgstr "Натисніть на зображення або текст, щоб �
 
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
+#: lib/cab_web/controllers/club_public_html/show.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/delete_session.html.heex
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex
@@ -738,6 +738,11 @@ msgstr "Профіль клубу"
 #, elixir-autogen, elixir-format
 msgid "Club profile saved."
 msgstr "Профіль клубу збережено."
+
+#: lib/cab_web/controllers/club_public_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Club sessions"
+msgstr "Сесії клубу"
 
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -1116,11 +1121,6 @@ msgstr "Для людини, у якої опинилося два акаунт�
 msgid "Format"
 msgstr "Формат"
 
-#: lib/cab_web/controllers/club_public_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Format:"
-msgstr "Формат:"
-
 #: lib/cab_web/ballot_form.ex
 #, elixir-autogen, elixir-format
 msgid "GW"
@@ -1168,6 +1168,7 @@ msgid "Have an account?"
 msgstr "Маєте обліковий запис?"
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
+#: lib/cab_web/controllers/club_public_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Head"
 msgstr "Голова"
@@ -1382,11 +1383,6 @@ msgstr "Головна"
 msgid "Meetings"
 msgstr "Зустрічі"
 
-#: lib/cab_web/controllers/club_public_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Meetings:"
-msgstr "Зустрічі:"
-
 #: lib/cab_web/controllers/member_html/members.html.heex
 #: lib/cab_web/controllers/owner_html/members.html.heex
 #, elixir-autogen, elixir-format
@@ -1404,6 +1400,7 @@ msgid "Member, registered user or guest"
 msgstr "Член клубу, зареєстрований користувач або гість"
 
 #: lib/cab_web/components/ui.ex
+#: lib/cab_web/controllers/club_public_html/show.html.heex
 #: lib/cab_web/controllers/member_html/members.html.heex
 #: lib/cab_web/controllers/owner_html/members.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
@@ -1539,6 +1536,7 @@ msgstr "Ім'я"
 msgid "New head"
 msgstr "Новий голова"
 
+#: lib/cab_web/controllers/club_public_html/show.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
@@ -3200,11 +3198,6 @@ msgstr "гість"
 #, elixir-autogen, elixir-format
 msgid "head"
 msgstr "голова"
-
-#: lib/cab_web/controllers/club_public_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "head: %{name}"
-msgstr "голова: %{name}"
 
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format

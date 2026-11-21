@@ -186,8 +186,9 @@ defmodule PublicWeb.NewsPagesTest do
   test "home shows the latest news as the same cards", %{conn: conn} do
     published(%{"title" => "Home story", "summary" => "On the home page."}, 1)
 
+    # the newest leads the home page's news as the featured card
     html = conn |> get(~p"/") |> html_response(200)
-    assert html =~ ~s(class="mcard ua-news")
+    assert html =~ ~s(class="mcard mcard--featured ua-news")
     assert html =~ "On the home page."
   end
 end

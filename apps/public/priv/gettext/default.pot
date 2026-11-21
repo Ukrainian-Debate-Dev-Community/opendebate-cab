@@ -108,6 +108,11 @@ msgstr ""
 msgid "All cities"
 msgstr ""
 
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "All clubs"
+msgstr ""
+
 #: lib/public_web/controllers/calendar_html.ex
 #, elixir-autogen, elixir-format
 msgid "All events"
@@ -249,6 +254,7 @@ msgstr ""
 #: lib/public_web/controllers/calendar_html.ex
 #: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "City"
 msgstr ""
@@ -260,6 +266,7 @@ msgstr ""
 
 #: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/club_html/show.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Club"
 msgstr ""
@@ -288,6 +295,7 @@ msgstr ""
 #: lib/public_web/controllers/club_controller.ex
 #: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/club_html/show.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Clubs"
 msgstr ""
@@ -303,7 +311,6 @@ msgid "Coming up"
 msgstr ""
 
 #: lib/public_web/components/site.ex
-#: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Community"
 msgstr ""
@@ -525,6 +532,7 @@ msgstr ""
 #: lib/public_web/controllers/calendar_html.ex
 #: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Format"
 msgstr ""
@@ -786,6 +794,11 @@ msgstr ""
 #: lib/public_web/controllers/club_html/index.html.heex
 #, elixir-autogen, elixir-format
 msgid "No club matches these filters."
+msgstr ""
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "No clubs yet."
 msgstr ""
 
 #: lib/public_web/controllers/calendar_html.ex

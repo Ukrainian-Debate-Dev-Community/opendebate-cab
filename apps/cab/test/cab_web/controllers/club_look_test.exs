@@ -233,8 +233,9 @@ defmodule CabWeb.ClubLookTest do
     } do
       club = with_logo(club)
 
+      # the club page: the logo heads it, beside its name
       page = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
-      assert img?(page, "club-logo lg", club.logo)
+      assert img?(page, "logo", club.logo)
 
       directory = conn |> get(~p"/") |> html_response(200)
       assert img?(directory, "club-logo", club.logo)

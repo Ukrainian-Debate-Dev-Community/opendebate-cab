@@ -52,6 +52,32 @@ defmodule CabWeb.ClubPublicHTML do
 
   defp session_title(session), do: session.name || gettext("The next session")
 
+  @doc "The club page's lead line: city, formats and when it meets."
+  def club_lead(club) do
+    [club.city, CabWeb.ClubProfile.formats(club.formats, club.format_other), club.meeting_info]
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.join(". ")
+    |> then(&if(&1 == "", do: nil, else: &1))
+  end
+
+  @doc "Whether the About card has anything the page does not show already."
+  def about?(club, members) do
+    Enum.any?([
+      club.description,
+      head_name(members),
+      club.contacts,
+      CabWeb.ClubProfile.languages(club.languages, club.language_other),
+      CabWeb.ClubProfile.audiences(club.audiences)
+    ])
+  end
+
+  @doc "The soonest session still taking or closing sign-ups (the club's next one), nil without one."
+  def next_session(rows) do
+    rows
+    |> Enum.filter(&(&1.status in [:open, :full, :closed]))
+    |> Enum.min_by(& &1.date, DateTime, fn -> nil end)
+  end
+
   @doc """
   The club page's registration section (#register) for the chosen
   session (with several taking sign-ups, Register's menu switches to

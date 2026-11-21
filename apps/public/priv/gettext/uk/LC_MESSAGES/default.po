@@ -112,6 +112,11 @@ msgstr "Усі"
 msgid "All cities"
 msgstr "Усі міста"
 
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "All clubs"
+msgstr "Усі клуби"
+
 #: lib/public_web/controllers/calendar_html.ex
 #, elixir-autogen, elixir-format
 msgid "All events"
@@ -253,6 +258,7 @@ msgstr "Міста"
 #: lib/public_web/controllers/calendar_html.ex
 #: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "City"
 msgstr "Місто"
@@ -264,6 +270,7 @@ msgstr "Натисніть на місто, щоб показати його к�
 
 #: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/club_html/show.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Club"
 msgstr "Клуб"
@@ -292,6 +299,7 @@ msgstr "Мапа клубів"
 #: lib/public_web/controllers/club_controller.ex
 #: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/club_html/show.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Clubs"
 msgstr "Клуби"
@@ -307,7 +315,6 @@ msgid "Coming up"
 msgstr "Найближче"
 
 #: lib/public_web/components/site.ex
-#: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Community"
 msgstr "Спільнота"
@@ -529,6 +536,7 @@ msgstr "Наприклад, BP, APF, WSDC"
 #: lib/public_web/controllers/calendar_html.ex
 #: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/manage/html/event_form.html.heex
+#: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Format"
 msgstr "Формат"
@@ -791,6 +799,11 @@ msgstr "Жоден акаунт у cab не має такого імені ко�
 #, elixir-autogen, elixir-format
 msgid "No club matches these filters."
 msgstr "Жоден клуб не відповідає цим фільтрам."
+
+#: lib/public_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "No clubs yet."
+msgstr "Клубів поки немає."
 
 #: lib/public_web/controllers/calendar_html.ex
 #, elixir-autogen, elixir-format
