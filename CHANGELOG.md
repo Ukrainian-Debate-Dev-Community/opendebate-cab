@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.7.0 - 2026-11-21
+
+3 features, 1 chore; breaking: 0
+
+### Features
+
+- M5 layout - one look for cab and the public site (#72) by @merv1n34k
+- ui: components on the scale - targets, field edges, states in words (#71) by @merv1n34k
+- ui: M5 foundation - colours from three inputs, one type and space scale (#70) by @merv1n34k
+
+### Other
+
+- chore(deps): bump phoenix_live_view to 1.2.14 for CVE-2026-126334 (#73) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 4 commits
+
 ## v0.6.1 - 2026-11-20
 
 1 feature; breaking: 0
