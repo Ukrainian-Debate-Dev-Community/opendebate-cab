@@ -212,10 +212,12 @@ boot by `Public.Tenant`:
   Terms, read on each request (unless `LEGAL_DIR` points elsewhere).
 - `static/`, optional: files served at `/tenant/...` by cab and the
   public site (`Ui.TenantStatic`). A `static/theme.css` is the tenant's
-  theme, loaded after the apps' own CSS: token overrides on `:root`
-  (`--brand: ...`; dark values under both selectors `tokens.css`
-  uses, `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) }`
-  and `:root[data-theme="dark"]`) and
+  theme, loaded after the apps' own CSS. Usually three numbers on
+  `:root`: `--hue` (the brand's OKLCH hue, 311 is the default violet),
+  `--chroma` (its saturation) and `--accent-hue` (the action colour);
+  every ground, text and line colour follows in light and dark with its
+  contrast kept. Any single token may be set too, as
+  `light-dark(<light>, <dark>)`. And
   `@font-face` rules for fonts beside it. Without it the apps keep the
   default purple look.
 

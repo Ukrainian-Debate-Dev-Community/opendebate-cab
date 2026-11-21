@@ -15,9 +15,17 @@
 
 *, *::before, *::after { box-sizing:border-box; }
 html, body { margin:0; padding:0; }
+/* every rem grows with the screen: 16px on phones, 18px on wide
+   desktops, spacing (px) stays, so wide pages get larger and denser */
+html { font-size:clamp(16px, 14px + .22vw, 18px); }
 body { font-family:var(--font-sans); background:var(--bg); color:var(--ink);
        font-size:var(--fs-body); line-height:1.5; }
 h1, h2, h3, h4, h5, h6, p, ul, ol, dl, dd, figure, blockquote { margin:0; }
+h1, h2, h3 { text-wrap:balance; }
+/* motion only when the system allows it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition:none !important; animation:none !important; scroll-behavior:auto !important; }
+}
 /* links take their colour from where they stand; a component or a
    page colours its own */
 a { color:inherit; text-decoration:inherit; }
