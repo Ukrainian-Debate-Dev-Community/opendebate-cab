@@ -508,12 +508,14 @@ defmodule Ui.Components do
 
   @doc """
   A page's head: a kicker over the title, an optional lead and image
-  (a logo), and the page's own actions at its right.
+  (a logo), a `meta` line for markup under the title (a date, a state
+  tag) and the page's own actions at its right.
   """
   attr :kicker, :string, default: nil
   attr :title, :string, required: true
   attr :lead, :string, default: nil
   attr :logo, :string, default: nil, doc: "an image beside the title"
+  slot :meta
   slot :actions
 
   def page_head(assigns) do
@@ -524,6 +526,7 @@ defmodule Ui.Components do
         <span :if={@kicker} class="kicker">{@kicker}</span>
         <h1>{@title}</h1>
         <p :if={@lead} class="lead">{@lead}</p>
+        <div :if={@meta != []} class="meta">{render_slot(@meta)}</div>
       </div>
       <div :if={@actions != []} class="acts">{render_slot(@actions)}</div>
     </div>
@@ -549,6 +552,8 @@ defmodule Ui.Components do
         <:stat label="Sessions">18</:stat>
       </.stats>
   """
+  attr :id, :string, default: nil
+
   slot :stat, required: true do
     attr :label, :string, required: true
     attr :note, :string
@@ -556,7 +561,7 @@ defmodule Ui.Components do
 
   def stats(assigns) do
     ~H"""
-    <dl class="stats">
+    <dl class="stats" id={@id}>
       <div :for={stat <- @stat} class="stat">
         <dt>{stat.label}</dt>
         <dd>{render_slot(stat)}<span :if={stat[:note]} class="note">{stat.note}</span></dd>
