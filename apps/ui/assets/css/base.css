@@ -6,11 +6,11 @@
    third party sees visitors (Cedarville Cursive, SIL Open Font
    License, see /fonts/cedarville-cursive-OFL.txt) */
 @font-face {
-  font-family: "Cedarville Cursive";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/cedarville-cursive.woff2") format("woff2");
+  font-family:"Cedarville Cursive";
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+  src:url("/fonts/cedarville-cursive.woff2") format("woff2");
 }
 
 *, *::before, *::after { box-sizing:border-box; }

@@ -29,9 +29,9 @@
    one first */
 @media (max-width:760px) {
   .chrome { height:auto; flex-wrap:wrap; position:static; }
-  .chrome .crumb { flex:1 1 100%; min-height:44px; padding:6px var(--px); overflow:hidden; white-space:nowrap; }
+  .chrome .crumb { flex:1 1 100%; min-height:2.75rem; padding:var(--sp-1) var(--px); overflow:hidden; white-space:nowrap; }
   .chrome .crumb a, .chrome .crumb .here { overflow:hidden; text-overflow:ellipsis; min-width:0; }
   .chrome .seg { flex:1 1 100%; margin-left:0; border-left:none; border-top:1px solid var(--line); flex-wrap:wrap; }
-  .chrome .seg > * { flex:1 1 auto; justify-content:center; min-height:46px; padding:0 12px; text-align:center; }
+  .chrome .seg > * { flex:1 1 auto; justify-content:center; min-height:2.875rem; padding:0 var(--sp-3); text-align:center; }
   .chrome .seg .go { order:-1; }
 }

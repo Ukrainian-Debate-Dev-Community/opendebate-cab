@@ -1,6 +1,9 @@
 /* ================================================================
    The design tokens of every web app: the only place that defines a
-   colour or a size. Light by default; dark follows the system unless
+   colour or a size. Breakpoints cannot be tokens (media queries take
+   no custom properties), so the apps use three, everywhere:
+   max-width 760px (phones), 1000px (tablets) and 80rem (1280px, where
+   the side column joins the main one). Light by default; dark follows the system unless
    the theme switch set data-theme on <html> (light or dark).
 
    Colour: three inputs. The brand and every neutral (grounds, text,
@@ -103,6 +106,7 @@
   --glow-gold:  rgba(224,168,60,.22);
 
   /* shadows */
+  --shadow-sm:    0 1px 2px rgb(0 0 0 / .04);   /* cards and quiet buttons */
   --shadow-menu:  0 8px 24px rgba(28,23,34,.16);
   --shadow-drag:  0 6px 18px rgba(0,0,0,.25);
   --shadow-split: inset 1px 0 0 rgba(0,0,0,.18);
