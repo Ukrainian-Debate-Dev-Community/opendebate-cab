@@ -2,7 +2,7 @@
 .stepper { display:inline-flex; align-items:stretch; border:1px solid var(--line);
            border-radius:var(--r-sm); overflow:hidden; background:var(--surface); }
 .stepper > button, .stepper > a, .stepper > .off { font:inherit; font-size:var(--fs-sm); font-weight:700; border:none;
-           background:var(--surface); color:var(--ink); padding:5px 12px; cursor:pointer;
+           background:var(--surface); color:var(--ink); padding:0 var(--sp-3); min-height:var(--target); cursor:pointer;
            text-decoration:none; display:flex; align-items:center; }
 .stepper > button:hover:not(:disabled), .stepper > a:hover { color:var(--brand); }
 .stepper > button:disabled, .stepper > .off { cursor:not-allowed; color:var(--muted); opacity:.55; }

@@ -3,10 +3,10 @@
 .section > h4 { display:flex; justify-content:space-between; align-items:baseline; gap:12px;
                 font-size:var(--fs-label); letter-spacing:.12em; text-transform:uppercase;
                 color:var(--muted); font-weight:700; margin:0 2px 7px; }
-.section > h4 a { font-size:.74rem; letter-spacing:0; text-transform:none; font-weight:650;
+.section > h4 a { font-size:var(--step-m1); letter-spacing:0; text-transform:none; font-weight:650;
                   color:var(--brand); text-decoration:none; }
 .section > h4 a:hover { text-decoration:underline; }
 .card { border:1px solid var(--line); border-radius:var(--r); background:var(--surface);
         overflow:hidden; }
-.card .pad { padding:12px var(--px); font-size:var(--fs-base); }
-.card .pad p { color:var(--muted); font-size:.82rem; margin-top:3px; }
+.card .pad { padding:var(--sp-3) var(--px); font-size:var(--step-0); }
+.card .pad p { color:var(--muted); font-size:var(--step-m1); margin-top:var(--sp-1); }
