@@ -84,7 +84,10 @@ clean:
 # .run/*.log. The public site's tenant is TENANT_DIR from .env, else the
 # neutral test tenant.
 dev\:up: FORCE
+	@command -v nix >/dev/null 2>&1 || { echo "nix is not on PATH: open a new terminal (or source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh) and run make dev:up again"; exit 1; }
 	@mkdir -p $(RUN_DIR)
+	@# a pulled mix.lock (a dependency bump) needs its deps before the server starts
+	@$(NIX) mix deps.get >/dev/null || { echo "mix deps.get failed - run it by hand to see why"; exit 1; }
 	@if lsof -ti :3100 >/dev/null 2>&1; then \
 		echo "engine   already running on :3100"; \
 	else \
