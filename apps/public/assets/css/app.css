@@ -225,10 +225,14 @@ a { color:var(--brand); }
 /* ================================================================
    calendar toolbar and filters: segmented links, the period stepper
    ================================================================ */
-.ua-toolbar { display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; margin-bottom:var(--sp-4); }
+/* one row on the page: the view and the period at the left, the kinds
+   at the right when there is something at the left of them */
+.ua-toolbar { display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; }
+.ua-toolbar > .ua-seg:last-child:not(:first-child) { margin-left:auto; }
 .ua-seg { display:inline-flex; border:1px solid var(--line); border-radius:var(--r-md); overflow:hidden; background:var(--surface); }
-.ua-seg a { padding:var(--sp-1) var(--sp-3); font-size:var(--step-m1); font-weight:650; color:var(--muted);
-            border-right:1px solid var(--line); }
+.ua-seg a { display:inline-flex; align-items:center; min-height:2.25rem; padding:0 var(--sp-3); font-size:var(--step-m1);
+            font-weight:650; color:var(--muted); border-right:1px solid var(--line); }
+.ua-seg a:hover { color:var(--ink); }
 .ua-seg a:last-child { border-right:none; }
 .ua-seg a.on { background:var(--brand-fill); color:var(--on-brand); }
 .ua-select { font:inherit; font-size:var(--step-m1); color:var(--ink); background:var(--surface);
@@ -271,6 +275,8 @@ a { color:var(--brand); }
 .card .pad.ua-calswitch p { color:var(--muted); font-size:var(--step-m1); margin-top:2px; }
 
 .ua-cal { border:1px solid var(--line); border-radius:var(--r); overflow:hidden; background:var(--surface); }
+/* in its card the grid needs no frame of its own */
+.card .ua-cal { border:0; border-radius:0; }
 .ua-cal-h, .ua-cal-w { display:grid; grid-template-columns:repeat(7,1fr); }
 .ua-cal-h span { font-size:var(--step-m2); letter-spacing:.1em; text-transform:uppercase; font-weight:750; color:var(--muted);
                  padding:var(--sp-2) var(--sp-2); background:var(--surface-2); border-bottom:1px solid var(--line); }
@@ -289,6 +295,10 @@ a { color:var(--brand); }
 .ua-chip--priv { background:transparent; border:1px dashed var(--co); color:var(--co-ink); }
 .ua-chip--past { opacity:.5; filter:grayscale(1); }
 .ua-chip:hover { box-shadow:inset 0 0 0 1px currentColor; }
+/* the day's own link is for phones (below); a jump lands below the header */
+.ua-day { position:relative; }
+.ua-day-link { display:none; }
+.ua-events .ua-ev { scroll-margin-top:var(--sp-8); }
 
 /* ================================================================
    clubs and the maps
@@ -441,7 +451,32 @@ a { color:var(--brand); }
   .ua-ev::after { content:""; order:2; flex-basis:100%; height:0; }
   .ua-vis button { min-height:2.5rem; padding:var(--sp-1) var(--px); }
   /* the month grid gives way to the list under it */
-  .ua-cal { display:none; }
+  /* a phone's month: day numbers, a dot per event by its kind, the
+     whole day a link to its events in the list below */
+  .ua-day { min-height:2.75rem; padding:var(--sp-1); align-items:center; gap:2px; flex-direction:row; flex-wrap:wrap;
+            justify-content:center; align-content:flex-start; }
+  .ua-day .n { flex:0 0 100%; text-align:center; font-size:var(--step-m1); }
+  .ua-day.today .n { flex:0 0 auto; margin:0 auto; padding:0 var(--sp-2); }
+  .ua-cal-h span { padding:var(--sp-1) 0; text-align:center; font-size:var(--step-m2); letter-spacing:0; }
+  .ua-chip { font-size:0; width:.5rem; height:.5rem; padding:0; border-radius:50%; background:var(--muted); }
+  .ua-chip--tournament { background:var(--ok); }
+  .ua-chip--training { background:var(--brand-fill); }
+  .ua-chip--club { background:var(--co); }
+  .ua-chip--priv { border-width:1px; background:transparent; }
+  .ua-day-link { display:block; position:absolute; inset:0; z-index:1; border-radius:var(--r-sm); }
+  .ua-day-link:active { background:color-mix(in oklch, var(--brand) 12%, transparent); }
+  /* the bar as a column, every row the full width: the views as equal
+     parts, the stepper with the period between its arrows, the kinds
+     as chips that wrap rather than run off the screen */
+  .ua-toolbar { flex-direction:column; align-items:stretch; gap:var(--sp-2); }
+  .ua-toolbar > .ua-seg { display:flex; }
+  .ua-toolbar > .ua-seg a { flex:1; justify-content:center; min-height:var(--target); }
+  .ua-toolbar > .stepper { display:flex; width:100%; }
+  .ua-toolbar > .stepper .n { flex:1; }
+  .ua-toolbar > .ua-seg:last-child { margin-left:0; flex-wrap:wrap; gap:var(--sp-2); border:0; border-radius:0;
+                                      overflow:visible; background:none; }
+  .ua-toolbar > .ua-seg:last-child a { flex:0 0 auto; min-height:2.25rem; padding:0 var(--sp-4);
+                                        border:1px solid var(--line); border-radius:var(--r-pill); }
   .ua-calswitch { flex-wrap:wrap; }
 
   /* the filters stack; their segments scroll sideways */
