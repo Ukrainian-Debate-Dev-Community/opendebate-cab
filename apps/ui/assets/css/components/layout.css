@@ -6,4 +6,7 @@
 .split > *, .stack > * { min-width:0; }
 @media (max-width:80rem) {
   .split { grid-template-columns:minmax(0, 1fr); }
+  /* a side column that is the page's action (a registration) leads once
+     the columns stack */
+  .split > .lead { order:-1; }
 }
