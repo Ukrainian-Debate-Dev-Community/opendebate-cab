@@ -7,7 +7,7 @@ defmodule CabWeb.ErrorHTMLTest do
   test "raised errors render the branded page" do
     html = render_to_string(CabWeb.ErrorHTML, "404", "html", [])
     assert html =~ "Not found"
-    assert html =~ ~s(class="error-page")
+    assert html =~ ~s(class="error-card")
 
     assert render_to_string(CabWeb.ErrorHTML, "500", "html", []) =~ "Something went wrong"
   end

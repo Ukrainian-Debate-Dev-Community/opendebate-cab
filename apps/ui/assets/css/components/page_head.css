@@ -1,8 +1,6 @@
 /* page_head/1: kicker, title, lead, an optional image and the page's
    actions */
 .page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--sp-5); }
-.page-head .kicker { display:block; font-size:var(--step-m2); font-weight:800; letter-spacing:.1em;
-                     text-transform:uppercase; color:var(--brand); margin-bottom:var(--sp-1); }
 .page-head h1 { font-size:var(--step-4); line-height:1.1; font-weight:780; letter-spacing:-.02em;
                 text-wrap:balance; }
 .page-head .lead { color:var(--muted); font-size:var(--step-0); max-width:var(--w-prose); margin-top:var(--sp-2); }

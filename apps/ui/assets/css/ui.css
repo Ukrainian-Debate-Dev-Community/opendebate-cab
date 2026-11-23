@@ -24,5 +24,7 @@
 @import "./components/media_card.css";
 @import "./components/switches.css";
 @import "./components/beta.css";
+@import "./components/club.css";
+@import "./components/error.css";
 @import "../vendor/photoswipe.css";
 @import "./components/photos.css";
