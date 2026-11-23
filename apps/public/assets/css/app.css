@@ -225,10 +225,10 @@ a { color:var(--brand); }
 /* ================================================================
    calendar toolbar and filters: segmented links, the period stepper
    ================================================================ */
-/* one bar: the view and the period at the left, the kinds at the right */
-.ua-toolbar { display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; padding:var(--sp-2) var(--sp-3);
-              border:1px solid var(--line); border-radius:var(--r); background:var(--surface); box-shadow:var(--shadow-sm); }
-.ua-toolbar > .ua-seg:last-child { margin-left:auto; }
+/* one row on the page: the view and the period at the left, the kinds
+   at the right when there is something at the left of them */
+.ua-toolbar { display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; }
+.ua-toolbar > .ua-seg:last-child:not(:first-child) { margin-left:auto; }
 .ua-seg { display:inline-flex; border:1px solid var(--line); border-radius:var(--r-md); overflow:hidden; background:var(--surface); }
 .ua-seg a { display:inline-flex; align-items:center; min-height:2.25rem; padding:0 var(--sp-3); font-size:var(--step-m1);
             font-weight:650; color:var(--muted); border-right:1px solid var(--line); }
@@ -451,7 +451,7 @@ a { color:var(--brand); }
   /* the bar as a column, every row the full width: the views as equal
      parts, the stepper with the period between its arrows, the kinds
      as chips that wrap rather than run off the screen */
-  .ua-toolbar { flex-direction:column; align-items:stretch; gap:var(--sp-2); padding:var(--sp-2); }
+  .ua-toolbar { flex-direction:column; align-items:stretch; gap:var(--sp-2); }
   .ua-toolbar > .ua-seg { display:flex; }
   .ua-toolbar > .ua-seg a { flex:1; justify-content:center; min-height:var(--target); }
   .ua-toolbar > .stepper { display:flex; width:100%; }
