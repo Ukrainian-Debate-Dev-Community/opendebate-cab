@@ -85,7 +85,7 @@ defmodule PublicWeb.NewsImagesTest do
     html = conn |> get(~p"/news/season-opens") |> html_response(200)
     refute html =~ "/uploads/"
     # the article shows no cover without an image (cards keep a drawing)
-    refute html =~ "ua-article-cover"
+    refute html =~ "article-cover"
   end
 
   test "without an image the card shows a drawing, the same one every time", %{conn: conn} do

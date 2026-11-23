@@ -98,7 +98,7 @@ defmodule PublicWeb.Manage.HTML do
   @doc "An event's Public / Private switch: two one-button forms."
   def visibility_switch(assigns) do
     ~H"""
-    <span class="ua-vis">
+    <span class="vis">
       <.form
         :for={value <- ~w(public private)}
         for={%{}}
@@ -121,8 +121,8 @@ defmodule PublicWeb.Manage.HTML do
   @doc "A row's private tags, as coloured chips; only /manage shows them."
   def tag_chips(assigns) do
     ~H"""
-    <span :if={@tags != []} class="ua-labels">
-      <span :for={tag <- @tags} class={["ua-label", "ua-label--#{tag.color}"]}>{tag.name}</span>
+    <span :if={@tags != []} class="tags">
+      <span :for={tag <- @tags} class={["tag", tag.color]}>{tag.name}</span>
     </span>
     """
   end
@@ -134,13 +134,13 @@ defmodule PublicWeb.Manage.HTML do
   @doc "The ?tag= filter: every tag as a link, the chosen one marked."
   def tag_filter(assigns) do
     ~H"""
-    <div :if={@tags != []} class="ua-tagbar">
-      <a class={["ua-label", "ua-label--all", is_nil(@selected) && "on"]} href={@href.(nil)}>
+    <div :if={@tags != []} class="tagbar">
+      <a class={["tag", is_nil(@selected) && "on"]} href={@href.(nil)}>
         {gettext("All tags")}
       </a>
       <a
         :for={tag <- @tags}
-        class={["ua-label", "ua-label--#{tag.color}", @selected && @selected.id == tag.id && "on"]}
+        class={["tag", tag.color, @selected && @selected.id == tag.id && "on"]}
         href={@href.(tag)}
       >
         {tag.name}
@@ -160,8 +160,8 @@ defmodule PublicWeb.Manage.HTML do
   def tag_picker(assigns) do
     ~H"""
     <input type="hidden" name={@name} value="" />
-    <div :if={@tags != []} class="ua-tagpick">
-      <label :for={tag <- @tags} class={["ua-label", "ua-label--#{tag.color}"]}>
+    <div :if={@tags != []} class="tagpick">
+      <label :for={tag <- @tags} class={["tag", tag.color]}>
         <input type="checkbox" name={@name} value={tag.id} checked={tag.id in @selected} />
         {tag.name}
       </label>

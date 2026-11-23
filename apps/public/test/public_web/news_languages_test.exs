@@ -85,12 +85,12 @@ defmodule PublicWeb.NewsLanguagesTest do
 
     en = conn |> get(~p"/news/#{post.slug}") |> html_response(200)
     assert en =~ "<h1>Season opens</h1>"
-    refute en =~ "ua-untranslated"
+    refute en =~ ~s(id="untranslated")
 
     uk = conn |> in_uk() |> get(~p"/news/#{post.slug}") |> html_response(200)
     assert uk =~ "<h1>#{@uk_title}</h1>"
     assert uk =~ @uk_body
-    refute uk =~ "ua-untranslated"
+    refute uk =~ ~s(id="untranslated")
 
     for path <- [~p"/news", ~p"/"] do
       assert conn |> in_uk() |> get(path) |> html_response(200) =~ @uk_title
@@ -103,10 +103,10 @@ defmodule PublicWeb.NewsLanguagesTest do
 
     list = conn |> get(~p"/news") |> html_response(200)
     assert list =~ @uk_title
-    assert list =~ ~r/class="ua-lang" lang="uk">\s*UA/
+    assert list =~ ~r/class="lang-tag" lang="uk">\s*UA/
 
     html = conn |> get(~p"/news/#{post.slug}") |> html_response(200)
-    assert html =~ ~r/<article[^>]* class="ua-article" lang="uk">/
+    assert html =~ ~r/<article[^>]* class="article" lang="uk">/
     assert html =~ "This article has not been translated yet"
   end
 
@@ -170,6 +170,6 @@ defmodule PublicWeb.NewsLanguagesTest do
 
     assert html =~ ~r/<html[^>]* lang="uk">/
     assert html =~ "<h1>#{@uk_title}</h1>"
-    refute html =~ "ua-untranslated"
+    refute html =~ ~s(id="untranslated")
   end
 end

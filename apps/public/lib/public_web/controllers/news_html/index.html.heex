@@ -4,8 +4,8 @@
   lead={gettext("Announcements, tournament results, interviews and tips for debaters.")}
 />
 
-<nav :if={length(@rubrics) > 1 or @rubric} class="ua-toolbar" aria-label={gettext("Rubrics")}>
-  <div class="ua-seg">
+<nav :if={length(@rubrics) > 1 or @rubric} class="toolbar" aria-label={gettext("Rubrics")}>
+  <div class="pills">
     <a class={is_nil(@rubric) && "on"} href={~p"/news"}>{gettext("All")}</a>
     <a :for={r <- @rubrics} class={r == @rubric && "on"} href={~p"/news?#{[rubric: r]}"}>
       {rubric_label(r)}
@@ -13,9 +13,9 @@
   </div>
 </nav>
 
-<div :if={@featured} class="ua-newslist">
+<div :if={@featured} class="newslist">
   <.news_card post={@featured} featured />
-  <div :if={@posts != []} class="ua-cards">
+  <div :if={@posts != []} class="cards">
     <.news_card :for={post <- @posts} post={post} />
   </div>
 </div>

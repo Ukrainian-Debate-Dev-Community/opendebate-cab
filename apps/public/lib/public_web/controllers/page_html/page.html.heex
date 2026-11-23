@@ -1,7 +1,7 @@
 <%= for group <- groups(@page.parts) do %>
   <%= case group do %>
     <% {:main, parts} -> %>
-      <div class="ua-hist">
+      <div class="hist">
         <%= for part <- parts do %>
           <.part part={part} />
         <% end %>

@@ -7,7 +7,7 @@
   </:seg>
 </.chrome>
 
-<.card class="ua-form">
+<.card class="narrow">
   <.form_for
     id="tag-form"
     action={if @tag, do: ~p"/manage/tags/#{@tag.id}", else: ~p"/manage/tags"}
@@ -28,10 +28,10 @@
       value={@form[:name].value}
     />
     <:block name={field_name(@form, :color)} type={:custom} label={gettext("Colour")}>
-      <div class="ua-swatches">
+      <div class="swatches">
         <label
           :for={color <- Public.Tags.Tag.colors()}
-          class={["ua-label", "ua-label--#{color}"]}
+          class={["tag", color]}
         >
           <input
             type="radio"

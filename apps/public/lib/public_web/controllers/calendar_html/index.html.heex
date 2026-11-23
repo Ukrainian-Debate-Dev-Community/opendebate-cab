@@ -28,7 +28,7 @@
 
     <div class="stack">
       <.section :for={{heading, events} <- groups(@period, @events)} title={heading}>
-        <div class="ua-events">
+        <div class="event-list">
           <.event_row
             :for={{event, i} <- Enum.with_index(events)}
             event={event}

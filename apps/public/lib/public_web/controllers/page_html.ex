@@ -29,7 +29,7 @@ defmodule PublicWeb.PageHTML do
     assigns = assign(assigns, :html, html)
 
     ~H"""
-    <div class="ua-prose">{Phoenix.HTML.raw(@html)}</div>
+    <div class="prose">{Phoenix.HTML.raw(@html)}</div>
     """
   end
 
@@ -37,7 +37,7 @@ defmodule PublicWeb.PageHTML do
     assigns = assign(assigns, :lines, String.split(text, " ", parts: 3))
 
     ~H"""
-    <h1 class="ua-hist-title">
+    <h1 class="hist-title">
       <%= for {line, i} <- Enum.with_index(@lines) do %>
         <br :if={i > 0} />{line}
       <% end %>
@@ -49,8 +49,8 @@ defmodule PublicWeb.PageHTML do
     assigns = assign(assigns, :cards, Enum.with_index(cards, 1))
 
     ~H"""
-    <div class="ua-blobs">
-      <div :for={{{title, text}, i} <- @cards} class={["ua-blob", "b#{i}"]}>
+    <div class="blobs">
+      <div :for={{{title, text}, i} <- @cards} class={["blob", "b#{i}"]}>
         <h2>{title}</h2>
         <p>{text}</p>
       </div>
@@ -62,14 +62,14 @@ defmodule PublicWeb.PageHTML do
     assigns = assign(assigns, :years, sided(years))
 
     ~H"""
-    <div class="ua-tl">
+    <div class="tl">
       <%= for {year, entries} <- @years do %>
-        <div class="ua-tl-year"><span>{year}</span></div>
+        <div class="tl-year"><span>{year}</span></div>
         <div
           :for={{{date, text}, side} <- entries}
-          class={["ua-tl-item", if(side == 0, do: "l", else: "r")]}
+          class={["tl-item", if(side == 0, do: "l", else: "r")]}
         >
-          <div class="ua-tl-card">
+          <div class="tl-card">
             <b>{date}</b><p>{text}</p>
           </div>
         </div>
@@ -80,8 +80,8 @@ defmodule PublicWeb.PageHTML do
 
   def part(%{part: :branches} = assigns) do
     ~H"""
-    <div class="ua-branches">
-      <div class="ua-branches-h">
+    <div class="branches">
+      <div class="branches-h">
         <b>{Tenant.text([:labels, :branches])}</b><span>
           {ngettext(
             "%{count} city. Click a city to see its clubs",
@@ -100,11 +100,11 @@ defmodule PublicWeb.PageHTML do
   @doc "Documents and Contacts, side by side when both follow each other."
   def sides(assigns) do
     ~H"""
-    <div class={length(@sides) > 1 && "ua-grid2"}>
+    <div class={length(@sides) > 1 && "split"}>
       <div :for={side <- @sides}>
         <%= if side == :documents do %>
           <.section title={gettext("Documents")} bare>
-            <div class="card ua-docs">
+            <div class="card docs">
               <a href={cab_url("/policy")}>
                 <b>{gettext("Privacy policy")}</b><span>{gettext("What we store and why")}</span>
               </a>
@@ -117,7 +117,7 @@ defmodule PublicWeb.PageHTML do
           </.section>
         <% else %>
           <.section title={gettext("Contact")} pad>
-            <div class="ua-dl">
+            <div class="facts">
               <div :for={contact <- Tenant.get(:contacts)}>
                 <span>{Tenant.translate(contact["label"])}</span><a href={contact["href"]}>{contact[
                   "text"

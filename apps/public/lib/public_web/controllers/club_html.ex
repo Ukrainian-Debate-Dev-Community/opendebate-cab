@@ -16,7 +16,7 @@ defmodule PublicWeb.ClubHTML do
     ~H"""
     <label>
       {@label}
-      <span class="ua-seg">
+      <span class="pills">
         <a class={blank?(@filters[@name]) && "on"} href={href(@filters, @name, nil)}>
           {gettext("All")}
         </a>

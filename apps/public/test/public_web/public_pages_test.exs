@@ -26,7 +26,7 @@ defmodule PublicWeb.PublicPagesTest do
       anonymous = conn |> get(path) |> html_response(200)
       assert conn |> cab_sign_in(editor) |> get(path) |> html_response(200) == anonymous
       assert conn |> cab_sign_in(admin) |> get(path) |> html_response(200) == anonymous
-      refute anonymous =~ "ua-cmbar"
+      refute anonymous =~ "cm-bar"
       refute anonymous =~ "Sign in"
     end
   end

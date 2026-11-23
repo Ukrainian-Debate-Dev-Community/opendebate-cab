@@ -1,8 +1,8 @@
-<p :if={notice = Tenant.text([:home, :notice])} class="ua-wip" id="under-construction">
+<p :if={notice = Tenant.text([:home, :notice])} class="banner info" id="under-construction">
   {notice}
 </p>
 
-<div :if={@next_tournament} class="ua-announce">
+<div :if={@next_tournament} class="banner info">
   <.tag kind="info">{gettext("Next tournament")}</.tag>
   <span>
     {@next_tournament.title}, {long_date(@next_tournament.starts_on)}{if @next_tournament.city,
@@ -16,23 +16,23 @@
   </a>
 </div>
 
-<div class="ua-hero">
+<div class="hero">
   <div>
     <span class="kicker">{Tenant.text([:home, :kicker])}</span>
     <h1>
       {Tenant.text([:home, :heading])} <em>{Tenant.text([:home, :heading_em])}</em>
     </h1>
     <p class="lead">{Tenant.text([:home, :lead])}</p>
-    <div class="ua-acts">
+    <div class="hero-acts">
       <a class="btn-go" href={~p"/calendar?#{[kind: "tournament"]}"}>
         {gettext("Upcoming tournaments")}
       </a>
       <a class="btn-quiet" href={~p"/clubs"}>{gettext("Find a club")}</a>
     </div>
   </div>
-  <div class="ua-hero-map">
+  <div class="hero-map">
     <.club_map counts={@counts} labels={false} />
-    <div class="ua-meta">
+    <div class="fineprint">
       {ngettext("%{count} club", "%{count} clubs", @club_count)}, {ngettext(
         "%{count} city",
         "%{count} cities",
@@ -49,10 +49,10 @@
   <:stat label={gettext("Upcoming events")}>{length(@upcoming)}</:stat>
 </.stats>
 
-<div class="ua-duo">
+<div class="duo">
   <.section title={gettext("Upcoming events")}>
     <:action href={~p"/calendar"}>{gettext("Calendar")}</:action>
-    <div :if={@upcoming != []} class="ua-events">
+    <div :if={@upcoming != []} class="event-list">
       <.event_row :for={event <- @upcoming} event={event} href={~p"/calendar/#{event.id}"} />
     </div>
     <div :if={@upcoming == []} class="pad">{gettext("Nothing planned yet.")}</div>
@@ -62,10 +62,10 @@
     <:action href={~p"/clubs"}>{gettext("All clubs")}</:action>
     <.table id="home-clubs" rows={@clubs} empty={gettext("No clubs yet.")}>
       <:col :let={club} label={gettext("Club")}>
-        <div class="ua-clubname">
+        <div class="club-name">
           <img
             :if={PublicWeb.Clubs.logo_url(club)}
-            class="ua-logo"
+            class="club-logo"
             src={PublicWeb.Clubs.logo_url(club)}
             alt=""
           />
@@ -84,16 +84,16 @@
   <:action :if={Tenant.page("about")} href={~p"/about"}>
     {Tenant.text([:home, :about_link])}
   </:action>
-  <ol class="ua-story">
+  <ol class="story">
     <li :for={{year, text} <- story()}><b>{year}</b><span>{text}</span></li>
   </ol>
 </.section>
 
 <.section title={gettext("News")} bare>
   <:action href={~p"/news"}>{gettext("All news")}</:action>
-  <div :if={@news != []} class="ua-newslist">
+  <div :if={@news != []} class="newslist">
     <.news_card post={hd(@news)} featured />
-    <div :if={tl(@news) != []} class="ua-cards">
+    <div :if={tl(@news) != []} class="cards">
       <.news_card :for={post <- tl(@news)} post={post} />
     </div>
   </div>

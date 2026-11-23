@@ -16,7 +16,7 @@ defmodule PublicWeb.ClubLookTest do
 
     list = conn |> get(~p"/clubs") |> html_response(200)
     assert list =~ "Plain Club"
-    refute list =~ "ua-logo"
+    refute list =~ "club-logo"
 
     page = conn |> get(~p"/clubs/#{club.uuid}") |> html_response(200)
     assert page =~ "Plain Club"
@@ -33,7 +33,7 @@ defmodule PublicWeb.ClubLookTest do
     assert PublicWeb.Clubs.logo_url(club) == logo
 
     list = conn |> get(~p"/clubs") |> html_response(200)
-    assert list =~ ~r/<img[^>]* class="ua-logo" src="#{Regex.escape(logo)}" alt="">/
+    assert list =~ ~r/<img[^>]* class="club-logo" src="#{Regex.escape(logo)}" alt="">/
 
     page = conn |> get(~p"/clubs/#{club.uuid}") |> html_response(200)
     assert page =~ ~r/<img[^>]* class="logo" src="#{Regex.escape(logo)}" alt="">/

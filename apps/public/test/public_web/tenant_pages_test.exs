@@ -35,7 +35,7 @@ defmodule PublicWeb.TenantPagesTest do
     for {locale, prefix} <- [{"en", "League "}, {"uk", "UK League "}] do
       home = page(conn, ~p"/", locale)
       assert home =~ "<title>#{prefix}site title</title>"
-      assert home =~ ~s(class="wordmark ua-brand" href="/">LeagueSite)
+      assert home =~ ~s(class="wordmark site-brand" href="/">LeagueSite)
       assert home =~ "<p>#{prefix}org</p>"
       assert home =~ "<p>#{prefix}since 2001</p>"
       assert home =~ ~s(<a href="mailto:office@example.org">office@example.org</a>)
@@ -96,7 +96,7 @@ defmodule PublicWeb.TenantPagesTest do
       end
 
       assert about =~ "<b>01/2001</b>"
-      assert about =~ ~s(class="ua-blob b3")
+      assert about =~ ~s(class="blob b3")
       assert about =~ ~s(href="mailto:support@example.org")
     end
 

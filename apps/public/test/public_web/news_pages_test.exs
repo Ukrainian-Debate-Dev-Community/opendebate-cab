@@ -71,15 +71,15 @@ defmodule PublicWeb.NewsPagesTest do
 
     html = conn |> get(~p"/news") |> html_response(200)
 
-    [lead, grid] = String.split(html, ~s(class="ua-cards"), parts: 2)
-    assert lead =~ ~s(class="mcard mcard--featured ua-news")
+    [lead, grid] = String.split(html, ~s(class="cards"), parts: 2)
+    assert lead =~ ~s(class="mcard mcard--featured news-card")
     assert lead =~ ~s(<h2 class="mcard-title"><a href="/news/newest-story">Newest story</a></h2>)
     assert lead =~ "The lead."
     assert lead =~ "3 min read"
     refute lead =~ "Middle story"
 
     assert grid =~ ~r/Middle story.*Older story/s
-    assert length(String.split(grid, ~s(class="mcard ua-news"))) == 3
+    assert length(String.split(grid, ~s(class="mcard news-card"))) == 3
   end
 
   test "the rubric filter shows the rubrics in use and narrows the list", %{conn: conn} do
@@ -131,7 +131,7 @@ defmodule PublicWeb.NewsPagesTest do
     html = conn |> get(~p"/news/#{post.slug}") |> html_response(200)
 
     assert html =~ "<h1>Season opens</h1>"
-    assert html =~ ~s(<p class="ua-lead">Lead paragraph.</p>)
+    assert html =~ ~s(<p class="article-lead">Lead paragraph.</p>)
     assert html =~ "2 min read"
     assert html =~ ~s(href="/news?rubric=results")
     assert html =~ "<h2>Rounds</h2>"
@@ -141,7 +141,7 @@ defmodule PublicWeb.NewsPagesTest do
     refute html =~ "alert(1)"
     assert html =~ ~s(data-copy="#{PublicWeb.Endpoint.url()}/news/season-opens")
     # no image, no cover: the article starts with its text
-    refute html =~ "ua-article-cover"
+    refute html =~ "article-cover"
 
     [_, more] = String.split(html, ~s(id="more-news"), parts: 2)
     assert more =~ ~r/Old result.*Latest tip.*Another tip/s
@@ -171,7 +171,7 @@ defmodule PublicWeb.NewsPagesTest do
              ~r{<meta[^>]* name="photo-viewer-src" content="/assets/js/photo-viewer.js"[^>]* data-close="Close"}
 
     assert html =~ ~s(data-of="of")
-    assert html =~ ~s(<div class="ua-body" data-photos>)
+    assert html =~ ~s(<div class="article-body" data-photos>)
 
     # the gallery as stored: the collage is the stylesheet's
     assert html =~
@@ -188,7 +188,7 @@ defmodule PublicWeb.NewsPagesTest do
 
     # the newest leads the home page's news as the featured card
     html = conn |> get(~p"/") |> html_response(200)
-    assert html =~ ~s(class="mcard mcard--featured ua-news")
+    assert html =~ ~s(class="mcard mcard--featured news-card")
     assert html =~ "On the home page."
   end
 end
