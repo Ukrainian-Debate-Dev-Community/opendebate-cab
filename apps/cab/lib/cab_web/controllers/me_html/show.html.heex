@@ -4,175 +4,194 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title={gettext("Profile")} pad>
-      <b>{@current_user.name || @current_user.username}</b>
-      <span :if={@current_user.name}> ({@current_user.username})</span>
-    </.section>
+    <.page_head
+      kicker={gettext("My page")}
+      title={@current_user.name || @current_user.username}
+      lead={if @current_user.name, do: "@" <> @current_user.username}
+    />
 
-    <.section :if={@invitations != []} title={gettext("Invitations")}>
-      <.table id="my-invitations" rows={@invitations}>
-        <:col :let={invitation} label={gettext("Session")}>
-          <.link href={~p"/c/#{invitation.session.club.uuid}/s/#{invitation.session.uuid}"}>
-            {invitation.session.name || gettext("Session")}
-          </.link>
-          <.sub>{invitation.session.club.name}</.sub>
-        </:col>
-        <:col :let={invitation} label={gettext("Added by")}>
-          {invitation.invited_by &&
-            (invitation.invited_by.name || invitation.invited_by.username)}
-        </:col>
-        <:col :let={invitation}>
-          <.link href={~p"/invitations/#{invitation.id}/accept"} method="post">{gettext("accept")}</.link>
-        </:col>
-        <:col :let={invitation}>
-          <.link href={~p"/invitations/#{invitation.id}/decline"} method="post">{gettext(
-            "decline"
-          )}</.link>
-        </:col>
-      </.table>
-      <div class="pad">
-        <p class="mut">
-          {gettext(
-            "A club head added you to these sessions. Accept to see them on My page under your name; decline to have your name removed."
-          )}
-        </p>
+    <%!-- the engine's figures as it reports them, and counts of cab's own rows --%>
+    <.stats id="me-stats">
+      <:stat label={gettext("My clubs")}>{length(@memberships)}</:stat>
+      <:stat label={gettext("Sessions")}>{length(@history)}</:stat>
+      <:stat
+        :if={@stats}
+        label={gettext("Ranked debates")}
+        note={gettext("%{count} ballots", count: @stats["overview"]["total_ballots_received"])}
+      >
+        {@stats["overview"]["total_debates_ranked"]}
+      </:stat>
+      <:stat
+        :if={@stats}
+        label={gettext("Avg score")}
+        note={
+          gettext("highest %{high}, lowest %{low}",
+            high: @stats["overview"]["highest_score"],
+            low: @stats["overview"]["lowest_score"]
+          )
+        }
+      >
+        {fixed(@stats["overview"]["average_speaker_score"], 2)}
+      </:stat>
+      <:stat
+        :if={@stats}
+        label={gettext("Win rate")}
+        note={gettext("%{count} 1st places", count: @stats["placements"]["first_places"])}
+      >
+        {fixed(@stats["placements"]["win_rate_percentage"], 1)}%
+      </:stat>
+    </.stats>
+    <p :if={!@stats} class="mut">
+      {gettext("No logged debates yet — stats appear after your first scored round.")}
+    </p>
+
+    <div class="split">
+      <div class="stack">
+        <.section :if={@invitations != []} title={gettext("Invitations")}>
+          <.table id="my-invitations" rows={@invitations}>
+            <:col :let={invitation} label={gettext("Session")}>
+              <.link href={~p"/c/#{invitation.session.club.uuid}/s/#{invitation.session.uuid}"}>
+                {invitation.session.name || gettext("Session")}
+              </.link>
+              <.sub>{invitation.session.club.name}</.sub>
+            </:col>
+            <:col :let={invitation} label={gettext("Added by")}>
+              {invitation.invited_by &&
+                (invitation.invited_by.name || invitation.invited_by.username)}
+            </:col>
+            <:col :let={invitation}>
+              <.link href={~p"/invitations/#{invitation.id}/accept"} method="post">{gettext(
+                "accept"
+              )}</.link>
+            </:col>
+            <:col :let={invitation}>
+              <.link href={~p"/invitations/#{invitation.id}/decline"} method="post">{gettext(
+                "decline"
+              )}</.link>
+            </:col>
+          </.table>
+          <div class="pad">
+            <p class="mut">
+              {gettext(
+                "A club head added you to these sessions. Accept to see them on My page under your name; decline to have your name removed."
+              )}
+            </p>
+          </div>
+        </.section>
+        <.section :if={@feedback_to_give != []} title={gettext("Feedback to give")}>
+          <.table id="feedback-to-give" rows={@feedback_to_give}>
+            <:col :let={row} label={gettext("Session")}>
+              {row.session.name || row.session.club.name}
+              <.sub>{row.session.club.name}</.sub>
+            </:col>
+            <:col :let={row} label={gettext("Room")}>{room_label(row.room)}</:col>
+            <:col :let={row}>
+              <.link href={
+                ~p"/c/#{row.session.club.uuid}/s/#{row.session.uuid}/rooms/#{row.room["id"]}/feedback"
+              }>
+                {gettext("give feedback")}
+              </.link>
+            </:col>
+          </.table>
+        </.section>
+        <.section :if={@schedule != []} title={gettext("My schedule")}>
+          <.table id="my-schedule" rows={@schedule}>
+            <:col :let={row} label={gettext("Session")}>
+              <.link href={~p"/c/#{row.club.uuid}/s/#{row.session.uuid}"}>
+                {row.club.name}
+              </.link>
+              <.sub :if={row.session.scheduled_at}>
+                <.local_time at={row.session.scheduled_at} as={:short} />
+              </.sub>
+            </:col>
+          </.table>
+        </.section>
+        <.section
+          :for={block <- @feedback_on_me}
+          title={
+            gettext("Feedback on your adjudication: %{session}",
+              session: block.session.name || block.session.club.name
+            )
+          }
+        >
+          <div :if={block.average} class="pad">
+            {gettext("Your average with the base vote:")} <b>{points_words(block.average)}</b>
+            <span class="mut">{gettext("(5 counts as one vote)")}</span>
+          </div>
+          <.table id={"feedback-on-me-#{block.session.uuid}"} rows={block.entries}>
+            <:col :let={entry} label={gettext("Room")}>
+              {feedback_room_label(block.state, entry)}
+            </:col>
+            <:col :let={entry} label={gettext("Accuracy")} num>{entry.accuracy}</:col>
+            <:col :let={entry} label={gettext("Reasoning")} num>{entry.reasoning}</:col>
+            <:col :let={entry} label={gettext("Average")} num>{points_words(entry.score)}</:col>
+            <:col :let={entry} label={gettext("Discussion")}>{entry.discussion}</:col>
+          </.table>
+        </.section>
+        <.section title={gettext("History")}>
+          <.table id="me-history" rows={@history} empty={gettext("No sessions played yet.")}>
+            <:col :let={row} label={gettext("Session")}>
+              <.link href={~p"/c/#{row.club_uuid}/s/#{row.session_uuid}"}>
+                <.local_time at={row.date} as={:date} />
+              </.link>
+              <.sub>{row.club}</.sub>
+            </:col>
+            <:col :let={row} label={gettext("As")}>{role_word(row.role)}</:col>
+            <:col :let={row} label={gettext("Result")} class="st">
+              <%= cond do %>
+                <% row.won -> %>
+                  <b>{gettext("won")}</b>
+                <% row.role == "adjudicator" -> %>
+                  {gettext("adjudicated")}
+                <% true -> %>
+                  {gettext("played")}
+              <% end %>
+            </:col>
+          </.table>
+        </.section>
       </div>
-    </.section>
-
-    <.section title={gettext("My clubs")}>
-      <.table id="my-clubs" rows={@memberships} empty={gettext("You are not in any club yet.")}>
-        <:col :let={m} label={gettext("Club")}>
-          <.link href={~p"/c/#{m.club.uuid}"}>{m.club.name}</.link>
-          <.sub>
-            {if m.status == "approved", do: role_word(m.role), else: gettext("request pending")}{if m.club.city,
-              do: ", #{m.club.city}"}
-          </.sub>
-        </:col>
-        <:col :let={m} label={gettext("Next session")} class="st">
-          <%= cond do %>
-            <% m.status != "approved" -> %>
-              —
-            <% match?({%{scheduled_at: %DateTime{}}, :signup, _}, @tonight[m.club_id]) and
-                not Cab.Sessions.full?(elem(@tonight[m.club_id], 0)) -> %>
-              {gettext("registration open")},
-              <.local_time
-                at={elem(@tonight[m.club_id], 0).scheduled_at}
-                as={:weekday_time}
-              />
-            <% true -> %>
-              {tonight_words(@tonight[m.club_id])}
-          <% end %>
-        </:col>
-        <:col :let={m}>
-          <.link
-            :if={Cab.Clubs.member_fields(m.club) != []}
-            href={~p"/me/clubs/#{m.club.uuid}/answers"}
+      <div class="stack">
+        <.section title={gettext("My clubs")}>
+          <.table
+            id="my-clubs"
+            rows={@memberships}
+            empty={gettext("You are not in any club yet.")}
           >
-            {gettext("edit answers")}
-          </.link>
-        </:col>
-      </.table>
-    </.section>
-
-    <.section :if={@schedule != []} title={gettext("My schedule")}>
-      <.table id="my-schedule" rows={@schedule}>
-        <:col :let={row} label={gettext("Session")}>
-          <.link href={~p"/c/#{row.club.uuid}/s/#{row.session.uuid}"}>
-            {row.club.name}
-          </.link>
-          <.sub :if={row.session.scheduled_at}>
-            <.local_time at={row.session.scheduled_at} as={:short} />
-          </.sub>
-        </:col>
-      </.table>
-    </.section>
-
-    <.section :if={@feedback_to_give != []} title={gettext("Feedback to give")}>
-      <.table id="feedback-to-give" rows={@feedback_to_give}>
-        <:col :let={row} label={gettext("Session")}>
-          {row.session.name || row.session.club.name}
-          <.sub>{row.session.club.name}</.sub>
-        </:col>
-        <:col :let={row} label={gettext("Room")}>{room_label(row.room)}</:col>
-        <:col :let={row}>
-          <.link href={
-            ~p"/c/#{row.session.club.uuid}/s/#{row.session.uuid}/rooms/#{row.room["id"]}/feedback"
-          }>
-            {gettext("give feedback")}
-          </.link>
-        </:col>
-      </.table>
-    </.section>
-
-    <.section
-      :for={block <- @feedback_on_me}
-      title={
-        gettext("Feedback on your adjudication: %{session}",
-          session: block.session.name || block.session.club.name
-        )
-      }
-    >
-      <div :if={block.average} class="pad">
-        {gettext("Your average with the base vote:")} <b>{points_words(block.average)}</b>
-        <span class="mut">{gettext("(5 counts as one vote)")}</span>
+            <:col :let={m} label={gettext("Club")}>
+              <.link href={~p"/c/#{m.club.uuid}"}>{m.club.name}</.link>
+              <.sub>
+                {if m.status == "approved",
+                  do: role_word(m.role),
+                  else: gettext("request pending")}{if m.club.city,
+                  do: ", #{m.club.city}"}
+              </.sub>
+            </:col>
+            <:col :let={m} label={gettext("Next session")} class="st">
+              <%= cond do %>
+                <% m.status != "approved" -> %>
+                  —
+                <% match?({%{scheduled_at: %DateTime{}}, :signup, _}, @tonight[m.club_id]) and
+                    not Cab.Sessions.full?(elem(@tonight[m.club_id], 0)) -> %>
+                  {gettext("registration open")},
+                  <.local_time
+                    at={elem(@tonight[m.club_id], 0).scheduled_at}
+                    as={:weekday_time}
+                  />
+                <% true -> %>
+                  {tonight_words(@tonight[m.club_id])}
+              <% end %>
+            </:col>
+            <:col :let={m}>
+              <.link
+                :if={Cab.Clubs.member_fields(m.club) != []}
+                href={~p"/me/clubs/#{m.club.uuid}/answers"}
+              >
+                {gettext("edit answers")}
+              </.link>
+            </:col>
+          </.table>
+        </.section>
       </div>
-      <.table id={"feedback-on-me-#{block.session.uuid}"} rows={block.entries}>
-        <:col :let={entry} label={gettext("Room")}>
-          {feedback_room_label(block.state, entry)}
-        </:col>
-        <:col :let={entry} label={gettext("Accuracy")} num>{entry.accuracy}</:col>
-        <:col :let={entry} label={gettext("Reasoning")} num>{entry.reasoning}</:col>
-        <:col :let={entry} label={gettext("Average")} num>{points_words(entry.score)}</:col>
-        <:col :let={entry} label={gettext("Discussion")}>{entry.discussion}</:col>
-      </.table>
-    </.section>
-
-    <%= if @stats do %>
-      <.section title={gettext("Stats")}>
-        <.table id="me-stats" rows={[@stats]}>
-          <:col :let={s} label={gettext("Ballots")}>
-            {s["overview"]["total_ballots_received"]}
-          </:col>
-          <:col :let={s} label={gettext("Ranked debates")}>
-            {s["overview"]["total_debates_ranked"]}
-          </:col>
-          <:col :let={s} label={gettext("Avg score")}>
-            {fixed(s["overview"]["average_speaker_score"], 2)}
-          </:col>
-          <:col :let={s} label={gettext("Highest")}>{s["overview"]["highest_score"]}</:col>
-          <:col :let={s} label={gettext("Lowest")}>{s["overview"]["lowest_score"]}</:col>
-          <:col :let={s} label={gettext("1st places")}>{s["placements"]["first_places"]}</:col>
-          <:col :let={s} label={gettext("Win rate")}>
-            {fixed(s["placements"]["win_rate_percentage"], 1)}%
-          </:col>
-        </.table>
-      </.section>
-    <% else %>
-      <.section title={gettext("Stats")} pad>
-        {gettext("No logged debates yet — stats appear after your first scored round.")}
-      </.section>
-    <% end %>
-
-    <.section title={gettext("History")}>
-      <.table id="me-history" rows={@history} empty={gettext("No sessions played yet.")}>
-        <:col :let={row} label={gettext("Session")}>
-          <.link href={~p"/c/#{row.club_uuid}/s/#{row.session_uuid}"}>
-            <.local_time at={row.date} as={:date} />
-          </.link>
-          <.sub>{row.club}</.sub>
-        </:col>
-        <:col :let={row} label={gettext("As")}>{role_word(row.role)}</:col>
-        <:col :let={row} label={gettext("Result")} class="st">
-          <%= cond do %>
-            <% row.won -> %>
-              <b>{gettext("won")}</b>
-            <% row.role == "adjudicator" -> %>
-              {gettext("adjudicated")}
-            <% true -> %>
-              {gettext("played")}
-          <% end %>
-        </:col>
-      </.table>
-    </.section>
+    </div>
   </div>
 </Layouts.app>

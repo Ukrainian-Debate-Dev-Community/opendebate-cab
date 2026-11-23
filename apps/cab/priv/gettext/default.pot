@@ -82,6 +82,16 @@ msgstr ""
 msgid "%{club}: you are invited to be its head"
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} 1st places"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} ballots"
+msgstr ""
+
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "%{count} member"
@@ -240,11 +250,6 @@ msgstr ""
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "1st"
-msgstr ""
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "1st places"
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex
@@ -573,11 +578,6 @@ msgstr ""
 #: lib/cab_web/controllers/session_page_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Ballot — %{room}"
-msgstr ""
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Ballots"
 msgstr ""
 
 #: lib/cab_web/controllers/signin_html/show.html.heex
@@ -1185,11 +1185,6 @@ msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
-msgid "Highest"
-msgstr ""
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
 msgid "History"
 msgstr ""
 
@@ -1340,11 +1335,6 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Logo"
-msgstr ""
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Lowest"
 msgstr ""
 
 #: lib/cab_web/ballot_form.ex
@@ -1876,7 +1866,6 @@ msgid "Previous sessions live on the"
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex
-#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Profile"
 msgstr ""
@@ -1946,6 +1935,7 @@ msgid "Register for %{session}"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/responses.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registered"
 msgstr ""
@@ -2284,6 +2274,7 @@ msgstr ""
 msgid "Session times show in this zone. cab keeps every time in UTC."
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Sessions"
@@ -2461,11 +2452,6 @@ msgstr ""
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "State"
-msgstr ""
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Stats"
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex
@@ -3183,6 +3169,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html.ex
 #, elixir-autogen, elixir-format
 msgid "head"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "highest %{high}, lowest %{low}"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex

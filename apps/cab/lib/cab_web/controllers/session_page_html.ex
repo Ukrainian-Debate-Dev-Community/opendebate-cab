@@ -20,6 +20,12 @@ defmodule CabWeb.SessionPageHTML do
   # what the room card draws (assets/js ShareCard): who, when, the
   # motion once published, the draw, the judge, and the room's short
   # link with its QR code
+  @doc "The tag kind for a session's stage: open sign-ups, closed, running, done."
+  def stage_kind(:signup), do: :info
+  def stage_kind(:closed), do: :warn
+  def stage_kind(:running), do: :ok
+  def stage_kind(_stage), do: nil
+
   @doc """
   A shareable card: the picture (drawn in the browser from `card`, a
   JSON with its `kind`) and the same as text, side by side; clicking
