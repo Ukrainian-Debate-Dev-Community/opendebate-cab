@@ -5,3 +5,7 @@
 .stats dd { margin:var(--sp-1) 0 0; font-size:var(--step-3); font-weight:760; letter-spacing:-.02em; line-height:1.15;
             font-variant-numeric:tabular-nums; color:var(--ink); }
 .stats .note { margin-left:var(--sp-2); font-size:var(--step-m1); font-weight:650; letter-spacing:0; color:var(--muted); }
+/* phones skip the numbers: the page's own content comes first */
+@media (max-width:760px) {
+  .stats { display:none; }
+}

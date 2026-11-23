@@ -238,8 +238,14 @@ a { color:var(--brand); }
 .ua-select { font:inherit; font-size:var(--step-m1); color:var(--ink); background:var(--surface);
              border:1px solid var(--line); border-radius:var(--r-md); padding:var(--sp-1) var(--sp-2); outline:none; }
 .ua-inline { display:flex; align-items:center; gap:var(--sp-2); font-size:var(--step-m1); font-weight:650; color:var(--muted); }
-.ua-filters { display:flex; flex-wrap:wrap; gap:var(--sp-2) var(--px); align-items:center; margin-bottom:var(--sp-2); }
-.ua-filters label { display:flex; align-items:center; gap:var(--sp-2); font-size:var(--step-m2); font-weight:700; color:var(--muted); }
+/* the clubs' filters: one row of groups, a small label over each */
+.ua-filters { display:flex; flex-wrap:wrap; gap:var(--sp-3) var(--sp-5); align-items:flex-end; }
+.ua-filters label, .ua-filters .ua-inline { display:flex; flex-direction:column; align-items:flex-start; gap:var(--sp-1);
+                                            font-size:var(--step-m2); font-weight:700; color:var(--muted); }
+.ua-inline-row { display:flex; gap:var(--sp-2); }
+.ua-filters .ua-select { min-height:2.25rem; }
+.ua-filters .btn-sm { min-height:2.25rem; }
+.ua-maphint { padding:var(--sp-3) var(--sp-5) 0; font-size:var(--step-m1); color:var(--muted); }
 .ua-count { margin:var(--sp-1) 0 var(--sp-2); }
 
 /* ================================================================
@@ -479,11 +485,17 @@ a { color:var(--brand); }
                                         border:1px solid var(--line); border-radius:var(--r-pill); }
   .ua-calswitch { flex-wrap:wrap; }
 
-  /* the filters stack; their segments scroll sideways */
-  .ua-filters { flex-direction:column; align-items:stretch; gap:var(--sp-2); }
+  /* the filters stack, each the full width; their choices as chips
+     that wrap, like the calendar's kinds */
+  .ua-filters { flex-direction:column; align-items:stretch; gap:var(--sp-3); }
   .ua-clubs > *, .ua-filters, .ua-filters label { min-width:0; max-width:100%; }
-  .ua-seg { max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  .ua-seg a { white-space:nowrap; min-height:2.5rem; display:inline-flex; align-items:center; }
+  .ua-filters label, .ua-filters .ua-inline { align-items:stretch; }
+  .ua-filters .ua-inline .ua-select { flex:1; }
+  .ua-inline-row { width:100%; }
+  .ua-filters .ua-seg { flex-wrap:wrap; gap:var(--sp-2); border:0; border-radius:0; overflow:visible; background:none; }
+  .ua-filters .ua-seg a { flex:0 0 auto; min-height:2.25rem; padding:0 var(--sp-4); border:1px solid var(--line);
+                          border-radius:var(--r-pill); }
+  .ua-seg a { white-space:nowrap; display:inline-flex; align-items:center; }
   .ua-select { font-size:16px; }
 
   /* the ribbon in two rows: the role, the person (initials) and the
