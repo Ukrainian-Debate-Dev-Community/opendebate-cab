@@ -11,7 +11,6 @@ msgstr ""
 "Language: uk\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100 != 11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
 
-#: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "%{count} city"
@@ -28,7 +27,6 @@ msgstr[0] "%{count} місто. Натисніть на місто, щоб по�
 msgstr[1] "%{count} міста. Натисніть на місто, щоб побачити його клуби"
 msgstr[2] "%{count} міст. Натисніть на місто, щоб побачити його клуби"
 
-#: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "%{count} club"
@@ -249,6 +247,7 @@ msgstr "Календар видно всім"
 msgid "Cancel"
 msgstr "Скасувати"
 
+#: lib/public_web/controllers/club_html/index.html.heex
 #: lib/public_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Cities"

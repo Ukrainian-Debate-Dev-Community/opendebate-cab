@@ -72,6 +72,22 @@ export const PhoneField = {
       const rest = typer.getNationalNumber() || ""
       input.value = rest ? national(c, rest) : ""
     }
+    // the library reads the digits as code + number itself
+    const sameNumber = (d, c) => { try { return lpn.parsePhoneNumber(d, c).number === "+" + d } catch (_e) { return false } }
+    // a whole number with its code, as pasted or filled in ("+380 ...",
+    // "tel: +380 ...", "00380 ...", or "380 ..." with that country
+    // picked): the number as +digits, so takeCode moves the code to the
+    // picker; null when the text is no such number
+    const withCode = (text) => {
+      const d = digitsOf(text)
+      if (!d) return null
+      if (/^[^\d]*\+/.test(text)) return "+" + d
+      if (d.startsWith("00") && lpn.isValidPhoneNumber("+" + d.slice(2))) return "+" + d.slice(2)
+      if (!select.value) return null
+      const code = lpn.getCountryCallingCode(select.value)
+      const whole = d.startsWith(code) && lpn.isValidPhoneNumber("+" + d) && sameNumber(d, select.value)
+      return whole ? "+" + d : null
+    }
     const showPicked = () => { input.placeholder = select.value ? "" : placeholder }
     const fullNumber = () => {
       const d = digitsOf(input.value)
@@ -90,15 +106,25 @@ export const PhoneField = {
     const format = () => {
       const typed = input.value.trim()
       if (!digitsOf(typed)) { input.value = typed.startsWith("+") ? "+" : ""; check(); return }
-      // only a typed + or the picker gives the country: digits with
+      // only a + (or 00) or the picker gives the country: digits with
       // neither stay as typed (no country guessed from them)
-      if (typed.startsWith("+")) takeCode()
+      const intl = withCode(typed)
+      if (intl) { input.value = intl; takeCode() }
       else if (select.value) input.value = national(select.value, digitsOf(typed))
       else input.value = digitsOf(typed)
       showPicked()
       check()
     }
     if (input.value.trim().startsWith("+") && digitsOf(input.value)) { takeCode(); showPicked() }
+    // a pasted whole number replaces what the field held, its code
+    // going to the picker
+    input.addEventListener("paste", (e) => {
+      const text = (e.clipboardData && e.clipboardData.getData("text")) || ""
+      if (!withCode(text.trim())) return
+      e.preventDefault()
+      input.value = text.trim()
+      format()
+    })
     // reformat only while typing at the end, so an edit in the middle keeps its caret
     input.addEventListener("input", () => (input.selectionStart === input.value.length ? format() : check()))
     // another country: the same national digits, spaced for it

@@ -82,6 +82,16 @@ msgstr "%{club}: сесію відкрито."
 msgid "%{club}: you are invited to be its head"
 msgstr "%{club}: вас запрошують стати головою клубу"
 
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} 1st places"
+msgstr "перших місць: %{count}"
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} ballots"
+msgstr "бюлетенів: %{count}"
+
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "%{count} member"
@@ -248,11 +258,6 @@ msgstr ", гість сесії %{session} у клубі %{club}."
 #, elixir-autogen, elixir-format
 msgid "1st"
 msgstr "1-ше"
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "1st places"
-msgstr "Перші місця"
 
 #: lib/cab_web/components/layouts.ex
 #: lib/cab_web/session_format.ex
@@ -592,11 +597,6 @@ msgstr "Белот подано."
 #, elixir-autogen, elixir-format
 msgid "Ballot — %{room}"
 msgstr "Белот — %{room}"
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Ballots"
-msgstr "Белоти"
 
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -1210,11 +1210,6 @@ msgstr "Вітаємо, %{name}.\n\nВи зареєструвалися на %{s
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
-msgid "Highest"
-msgstr "Найвищий"
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
 msgid "History"
 msgstr "Історія"
 
@@ -1371,11 +1366,6 @@ msgstr "Діючі клуби"
 #, elixir-autogen, elixir-format
 msgid "Logo"
 msgstr "Логотип"
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Lowest"
-msgstr "Найнижчий"
 
 #: lib/cab_web/ballot_form.ex
 #, elixir-autogen, elixir-format
@@ -1916,7 +1906,6 @@ msgid "Previous sessions live on the"
 msgstr "Попередні сесії є на"
 
 #: lib/cab_web/controllers/account_html/show.html.heex
-#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Profile"
 msgstr "Профіль"
@@ -1986,6 +1975,7 @@ msgid "Register for %{session}"
 msgstr "Реєстрація на %{session}"
 
 #: lib/cab_web/controllers/owner_html/responses.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registered"
 msgstr "Зареєстровано"
@@ -2327,6 +2317,7 @@ msgstr "Сесію почато, кімнат: %{count}."
 msgid "Session times show in this zone. cab keeps every time in UTC."
 msgstr "Час сесій показано в цьому поясі. cab зберігає весь час в UTC."
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Sessions"
@@ -2505,11 +2496,6 @@ msgstr "Початок о {time}"
 #, elixir-autogen, elixir-format
 msgid "State"
 msgstr "Стан"
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Stats"
-msgstr "Статистика"
 
 #: lib/cab_web/controllers/account_html/show.html.heex
 #: lib/cab_web/controllers/member_html/archive_section.html.heex
@@ -3228,6 +3214,11 @@ msgstr "гість"
 #, elixir-autogen, elixir-format
 msgid "head"
 msgstr "голова"
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "highest %{high}, lowest %{low}"
+msgstr "найвищий %{high}, найнижчий %{low}"
 
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format

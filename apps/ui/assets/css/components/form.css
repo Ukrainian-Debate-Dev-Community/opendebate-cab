@@ -26,9 +26,11 @@
 .form input[type=number] { width:6.875rem; }
 .form input[type=file] { font:inherit; font-size:var(--fs-sm); max-width:100%; }
 /* a phone block: the country picker, then the number */
-.form .phonefield { display:flex; flex-wrap:wrap; gap:var(--sp-2); align-items:stretch; }
+/* always one line: the picker keeps its width, the number takes the rest
+   however narrow the form (a side column, a phone) */
+.form .phonefield { display:flex; flex-wrap:nowrap; gap:var(--sp-2); align-items:stretch; }
 .form .phonefield .phonecountry { flex:0 0 auto; width:6.5rem; min-width:0; }
-.form .phonefield input[type=tel] { flex:1 1 12rem; min-width:0; }
+.form .phonefield input[type=tel] { flex:1 1 0; width:auto; min-width:0; }
 .form .half { display:flex; gap:var(--sp-2); }
 .form .half > * { flex:1; min-width:0; }
 .form .hint { font-size:var(--fs-xs); color:var(--muted); margin-top:var(--sp-1); }

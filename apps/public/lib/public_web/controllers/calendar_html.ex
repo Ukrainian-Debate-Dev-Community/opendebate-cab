@@ -126,6 +126,11 @@ defmodule PublicWeb.CalendarHTML do
     end)
   end
 
+  @doc "Whether the event at `i` is the list's first one starting that day (it carries the day's anchor)."
+  def first_of_day?(events, i) do
+    i == 0 or Enum.at(events, i - 1).starts_on != Enum.at(events, i).starts_on
+  end
+
   def empty_text(%Period{view: :month}), do: gettext("Nothing planned this month.")
   def empty_text(%Period{view: :year}), do: gettext("Nothing planned this year.")
   def empty_text(%Period{view: :all}), do: gettext("No events yet.")

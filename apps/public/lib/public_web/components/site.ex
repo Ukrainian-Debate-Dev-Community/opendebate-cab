@@ -208,6 +208,11 @@ defmodule PublicWeb.Site do
 
   attr :event, :map, required: true
   attr :href, :string, required: true, doc: "the event's page"
+
+  attr :id, :string,
+    default: nil,
+    doc: "an anchor (the phone grid's days point at their first event)"
+
   slot :inner_block
 
   @doc """
@@ -218,12 +223,15 @@ defmodule PublicWeb.Site do
     assigns = assign(assigns, phase: event_phase(assigns.event, Date.utc_today()))
 
     ~H"""
-    <div class={[
-      "ua-ev",
-      @event.visibility == "private" && "ua-ev--priv",
-      @phase == :past && "ua-ev--past",
-      @phase == :today && "ua-ev--today"
-    ]}>
+    <div
+      id={@id}
+      class={[
+        "ua-ev",
+        @event.visibility == "private" && "ua-ev--priv",
+        @phase == :past && "ua-ev--past",
+        @phase == :today && "ua-ev--today"
+      ]}
+    >
       <.date_badge date={@event.starts_on} />
       <div class="ua-ev-body">
         <h4><a class="ua-ev-link" href={@href}>{@event.title}</a></h4>
@@ -247,6 +255,17 @@ defmodule PublicWeb.Site do
     ~H"""
     <span class="ua-date"><b>{pad(@date.day)}</b><span>{short_month(@date.month)}</span></span>
     """
+  end
+
+  @doc "The list's anchor for the events starting on `date` (the phone grid links to it)."
+  def day_anchor(%Date{} = date), do: "day-" <> Date.to_iso8601(date)
+
+  # a day's link on the phone grid: the list's anchor of its first event
+  defp day_target(events, day) do
+    case Enum.find(events, &on_day?(&1, day)) do
+      nil -> nil
+      event -> "#" <> day_anchor(event.starts_on)
+    end
   end
 
   attr :first, Date, required: true
@@ -283,10 +302,18 @@ defmodule PublicWeb.Site do
           class={["ua-day", day.month != @first.month && "out", day == @today && "today"]}
         >
           <span class="n">{day.day}</span>
+          <%!-- phones: the day itself, to its events in the list below --%>
+          <a
+            :if={day_target(@events, day)}
+            class="ua-day-link"
+            href={day_target(@events, day)}
+            aria-label={long_date(day)}
+          ></a>
           <a
             :for={e <- Enum.filter(@events, &on_day?(&1, day))}
             class={[
               "ua-chip",
+              "ua-chip--#{e.kind}",
               e.visibility == "private" && "ua-chip--priv",
               event_phase(e, @today) == :past && "ua-chip--past"
             ]}
