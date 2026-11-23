@@ -6,184 +6,204 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title={gettext("Clubs")}>
-      <.table id="admin-clubs" rows={@clubs} empty={gettext("No clubs yet.")}>
-        <:col :let={club} label={gettext("Club")}>
-          {club.name}
-          <.sub>
-            {club.city || "—"}, {ngettext(
-              "%{count} member",
-              "%{count} members",
-              @member_counts[club.id] || 0
-            )}
-          </.sub>
-        </:col>
-        <:col :let={club} label={gettext("Head")}>
-          {head_label(@heads[club.id])}
-        </:col>
-        <:col :let={club} label={gettext("State")}>
-          {if club.archived_at, do: gettext("archived"), else: gettext("live")}
-        </:col>
-        <:col :let={club}>
-          <.link href={~p"/c/#{club.uuid}"}>{gettext("open")}</.link>
-        </:col>
-        <:col :let={club}>
-          <.link
-            :if={is_nil(club.archived_at)}
-            href={~p"/admin/clubs/#{club.uuid}/archive"}
-            method="post"
-          >
-            {gettext("archive")}
-          </.link>
-        </:col>
-      </.table>
-    </.section>
+    <.page_head
+      kicker={gettext("Platform")}
+      title={gettext("Admin")}
+      lead={gettext("Clubs, their heads and accounts across cab.")}
+    />
 
-    <.section title={gettext("Create a club")}>
-      <.form_for
-        id="create-club-form"
-        action={~p"/admin/clubs"}
-        description={gettext("Club creation is admin-only — users can only request membership.")}
-        errors={@new_club_errors}
-      >
-        <:block
-          name={:name}
-          type={:text}
-          label={gettext("Club name")}
-          required
-          maxlength={Cab.Clubs.Club.max_lengths().name}
-          value={@new_club["name"]}
-        />
-        <:block
-          name={:city}
-          type={:text}
-          label={gettext("City")}
-          maxlength={Cab.Clubs.Club.max_lengths().city}
-          value={@new_club["city"]}
-        />
-        <:block
-          name={:head}
-          type={:text}
-          label={gettext("Head")}
-          required
-          value={@new_club["head"]}
-          list="cab-accounts"
-          placeholder={gettext("username or e-mail")}
-          hint={
-            gettext(
-              "An account's username or e-mail. An e-mail no account uses sends an invitation instead."
-            )
-          }
-        />
-        <:block
-          name={:head_name}
-          type={:text}
-          label={gettext("Their name")}
-          maxlength={Cab.HeadInvitations.name_max()}
-          value={@new_club["head_name"]}
-          hint={gettext("Only for an invitation: the name the e-mail greets.")}
-        />
-      </.form_for>
-    </.section>
-
-    <.section title={gettext("Change a club's head")}>
-      <.form_for
-        id="change-head-form"
-        action={~p"/admin/head"}
-        description={gettext("The new head takes over; the old head retires.")}
-      >
-        <:block
-          name={:uuid}
-          type={:select}
-          label={gettext("Club")}
-          required
-          options={club_options(@clubs)}
-        />
-        <:block
-          name={:head}
-          type={:text}
-          label={gettext("New head")}
-          required
-          list="cab-accounts"
-          placeholder={gettext("username or e-mail")}
-          hint={
-            gettext(
-              "An account's username or e-mail. An e-mail no account uses sends an invitation instead."
-            )
-          }
-        />
-        <:block
-          name={:head_name}
-          type={:text}
-          label={gettext("Their name")}
-          maxlength={Cab.HeadInvitations.name_max()}
-          hint={gettext("Only for an invitation: the name the e-mail greets.")}
-        />
-        <:submit
-          note={gettext("An account takes over at once; an invitation once it is accepted.")}
-          quiet
-        >
-          {gettext("Change head")}
-        </:submit>
-      </.form_for>
-    </.section>
-
-    <.section :if={@head_invitations != []} title={gettext("Pending head invitations")}>
-      <.table id="head-invitations" rows={@head_invitations}>
-        <:col :let={invitation} label={gettext("Club")}>{invitation.club.name}</:col>
-        <:col :let={invitation} label={gettext("Invited")}>
-          {invitation.name}
-          <.sub>{invitation.email}</.sub>
-        </:col>
-        <:col :let={invitation} label={gettext("Sent")}>{day(invitation.updated_at)}</:col>
-        <:col :let={invitation} label={gettext("Expires")}>{day(invitation.expires_at)}</:col>
-        <:col :let={invitation}>
-          <.link href={~p"/admin/head-invitations/#{invitation.id}/resend"} method="post">
-            {gettext("resend")}
-          </.link>
-        </:col>
-        <:col :let={invitation}>
-          <.link href={~p"/admin/head-invitations/#{invitation.id}/cancel"} method="post">
-            {gettext("cancel")}
-          </.link>
-        </:col>
-      </.table>
-    </.section>
+    <.stats>
+      <:stat label={gettext("Live clubs")}>{Enum.count(@clubs, &is_nil(&1.archived_at))}</:stat>
+      <:stat label={gettext("Archived")}>{Enum.count(@clubs, & &1.archived_at)}</:stat>
+      <:stat label={gettext("Pending invitations")}>{length(@head_invitations)}</:stat>
+      <:stat label={gettext("Accounts")}>{length(@accounts)}</:stat>
+    </.stats>
 
     <datalist id="cab-accounts">
       <option :for={account <- @accounts} value={account.username}>{account.name}</option>
     </datalist>
 
-    <.section :if={length(@accounts) > 1} title={gettext("Merge two accounts")}>
-      <.form_for
-        id="merge-accounts-form"
-        action={~p"/admin/merge"}
-        description={
-          gettext(
-            "For one person who ended up with two accounts and cannot sign in to both. The account that heads a club is kept, or else the older one; it gets the other's history, clubs, head positions and sign-in methods. It cannot be undone."
-          )
-        }
-      >
-        <:block
-          name={:first}
-          type={:text}
-          label={gettext("Account")}
-          required
-          list="cab-accounts"
-          placeholder={gettext("username or e-mail")}
-        />
-        <:block
-          name={:second}
-          type={:text}
-          label={gettext("Same person's other account")}
-          required
-          list="cab-accounts"
-          placeholder={gettext("username or e-mail")}
-        />
-        <:submit note={gettext("Refused when both took part in the same session.")} quiet>
-          {gettext("Merge accounts")}
-        </:submit>
-      </.form_for>
-    </.section>
+    <div class="split">
+      <div class="stack">
+        <.section title={gettext("Clubs")}>
+          <.table id="admin-clubs" rows={@clubs} empty={gettext("No clubs yet.")}>
+            <:col :let={club} label={gettext("Club")}>
+              {club.name}
+              <.sub>
+                {club.city || "—"}, {ngettext(
+                  "%{count} member",
+                  "%{count} members",
+                  @member_counts[club.id] || 0
+                )}
+              </.sub>
+            </:col>
+            <:col :let={club} label={gettext("Head")}>
+              {head_label(@heads[club.id])}
+            </:col>
+            <:col :let={club} label={gettext("State")}>
+              <.tag :if={club.archived_at}>{gettext("archived")}</.tag>
+              <.tag :if={is_nil(club.archived_at)} kind={:ok}>{gettext("live")}</.tag>
+            </:col>
+            <:col :let={club}>
+              <.link href={~p"/c/#{club.uuid}"} class="btn-quiet btn-sm">{gettext("open")}</.link>
+            </:col>
+            <:col :let={club}>
+              <.link
+                :if={is_nil(club.archived_at)}
+                href={~p"/admin/clubs/#{club.uuid}/archive"}
+                method="post"
+                class="btn-quiet btn-sm quiet"
+              >
+                {gettext("archive")}
+              </.link>
+            </:col>
+          </.table>
+        </.section>
+        <.section :if={@head_invitations != []} title={gettext("Pending head invitations")}>
+          <.table id="head-invitations" rows={@head_invitations}>
+            <:col :let={invitation} label={gettext("Club")}>{invitation.club.name}</:col>
+            <:col :let={invitation} label={gettext("Invited")}>
+              {invitation.name}
+              <.sub>{invitation.email}</.sub>
+            </:col>
+            <:col :let={invitation} label={gettext("Sent")}>{day(invitation.updated_at)}</:col>
+            <:col :let={invitation} label={gettext("Expires")}>{day(invitation.expires_at)}</:col>
+            <:col :let={invitation}>
+              <.link href={~p"/admin/head-invitations/#{invitation.id}/resend"} method="post">
+                {gettext("resend")}
+              </.link>
+            </:col>
+            <:col :let={invitation}>
+              <.link href={~p"/admin/head-invitations/#{invitation.id}/cancel"} method="post">
+                {gettext("cancel")}
+              </.link>
+            </:col>
+          </.table>
+        </.section>
+      </div>
+      <%!-- the forms are the page's work: first once the columns stack --%>
+      <div class="stack lead">
+        <.section title={gettext("Create a club")}>
+          <.form_for
+            id="create-club-form"
+            action={~p"/admin/clubs"}
+            description={
+              gettext("Club creation is admin-only — users can only request membership.")
+            }
+            errors={@new_club_errors}
+          >
+            <:block
+              name={:name}
+              type={:text}
+              label={gettext("Club name")}
+              required
+              maxlength={Cab.Clubs.Club.max_lengths().name}
+              value={@new_club["name"]}
+            />
+            <:block
+              name={:city}
+              type={:text}
+              label={gettext("City")}
+              maxlength={Cab.Clubs.Club.max_lengths().city}
+              value={@new_club["city"]}
+            />
+            <:block
+              name={:head}
+              type={:text}
+              label={gettext("Head")}
+              required
+              value={@new_club["head"]}
+              list="cab-accounts"
+              placeholder={gettext("username or e-mail")}
+              hint={
+                gettext(
+                  "An account's username or e-mail. An e-mail no account uses sends an invitation instead."
+                )
+              }
+            />
+            <:block
+              name={:head_name}
+              type={:text}
+              label={gettext("Their name")}
+              maxlength={Cab.HeadInvitations.name_max()}
+              value={@new_club["head_name"]}
+              hint={gettext("Only for an invitation: the name the e-mail greets.")}
+            />
+          </.form_for>
+        </.section>
+        <.section title={gettext("Change a club's head")}>
+          <.form_for
+            id="change-head-form"
+            action={~p"/admin/head"}
+            description={gettext("The new head takes over; the old head retires.")}
+          >
+            <:block
+              name={:uuid}
+              type={:select}
+              label={gettext("Club")}
+              required
+              options={club_options(@clubs)}
+            />
+            <:block
+              name={:head}
+              type={:text}
+              label={gettext("New head")}
+              required
+              list="cab-accounts"
+              placeholder={gettext("username or e-mail")}
+              hint={
+                gettext(
+                  "An account's username or e-mail. An e-mail no account uses sends an invitation instead."
+                )
+              }
+            />
+            <:block
+              name={:head_name}
+              type={:text}
+              label={gettext("Their name")}
+              maxlength={Cab.HeadInvitations.name_max()}
+              hint={gettext("Only for an invitation: the name the e-mail greets.")}
+            />
+            <:submit
+              note={gettext("An account takes over at once; an invitation once it is accepted.")}
+              quiet
+            >
+              {gettext("Change head")}
+            </:submit>
+          </.form_for>
+        </.section>
+        <.section :if={length(@accounts) > 1} title={gettext("Merge two accounts")}>
+          <.form_for
+            id="merge-accounts-form"
+            action={~p"/admin/merge"}
+            description={
+              gettext(
+                "For one person who ended up with two accounts and cannot sign in to both. The account that heads a club is kept, or else the older one; it gets the other's history, clubs, head positions and sign-in methods. It cannot be undone."
+              )
+            }
+          >
+            <:block
+              name={:first}
+              type={:text}
+              label={gettext("Account")}
+              required
+              list="cab-accounts"
+              placeholder={gettext("username or e-mail")}
+            />
+            <:block
+              name={:second}
+              type={:text}
+              label={gettext("Same person's other account")}
+              required
+              list="cab-accounts"
+              placeholder={gettext("username or e-mail")}
+            />
+            <:submit note={gettext("Refused when both took part in the same session.")} quiet>
+              {gettext("Merge accounts")}
+            </:submit>
+          </.form_for>
+        </.section>
+      </div>
+    </div>
   </div>
 </Layouts.app>

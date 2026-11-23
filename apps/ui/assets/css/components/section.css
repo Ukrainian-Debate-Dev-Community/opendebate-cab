@@ -14,6 +14,9 @@
 .card { border:1px solid var(--line); border-radius:var(--r); background:var(--surface);
         overflow:hidden; box-shadow:var(--shadow-sm); }
 .card .pad { padding:var(--sp-4) var(--sp-5); font-size:var(--step-0); }
+/* a form in a titled card: the card's head is its title, so the form's
+   own violet rule would head it twice */
+.card-head + .form > .f-head { border-top:0; }
 .card .pad p { color:var(--muted); font-size:var(--step-m1); margin-top:var(--sp-1); }
 @media (max-width:760px) {
   .card-head { padding:var(--sp-3) var(--px); }

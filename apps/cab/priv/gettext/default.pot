@@ -355,6 +355,11 @@ msgstr ""
 msgid "Account"
 msgstr ""
 
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Accounts"
+msgstr ""
+
 #: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
@@ -470,6 +475,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/members.html.heex
 #, elixir-autogen, elixir-format
 msgid "Answers"
+msgstr ""
+
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Archived"
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
@@ -754,6 +764,11 @@ msgstr ""
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Clubs run weekly practice rounds: pick one and come debate."
+msgstr ""
+
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Clubs, their heads and accounts across cab."
 msgstr ""
 
 #: lib/cab_web/components/layouts/app.html.heex
@@ -1332,6 +1347,11 @@ msgstr ""
 msgid "Linking lets you sign in to this same account with either. Separate accounts are fine too: link only if you want them to be one. If the method you link already has its own cab account, you can merge the two."
 msgstr ""
 
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Live clubs"
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Logo"
@@ -1783,6 +1803,11 @@ msgstr ""
 msgid "Pending head invitations"
 msgstr ""
 
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Pending invitations"
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "People (%{count})"
@@ -1804,6 +1829,11 @@ msgstr ""
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Place"
+msgstr ""
+
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Platform"
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex
