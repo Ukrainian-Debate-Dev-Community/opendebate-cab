@@ -358,6 +358,11 @@ msgstr "Прийміть або відхиліть на «Моїй сторін�
 msgid "Account"
 msgstr "Акаунт"
 
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Accounts"
+msgstr "Акаунти"
+
 #: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
@@ -474,6 +479,11 @@ msgstr "Ім'я користувача або e-mail акаунта. Якщо e-
 #, elixir-autogen, elixir-format
 msgid "Answers"
 msgstr "Відповіді"
+
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Archived"
+msgstr "В архіві"
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -763,6 +773,11 @@ msgstr "Клуби"
 #, elixir-autogen, elixir-format
 msgid "Clubs run weekly practice rounds: pick one and come debate."
 msgstr "Клуби щотижня проводять тренувальні раунди: оберіть свій і приходьте дебатувати."
+
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Clubs, their heads and accounts across cab."
+msgstr "Клуби, їхні голови й акаунти в cab."
 
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
@@ -1347,6 +1362,11 @@ msgstr "Наступна сесія"
 msgid "Linking lets you sign in to this same account with either. Separate accounts are fine too: link only if you want them to be one. If the method you link already has its own cab account, you can merge the two."
 msgstr "Прив'язка дає змогу входити в цей самий акаунт будь-яким із цих способів. Окремі акаунти теж нормально: прив'язуйте, лише якщо хочете, щоб це був один акаунт. Якщо спосіб, який ви прив'язуєте, вже має власний акаунт у cab, ці два акаунти можна об'єднати."
 
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Live clubs"
+msgstr "Діючі клуби"
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Logo"
@@ -1803,6 +1823,11 @@ msgstr "Обмеження учасників збережено."
 msgid "Pending head invitations"
 msgstr "Запрошення стати головою, що очікують"
 
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Pending invitations"
+msgstr "Запрошення, що очікують"
+
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "People (%{count})"
@@ -1825,6 +1850,11 @@ msgstr "Оберіть члена клубу або введіть ім'я, ім
 #, elixir-autogen, elixir-format
 msgid "Place"
 msgstr "Місце"
+
+#: lib/cab_web/controllers/admin_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Platform"
+msgstr "Платформа"
 
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
