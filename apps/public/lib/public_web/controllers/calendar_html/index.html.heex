@@ -15,21 +15,30 @@
 
 <%= if @calendar_public do %>
   <.toolbar period={@period} kind={@kind} base={~p"/calendar"} />
-  <.month_grid
-    :if={@period.view == :month}
-    first={@period.first}
-    events={@events}
-    href={&link(~p"/calendar/#{&1.id}", @period, @kind, nil)}
-  />
 
-  <.section :for={{heading, events} <- groups(@period, @events)} title={heading} bare>
-    <.event_row
-      :for={event <- events}
-      event={event}
-      href={link(~p"/calendar/#{event.id}", @period, @kind, nil)}
-    />
-  </.section>
-  <.empty :if={@events == []}>{empty_text(@period)}</.empty>
+  <%!-- a month: the grid with its events beside it; a year or all: the list --%>
+  <div class={if @period.view == :month, do: "split", else: "stack"}>
+    <.section :if={@period.view == :month} id="calendar-month" title={period_title(@period)}>
+      <.month_grid
+        first={@period.first}
+        events={@events}
+        href={&link(~p"/calendar/#{&1.id}", @period, @kind, nil)}
+      />
+    </.section>
+
+    <div class="stack">
+      <.section :for={{heading, events} <- groups(@period, @events)} title={heading}>
+        <div class="ua-events">
+          <.event_row
+            :for={event <- events}
+            event={event}
+            href={link(~p"/calendar/#{event.id}", @period, @kind, nil)}
+          />
+        </div>
+      </.section>
+      <.empty :if={@events == []}>{empty_text(@period)}</.empty>
+    </div>
+  </div>
 <% else %>
   <.empty id="calendar-not-public">
     {gettext("The calendar is not public yet. Tournaments will appear here soon.")}
