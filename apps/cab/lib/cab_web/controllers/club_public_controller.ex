@@ -307,6 +307,8 @@ defmodule CabWeb.ClubPublicController do
       tab when tab in ~w(speakers adjudicators) ->
         if whole_club?(club, conn) do
           scope = Standings.latest_finished(club)
+          formats = if tab == "speakers", do: Standings.club_formats(club), else: []
+          format = standings_format(formats, params["format"], scope)
 
           conn
           |> CabWeb.Caching.no_store()
@@ -314,7 +316,9 @@ defmodule CabWeb.ClubPublicController do
             tab: tab,
             scope: scope,
             whole_club: true,
-            rows: if(scope, do: club_rows(tab, club), else: []),
+            formats: formats,
+            format: format,
+            rows: if(scope, do: club_rows(tab, club, format), else: []),
             archive: nil,
             page_title: gettext("%{club} — Standings", club: club.name)
           )
@@ -435,8 +439,18 @@ defmodule CabWeb.ClubPublicController do
   defp whole_club?(%{is_private: false}, _conn), do: true
   defp whole_club?(_club, conn), do: Clubs.covers?(conn.assigns.club_role, :member)
 
-  defp club_rows("speakers", club), do: Standings.club_speakers(club)
-  defp club_rows("adjudicators", club), do: Standings.club_adjudicators(club)
+  defp club_rows("speakers", club, format), do: Standings.club_speakers(club, format)
+  defp club_rows("adjudicators", club, _format), do: Standings.club_adjudicators(club)
+
+  # the speakers table's format: the one asked for, else the latest
+  # finished session's, else the first the club played (adjudicator
+  # feedback knows no format)
+  defp standings_format([], _asked, _scope), do: nil
+
+  defp standings_format(formats, asked, scope) do
+    Enum.find(formats, &(&1.key == asked)) ||
+      Enum.find(formats, &(scope && &1.key == scope.session.format)) || hd(formats)
+  end
 
   defp standings_rows(_tab, nil), do: []
   defp standings_rows("teams", scope), do: Standings.teams(scope)

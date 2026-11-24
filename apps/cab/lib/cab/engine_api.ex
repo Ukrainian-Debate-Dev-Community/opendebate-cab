@@ -424,9 +424,14 @@ defmodule Cab.EngineApi do
   # Users (self-scoped reads run as that user's actor)
   # ---------------------------------------------------------------
 
-  def user_stats(actor, user_id) do
-    Engine.get(actor, "/api/users/#{user_id}/stats") |> unwrap()
+  @doc "A user's speaker statistics; with a format code, that format's rooms only."
+  def user_stats(actor, user_id, format_code \\ nil) do
+    Engine.get(actor, "/api/users/#{user_id}/stats", params: format_params(format_code))
+    |> unwrap()
   end
+
+  defp format_params(nil), do: []
+  defp format_params(code), do: [format: code]
 
   def user_history(actor, limit \\ 200) do
     Engine.get(actor, "/api/users/history?limit=#{limit}") |> unwrap()
@@ -457,8 +462,11 @@ defmodule Cab.EngineApi do
   row per person: `[{user_id, participant_id, name, total_points,
   average_score, speeches}]`.
   """
-  def organisation_speaker_standings(actor, organisation_id) do
-    Engine.get(actor, "/api/organisations/#{organisation_id}/standings/speakers") |> unwrap()
+  def organisation_speaker_standings(actor, organisation_id, format_code \\ nil) do
+    Engine.get(actor, "/api/organisations/#{organisation_id}/standings/speakers",
+      params: format_params(format_code)
+    )
+    |> unwrap()
   end
 
   @doc """

@@ -18,6 +18,8 @@
       club={@club}
       archive={@archive}
       whole_club={assigns[:whole_club] || false}
+      formats={assigns[:formats] || []}
+      format={assigns[:format]}
       base={"/c/#{@club.uuid}/standings"}
     />
   </div>
