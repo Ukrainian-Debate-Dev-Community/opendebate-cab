@@ -26,7 +26,7 @@ defmodule PublicWeb.TagsTest do
     assert {tag.name, tag.color} == {"Needs review", "red"}
 
     assert signed |> get(~p"/manage/tags") |> html_response(200) =~
-             ~s(class="ua-label ua-label--red">Needs review)
+             ~s(class="tag red">Needs review)
 
     assert signed |> get(~p"/manage/tags/#{tag.id}/edit") |> html_response(200) =~ "Needs review"
 
@@ -85,7 +85,7 @@ defmodule PublicWeb.TagsTest do
       body = conn |> get(path) |> response(200)
       assert body =~ ~r/Open Cup|Season opens/
       refute body =~ "Needs review", "#{path} shows a private tag"
-      refute body =~ "ua-label", "#{path} shows a private tag"
+      refute body =~ ~s(class="tag orange"), "#{path} shows a private tag"
     end
 
     for path <- ["/manage", "/manage/news", "/manage/calendar"] do

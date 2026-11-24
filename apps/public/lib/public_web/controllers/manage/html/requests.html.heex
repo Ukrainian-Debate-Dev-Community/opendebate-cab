@@ -2,20 +2,20 @@
 
 <.section title={gettext("Pending")} bare>
   <.empty :if={@pending == []} id="requests-none">{gettext("No pending requests.")}</.empty>
-  <.card :for={request <- @pending} class="ua-request" id={"request-#{request.id}"} pad>
-    <div class="ua-meta">
+  <.card :for={request <- @pending} class="request" id={"request-#{request.id}"} pad>
+    <div class="fineprint">
       {gettext("Received %{date} from %{email}",
         date: long_date(request.inserted_at),
         email: request.email
       )}
     </div>
-    <dl class="ua-answers">
+    <dl class="answers">
       <%= for answer <- request.answers, answer["id"] != "email" do %>
         <dt>{Ui.FormComponents.field_label(answer)}</dt>
         <dd>{Ui.FormComponents.answer_text(answer)}</dd>
       <% end %>
     </dl>
-    <div class="ua-request-actions">
+    <div class="request-actions">
       <a class="btn-quiet" href={~p"/manage/events/new?#{[request: request.id]}"}>
         {gettext("Accept: add the event")}
       </a>
@@ -23,10 +23,11 @@
         for={%{}}
         action={~p"/manage/requests/#{request.id}/decline"}
         method="post"
-        class="ua-decline"
+        class="decline"
       >
         <input
           type="text"
+          class="input"
           name="reason"
           maxlength="1000"
           placeholder={gettext("Reason (optional, sent to the requester)")}

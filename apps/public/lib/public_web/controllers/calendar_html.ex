@@ -17,8 +17,8 @@ defmodule PublicWeb.CalendarHTML do
     assigns = assign(assigns, today: Date.beginning_of_month(Date.utc_today()))
 
     ~H"""
-    <div class="ua-toolbar">
-      <div class="ua-seg">
+    <div class="toolbar">
+      <div class="pills">
         <a
           class={@period.view == :month && "on"}
           href={link(@base, month_of(@period, @today), @kind, @tag)}
@@ -44,7 +44,7 @@ defmodule PublicWeb.CalendarHTML do
       >
         {period_title(@period)}
       </.stepper>
-      <div class="ua-seg">
+      <div class="pills">
         <a class={is_nil(@kind) && "on"} href={link(@base, @period, nil, @tag)}>{gettext("All")}</a>
         <a
           :for={k <- Public.Events.Event.kinds()}
@@ -77,14 +77,14 @@ defmodule PublicWeb.CalendarHTML do
       </.tag>
       {render_slot(@tags)}
     </div>
-    <div class="ua-grid2">
+    <div class="split">
       <.section :if={@paragraphs != []} title={gettext("Details")} pad>
-        <div class="ua-prose ua-evtext" id="event-details">
+        <div class="prose event-text" id="event-details">
           <p :for={paragraph <- @paragraphs}>{paragraph}</p>
         </div>
       </.section>
       <.section title={gettext("When and where")} pad>
-        <div class="ua-dl" id="event-facts">
+        <div class="facts" id="event-facts">
           <div><span>{gettext("Dates")}</span>{event_dates(@event)}</div>
           <div :if={@event.city}><span>{gettext("City")}</span>{@event.city}</div>
           <div :if={@event.format}><span>{gettext("Format")}</span>{@event.format}</div>

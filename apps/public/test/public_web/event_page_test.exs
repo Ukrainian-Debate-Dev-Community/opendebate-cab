@@ -116,8 +116,8 @@ defmodule PublicWeb.EventPageTest do
 
     month = conn |> get(~p"/calendar?month=2026-11&kind=tournament") |> html_response(200)
     href = "/calendar/#{event.id}?month=2026-11&amp;kind=tournament"
-    assert month =~ ~s(<a class="ua-ev-link" href="#{href}">Northport Open</a>)
-    assert month =~ ~r/<a class="ua-chip[^"]*" href="#{Regex.escape(href)}">/
+    assert month =~ ~s(<a class="event-link" href="#{href}">Northport Open</a>)
+    assert month =~ ~r/<a class="cal-ev[^"]*" href="#{Regex.escape(href)}">/
     refute month =~ ~s(href="https://open.example.org/northport")
 
     year = conn |> get(~p"/calendar?view=year&year=2026") |> html_response(200)
@@ -206,13 +206,13 @@ defmodule PublicWeb.EventPageTest do
 
     html = signed |> get(~p"/manage/calendar?month=2026-11") |> html_response(200)
     href = "/manage/events/#{event.id}?month=2026-11"
-    assert html =~ ~s(<a class="ua-ev-link" href="#{href}">Northport Open</a>)
-    assert html =~ ~r/<a class="ua-chip[^"]*" href="#{Regex.escape(href)}">/
+    assert html =~ ~s(<a class="event-link" href="#{href}">Northport Open</a>)
+    assert html =~ ~r/<a class="cal-ev[^"]*" href="#{Regex.escape(href)}">/
     assert html =~ ~s(action="/manage/events/#{event.id}/visibility")
 
     # no form or link inside the title's link
     for [inner] <-
-          Regex.scan(~r/<a class="ua-ev-link"[^>]*>(.*?)<\/a>/s, html, capture: :all_but_first) do
+          Regex.scan(~r/<a class="event-link"[^>]*>(.*?)<\/a>/s, html, capture: :all_but_first) do
       refute inner =~ "<a"
       refute inner =~ "<form"
       refute inner =~ "<button"

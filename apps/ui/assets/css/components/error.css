@@ -1,0 +1,7 @@
+/* an error page: one card under the wordmark */
+.error-card { max-width:27.5rem; margin:3rem auto 3.5rem; padding:var(--sp-7) var(--sp-8); text-align:center;
+              background:var(--surface); border:1px solid var(--line); border-radius:var(--r); }
+.error-card .wordmark { display:inline-block; font-size:var(--step-5); margin-bottom:var(--sp-2); text-decoration:none; }
+.error-card h1 { font-size:var(--fs-xl); margin:var(--sp-1) 0 var(--sp-2); }
+.error-card p { color:var(--muted); margin:0 0 var(--sp-5); }
+.error-card .btn-quiet { display:flex; }

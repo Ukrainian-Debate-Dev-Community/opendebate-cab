@@ -48,12 +48,12 @@ defmodule PublicWeb.Site do
       ])
 
     ~H"""
-    <header class="ua-top">
-      <.wordmark class="ua-brand" />
-      <nav class="ua-nav">
+    <header class="site-head">
+      <.wordmark class="site-brand" />
+      <nav class="site-nav">
         <a :for={{key, href, label} <- @items} class={key == @active && "on"} href={href}>{label}</a>
       </nav>
-      <div class="ua-right">
+      <div class="site-tools">
         <.switches
           locale={Gettext.get_locale(PublicWeb.Gettext)}
           locales={PublicWeb.Locale.names()}
@@ -86,16 +86,16 @@ defmodule PublicWeb.Site do
     assigns = assign(assigns, :items, items)
 
     ~H"""
-    <div class="ua-cmbar">
-      <span class="ua-cmrole">
+    <div class="cm-bar">
+      <span class="cm-role">
         {if @access == :admin, do: gettext("Admin"), else: gettext("Content manager")}
       </span>
       <a :for={{key, href, label} <- @items} class={key == @active && "on"} href={href}>{label}</a>
-      <span class="ua-cmme">
-        <span class="ua-av">{initials(@manager)}</span>{display_name(@manager)}
+      <span class="cm-me">
+        <span class="av">{initials(@manager)}</span>{display_name(@manager)}
       </span>
-      <a class="ua-cmlink" href={~p"/"}>{gettext("View site")}</a>
-      <a class="ua-cmlink" href={cab_url("/auth/logout")}>{gettext("Sign out")}</a>
+      <a class="cm-link" href={~p"/"}>{gettext("View site")}</a>
+      <a class="cm-link" href={cab_url("/auth/logout")}>{gettext("Sign out")}</a>
     </div>
     """
   end
@@ -104,10 +104,10 @@ defmodule PublicWeb.Site do
     assigns = assign(assigns, :contacts, Tenant.get(:contacts))
 
     ~H"""
-    <footer class="ua-foot">
-      <div class="ua-foot-in">
+    <footer class="site-foot">
+      <div class="site-foot-in">
         <div>
-          <.wordmark class="ua-foot-mark" />
+          <.wordmark class="site-foot-mark" />
           <p>{Tenant.text(:org)}</p>
           <p>{Tenant.text(:since)}</p>
         </div>
@@ -148,7 +148,7 @@ defmodule PublicWeb.Site do
       title={@post.title}
       text={excerpt(@post)}
       featured={@featured}
-      class="ua-news"
+      class="news-card"
     >
       <:media>
         <.cover post={@post}>
@@ -165,15 +165,15 @@ defmodule PublicWeb.Site do
   @doc "A post's date and reading time, and its language when not the page's."
   def news_meta(assigns) do
     ~H"""
-    <span class="ua-newsmeta">
-      <span :if={elsewhere?(@post)} class="ua-lang" lang={@post.lang}>
+    <span class="newsmeta">
+      <span :if={elsewhere?(@post)} class="lang-tag" lang={@post.lang}>
         {PublicWeb.Locale.short(@post.lang)}
       </span>
-      <span :if={elsewhere?(@post)} class="ua-sep" aria-hidden="true"></span>
+      <span :if={elsewhere?(@post)} class="dot" aria-hidden="true"></span>
       <time :if={@post.published_at} datetime={DateTime.to_iso8601(@post.published_at)}>
         {long_date(@post.published_at)}
       </time>
-      <span :if={@post.published_at} class="ua-sep" aria-hidden="true"></span>
+      <span :if={@post.published_at} class="dot" aria-hidden="true"></span>
       <span>{reading_time(@post.body)}</span>
     </span>
     """
@@ -193,7 +193,7 @@ defmodule PublicWeb.Site do
     assigns = assign(assigns, :drawing, Enum.at(@drawings, rem(assigns.post.id, 3)))
 
     ~H"""
-    <div class={["ua-cover", @class]}>
+    <div class={["post-cover", @class]}>
       <img
         :if={@post.image}
         src={Public.Uploads.url(@post.image)}
@@ -226,16 +226,16 @@ defmodule PublicWeb.Site do
     <div
       id={@id}
       class={[
-        "ua-ev",
-        @event.visibility == "private" && "ua-ev--priv",
-        @phase == :past && "ua-ev--past",
-        @phase == :today && "ua-ev--today"
+        "event",
+        @event.visibility == "private" && "event--priv",
+        @phase == :past && "event--past",
+        @phase == :today && "event--today"
       ]}
     >
       <.date_badge date={@event.starts_on} />
-      <div class="ua-ev-body">
-        <h4><a class="ua-ev-link" href={@href}>{@event.title}</a></h4>
-        <div class="ua-meta">{event_meta(@event)}</div>
+      <div class="event-body">
+        <h4><a class="event-link" href={@href}>{@event.title}</a></h4>
+        <div class="fineprint">{event_meta(@event)}</div>
       </div>
       <%= if @event.visibility == "private" do %>
         <.tag kind="priv">{gettext("Private")}</.tag>
@@ -253,7 +253,7 @@ defmodule PublicWeb.Site do
 
   def date_badge(assigns) do
     ~H"""
-    <span class="ua-date"><b>{pad(@date.day)}</b><span>{short_month(@date.month)}</span></span>
+    <span class="date-box"><b>{pad(@date.day)}</b><span>{short_month(@date.month)}</span></span>
     """
   end
 
@@ -294,28 +294,28 @@ defmodule PublicWeb.Site do
       )
 
     ~H"""
-    <div class="ua-cal">
-      <div class="ua-cal-h"><span :for={h <- @heads}>{h}</span></div>
-      <div :for={week <- @weeks} class="ua-cal-w">
+    <div class="cal">
+      <div class="cal-h"><span :for={h <- @heads}>{h}</span></div>
+      <div :for={week <- @weeks} class="cal-w">
         <div
           :for={day <- week}
-          class={["ua-day", day.month != @first.month && "out", day == @today && "today"]}
+          class={["cal-day", day.month != @first.month && "out", day == @today && "today"]}
         >
           <span class="n">{day.day}</span>
           <%!-- phones: the day itself, to its events in the list below --%>
           <a
             :if={day_target(@events, day)}
-            class="ua-day-link"
+            class="cal-day-link"
             href={day_target(@events, day)}
             aria-label={long_date(day)}
           ></a>
           <a
             :for={e <- Enum.filter(@events, &on_day?(&1, day))}
             class={[
-              "ua-chip",
-              "ua-chip--#{e.kind}",
-              e.visibility == "private" && "ua-chip--priv",
-              event_phase(e, @today) == :past && "ua-chip--past"
+              "cal-ev",
+              "cal-ev--#{e.kind}",
+              e.visibility == "private" && "cal-ev--priv",
+              event_phase(e, @today) == :past && "cal-ev--past"
             ]}
             href={@href.(e)}
           >
@@ -355,11 +355,11 @@ defmodule PublicWeb.Site do
     assigns = assign(assigns, dots: dots, outline: Geo.outline(), view_box: Geo.view_box())
 
     ~H"""
-    <svg class="ua-map" viewBox={@view_box} role="img" aria-label={Tenant.text([:labels, :map])}>
-      <polygon class="ua-land" points={@outline} />
+    <svg class="map" viewBox={@view_box} role="img" aria-label={Tenant.text([:labels, :map])}>
+      <polygon class="land" points={@outline} />
       <a
         :for={{city, n, {x, y}, r} <- @dots}
-        class={["ua-city", city == @selected && "on"]}
+        class={["city", city == @selected && "on"]}
         href={~p"/clubs?#{[city: city]}"}
       >
         <circle cx={x} cy={y} r={r} />
@@ -376,13 +376,13 @@ defmodule PublicWeb.Site do
 
     ~H"""
     <svg
-      class="ua-map ua-map--branches"
+      class="map map--branches"
       viewBox={@view_box}
       role="img"
       aria-label={Tenant.text([:labels, :branches_map])}
     >
-      <polygon class="ua-land" points={@outline} />
-      <a :for={{city, {x, y}} <- @branches} class="ua-branch" href={~p"/clubs?#{[city: city]}"}>
+      <polygon class="land" points={@outline} />
+      <a :for={{city, {x, y}} <- @branches} class="branch" href={~p"/clubs?#{[city: city]}"}>
         <circle cx={x} cy={y} r="5" />
         <text {branch_label(city, x, y)}>{city_label(city)}</text>
       </a>

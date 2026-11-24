@@ -10,4 +10,13 @@
 .tag.warn { background:var(--warn-bg); color:var(--warn-ink); border-color:transparent; }
 .tag.priv { background:transparent; color:var(--co-ink); border:1px dashed var(--co); }
 .tag.cover { background:var(--surface); color:var(--brand-700); border-color:transparent; }
+/* the label colours: a site's own tags */
+.tag.gray { background:var(--tag-gray); color:var(--tag-gray-ink); border-color:transparent; }
+.tag.red { background:var(--tag-red); color:var(--tag-red-ink); border-color:transparent; }
+.tag.orange { background:var(--tag-orange); color:var(--tag-orange-ink); border-color:transparent; }
+.tag.yellow { background:var(--tag-yellow); color:var(--tag-yellow-ink); border-color:transparent; }
+.tag.green { background:var(--tag-green); color:var(--tag-green-ink); border-color:transparent; }
+.tag.teal { background:var(--tag-teal); color:var(--tag-teal-ink); border-color:transparent; }
+.tag.blue { background:var(--tag-blue); color:var(--tag-blue-ink); border-color:transparent; }
+.tag.purple { background:var(--tag-purple); color:var(--tag-purple-ink); border-color:transparent; }
 .tags { display:flex; gap:var(--sp-2); flex-wrap:wrap; }

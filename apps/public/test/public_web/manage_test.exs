@@ -26,13 +26,13 @@ defmodule PublicWeb.ManageTest do
   test "/manage does not exist for anyone signed in without the role", %{conn: conn} do
     {404, _headers, unknown} = assert_error_sent(404, fn -> get(conn, "/no-such-page") end)
     assert unknown =~ "Page not found"
-    assert unknown =~ ~s(class="ua-error")
+    assert unknown =~ ~s(class="error-card")
 
     {404, _headers, page} =
       assert_error_sent(404, fn -> conn |> cab_sign_in(cab_user()) |> get(~p"/manage") end)
 
     assert page =~ "Page not found"
-    assert page =~ ~s(class="ua-error")
+    assert page =~ ~s(class="error-card")
     assert page =~ "LeagueSite"
     refute page =~ "manage"
 
@@ -49,7 +49,7 @@ defmodule PublicWeb.ManageTest do
 
   test "content managers and cab admins get the ribbon", %{conn: conn} do
     html = conn |> cab_sign_in(editor()) |> get(~p"/manage") |> html_response(200)
-    assert html =~ "ua-cmbar"
+    assert html =~ "cm-bar"
     assert html =~ "Content manager"
     assert html =~ "Iryna Editor"
     refute html =~ ~s(href="/manage/people")

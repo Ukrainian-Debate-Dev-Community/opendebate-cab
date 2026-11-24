@@ -1,24 +1,26 @@
 <%!-- the full-screen viewer, only when the text has images --%>
 <.photo_viewer :if={@photos} src={~p"/assets/js/photo-viewer.js"} />
 
-<div :if={assigns[:preview]} class="ua-preview" role="status">
-  <b>{gettext("Preview")}</b>
-  {gettext("Not saved: close this tab to go back to the editor.")}
+<div :if={assigns[:preview]} id="preview-note" class="banner info" role="status">
+  <span><b>{gettext("Preview")}</b> {gettext(
+    "Not saved: close this tab to go back to the editor."
+  )}</span>
 </div>
 
-<article class="ua-article" lang={@post.lang}>
-  <header class="ua-article-head">
-    <nav class="ua-crumbs" aria-label={gettext("Breadcrumbs")}>
+<article class="article" lang={@post.lang}>
+  <header class="article-head">
+    <nav class="crumbs" aria-label={gettext("Breadcrumbs")}>
       <a href={~p"/news"}>{gettext("News")}</a>
       <span class="sep" aria-hidden="true">/</span>
-      <a class="ua-rubric" href={~p"/news?#{[rubric: @post.rubric]}"}>{rubric_label(@post.rubric)}</a>
+      <a class="rubric" href={~p"/news?#{[rubric: @post.rubric]}"}>{rubric_label(@post.rubric)}</a>
     </nav>
     <h1>{@post.title}</h1>
-    <p :if={@post.summary} class="ua-lead">{@post.summary}</p>
-    <div class="ua-byline"><.news_meta post={@post} /></div>
+    <p :if={@post.summary} class="article-lead">{@post.summary}</p>
+    <div class="byline"><.news_meta post={@post} /></div>
     <p
       :if={elsewhere?(@post)}
-      class="ua-untranslated"
+      id="untranslated"
+      class="banner info"
       lang={Gettext.get_locale(PublicWeb.Gettext)}
     >
       {gettext("This article has not been translated yet, so it is shown as it was written.")}
@@ -26,16 +28,16 @@
   </header>
 
   <%!-- a cover only when the post has an image: no drawing here --%>
-  <div :if={@post.image} class="ua-article-cover">
-    <.cover post={@post} class="ua-cover--wide" />
+  <div :if={@post.image} class="article-cover">
+    <.cover post={@post} class="post-cover--wide" />
   </div>
 
-  <div class="ua-body" data-photos={@photos}>{Phoenix.HTML.raw(@body)}</div>
+  <div class="article-body" data-photos={@photos}>{Phoenix.HTML.raw(@body)}</div>
 
-  <footer class="ua-article-foot">
-    <span :if={!assigns[:preview]} class="ua-share">{gettext("Share this article")}
+  <footer class="article-foot">
+    <span :if={!assigns[:preview]} class="share">{gettext("Share this article")}
     <.copy text={url(@conn, ~p"/news/#{@post.slug}")} /></span>
-    <a class="ua-back" href={~p"/news"}>
+    <a class="back-link" href={~p"/news"}>
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" /></svg>
       {gettext("All news")}
     </a>
@@ -44,5 +46,5 @@
 
 <.section :if={@more != []} id="more-news" title={gettext("More news")} bare>
   <:action href={~p"/news"}>{gettext("All news")}</:action>
-  <div class="ua-cards"><.news_card :for={post <- @more} post={post} /></div>
+  <div class="cards"><.news_card :for={post <- @more} post={post} /></div>
 </.section>

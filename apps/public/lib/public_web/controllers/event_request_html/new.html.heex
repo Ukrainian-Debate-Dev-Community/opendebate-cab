@@ -10,7 +10,7 @@
 
 <.banner :if={@errors[:form]} kind={:bad} id="request-limited">{@errors[:form]}</.banner>
 
-<.card class="ua-form">
+<.card class="narrow">
   <.form_for
     id="event-request-form"
     action={~p"/calendar/request"}

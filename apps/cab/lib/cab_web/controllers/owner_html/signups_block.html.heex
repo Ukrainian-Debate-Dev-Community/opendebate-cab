@@ -2,12 +2,13 @@
   <div :if={@links != []} class="pad">
     <p>{gettext("A guest's personal link is their only access — share it only with them.")}</p>
     <.form for={%{}} id="send-guest-link" class="send-link" phx-submit="send_link">
-      <select name="link" aria-label={gettext("Guest")}>
+      <select name="link" class="input" aria-label={gettext("Guest")}>
         <option :for={link <- @links} value={link.id}>{link.user.name}</option>
       </select>
       <input
         type="email"
         name="email"
+        class="input"
         required
         autocomplete="off"
         placeholder={gettext("their e-mail address")}

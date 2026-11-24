@@ -35,6 +35,14 @@ button, input, select, textarea { font:inherit; color:inherit; letter-spacing:in
 /* the wordmark: the app's name in the script face */
 .wordmark { font-family:var(--font-script); font-weight:400; color:var(--brand); letter-spacing:0; }
 
+/* a kicker: the small capitals over a title */
+.kicker { display:block; font-size:var(--step-m2); font-weight:800; letter-spacing:.1em;
+          text-transform:uppercase; color:var(--brand); margin-bottom:var(--sp-1); }
+
+/* a person's initials in a circle */
+.av { width:1.75rem; height:1.75rem; border-radius:50%; flex:none; display:inline-flex; align-items:center;
+      justify-content:center; font-size:var(--step-m2); font-weight:800; background:var(--brand-fill); color:var(--on-brand); }
+
 /* fields never trigger the iPhone's zoom-on-focus */
 @media (max-width:760px) {
   input, select, textarea { font-size:16px; }

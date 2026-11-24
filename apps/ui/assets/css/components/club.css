@@ -1,0 +1,9 @@
+/* a club's logo beside its name; it never grows past its box */
+.club-logo { display:inline-block; width:1.5rem; height:1.5rem; max-width:100%; object-fit:contain;
+             border-radius:var(--r-sm); background:var(--surface); border:1px solid var(--line);
+             vertical-align:middle; flex:none; }
+.club-logo.lg { width:4.5rem; height:4.5rem; border-radius:var(--r); }
+.club-name { display:inline-flex; align-items:center; gap:var(--sp-2); min-width:0; }
+@media (max-width:760px) {
+  .club-logo.lg { width:3.5rem; height:3.5rem; }
+}

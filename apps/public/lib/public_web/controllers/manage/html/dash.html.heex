@@ -13,12 +13,12 @@
   </:actions>
 </.page_head>
 
-<div class="ua-stats ua-stats--4">
-  <div><b>{@published}</b><span>{gettext("Published news")}</span></div>
-  <div><b>{@drafts}</b><span>{gettext("Drafts")}</span></div>
-  <div><b>{@upcoming_count}</b><span>{gettext("Upcoming events")}</span></div>
-  <div><b>{@private_count}</b><span>{gettext("Of them private")}</span></div>
-</div>
+<.stats id="manage-stats">
+  <:stat label={gettext("Published news")}>{@published}</:stat>
+  <:stat label={gettext("Drafts")}>{@drafts}</:stat>
+  <:stat label={gettext("Upcoming events")}>{@upcoming_count}</:stat>
+  <:stat label={gettext("Of them private")}>{@private_count}</:stat>
+</.stats>
 
 <.section title={gettext("Coming up")} bare>
   <:action href={~p"/manage/calendar"}>{gettext("Calendar")}</:action>

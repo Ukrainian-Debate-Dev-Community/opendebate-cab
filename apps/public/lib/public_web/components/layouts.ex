@@ -23,7 +23,7 @@ defmodule PublicWeb.Layouts do
         </script>
       </head>
       <body>
-        <div class="ua">
+        <div class="site">
           <.site_header active={assigns[:active]} />
           <.ribbon
             :if={assigns[:access]}
@@ -31,7 +31,7 @@ defmodule PublicWeb.Layouts do
             manager={@manager}
             active={assigns[:manage_active]}
           />
-          <main class="ua-main">
+          <main class="site-main">
             <.flash_banners :if={assigns[:access]} flash={@flash} />
             {@inner_content}
           </main>

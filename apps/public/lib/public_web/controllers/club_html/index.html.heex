@@ -9,11 +9,11 @@
   <:stat label={gettext("Cities")}>{@shown_cities}</:stat>
 </.stats>
 
-<div class="ua-filters">
-  <form action={~p"/clubs"} method="get" class="ua-inline">
+<div class="filters">
+  <form action={~p"/clubs"} method="get" class="inline-field">
     <span>{gettext("City")}</span>
-    <span class="ua-inline-row">
-      <select name="city" class="ua-select">
+    <span class="inline-row">
+      <select name="city" class="input">
         <option value="">{gettext("All cities")}</option>
         <option :for={city <- @cities} value={city} selected={@filters["city"] == city}>
           {city_label(city)}
@@ -56,8 +56,8 @@
   <.section title={gettext("Clubs")}>
     <.table id="clubs" rows={@clubs} empty={gettext("No club matches these filters.")}>
       <:col :let={club} label={gettext("Club")}>
-        <div class="ua-clubname">
-          <img :if={Clubs.logo_url(club)} class="ua-logo" src={Clubs.logo_url(club)} alt="" />
+        <div class="club-name">
+          <img :if={Clubs.logo_url(club)} class="club-logo" src={Clubs.logo_url(club)} alt="" />
           <div>
             <a href={~p"/clubs/#{club.uuid}"}>{club.name}</a>
             <.sub :if={club.meeting_info}>{club.meeting_info}</.sub>
@@ -75,7 +75,7 @@
   </.section>
 
   <.section id="club-map" title={gettext("Club map")}>
-    <p class="ua-maphint">{gettext("Click a city to show its clubs")}</p>
+    <p class="maphint">{gettext("Click a city to show its clubs")}</p>
     <.club_map counts={@counts} selected={@filters["city"]} />
   </.section>
 </div>

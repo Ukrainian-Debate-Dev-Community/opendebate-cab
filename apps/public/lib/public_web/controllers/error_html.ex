@@ -36,11 +36,11 @@ defmodule PublicWeb.ErrorHTML do
         </script>
       </head>
       <body>
-        <div class="ua">
+        <div class="site">
           <.site_header />
-          <main class="ua-main">
-            <div class="ua-error">
-              <.wordmark class="ua-error-mark" />
+          <main class="site-main">
+            <div class="error-card">
+              <.wordmark />
               <span class="kicker">{@code}</span>
               <h1>{@title}</h1>
               <p>{@lead}</p>

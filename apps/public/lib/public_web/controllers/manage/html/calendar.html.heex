@@ -14,13 +14,13 @@
   )}
 </.banner>
 
-<div :if={@access == :admin} class="card ua-calcard" id="calendar-public-switch">
-  <div class="pad ua-calswitch">
+<div :if={@access == :admin} class="card calcard" id="calendar-public-switch">
+  <div class="pad calswitch">
     <div>
       <b>{gettext("Calendar visible to the public")}</b>
       <p>{gettext("Admins only. Turn it off to keep every event off the public site.")}</p>
     </div>
-    <span class="ua-vis">
+    <span class="vis">
       <.form for={%{}} action={~p"/manage/calendar/public"} method="post" class="btn-form">
         <input type="hidden" name="public" value="true" />
         <button type="submit" class={@calendar_public && "on"}>{gettext("On")}</button>

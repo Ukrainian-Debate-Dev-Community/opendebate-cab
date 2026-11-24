@@ -42,12 +42,12 @@ defmodule PublicWeb.NewsPreviewTest do
       })
       |> html_response(200)
 
-    assert html =~ ~s(class="ua-preview")
+    assert html =~ ~s(id="preview-note")
     assert html =~ "<h1>Season opens</h1>"
     assert html =~ "Twelve clubs, one cup."
     assert html =~ "<p>Hello <b>all</b></p>"
     refute html =~ "<script>alert"
-    refute html =~ "ua-share"
+    refute html =~ ~s(class="share")
     assert News.list_all() == []
   end
 
