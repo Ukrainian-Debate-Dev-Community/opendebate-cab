@@ -32,6 +32,12 @@ defmodule CabWeb.StandingsHTML do
   attr :base, :string, default: nil
   attr :whole_club, :boolean, default: false, doc: "every finished session of the club at once"
 
+  attr :formats, :list,
+    default: [],
+    doc: "the formats the table can show (Cab.Format), one at a time"
+
+  attr :format, :any, default: nil, doc: "the format on view"
+
   def standings_body(assigns)
 
   # the stepper's link `offset` sessions from the shown one in the

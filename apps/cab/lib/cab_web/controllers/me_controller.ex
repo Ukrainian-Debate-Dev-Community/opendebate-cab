@@ -13,8 +13,10 @@ defmodule CabWeb.MeController do
 
   plug :require_account
 
-  def show(conn, _params) do
+  def show(conn, params) do
     user = conn.assigns.current_user
+    by_format = stats_by_format(user)
+    {format, stats} = chosen_stats(by_format, params["format"])
     memberships = Clubs.list_user_memberships(user)
 
     clubs =
@@ -25,7 +27,9 @@ defmodule CabWeb.MeController do
       memberships: memberships,
       tonight: Sessions.next_by_club(clubs),
       schedule: Sessions.user_schedule(user),
-      stats: fetch_stats(user),
+      stats: stats,
+      stats_format: format,
+      stats_formats: Enum.map(by_format, &elem(&1, 0)),
       history: Sessions.user_history(user),
       feedback_to_give: Cab.Feedback.to_give(user),
       feedback_on_me: Cab.Feedback.on_me_recent(user),
@@ -88,12 +92,26 @@ defmodule CabWeb.MeController do
 
   # the engine's stats payload or nil (never participated / engine
   # trouble) - the page says so in words either way
-  defp fetch_stats(user) do
-    with %{node_user_id: id} when is_integer(id) <- Accounts.ensure_node_user(user),
-         {:ok, stats} when is_map(stats) <- EngineApi.user_stats(id, id) do
-      stats
-    else
-      _ -> nil
+  # the engine's figures per format the user has debated (Cab.Format
+  # order): BP places and Australs wins never in one figure
+  defp stats_by_format(user) do
+    case Accounts.ensure_node_user(user) do
+      %{node_user_id: id} when is_integer(id) ->
+        for format <- Cab.Format.all(),
+            {:ok, %{} = stats} <- [EngineApi.user_stats(id, id, format.code)],
+            (get_in(stats, ["overview", "total_debates_ranked"]) || 0) > 0,
+            do: {format, stats}
+
+      _ ->
+        []
     end
+  end
+
+  # the format asked for, else the one debated most
+  defp chosen_stats([], _asked), do: {nil, nil}
+
+  defp chosen_stats(by_format, asked) do
+    Enum.find(by_format, fn {format, _stats} -> format.key == asked end) ||
+      Enum.max_by(by_format, fn {_format, stats} -> stats["overview"]["total_debates_ranked"] end)
   end
 end

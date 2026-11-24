@@ -10,6 +10,17 @@
       lead={if @current_user.name, do: "@" <> @current_user.username}
     />
 
+    <%!-- one format's figures at a time, when there are several --%>
+    <nav :if={length(@stats_formats) > 1} class="pills" aria-label={gettext("Format")}>
+      <.link
+        :for={format <- @stats_formats}
+        class={format == @stats_format && "on"}
+        href={~p"/me?#{[format: format.key]}"}
+      >
+        {format_name(format.key)}
+      </.link>
+    </nav>
+
     <%!-- the engine's figures as it reports them first, then counts of
          cab's own rows; on phones too: they are what this page is for --%>
     <.stats id="me-stats" phones>

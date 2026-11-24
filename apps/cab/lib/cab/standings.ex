@@ -104,14 +104,34 @@ defmodule Cab.Standings do
   end
 
   @doc """
-  A club's speakers over ALL its finished sessions - the engine's
-  organisation standings verbatim (rule 0): total points, average,
-  speeches per person.
+  The formats a club has finished sessions in (Cab.Format order), from
+  cab's records: the club standings offer one table per format.
   """
-  def club_speakers(%Club{} = club) do
+  def club_formats(%Club{} = club) do
+    played =
+      Repo.all(
+        from s in Session,
+          where: s.club_id == ^club.id and not is_nil(s.finished_at),
+          distinct: true,
+          select: s.format
+      )
+
+    Enum.filter(Cab.Format.all(), &(&1.key in played))
+  end
+
+  @doc """
+  A club's speakers over ALL its finished sessions of one format (nil:
+  every format) - the engine's organisation standings verbatim (rule
+  0): total points, average, speeches per person.
+  """
+  def club_speakers(%Club{} = club, format \\ nil) do
     with {:ok, actor} <- Clubs.club_actor(club),
          {:ok, rows} <-
-           EngineApi.organisation_speaker_standings(actor, club.engine_organisation_id) do
+           EngineApi.organisation_speaker_standings(
+             actor,
+             club.engine_organisation_id,
+             format && format.code
+           ) do
       rows
     else
       _ -> []

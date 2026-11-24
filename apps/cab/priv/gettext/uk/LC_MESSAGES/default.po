@@ -1163,8 +1163,10 @@ msgid "For one person who ended up with two accounts and cannot sign in to both.
 msgstr "Для людини, у якої опинилося два акаунти і яка не може увійти в обидва. Лишається акаунт, що очолює клуб, а якщо такого немає, то старіший; до нього переходять історія, клуби, посади голови та способи входу іншого. Скасувати це неможливо."
 
 #: lib/cab_web/club_profile.ex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
+#: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Format"
 msgstr "Формат"

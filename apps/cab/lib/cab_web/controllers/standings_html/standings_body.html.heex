@@ -17,6 +17,16 @@
         <%= cond do %>
           <% @whole_club -> %>
             <p>{gettext("All finished sessions of %{club}", club: @scope.club.name)}</p>
+            <%!-- BP and Australs never share a table: one format at a time --%>
+            <nav :if={length(@formats) > 1} class="pills" aria-label={gettext("Format")}>
+              <.link
+                :for={format <- @formats}
+                class={format == @format && "on"}
+                href={"#{@base}/#{@tab}?#{URI.encode_query(format: format.key)}"}
+              >
+                {format_name(format.key)}
+              </.link>
+            </nav>
           <% assigns[:archive] && @tab == "teams" -> %>
             <%!-- teams go session by session: < earlier | this one | later > --%>
             <.stepper
