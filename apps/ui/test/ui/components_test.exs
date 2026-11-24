@@ -399,7 +399,9 @@ defmodule Ui.ComponentsTest do
 
     html =
       rendered_to_string(~H"""
-      <.stats phones><:stat label="Win rate">50%</:stat></.stats>
+      <.stats phones>
+        <:stat label="Win rate">50%</:stat>
+      </.stats>
       """)
 
     assert html =~ ~r{<dl[^>]* class="stats phones">}
