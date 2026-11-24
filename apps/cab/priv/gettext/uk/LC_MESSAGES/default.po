@@ -84,13 +84,19 @@ msgstr "%{club}: вас запрошують стати головою клуб�
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
-msgid "%{count} 1st places"
-msgstr "перших місць: %{count}"
+msgid "%{count} ballot"
+msgid_plural "%{count} ballots"
+msgstr[0] "%{count} бюлетень"
+msgstr[1] "%{count} бюлетені"
+msgstr[2] "%{count} бюлетенів"
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
-msgid "%{count} ballots"
-msgstr "бюлетенів: %{count}"
+msgid "%{count} first place"
+msgid_plural "%{count} first places"
+msgstr[0] "%{count} перше місце"
+msgstr[1] "%{count} перші місця"
+msgstr[2] "%{count} перших місць"
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format

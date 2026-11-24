@@ -84,13 +84,17 @@ msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
-msgid "%{count} 1st places"
-msgstr ""
+msgid "%{count} ballot"
+msgid_plural "%{count} ballots"
+msgstr[0] ""
+msgstr[1] ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
-msgid "%{count} ballots"
-msgstr ""
+msgid "%{count} first place"
+msgid_plural "%{count} first places"
+msgstr[0] ""
+msgstr[1] ""
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
