@@ -311,6 +311,9 @@ defmodule Cab.EngineApi do
   # Rooms
   # ---------------------------------------------------------------
 
+  @doc "The engine's formats (any signed-in engine user may read them)."
+  def list_formats(actor), do: Engine.get(actor, "/api/formats") |> unwrap()
+
   @doc """
   The engine's id of a format, by its code (`Cab.Format`'s `code`):
   BP is id 1 as the engine is seeded; any other is looked up once
@@ -323,7 +326,7 @@ defmodule Cab.EngineApi do
 
     case :persistent_term.get(key, nil) do
       nil ->
-        with {:ok, formats} <- Engine.get(actor, "/api/formats") |> unwrap(),
+        with {:ok, formats} <- list_formats(actor),
              %{"id" => id} <- Enum.find(List.wrap(formats), &(&1["code"] == code)) do
           :persistent_term.put(key, id)
           {:ok, id}

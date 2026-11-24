@@ -17,6 +17,19 @@ defmodule CabWeb.SessionFormat do
     ]
   end
 
+  @doc "A format's name (Cab.Format key); an unknown key as it is."
+  def format_name("bp"), do: gettext("BP")
+  def format_name("aus"), do: gettext("Australs")
+  def format_name(key), do: key
+
+  @doc "A side's short name (Cab.Format side): OG, OO, CG, CO in BP; Gov, Opp in Australs."
+  def side_short("og"), do: gettext("OG")
+  def side_short("oo"), do: gettext("OO")
+  def side_short("cg"), do: gettext("CG")
+  def side_short("co"), do: gettext("CO")
+  def side_short("gov"), do: gettext("Gov")
+  def side_short("opp"), do: gettext("Opp")
+
   @doc "A session's stage in words."
   def stage_words(:signup), do: gettext("registration open")
   def stage_words(:closed), do: gettext("registration closed")

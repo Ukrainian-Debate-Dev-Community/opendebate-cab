@@ -22,16 +22,18 @@ defmodule CabWeb.Api.SessionController do
             ]
 
   # POST /api/cab/v1/clubs/:uuid/sessions
-  # {"name": optional, "date": "YYYY-MM-DD" optional, "time": "HH:MM" optional}
+  # {"name": optional, "date": "YYYY-MM-DD" optional, "time": "HH:MM" optional,
+  #  "format": "bp" | "aus" optional (BP)}
   def create(conn, params) do
+    user = conn.assigns.current_user
+    format = params["format"] || "bp"
+
     with {:ok, scheduled_at} <- Sessions.parse_schedule(params["date"], params["time"]),
+         true <-
+           Cab.Format.available?(format, user.node_user_id) ||
+             {:error, %{format: gettext("That format can't be chosen now.")}},
          {:ok, session} <-
-           Sessions.open(
-             conn.assigns.current_user,
-             conn.assigns.club,
-             params["name"],
-             scheduled_at
-           ) do
+           Sessions.open(user, conn.assigns.club, params["name"], scheduled_at, nil, format) do
       conn
       |> put_status(201)
       |> json(%{uuid: session.uuid, scheduled_at: session.scheduled_at})

@@ -376,6 +376,9 @@ defmodule CabWeb.HtmlTreesTest do
     assert owner_html =~ ~s(id="open-session-form")
     assert owner_html =~ ~s(form="open-session-form")
     assert owner_html =~ "Open new session"
+    # both formats run: the head picks one, the club's own preset
+    assert owner_html =~ ~s(name="format")
+    assert owner_html =~ "Australs"
     # a finished session opens its results, not the head's session page
     assert owner_html =~ ~s(href="/c/#{club.uuid}/s/#{done.uuid}")
     refute owner_html =~ ~s(href="/c/#{club.uuid}/owner/s/#{done.uuid}")
@@ -396,6 +399,25 @@ defmodule CabWeb.HtmlTreesTest do
     assert redirected_to(opened) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
     assert session.engine_event_id == 12
     assert session.scheduled_at == ~U[2026-10-09 18:30:00Z]
+    assert session.format == "bp"
+
+    # Australs, chosen in the form
+    conn
+    |> log_in(head)
+    |> post(~p"/c/#{club.uuid}/owner/sessions", %{name: "Thursday", format: "aus"})
+
+    assert Enum.any?(Cab.Sessions.list_for_club(club), &(&1.format == "aus"))
+
+    # a format cab doesn't run is refused, nothing opened
+    count = length(Cab.Sessions.list_for_club(club))
+
+    refused =
+      conn
+      |> log_in(head)
+      |> post(~p"/c/#{club.uuid}/owner/sessions", %{name: "Friday", format: "wsdc"})
+
+    assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "can't be chosen"
+    assert length(Cab.Sessions.list_for_club(club)) == count
 
     # the old member archive route is gone
     assert conn |> get("/c/#{club.uuid}/member/sessions") |> response(404)

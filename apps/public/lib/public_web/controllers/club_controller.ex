@@ -13,6 +13,7 @@ defmodule PublicWeb.ClubController do
       clubs: shown,
       counts: Clubs.city_counts(clubs),
       cities: clubs |> Clubs.city_counts() |> Map.keys() |> Enum.sort(),
+      formats: Clubs.formats(clubs),
       shown_cities: map_size(Clubs.city_counts(shown)),
       filters: Map.take(params, ~w(city format language audience))
     )

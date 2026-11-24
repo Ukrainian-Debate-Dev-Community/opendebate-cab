@@ -1,5 +1,6 @@
 defmodule Cab.FormatTest do
-  use ExUnit.Case, async: true
+  # available/1 reads the app env and a node-wide cache
+  use ExUnit.Case, async: false
 
   alias Cab.Format
 
@@ -43,5 +44,44 @@ defmodule Cab.FormatTest do
     refute Format.valid_score?(bp, 49)
     refute Format.valid_score?(bp, 101)
     refute Format.valid_score?(bp, "75")
+  end
+
+  describe "available/1 with the engine as the source" do
+    setup do
+      Application.put_env(:cab, :formats, :engine)
+      :persistent_term.erase({Cab.Format, :engine_codes})
+
+      on_exit(fn ->
+        Application.put_env(:cab, :formats, :all)
+        :persistent_term.erase({Cab.Format, :engine_codes})
+      end)
+    end
+
+    test "only the formats the engine has too; BP alone before it answers" do
+      assert Enum.map(Format.available(), & &1.key) == ["bp"]
+
+      Req.Test.stub(Core.Engine, fn conn ->
+        Req.Test.json(conn, %{"status" => "success", "data" => [%{"id" => 1, "code" => "BP"}]})
+      end)
+
+      assert Enum.map(Format.available(9), & &1.key) == ["bp"]
+      refute Format.available?("aus", 9)
+
+      :persistent_term.erase({Cab.Format, :engine_codes})
+
+      Req.Test.stub(Core.Engine, fn conn ->
+        Req.Test.json(conn, %{
+          "status" => "success",
+          "data" => [
+            %{"id" => 1, "code" => "BP"},
+            %{"id" => 2, "code" => "AUS"},
+            %{"id" => 3, "code" => "WSDC"}
+          ]
+        })
+      end)
+
+      # WSDC is the engine's, not cab's: not offered
+      assert Enum.map(Format.available(9), & &1.key) == ["bp", "aus"]
+    end
   end
 end

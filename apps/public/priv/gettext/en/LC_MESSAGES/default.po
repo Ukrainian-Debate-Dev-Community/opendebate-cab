@@ -49,11 +49,6 @@ msgstr ""
 msgid "A new request for an event in the calendar.\n\n%{answers}\n\nAccept or decline it: %{url}"
 msgstr ""
 
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "APF"
-msgstr ""
-
 #: lib/public_web/controllers/club_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "About the club"
@@ -174,11 +169,6 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgctxt "in a date"
 msgid "August"
-msgstr ""
-
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "BP"
 msgstr ""
 
 #: lib/public_web/controllers/manage/news_controller.ex
@@ -524,7 +514,7 @@ msgstr ""
 
 #: lib/public/event_requests.ex
 #, elixir-autogen, elixir-format
-msgid "For example BP, APF, WSDC"
+msgid "For example BP, Australs, WSDC"
 msgstr ""
 
 #: lib/public/event_requests.ex

@@ -53,11 +53,6 @@ msgstr "%{name} тепер може керувати сайтом. Надішл�
 msgid "A new request for an event in the calendar.\n\n%{answers}\n\nAccept or decline it: %{url}"
 msgstr "Новий запит на подію в календарі.\n\n%{answers}\n\nПрийняти чи відхилити: %{url}"
 
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "APF"
-msgstr "АПФ"
-
 #: lib/public_web/controllers/club_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "About the club"
@@ -179,11 +174,6 @@ msgstr "Серпень"
 msgctxt "in a date"
 msgid "August"
 msgstr "серпня"
-
-#: lib/public_web/components/site.ex
-#, elixir-autogen, elixir-format
-msgid "BP"
-msgstr "БПФ"
 
 #: lib/public_web/controllers/manage/news_controller.ex
 #, elixir-autogen, elixir-format
@@ -528,8 +518,8 @@ msgstr "Наприклад, 14-16 листопада 2026"
 
 #: lib/public/event_requests.ex
 #, elixir-autogen, elixir-format
-msgid "For example BP, APF, WSDC"
-msgstr "Наприклад, BP, APF, WSDC"
+msgid "For example BP, Australs, WSDC"
+msgstr "Наприклад, БП, Австралійський, WSDC"
 
 #: lib/public/event_requests.ex
 #: lib/public_web/controllers/calendar_html.ex

@@ -325,17 +325,12 @@ defmodule CabWeb.Ui do
   # 3. Allocator (drag-and-drop, server-held draft)
   # ---------------------------------------------------------------
 
-  @alloc_sides ~w(og oo cg co)
-
-  defp side_short("og"), do: gettext("OG")
-  defp side_short("oo"), do: gettext("OO")
-  defp side_short("cg"), do: gettext("CG")
-  defp side_short("co"), do: gettext("CO")
-
   @doc """
   The allocation surface (tabbycat's drag-and-drop model), rendered
   from the SERVER-HELD draft: a tray of everyone not placed yet over
-  one row per room whose slots carry their key ("1:og:2", "1:judge").
+  one row per room whose slots carry their key ("1:og:2", "1:judge"):
+  a column per side of the session's `format` (Cab.Format), its seats
+  in each.
   The Allocator hook only reports drops - `place {id, slot}` or
   `unplace {id}` - and the server re-renders, so new signups simply
   appear in the tray and nothing is ever placed automatically.
@@ -350,6 +345,7 @@ defmodule CabWeb.Ui do
   Automatic (lit while `auto`) pushes `rooms: "automatic"`.
   """
   attr :id, :string, default: "allocator"
+  attr :format, Cab.Format, default: nil, doc: "the session's format; BP when nil"
   attr :rooms, :integer, required: true
   attr :auto, :boolean, default: true, doc: "the room count follows the sign-ups"
   attr :max_rooms, :integer, default: 20
@@ -368,7 +364,8 @@ defmodule CabWeb.Ui do
       |> Enum.reject(&MapSet.member?(placed, &1.id))
       |> Enum.sort_by(& &1.name)
 
-    assigns = assign(assigns, sides: @alloc_sides, tray: tray)
+    format = assigns.format || Cab.Format.default()
+    assigns = assign(assigns, format: format, sides: format.sides, tray: tray)
 
     ~H"""
     <div class="dnd" id={@id} phx-hook="Allocator">
@@ -412,10 +409,7 @@ defmodule CabWeb.Ui do
         <thead>
           <tr>
             <th></th>
-            <th>{gettext("OG")}</th>
-            <th>{gettext("OO")}</th>
-            <th>{gettext("CG")}</th>
-            <th>{gettext("CO")}</th>
+            <th :for={side <- @sides}>{CabWeb.SessionFormat.side_short(side)}</th>
             <th>{gettext("Adjudicator")}</th>
             <th></th>
           </tr>
@@ -423,9 +417,13 @@ defmodule CabWeb.Ui do
         <tbody>
           <tr :for={room <- 1..@rooms}>
             <td class="room">{gettext("R%{number}", number: room)}</td>
-            <td :for={side <- @sides} class={"team t-#{side}"} data-side={side_short(side)}>
+            <td
+              :for={side <- @sides}
+              class={"team t-#{side}"}
+              data-side={CabWeb.SessionFormat.side_short(side)}
+            >
               <div
-                :for={n <- 1..2}
+                :for={n <- 1..@format.seats}
                 class="slot"
                 data-slot={"#{room}:#{side}:#{n}"}
               >
@@ -441,14 +439,14 @@ defmodule CabWeb.Ui do
                 <% end %>
               </div>
             </td>
-            <td class="status">{allocation_words(@draft, room)}</td>
+            <td class="status">{allocation_words(@draft, room, @format)}</td>
           </tr>
         </tbody>
       </table>
       <form id={@form_id} phx-submit={@submit}></form>
       <div class="bfoot">
         {gettext(
-          "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team with one speaker becomes an iron."
+          "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team short of speakers gets an iron."
         )}
         <span class="touch-hint">
           {gettext(
@@ -479,14 +477,14 @@ defmodule CabWeb.Ui do
   defp placed(people, draft, key), do: draft[key] && people[draft[key]]
 
   # a row's state in words: empty / incomplete / ready (+ irons)
-  defp allocation_words(draft, room) do
+  defp allocation_words(draft, room, format) do
     teams =
-      for side <- @alloc_sides do
-        Enum.count(1..2, &draft["#{room}:#{side}:#{&1}"])
+      for side <- format.sides do
+        Enum.count(1..format.seats, &draft["#{room}:#{side}:#{&1}"])
       end
 
     judge? = draft["#{room}:judge"] != nil
-    irons = Enum.count(teams, &(&1 == 1))
+    irons = Enum.count(teams, &(&1 in 1..(format.seats - 1)//1))
 
     cond do
       Enum.sum(teams) == 0 and not judge? ->

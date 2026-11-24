@@ -240,9 +240,17 @@ defmodule Cab.Sessions do
   each room's judge sets their own room's motion once rooms are made.
   `scheduled_at` is the optional planned start (UTC) - see
   `parse_schedule/2` for the form's date/time pair; `max_participants`
-  the optional limit on sign-ups (`parse_participant_limit/1`).
+  the optional limit on sign-ups (`parse_participant_limit/1`);
+  `format` the debate format (a Cab.Format key, BP by default).
   """
-  def open(%User{} = head, %Club{} = club, name, scheduled_at \\ nil, max_participants \\ nil) do
+  def open(
+        %User{} = head,
+        %Club{} = club,
+        name,
+        scheduled_at \\ nil,
+        max_participants \\ nil,
+        format \\ "bp"
+      ) do
     with {:ok, name} <- check_name(name),
          name = name || "Club session #{Date.utc_today()}",
          {:ok, actor} <- owner_actor(head, club),
@@ -255,7 +263,8 @@ defmodule Cab.Sessions do
         engine_round_id: round["id"],
         name: event["name"] || name,
         scheduled_at: scheduled_at,
-        max_participants: max_participants
+        max_participants: max_participants,
+        format: format
       }
       |> Session.changeset()
       |> Repo.insert()
