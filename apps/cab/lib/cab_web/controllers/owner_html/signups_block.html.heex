@@ -112,7 +112,7 @@
       <Ui.FormComponents.form_answers answers={guest_answers(participant, @links)} />
     </:col>
     <:col :let={participant} label={gettext("Seat")}>
-      {seat_words(participant, @state, @draft)}
+      {seat_words(participant, @state, @draft, Cab.Format.of(@current))}
     </:col>
     <:col :let={participant} label={gettext("Personal link")} code wide_only>
       {if link = guest_link(participant, @links), do: url(~p"/l/#{link.code}"), else: "—"}

@@ -7,14 +7,10 @@ defmodule CabWeb.SessionFormat do
 
   use Gettext, backend: CabWeb.Gettext
 
-  @doc "The four BP sides as `{label, position, css_class}`."
-  def sides do
-    [
-      {gettext("OG"), 1, "s-og"},
-      {gettext("OO"), 2, "s-oo"},
-      {gettext("CG"), 3, "s-cg"},
-      {gettext("CO"), 4, "s-co"}
-    ]
+  @doc "A format's sides (Cab.Format; BP by default) as `{label, position, css_class}`."
+  def sides(format \\ Cab.Format.default()) do
+    for {side, position} <- Enum.with_index(format.sides, 1),
+        do: {side_short(side), position, "s-#{side}"}
   end
 
   @doc "A format's name (Cab.Format key); an unknown key as it is."
@@ -128,16 +124,13 @@ defmodule CabWeb.SessionFormat do
     |> Enum.uniq()
   end
 
-  @doc "A room's teams in table (og/oo/cg/co) order."
+  @doc "A room's teams in table (position) order."
   def sorted_teams(room), do: Enum.sort_by(room["RoomTeams"] || [], & &1["position"])
 
-  def side_code(position) do
-    case position || 1 do
-      1 -> gettext("OG")
-      2 -> gettext("OO")
-      3 -> gettext("CG")
-      _ -> gettext("CO")
-    end
+  @doc "The short name of the side at an engine position, in a format (BP by default)."
+  def side_code(position, format \\ Cab.Format.default()) do
+    side = Cab.Format.side(format, position || 1) || List.last(format.sides)
+    side_short(side)
   end
 
   @doc "A team's speakers; an iron's two slots show once."

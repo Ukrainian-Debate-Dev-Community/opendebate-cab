@@ -116,7 +116,7 @@ defmodule CabWeb.SessionPageController do
   # POST .../rooms/:id/ballot - redirect + flash, amber re-render
   def submit_ballot(conn, %{"id" => id} = params) do
     with_chaired_room(conn, params["session_uuid"], id, fn conn, session, room ->
-      scores = BallotForm.scores_from_params(params["ballot"])
+      scores = BallotForm.scores_from_params(params["ballot"], Cab.Format.of(session))
 
       case Sessions.submit_ballot(conn.assigns.current_user, session, room["id"], scores) do
         :ok ->
@@ -179,7 +179,8 @@ defmodule CabWeb.SessionPageController do
     render(conn, :ballot,
       session: session,
       room: room,
-      teams: BallotForm.teams(room, ballot_params),
+      teams: BallotForm.teams(room, Cab.Format.of(session), ballot_params),
+      format: Cab.Format.of(session),
       error: error,
       page_title: gettext("Ballot — %{room}", room: CabWeb.SessionFormat.room_label(room))
     )

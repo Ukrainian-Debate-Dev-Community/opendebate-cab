@@ -94,7 +94,7 @@ defmodule CabWeb.OwnerHTML do
   defp role_word(other), do: other
 
   # where the person sits: the draft before rooms exist, the rooms after
-  defp seat_words(participant, %{rooms: rooms}, _draft) when rooms != [] do
+  defp seat_words(participant, %{rooms: rooms}, _draft, format) when rooms != [] do
     Enum.find_value(rooms, gettext("waiting"), fn room ->
       cond do
         Enum.any?(room["RoomAdjudicators"] || [], &seat_of?(&1, participant)) ->
@@ -105,7 +105,10 @@ defmodule CabWeb.OwnerHTML do
               room["RoomTeams"] || [],
               &Enum.any?(&1["RoomSpeakers"] || [], fn s -> seat_of?(s, participant) end)
             ) ->
-          gettext("%{room} %{side}", room: room_label(room), side: side_code(team["position"]))
+          gettext("%{room} %{side}",
+            room: room_label(room),
+            side: side_code(team["position"], format)
+          )
 
         true ->
           nil
@@ -113,7 +116,7 @@ defmodule CabWeb.OwnerHTML do
     end)
   end
 
-  defp seat_words(participant, _state, draft) do
+  defp seat_words(participant, _state, draft, _format) do
     case Enum.find(draft, fn {_key, pid} -> pid == participant["id"] end) do
       {key, _pid} ->
         case String.split(key, ":") do

@@ -107,12 +107,12 @@ main.page-main { width:100%; flex:1 0 auto; }
 /* side color blocks: each team's place in the debate has its own hue */
 .bteam .side { display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-2);
                padding:var(--sp-2) var(--px); border-left:3px solid; }
-.bteam.og .side { background:var(--og-bg); border-color:var(--og); }
-.bteam.oo .side { background:var(--oo-bg); border-color:var(--oo); }
+.bteam.og .side, .bteam.gov .side { background:var(--og-bg); border-color:var(--og); }
+.bteam.oo .side, .bteam.opp .side { background:var(--oo-bg); border-color:var(--oo); }
 .bteam.cg .side { background:var(--cg-bg); border-color:var(--cg); }
 .bteam.co .side { background:var(--co-bg); border-color:var(--co); }
 .bteam .side .pos { font-size:var(--step-m2); font-weight:800; letter-spacing:.08em; }
-.bteam.og .pos { color:var(--og); } .bteam.oo .pos { color:var(--oo); }
+.bteam.og .pos, .bteam.gov .pos { color:var(--og); } .bteam.oo .pos, .bteam.opp .pos { color:var(--oo); }
 .bteam.cg .pos { color:var(--cg-ink); } .bteam.co .pos { color:var(--co-ink); }
 .bteam .side .tname { font-weight:650; font-size:var(--step-m1); }
 .brow { display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-1);
@@ -218,7 +218,8 @@ main.page-main { width:100%; flex:1 0 auto; }
 
 /* draw table cells (P6/P8): side color bands */
 .t td.side { border-left:3px solid; font-size:var(--step-m1); }
-.t td.s-og { border-left-color:var(--og); } .t td.s-oo { border-left-color:var(--oo); }
+.t td.s-og, .t td.s-gov { border-left-color:var(--og); }
+.t td.s-oo, .t td.s-opp { border-left-color:var(--oo); }
 .t td.s-cg { border-left-color:var(--cg); } .t td.s-co { border-left-color:var(--co); }
 
 /* ================================================================

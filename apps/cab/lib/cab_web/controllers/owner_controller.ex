@@ -292,7 +292,11 @@ defmodule CabWeb.OwnerController do
     with_session(conn, session_uuid, fn session ->
       case params["rooms"] do
         %{} = rooms ->
-          case Sessions.start(conn.assigns.current_user, session, compose_spec(rooms)) do
+          case Sessions.start(
+                 conn.assigns.current_user,
+                 session,
+                 compose_spec(rooms, Cab.Format.of(session))
+               ) do
             {:ok, count} -> {:ok, gettext("Session started with %{count} room(s).", count: count)}
             error -> error
           end
@@ -453,7 +457,11 @@ defmodule CabWeb.OwnerController do
     with_session(conn, session_uuid, fn session ->
       case params["rooms"] do
         %{} = rooms ->
-          case Sessions.make_rooms(conn.assigns.current_user, session, compose_spec(rooms)) do
+          case Sessions.make_rooms(
+                 conn.assigns.current_user,
+                 session,
+                 compose_spec(rooms, Cab.Format.of(session))
+               ) do
             {:ok, count} -> {:ok, gettext("%{count} room(s) created.", count: count)}
             error -> error
           end
@@ -468,7 +476,7 @@ defmodule CabWeb.OwnerController do
   # (empty slots post ""); the API takes the canonical
   # {"adjudicator_participant_id", "teams"} shape directly. Rows left
   # entirely empty (an unused "+ room" row) are dropped.
-  defp compose_spec(%{} = rooms) do
+  defp compose_spec(%{} = rooms, format) do
     rooms
     |> Enum.sort_by(fn {index, _room} ->
       case Integer.parse(index) do
@@ -480,11 +488,11 @@ defmodule CabWeb.OwnerController do
       %{
         "adjudicator_participant_id" => presence(room["judge"]),
         "teams" =>
-          for side <- ~w(og oo cg co) do
+          for side <- format.sides do
             team = room[side] || %{}
 
-            ~w(1 2)
-            |> Enum.map(&presence(team[&1]))
+            1..format.seats
+            |> Enum.map(&presence(team[Integer.to_string(&1)]))
             |> Enum.reject(&is_nil/1)
           end
       }
@@ -492,7 +500,7 @@ defmodule CabWeb.OwnerController do
     |> Enum.reject(&empty_room?/1)
   end
 
-  defp compose_spec(other), do: other
+  defp compose_spec(other, _format), do: other
 
   defp empty_room?(%{"adjudicator_participant_id" => nil, "teams" => teams}),
     do: Enum.all?(teams, &(&1 == []))

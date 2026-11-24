@@ -1022,8 +1022,8 @@ msgstr "Введіть ціле число від 1 до 10."
 
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
-msgid "Enter all eight scores — ranks derive from team totals."
-msgstr "Введіть усі вісім балів — місця визначаються сумами команд."
+msgid "Enter all %{count} scores — ranks derive from team totals."
+msgstr "Введіть усі бали (%{count}) — місця визначаються сумами команд."
 
 #: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
@@ -1162,6 +1162,16 @@ msgstr "Для людини, у якої опинилося два акаунт�
 #, elixir-autogen, elixir-format
 msgid "Format"
 msgstr "Формат"
+
+#: lib/cab_web/ballot_form.ex
+#, elixir-autogen, elixir-format
+msgid "GA"
+msgstr "АУ"
+
+#: lib/cab_web/components/ui.ex
+#, elixir-autogen, elixir-format
+msgid "GOV — GOVERNMENT"
+msgstr "У — УРЯД"
 
 #: lib/cab_web/ballot_form.ex
 #, elixir-autogen, elixir-format
@@ -1703,6 +1713,11 @@ msgstr "Не зараз"
 msgid "Not set yet — the adjudicator sets it when the room begins."
 msgstr "Ще не задано — суддя задає його, коли починається кімната."
 
+#: lib/cab_web/ballot_form.ex
+#, elixir-autogen, elixir-format
+msgid "OA"
+msgstr "АО"
+
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "OG"
@@ -1722,6 +1737,11 @@ msgstr "ПО"
 #, elixir-autogen, elixir-format
 msgid "OO — OPENING OPP"
 msgstr "ПО — ПЕРША ОПОЗИЦІЯ"
+
+#: lib/cab_web/components/ui.ex
+#, elixir-autogen, elixir-format
+msgid "OPP — OPPOSITION"
+msgstr "О — ОПОЗИЦІЯ"
 
 #: lib/cab_web/ballot_form.ex
 #, elixir-autogen, elixir-format
@@ -2867,8 +2887,8 @@ msgstr "Сума балів"
 
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
-msgid "Two teams share a total. BP allows no ties, so adjust the scores."
-msgstr "Дві команди мають однакову суму. У БП нічиїх не буває, тож виправте бали."
+msgid "Two teams share a total. Teams can't tie, so adjust the scores."
+msgstr "Дві команди мають однакову суму. Нічиїх не буває, тож виправте бали."
 
 #: lib/cab_web/controllers/owner_controller.ex
 #, elixir-autogen, elixir-format

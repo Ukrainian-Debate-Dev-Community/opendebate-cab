@@ -1010,7 +1010,7 @@ msgstr ""
 
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
-msgid "Enter all eight scores — ranks derive from team totals."
+msgid "Enter all %{count} scores — ranks derive from team totals."
 msgstr ""
 
 #: lib/cab_web/live/owner_session_live.ex
@@ -1149,6 +1149,16 @@ msgstr ""
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Format"
+msgstr ""
+
+#: lib/cab_web/ballot_form.ex
+#, elixir-autogen, elixir-format
+msgid "GA"
+msgstr ""
+
+#: lib/cab_web/components/ui.ex
+#, elixir-autogen, elixir-format
+msgid "GOV — GOVERNMENT"
 msgstr ""
 
 #: lib/cab_web/ballot_form.ex
@@ -1691,6 +1701,11 @@ msgstr ""
 msgid "Not set yet — the adjudicator sets it when the room begins."
 msgstr ""
 
+#: lib/cab_web/ballot_form.ex
+#, elixir-autogen, elixir-format
+msgid "OA"
+msgstr ""
+
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "OG"
@@ -1709,6 +1724,11 @@ msgstr ""
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
 msgid "OO — OPENING OPP"
+msgstr ""
+
+#: lib/cab_web/components/ui.ex
+#, elixir-autogen, elixir-format
+msgid "OPP — OPPOSITION"
 msgstr ""
 
 #: lib/cab_web/ballot_form.ex
@@ -2851,7 +2871,7 @@ msgstr ""
 
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
-msgid "Two teams share a total. BP allows no ties, so adjust the scores."
+msgid "Two teams share a total. Teams can't tie, so adjust the scores."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_controller.ex

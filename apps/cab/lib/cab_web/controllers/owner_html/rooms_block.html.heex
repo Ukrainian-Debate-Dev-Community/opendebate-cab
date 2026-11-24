@@ -67,7 +67,7 @@
         </:col>
         <:col
           :let={room}
-          :for={{label, position, side_class} <- sides()}
+          :for={{label, position, side_class} <- sides(Cab.Format.of(@current))}
           label={label}
           class={"side #{side_class}"}
         >

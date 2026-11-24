@@ -62,8 +62,9 @@ defmodule CabWeb.Api.RoomController do
 
   def motion(_conn, _params), do: {:error, "motion_text is required"}
 
-  # POST /api/cab/v1/rooms/:id/ballot {"session_uuid", "scores": [8 x
-  # {"position", "speaker_participant_id", "iron", "score"}]} - ranks
+  # POST /api/cab/v1/rooms/:id/ballot {"session_uuid", "scores": [one per
+  # seat - 8 in BP, 6 in Australs - {"position", "speaker_participant_id",
+  # "iron", "score"}]} - ranks
   # derive from team totals, winner = rank 1, room ends confirmed
   def ballot(conn, %{"id" => id, "scores" => scores}) when is_list(scores) do
     with {:ok, room_id} <- room_id(id),
@@ -78,7 +79,7 @@ defmodule CabWeb.Api.RoomController do
     end
   end
 
-  def ballot(_conn, _params), do: {:error, "scores (a list of 8 entries) is required"}
+  def ballot(_conn, _params), do: {:error, "scores (one entry per seat) is required"}
 
   defp room_id(id) do
     case Integer.parse(id) do

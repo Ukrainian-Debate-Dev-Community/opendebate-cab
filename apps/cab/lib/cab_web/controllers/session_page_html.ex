@@ -90,7 +90,7 @@ defmodule CabWeb.SessionPageHTML do
             rows:
               for room_team <- result_rows(room) do
                 %{
-                  side: side_code(room_team["position"]),
+                  side: side_code(room_team["position"], Cab.Format.of(session)),
                   place: ballot_in?(room) && room_team["rank"] && ordinal(room_team["rank"]),
                   winner: room_team["rank"] == 1,
                   points: team_points(room_team),
@@ -133,7 +133,10 @@ defmodule CabWeb.SessionPageHTML do
       # the people who play, by side; team names stay internal
       sides:
         for room_team <- sorted_teams(room) do
-          %{side: side_code(room_team["position"]), people: speaker_list(room_team)}
+          %{
+            side: side_code(room_team["position"], Cab.Format.of(session)),
+            people: speaker_list(room_team)
+          }
         end,
       judges: judges(room, state.signups),
       link: link,
