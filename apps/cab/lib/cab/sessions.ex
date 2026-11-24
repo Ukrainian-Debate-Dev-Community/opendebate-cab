@@ -17,12 +17,9 @@ defmodule Cab.Sessions do
   alias Cab.Accounts.User
   alias Cab.Clubs
   alias Cab.Clubs.Club
-  alias Cab.{EngineApi, Repo}
+  alias Cab.{EngineApi, Format, Repo}
   alias Cab.Sessions.Session
 
-  @teams_per_room 4
-  @speakers_per_team 2
-  @room_seats 9
   # the most rooms the head may set by hand: well past any club night,
   # and an empty room is refused at Start anyway
   @max_rooms 20
@@ -532,8 +529,9 @@ defmodule Cab.Sessions do
 
   @doc """
   THE ALLOCATOR DRAFT (server-held): the head drops a person on a
-  slot - `"<room>:<og|oo|cg|co>:<1|2>"` for speakers,
-  `"<room>:judge"` for the chair. Registration carries no role, so
+  slot - `"<room>:<side>:<seat>"` for speakers (the session format's
+  sides and seats: `og|oo|cg|co` and `1|2` in BP, `gov|opp` and
+  `1|2|3` in Australs), `"<room>:judge"` for the chair. Registration carries no role, so
   anyone fits any slot - the drag decides who judges. The person
   leaves any previous slot; an occupied target sends its occupant to
   that previous slot (a swap) or back to the tray. Editable while
@@ -547,7 +545,7 @@ defmodule Cab.Sessions do
            :ok <- require_draftable(state),
            {:ok, _person} <- find_participant(state.signups, participant_id),
            rooms = rooms_for(session, state.signups),
-           {:ok, _room, _side} <- parse_slot(slot, rooms) do
+           {:ok, _room, _side} <- parse_slot(slot, rooms, Format.of(session)) do
         edit_draft(session, fn current ->
           draft = clean_draft(current, state.signups, rooms)
           from = Enum.find_value(draft, fn {key, pid} -> pid == participant_id && key end)
@@ -692,20 +690,24 @@ defmodule Cab.Sessions do
 
     with {:ok, state} <- state(session),
          rooms = rooms_for(session, state.signups),
-         spec = draft_spec(clean_draft(session.draft_allocation, state.signups, rooms), rooms),
+         draft = clean_draft(session.draft_allocation, state.signups, rooms),
+         spec = draft_spec(draft, rooms, Format.of(session)),
          {:ok, count} <- create.(session, spec) do
       record(session, draft_allocation: %{})
       {:ok, count}
     end
   end
 
-  defp draft_spec(draft, rooms) do
+  defp draft_spec(draft, rooms, %Format{} = format) do
     for room <- 1..rooms do
       %{
         "adjudicator_participant_id" => draft["#{room}:judge"],
         "teams" =>
-          for side <- ~w(og oo cg co) do
-            Enum.reject([draft["#{room}:#{side}:1"], draft["#{room}:#{side}:2"]], &is_nil/1)
+          for side <- format.sides do
+            Enum.reject(
+              for(seat <- 1..format.seats, do: draft["#{room}:#{side}:#{seat}"]),
+              &is_nil/1
+            )
           end
       }
     end
@@ -716,13 +718,17 @@ defmodule Cab.Sessions do
   defp require_draftable(_session),
     do: {:error, :conflict, dgettext("errors", "The rooms are fixed once the session runs.")}
 
-  defp parse_slot(slot, rooms) when is_binary(slot) do
+  defp parse_slot(slot, rooms, %Format{} = format) when is_binary(slot) do
+    seats = Enum.map(1..format.seats, &Integer.to_string/1)
+
     case String.split(slot, ":") do
       [room, "judge"] ->
         with {r, ""} when r in 1..rooms//1 <- Integer.parse(room), do: {:ok, r, "judge"}
 
-      [room, side, n] when side in ~w(og oo cg co) and n in ["1", "2"] ->
-        with {r, ""} when r in 1..rooms//1 <- Integer.parse(room), do: {:ok, r, side}
+      [room, side, n] ->
+        with true <- side in format.sides and n in seats,
+             {r, ""} when r in 1..rooms//1 <- Integer.parse(room),
+             do: {:ok, r, side}
 
       _ ->
         :error
@@ -733,7 +739,8 @@ defmodule Cab.Sessions do
     end
   end
 
-  defp parse_slot(_slot, _rooms), do: {:error, dgettext("errors", "That seat doesn't exist.")}
+  defp parse_slot(_slot, _rooms, _format),
+    do: {:error, dgettext("errors", "That seat doesn't exist.")}
 
   defp clean_draft(draft, signups, rooms) do
     signed = MapSet.new(signups, & &1["id"])
@@ -754,14 +761,15 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  The allocator's automatic ROOM COUNT: a room seats #{@room_seats}
-  people (eight speakers and a judge), so ceil(people / #{@room_seats}),
-  minimum one. Registration carries no role, so the count follows
-  everyone signed up; 13 speakers + 1 judge = 2 rooms. The only
-  automatic part of allocation.
+  The allocator's automatic ROOM COUNT: a room seats its speakers and
+  a judge (`Cab.Format.room_seats/1`: 9 in BP, 7 in Australs), so
+  ceil(people / seats), minimum one. Registration carries no role, so
+  the count follows everyone signed up; in BP 13 speakers + 1 judge =
+  2 rooms. The only automatic part of allocation.
   """
-  def room_count(signups) do
-    max(div(length(signups) + @room_seats - 1, @room_seats), 1)
+  def room_count(signups, %Format{} = format \\ Format.default()) do
+    seats = Format.room_seats(format)
+    max(div(length(signups) + seats - 1, seats), 1)
   end
 
   @doc """
@@ -770,7 +778,7 @@ defmodule Cab.Sessions do
   `room_count/1`.
   """
   def rooms_for(%Session{draft_rooms: rooms}, _signups) when is_integer(rooms), do: rooms
-  def rooms_for(%Session{}, signups), do: room_count(signups)
+  def rooms_for(%Session{} = session, signups), do: room_count(signups, Format.of(session))
 
   @doc """
   The head reopens sign-ups: only possible while `:closed` (no rooms
@@ -1167,13 +1175,14 @@ defmodule Cab.Sessions do
   @doc """
   EXPLICIT room composition: the head says who goes where.
   `rooms_spec` is a list of
-  `%{"adjudicator_participant_id" => id, "teams" => [[pid] | [pid, pid] x #{@teams_per_room}]}`
-  (atom keys and integer-strings accepted) - a 1-speaker team is a
-  declared iron. Only while `:closed`. People are ALWAYS placed by
+  `%{"adjudicator_participant_id" => id, "teams" => [[pid, ...] x teams]}`
+  (atom keys and integer-strings accepted) - a team short of the
+  format's seats is a declared iron. Only while `:closed`. People are ALWAYS placed by
   the head; cab never pairs anyone automatically. Validated
   against the signups: every pid a signed-up speaker placed at most
   once, every judge a signed-up judge chairing at most one room,
-  #{@teams_per_room} teams of 1-#{@speakers_per_team} per room.
+  the format's teams per room (`Cab.Format`), each of one speaker up
+  to its seats.
   Returns `{:ok, rooms_created}`, `{:error, :conflict, message}` or a
   changeset-style `{:error, %{rooms: message}}`.
   """
@@ -1181,10 +1190,10 @@ defmodule Cab.Sessions do
     result =
       with {:ok, state} <- state(session),
            :ok <- require_stage(state, :closed),
-           {:ok, rooms} <- parse_composition(rooms_spec, state.signups),
+           {:ok, rooms} <- parse_composition(rooms_spec, state.signups, Format.of(session)),
            {:ok, actor} <- owner_actor(head, session_club(session)),
            :ok <- assign_roles(actor, session, state.signups, rooms),
-           {:ok, count} <- create_composition(actor, state, rooms) do
+           {:ok, count} <- create_composition(actor, state, rooms, Format.of(session)) do
         record(session,
           started_at: DateTime.utc_now(:second),
           rooms_count: count,
@@ -1229,7 +1238,7 @@ defmodule Cab.Sessions do
 
   defp created_room_ids(_actor, _round), do: []
 
-  defp create_composition(actor, state, rooms) do
+  defp create_composition(actor, state, rooms, format) do
     by_id = Map.new(state.signups, &{&1["id"], &1})
 
     specs =
@@ -1243,14 +1252,15 @@ defmodule Cab.Sessions do
       end)
 
     judges = Enum.map(rooms, &by_id[&1.adjudicator_participant_id])
-    create_session_rooms(actor, state.round, dedupe_names(specs), judges)
+    create_session_rooms(actor, state.round, dedupe_names(specs), judges, format)
   end
 
-  defp parse_composition(rooms_spec, participants)
+  defp parse_composition(rooms_spec, participants, format)
        when is_list(rooms_spec) and rooms_spec != [] do
     signed_ids = MapSet.new(participants, & &1["id"])
 
-    with {:ok, rooms} <- Enum.reduce_while(rooms_spec, {:ok, []}, &parse_room/2) do
+    with {:ok, rooms} <-
+           Enum.reduce_while(rooms_spec, {:ok, []}, &parse_room(&1, &2, format)) do
       rooms = Enum.reverse(rooms)
       judges = Enum.map(rooms, & &1.adjudicator_participant_id)
       pids = Enum.flat_map(rooms, fn room -> List.flatten(room.teams) end)
@@ -1269,10 +1279,10 @@ defmodule Cab.Sessions do
     end
   end
 
-  defp parse_composition(_rooms_spec, _participants),
+  defp parse_composition(_rooms_spec, _participants, _format),
     do: {:error, %{rooms: dgettext("errors", "Rooms must be a non-empty list of room objects.")}}
 
-  defp parse_room(%{} = room, {:ok, acc}) do
+  defp parse_room(%{} = room, {:ok, acc}, format) do
     judge = composition_int(composition_field(room, :adjudicator_participant_id))
 
     teams =
@@ -1288,9 +1298,9 @@ defmodule Cab.Sessions do
       not is_integer(judge) ->
         {:halt, {:error, %{rooms: dgettext("errors", "Every room needs an adjudicator.")}}}
 
-      length(teams) != @teams_per_room or
+      length(teams) != Format.teams(format) or
           Enum.any?(teams, fn team ->
-            length(team) not in 1..@speakers_per_team or
+            length(team) not in 1..format.seats or
                 Enum.any?(team, &(not is_integer(&1)))
           end) ->
         {:halt,
@@ -1299,8 +1309,9 @@ defmodule Cab.Sessions do
             rooms:
               dgettext(
                 "errors",
-                "Every room needs %{count} teams of one or two speakers (a one-speaker team is an iron).",
-                count: @teams_per_room
+                "Every room needs %{count} teams of one to %{seats} speakers (a team short of speakers has an iron).",
+                count: Format.teams(format),
+                seats: format.seats
               )
           }}}
 
@@ -1309,7 +1320,7 @@ defmodule Cab.Sessions do
     end
   end
 
-  defp parse_room(_room, _acc),
+  defp parse_room(_room, _acc, _format),
     do: {:halt, {:error, %{rooms: dgettext("errors", "Every room must be an object.")}}}
 
   defp composition_field(room, key) do
@@ -1350,9 +1361,15 @@ defmodule Cab.Sessions do
   # temporary teams (the engine purges them with the room on
   # delete_rooms/2 and they never lock speakers) - the
   # delete-and-recompose loop depends on it.
-  defp create_session_rooms(actor, round, team_specs, judges) do
+  defp create_session_rooms(actor, round, team_specs, judges, format) do
+    with {:ok, format_id} <- EngineApi.format_id(actor, format.code) do
+      create_format_rooms(actor, round, team_specs, judges, format, format_id)
+    end
+  end
+
+  defp create_format_rooms(actor, round, team_specs, judges, format, format_id) do
     team_specs
-    |> Enum.chunk_every(@teams_per_room)
+    |> Enum.chunk_every(Format.teams(format))
     |> Enum.with_index()
     |> Enum.reduce_while({:ok, 0}, fn {chunk, index}, {:ok, count} ->
       slots =
@@ -1362,9 +1379,13 @@ defmodule Cab.Sessions do
 
       chair = Enum.at(judges, index)
 
-      case EngineApi.create_room(actor, round["id"], slots, [
-             %{participant_id: chair["id"], role: "chair"}
-           ]) do
+      case EngineApi.create_room(
+             actor,
+             round["id"],
+             slots,
+             [%{participant_id: chair["id"], role: "chair"}],
+             format_id: format_id
+           ) do
         {:ok, _} -> {:cont, {:ok, count + 1}}
         {:error, message} -> {:halt, {:error, message}}
       end
@@ -1511,16 +1532,18 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  Submits a room's scored BP ballot: 8 speaker scores - two per team
-  in og/oo/cg/co table order - team ranks DERIVE from team totals
-  (winner = rank 1, the judge never picks places), tied team totals
-  rejected because BP demands a strict order of all four teams.
+  Submits a room's scored ballot in the session's format
+  (`Cab.Format`): every seat's score - two per team in og/oo/cg/co
+  order in BP, three per team (gov, opp) in Australs - team ranks
+  DERIVE from team totals (winner = rank 1, the judge never picks
+  places), tied team totals rejected: the teams need a strict order.
 
-  `scores` is a list of 8 entries, two per team `position` 1..4, each
-  `%{position, speaker_participant_id, iron, score}`: the participant
-  id comes from the ballot's who-spoke dropdown, `iron` marks a
-  stand-in covering a teammate's speech (same participant twice), and
-  scores are whole points, 50-100.
+  `scores` is a list of entries, the format's seats per team
+  `position` 1..teams, each `%{position, speaker_participant_id, iron,
+  score}`: the participant id comes from the ballot's who-spoke
+  dropdown, `iron` marks a stand-in covering a teammate's speech (the
+  same participant more than once), and scores are whole points in
+  the format's range (50-100 in both).
 
   Only the room's chair (the signed-up judge) or the club head may
   submit - `{:error, :forbidden}` otherwise. The ballot goes in as
@@ -1534,9 +1557,10 @@ defmodule Cab.Sessions do
   """
   def submit_ballot(%User{} = user, %Session{} = session, room_id, scores) do
     club = session_club(session)
+    format = Format.of(session)
 
     result =
-      with {:ok, entries} <- parse_ballot_entries(scores),
+      with {:ok, entries} <- parse_ballot_entries(scores, format),
            {:ok, actor} <- ballot_actor(user, club),
            {:ok, head_actor} <- Clubs.club_actor(club),
            {:ok, round_id} <- session_round_id(actor, session),
@@ -1544,7 +1568,7 @@ defmodule Cab.Sessions do
            {:ok, room} <- find_room(rooms, room_id),
            :ok <- authorize_ballot(room, user, club),
            :ok <- require_motion(room),
-           {:ok, rankings, speaker_scores} <- ballot_payload(room, entries),
+           {:ok, rankings, speaker_scores} <- ballot_payload(room, entries, format),
            {:ok, _} <- maybe_unconfirm(head_actor, room),
            {:ok, _} <- EngineApi.submit_scores(actor, room["id"], rankings, speaker_scores),
            {:ok, _} <- EngineApi.confirm_room(head_actor, room["id"]) do
@@ -1606,8 +1630,8 @@ defmodule Cab.Sessions do
   # Ballot payload (ranks derive from totals; no tied team totals)
   # ---------------------------------------------------------------
 
-  defp parse_ballot_entries(scores) when is_list(scores) do
-    parsed = Enum.map(scores, &parse_ballot_entry/1)
+  defp parse_ballot_entries(scores, format) when is_list(scores) do
+    parsed = Enum.map(scores, &parse_ballot_entry(&1, format))
 
     case Enum.find(parsed, &match?({:error, _}, &1)) do
       {:error, message} ->
@@ -1617,7 +1641,8 @@ defmodule Cab.Sessions do
         entries = Enum.map(parsed, fn {:ok, entry} -> entry end)
         counts = Enum.frequencies_by(entries, & &1.position)
 
-        if map_size(counts) == 4 and Enum.all?(counts, fn {_pos, n} -> n == 2 end) do
+        if map_size(counts) == Format.teams(format) and
+             Enum.all?(counts, fn {_pos, n} -> n == format.seats end) do
           {:ok, entries}
         else
           {:error,
@@ -1625,30 +1650,45 @@ defmodule Cab.Sessions do
              scores:
                dgettext(
                  "errors",
-                 "a full ballot is 8 scores: two per team position 1..4 (og, oo, cg, co)"
+                 "A full ballot is %{count} scores: %{seats} for each team position 1 to %{teams}.",
+                 count: Format.speeches(format),
+                 seats: format.seats,
+                 teams: Format.teams(format)
                )
            }}
         end
     end
   end
 
-  defp parse_ballot_entries(_scores),
-    do: {:error, %{scores: dgettext("errors", "Scores must be a list of 8 entries.")}}
+  defp parse_ballot_entries(_scores, format),
+    do:
+      {:error,
+       %{
+         scores:
+           dgettext("errors", "Scores must be a list of %{count} entries.",
+             count: Format.speeches(format)
+           )
+       }}
 
-  defp parse_ballot_entry(%{} = entry) do
+  defp parse_ballot_entry(%{} = entry, format) do
     position = ballot_field(entry, :position)
     speaker = ballot_field(entry, :speaker_participant_id)
     score = ballot_field(entry, :score)
 
     cond do
-      position not in [1, 2, 3, 4] ->
-        {:error, dgettext("errors", "Position must be 1 to 4 (OG, OO, CG, CO).")}
+      position not in 1..Format.teams(format)//1 ->
+        {:error,
+         dgettext("errors", "Position must be 1 to %{teams}.", teams: Format.teams(format))}
 
       not is_integer(speaker) ->
         {:error, dgettext("errors", "Every score needs a speaker_participant_id.")}
 
-      not valid_score?(score) ->
-        {:error, dgettext("errors", "Scores are whole points from 50 to 100.")}
+      not Format.valid_score?(format, score) ->
+        {:error,
+         dgettext("errors", "Scores are whole points from %{min} to %{max}.",
+           min: format.score_min,
+           max: format.score_max
+         )}
 
       true ->
         {:ok,
@@ -1661,7 +1701,7 @@ defmodule Cab.Sessions do
     end
   end
 
-  defp parse_ballot_entry(_entry),
+  defp parse_ballot_entry(_entry, _format),
     do: {:error, dgettext("errors", "Every score must be an object.")}
 
   defp ballot_field(entry, key) do
@@ -1671,15 +1711,11 @@ defmodule Cab.Sessions do
     end
   end
 
-  # whole points only - the engine stores scores as integers
-  defp valid_score?(score),
-    do: is_number(score) and score >= 50 and score <= 100 and trunc(score) == score
-
-  defp ballot_payload(room, entries) do
+  defp ballot_payload(room, entries, format) do
     room_teams = Enum.sort_by(room["RoomTeams"] || [], & &1["position"])
     by_position = Enum.group_by(entries, & &1.position)
 
-    with :ok <- full_room(room_teams),
+    with :ok <- full_room(room_teams, format),
          {:ok, team_scores} <- assign_speaker_scores(room_teams, by_position) do
       totals =
         Enum.map(team_scores, fn {rt, scores} ->
@@ -1706,7 +1742,7 @@ defmodule Cab.Sessions do
            scores:
              dgettext(
                "errors",
-               "Two teams share the total %{totals}. BP allows no ties, so adjust the scores.",
+               "Two teams share the total %{totals}. Teams can't tie, so adjust the scores.",
                totals: Enum.map_join(tied, ", ", &format_total/1)
              )
          }}
@@ -1714,9 +1750,11 @@ defmodule Cab.Sessions do
     end
   end
 
-  defp full_room(room_teams) when length(room_teams) == @teams_per_room, do: :ok
+  defp full_room(room_teams, format) do
+    if length(room_teams) == Format.teams(format), do: :ok, else: not_the_draw()
+  end
 
-  defp full_room(_room_teams),
+  defp not_the_draw,
     do: {:error, dgettext("errors", "This ballot doesn't match the room's draw.")}
 
   defp assign_speaker_scores(room_teams, by_position) do

@@ -9,6 +9,8 @@ defmodule Cab.Sessions.Session do
     # it performs itself (below).
     field :engine_event_id, :integer
     field :engine_round_id, :integer
+    # the debate format (Cab.Format key): fixed when the session opens
+    field :format, :string, default: "bp"
     field :scheduled_at, :utc_datetime
     field :signups_closed_at, :utc_datetime
     # the allocator draft: slot key => participant id (see Cab.Sessions.place/3)
@@ -42,6 +44,8 @@ defmodule Cab.Sessions.Session do
     session
     |> change()
     |> validate_required([:engine_event_id])
+    |> validate_inclusion(:format, Cab.Format.keys())
+    |> check_constraint(:format, name: :format_known)
     |> validate_limit()
     |> put_uuid()
     |> unique_constraint(:uuid)

@@ -44,6 +44,11 @@ msgstr "%{name} вже сидить у кімнаті. Видалити можн
 msgid "A finished session cannot be cancelled."
 msgstr "Завершену сесію не можна скасувати."
 
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
+msgid "A full ballot is %{count} scores: %{seats} for each team position 1 to %{teams}."
+msgstr "Повний бюлетень - це %{count} балів: по %{seats} на кожну позицію команди від 1 до %{teams}."
+
 #: lib/cab/accounts.ex
 #, elixir-autogen, elixir-format
 msgid "Both accounts took part in the same session. Ask the club head to remove one of them from it first."
@@ -81,8 +86,8 @@ msgstr "Кожна кімната має бути об'єктом."
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Every room needs %{count} teams of one or two speakers (a one-speaker team is an iron)."
-msgstr "У кожній кімнаті має бути %{count} команди з одного або двох спікерів (команда з одного спікера є айроном)."
+msgid "Every room needs %{count} teams of one to %{seats} speakers (a team short of speakers has an iron)."
+msgstr "У кожній кімнаті має бути %{count} команди з одного до %{seats} спікерів (у команді, де бракує спікерів, є айрон)."
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
@@ -126,8 +131,8 @@ msgstr "На цю сесію вже зареєструвалися, тож її 
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Position must be 1 to 4 (OG, OO, CG, CO)."
-msgstr "Позиція має бути від 1 до 4 (ПУ, ПО, ДУ, ДО)."
+msgid "Position must be 1 to %{teams}."
+msgstr "Позиція має бути від 1 до %{teams}."
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
@@ -171,13 +176,13 @@ msgstr "Кімнати мають бути непорожнім списком �
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Scores are whole points from 50 to 100."
-msgstr "Бали є цілими числами від 50 до 100."
+msgid "Scores are whole points from %{min} to %{max}."
+msgstr "Бали є цілими числами від %{min} до %{max}."
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Scores must be a list of 8 entries."
-msgstr "Бали мають бути списком із 8 записів."
+msgid "Scores must be a list of %{count} entries."
+msgstr "Бали мають бути списком із %{count} записів."
 
 #: lib/cab/links.ex
 #, elixir-autogen, elixir-format
@@ -254,6 +259,11 @@ msgstr "Цей спосіб входу не прив'язано."
 msgid "The club head cannot be removed."
 msgstr "Голову клубу не можна видалити."
 
+#: lib/cab/engine_api.ex
+#, elixir-autogen, elixir-format
+msgid "The engine doesn't know the %{format} format yet."
+msgstr "Двіжок ще не знає формату %{format}."
+
 #: lib/cab/head_invitations.ex
 #, elixir-autogen, elixir-format
 msgid "The invitation was not saved. Try again."
@@ -316,8 +326,8 @@ msgstr "Сесію завершено, тож її учасники лишают
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Two teams share the total %{totals}. BP allows no ties, so adjust the scores."
-msgstr "Дві команди мають однакову суму %{totals}. У БП нічиїх не буває, тож виправте бали."
+msgid "Two teams share the total %{totals}. Teams can't tie, so adjust the scores."
+msgstr "Дві команди мають однакову суму %{totals}. Нічиїх не буває, тож виправте бали."
 
 #: lib/cab/head_invitations.ex
 #, elixir-autogen, elixir-format
@@ -338,11 +348,6 @@ msgstr "Введіть ім'я для запрошення."
 #, elixir-autogen, elixir-format
 msgid "Use plain text without control characters."
 msgstr "Використовуйте звичайний текст без спеціальних знаків."
-
-#: lib/cab/sessions.ex
-#, elixir-autogen, elixir-format
-msgid "a full ballot is 8 scores: two per team position 1..4 (og, oo, cg, co)"
-msgstr "повний белот: 8 балів, по два на кожну позицію команди 1..4 (ПУ, ПО, ДУ, ДО)"
 
 #: lib/cab/clubs/membership.ex
 #, elixir-autogen, elixir-format

@@ -351,6 +351,16 @@ defmodule Cab.SessionsTest do
     assert Sessions.room_count(people.(19)) == 3
   end
 
+  test "an Australs room seats seven: six speakers and a judge" do
+    people = fn n -> for i <- 1..n, do: %{"id" => i, "role" => "speaker"} end
+    aus = Cab.Format.get("aus")
+
+    assert Sessions.room_count(people.(7), aus) == 1
+    assert Sessions.room_count(people.(8), aus) == 2
+    assert Sessions.room_count(people.(14), aus) == 2
+    assert Sessions.rooms_for(%Cab.Sessions.Session{format: "aus"}, people.(15)) == 3
+  end
+
   test "close_signups / reopen_signups flip the registration window", %{club: club} do
     session = session_fixture(club, engine_event_id: 11)
 
@@ -555,12 +565,12 @@ defmodule Cab.SessionsTest do
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6]]))
 
-    assert message =~ "teams of one or two speakers"
+    assert message =~ "teams of one to 2 speakers"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6], []]))
 
-    assert message =~ "teams of one or two speakers"
+    assert message =~ "teams of one to 2 speakers"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(
@@ -569,7 +579,7 @@ defmodule Cab.SessionsTest do
                compose.(99, [[1, 2], [3, 4], [5, 6], [7, 8, 1]])
              )
 
-    assert message =~ "teams of one or two speakers"
+    assert message =~ "teams of one to 2 speakers"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, [%{"teams" => full}])
@@ -1085,7 +1095,7 @@ defmodule Cab.SessionsTest do
 
     assert {:error, %{scores: message}} = Sessions.submit_ballot(judge, session, 71, scores)
     assert message =~ "151"
-    assert message =~ "BP allows no ties"
+    assert message =~ "Teams can't tie"
     refute_received {:scores, _claims, _params}
   end
 
