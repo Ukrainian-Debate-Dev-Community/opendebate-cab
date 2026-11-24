@@ -11,6 +11,8 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
+    <.page_head kicker={gettext("Members")} title={@club.name} />
+
     <.section title={gettext("Join requests (%{count})", count: length(@join_requests))}>
       <.table
         id="join-requests"

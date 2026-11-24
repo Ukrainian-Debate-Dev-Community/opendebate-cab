@@ -20,19 +20,23 @@
   </.chrome>
 
   <div class="pbody">
-    <.section title={gettext("Delete session")}>
-      <.form_for
-        id="delete-session-form"
-        action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/cancel"}
-        title={gettext("Delete %{session}?", session: @name || gettext("this session"))}
-        description={
-          gettext(
-            "Nobody has signed up, so the session can go: it disappears from the club, and its registration link and short link stop working. This cannot be undone."
-          )
-        }
-      >
-        <:submit quiet>{gettext("Delete session")}</:submit>
-      </.form_for>
-    </.section>
+    <.page_head kicker={gettext("Delete session")} title={@name || gettext("Session")} />
+
+    <div class="narrow">
+      <.section title={gettext("Delete session")}>
+        <.form_for
+          id="delete-session-form"
+          action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/cancel"}
+          title={gettext("Delete %{session}?", session: @name || gettext("this session"))}
+          description={
+            gettext(
+              "Nobody has signed up, so the session can go: it disappears from the club, and its registration link and short link stop working. This cannot be undone."
+            )
+          }
+        >
+          <:submit quiet>{gettext("Delete session")}</:submit>
+        </.form_for>
+      </.section>
+    </div>
   </div>
 </Layouts.app>

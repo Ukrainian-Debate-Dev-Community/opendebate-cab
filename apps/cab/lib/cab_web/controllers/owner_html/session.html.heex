@@ -64,21 +64,55 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <%= if @state.stage == :done do %>
-      <.section title={gettext("Session")} pad>
-        {gettext("This session is finished — results live on the")}
-        <.link href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}>{gettext("session page")}</.link>.
-        <p>
-          {gettext("Previous sessions live on the")}
-          <.link href={~p"/c/#{@club.uuid}/owner"}>{gettext("club page")}</.link>.
-        </p>
-      </.section>
-      {feedback_block(assigns)}
-    <% else %>
-      {registration_block(assigns)}
-      {signups_block(assigns)}
-      {rooms_block(assigns)}
-      {schedule_block(assigns)}
+    <.page_head kicker={gettext("Run the session")} title={@state.event["name"]}>
+      <:meta>
+        <.local_time :if={@current.scheduled_at} at={@current.scheduled_at} as={:datetime} />
+        <.tag kind={stage_kind(@state.stage)}>{stage_words(@state.stage)}</.tag>
+      </:meta>
+    </.page_head>
+
+    <.steps label={gettext("Session stages")}>
+      <:step state={step_state(@state.stage, :signup)}>{gettext("Registration")}</:step>
+      <:step state={step_state(@state.stage, :closed)}>{gettext("Rooms")}</:step>
+      <:step state={step_state(@state.stage, :running)}>{gettext("Debates")}</:step>
+      <:step state={step_state(@state.stage, :done)}>{gettext("Finished")}</:step>
+    </.steps>
+
+    <%!-- the numbers once there are rooms; before, People counts the sign-ups --%>
+    <.stats :if={@state.rooms != []}>
+      <:stat label={gettext("Registered")}>{length(@state.signups)}</:stat>
+      <:stat label={gettext("Rooms")}>{length(@state.rooms)}</:stat>
+      <:stat label={gettext("Ballots in")}>{ballots_in(@state.rooms)}</:stat>
+    </.stats>
+
+    <%= case @state.stage do %>
+      <% :done -> %>
+        <.section title={gettext("Session")} pad>
+          {gettext("This session is finished — results live on the")}
+          <.link href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}>{gettext("session page")}</.link>.
+          <p>
+            {gettext("Previous sessions live on the")}
+            <.link href={~p"/c/#{@club.uuid}/owner"}>{gettext("club page")}</.link>.
+          </p>
+        </.section>
+        {feedback_block(assigns)}
+      <% :running -> %>
+        {rooms_block(assigns)}
+        {signups_block(assigns)}
+      <% _signup_or_closed -> %>
+        <.copy_banner :if={@state.stage == :signup} id="shared-registration-url" url={@short_url}>
+          {gettext("Share to register: the club page")}
+        </.copy_banner>
+        <%!-- the people beside what changes them (on phones the forms lead);
+             the allocator needs the full width under them --%>
+        <div class="split">
+          <div class="stack">{signups_block(assigns)}</div>
+          <div class="stack lead">
+            {registration_block(assigns)}
+            {schedule_block(assigns)}
+          </div>
+        </div>
+        {rooms_block(assigns)}
     <% end %>
   </div>
 </Layouts.app>
