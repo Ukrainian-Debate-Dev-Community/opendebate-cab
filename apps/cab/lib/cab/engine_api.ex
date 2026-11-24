@@ -231,10 +231,6 @@ defmodule Cab.EngineApi do
     |> unwrap()
   end
 
-  def list_organisation_events(actor, org_id) do
-    Engine.get(actor, "/api/events/organisation/#{org_id}") |> unwrap()
-  end
-
   # ---------------------------------------------------------------
   # Events
   # ---------------------------------------------------------------

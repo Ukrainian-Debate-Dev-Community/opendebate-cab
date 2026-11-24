@@ -261,14 +261,12 @@ main.page-main { width:100%; flex:1 0 auto; }
 .auth .oauth svg { width:1.25rem; height:1.25rem; flex-shrink:0; }
 .auth .oauth--github { background:var(--github); color:var(--on-github); border:1px solid var(--github); }
 .auth .oauth--github:hover { background:var(--github-hover); }
+/* the provider buttons keep their own face in both themes */
 .auth .oauth--google { background:var(--google); color:var(--google-ink); border:1px solid var(--google-line); }
 .auth .oauth--google:hover { background:var(--google-hover); }
-/* the provider buttons keep their own white face in both themes */
-.auth .oauth.dis { color:var(--provider-off-ink); cursor:default; pointer-events:none; }
 .auth .oauth--plain { background:transparent; color:var(--ink); border:1px solid var(--line); }
 .auth .oauth--plain:hover { background:var(--brand-50); }
 .auth .start-over { display:block; font-size:var(--step-m1); margin-top:var(--sp-1); }
-.auth .oauth.dis svg { opacity:.45; }
 
 .auth .first-note { background:var(--brand-50); border-radius:var(--r); padding:var(--sp-3) var(--sp-3);
               font-size:var(--step-m1); color:var(--brand-700); }
@@ -331,7 +329,6 @@ input.pick { width:0.9375rem; height:0.9375rem; margin:0 var(--sp-2) 0 0; vertic
 .rspk { display:flex; align-items:baseline; gap:var(--sp-2); }
 .rspk .pts { font-variant-numeric:tabular-nums; color:var(--muted); font-weight:600; }
 .t tr.win .rspk .pts { color:var(--ink); }
-.sharebtns { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); margin-top:var(--sp-2); }
 .sharemsg { color:var(--muted); font-size:var(--step-m1); }
 
 /* the Policy and Terms pages: readable measure, visible placeholders */
@@ -363,9 +360,6 @@ input.pick { width:0.9375rem; height:0.9375rem; margin:0 var(--sp-2) 0 0; vertic
 /* a speaker and their points on one line in the room's draw */
 .speech { display:flex; justify-content:space-between; gap:var(--sp-3); max-width:22rem; }
 .speech .pts { font-variant-numeric:tabular-nums; }
-
-/* a club's logo and name over its page */
-.club-id { margin-bottom:var(--sp-2); }
 
 /* ================================================================
    PHONES - the sidenav folds into a top bar with a Menu button,

@@ -1,7 +1,7 @@
 defmodule CabWeb do
   @moduledoc """
   The entrypoint for defining your web interface, such
-  as controllers, components, channels, and so on.
+  as controllers, components, live views and so on.
 
   This can be used in your application as:
 
@@ -17,7 +17,7 @@ defmodule CabWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets images vendor apidocs favicon.ico robots.txt)
+  def static_paths, do: ~w(assets vendor apidocs favicon.ico robots.txt)
 
   def router do
     quote do
@@ -27,12 +27,6 @@ defmodule CabWeb do
       import Plug.Conn
       import Phoenix.Controller
       import Phoenix.LiveView.Router
-    end
-  end
-
-  def channel do
-    quote do
-      use Phoenix.Channel
     end
   end
 
@@ -51,14 +45,6 @@ defmodule CabWeb do
   def live_view do
     quote do
       use Phoenix.LiveView
-
-      unquote(html_helpers())
-    end
-  end
-
-  def live_component do
-    quote do
-      use Phoenix.LiveComponent
 
       unquote(html_helpers())
     end
