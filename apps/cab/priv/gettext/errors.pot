@@ -30,6 +30,11 @@ msgstr ""
 msgid "A finished session cannot be cancelled."
 msgstr ""
 
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
+msgid "A full ballot is %{count} scores: %{seats} for each team position 1 to %{teams}."
+msgstr ""
+
 #: lib/cab/accounts.ex
 #, elixir-autogen, elixir-format
 msgid "Both accounts took part in the same session. Ask the club head to remove one of them from it first."
@@ -67,7 +72,7 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Every room needs %{count} teams of one or two speakers (a one-speaker team is an iron)."
+msgid "Every room needs %{count} teams of one to %{seats} speakers (a team short of speakers has an iron)."
 msgstr ""
 
 #: lib/cab/sessions.ex
@@ -112,7 +117,7 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Position must be 1 to 4 (OG, OO, CG, CO)."
+msgid "Position must be 1 to %{teams}."
 msgstr ""
 
 #: lib/cab/sessions.ex
@@ -157,12 +162,12 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Scores are whole points from 50 to 100."
+msgid "Scores are whole points from %{min} to %{max}."
 msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Scores must be a list of 8 entries."
+msgid "Scores must be a list of %{count} entries."
 msgstr ""
 
 #: lib/cab/links.ex
@@ -240,6 +245,11 @@ msgstr ""
 msgid "The club head cannot be removed."
 msgstr ""
 
+#: lib/cab/engine_api.ex
+#, elixir-autogen, elixir-format
+msgid "The engine doesn't know the %{format} format yet."
+msgstr ""
+
 #: lib/cab/head_invitations.ex
 #, elixir-autogen, elixir-format
 msgid "The invitation was not saved. Try again."
@@ -302,7 +312,7 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Two teams share the total %{totals}. BP allows no ties, so adjust the scores."
+msgid "Two teams share the total %{totals}. Teams can't tie, so adjust the scores."
 msgstr ""
 
 #: lib/cab/head_invitations.ex
@@ -323,11 +333,6 @@ msgstr ""
 #: lib/cab/text.ex
 #, elixir-autogen, elixir-format
 msgid "Use plain text without control characters."
-msgstr ""
-
-#: lib/cab/sessions.ex
-#, elixir-autogen, elixir-format
-msgid "a full ballot is 8 scores: two per team position 1..4 (og, oo, cg, co)"
 msgstr ""
 
 #: lib/cab/clubs/membership.ex

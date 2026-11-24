@@ -154,7 +154,9 @@ defmodule Cab.EngineApi do
 
   ### Formats
   - `GET /formats` - seeded: id 1 = British Parliamentary (BP),
-    4 teams/room, 2 speakers/team, scores 50..100. Writes admin-only.
+    4 teams/room, 2 speakers/team, scores 50..100; Australs (AUS, a
+    migration): 2 teams of 3, scores 50..100. Writes admin-only. cab
+    finds a format by its code (`format_id/2`).
 
   ### Conclusion
   Everything the gateway needs exists. The one gap-shaped item - organiser
@@ -308,6 +310,36 @@ defmodule Cab.EngineApi do
   # ---------------------------------------------------------------
   # Rooms
   # ---------------------------------------------------------------
+
+  @doc """
+  The engine's id of a format, by its code (`Cab.Format`'s `code`):
+  BP is id 1 as the engine is seeded; any other is looked up once
+  (`GET /formats`) and kept for the node's life.
+  """
+  def format_id(_actor, "BP"), do: {:ok, @bp_format_id}
+
+  def format_id(actor, code) when is_binary(code) do
+    key = {__MODULE__, :format_id, code}
+
+    case :persistent_term.get(key, nil) do
+      nil ->
+        with {:ok, formats} <- Engine.get(actor, "/api/formats") |> unwrap(),
+             %{"id" => id} <- Enum.find(List.wrap(formats), &(&1["code"] == code)) do
+          :persistent_term.put(key, id)
+          {:ok, id}
+        else
+          {:error, _} = error ->
+            error
+
+          _missing ->
+            {:error,
+             dgettext("errors", "The engine doesn't know the %{format} format yet.", format: code)}
+        end
+
+      id ->
+        {:ok, id}
+    end
+  end
 
   @doc """
   Creates a room. `teams` = [%{team_id: id, position: 1..N}],

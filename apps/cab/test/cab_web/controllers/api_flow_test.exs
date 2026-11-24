@@ -628,7 +628,7 @@ defmodule CabWeb.ApiFlowTest do
            |> log_in(head)
            |> post(~p"/api/cab/v1/sessions/#{session.uuid}/rooms", bad)
            |> json_response(422)
-           |> get_in(["details", "rooms"]) =~ "teams of one or two speakers"
+           |> get_in(["details", "rooms"]) =~ "teams of one to 2 speakers"
 
     # rebuild: the room (and its temporary teams) go away
     stub(fn conn, _params ->
