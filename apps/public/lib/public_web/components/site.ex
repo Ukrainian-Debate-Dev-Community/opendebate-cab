@@ -49,17 +49,36 @@ defmodule PublicWeb.Site do
 
     ~H"""
     <header class="site-head">
-      <.wordmark class="site-brand" />
-      <nav class="site-nav">
-        <a :for={{key, href, label} <- @items} class={key == @active && "on"} href={href}>{label}</a>
-      </nav>
-      <div class="site-tools">
-        <.switches
-          locale={Gettext.get_locale(PublicWeb.Gettext)}
-          locales={PublicWeb.Locale.names()}
-          theme_key="public-theme"
-        />
-        <a class="btn-quiet btn-sm" href={cab_url()}>{gettext("Cabinet")}</a>
+      <div class="site-head-in">
+        <.wordmark class="site-brand" />
+        <button
+          type="button"
+          class="site-menu-btn btn-quiet btn-sm"
+          data-nav-toggle
+          aria-controls="site-links"
+          aria-expanded="false"
+        >
+          {gettext("Menu")}
+        </button>
+        <div class="site-links" id="site-links">
+          <nav class="site-nav" aria-label={gettext("Main")}>
+            <a
+              :for={{key, href, label} <- @items}
+              aria-current={key == @active && "page"}
+              href={href}
+            >
+              {label}
+            </a>
+          </nav>
+          <div class="site-tools">
+            <.switches
+              locale={Gettext.get_locale(PublicWeb.Gettext)}
+              locales={PublicWeb.Locale.names()}
+              theme_key="public-theme"
+            />
+            <a class="btn-quiet btn-sm" href={cab_url()}>{gettext("Cabinet")}</a>
+          </div>
+        </div>
       </div>
     </header>
     """

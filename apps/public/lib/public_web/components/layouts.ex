@@ -11,6 +11,8 @@ defmodule PublicWeb.Layouts do
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{page_title(assigns)}</title>
         <script>
+          // scripts run: the phone menu folds (without them its links stay open)
+          document.documentElement.classList.add("js")
           // the header's theme choice, applied before the first paint
           try {
             const theme = localStorage.getItem("public-theme")
@@ -23,6 +25,7 @@ defmodule PublicWeb.Layouts do
         </script>
       </head>
       <body>
+        <a class="skip" href="#content">{gettext("Skip to content")}</a>
         <div class="site">
           <.site_header active={assigns[:active]} />
           <.ribbon
@@ -31,7 +34,7 @@ defmodule PublicWeb.Layouts do
             manager={@manager}
             active={assigns[:manage_active]}
           />
-          <main class="site-main">
+          <main class="site-main" id="content" tabindex="-1">
             <.flash_banners :if={assigns[:access]} flash={@flash} />
             {@inner_content}
           </main>

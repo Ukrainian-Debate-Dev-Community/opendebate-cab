@@ -670,6 +670,11 @@ msgstr ""
 msgid "Link"
 msgstr ""
 
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Main"
+msgstr ""
+
 #: lib/public_web/controllers/manage/html/event.html.heex
 #, elixir-autogen, elixir-format
 msgid "Make private"
@@ -728,6 +733,11 @@ msgstr ""
 #: lib/public_web/controllers/club_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Members"
+msgstr ""
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Menu"
 msgstr ""
 
 #: lib/public_web/components/site.ex
@@ -1250,6 +1260,11 @@ msgstr ""
 #: lib/public_web/components/site.ex
 #, elixir-autogen, elixir-format
 msgid "Site"
+msgstr ""
+
+#: lib/public_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Skip to content"
 msgstr ""
 
 #: lib/public_web/controllers/error_html.ex

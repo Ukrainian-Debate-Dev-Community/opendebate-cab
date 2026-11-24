@@ -16,21 +16,33 @@ a { color:var(--brand); }
              display:flex; flex-direction:column; gap:var(--sp-7); }
 /* the stack of a page: its head, notices, command bar and sections */
 .site-main > .page-head { margin-bottom:0; }
-.site-main > .chrome { border:1px solid var(--line); border-radius:var(--r); overflow:hidden; margin-bottom:var(--px); }
+.site-main > .chrome { position:static; border:1px solid var(--line); border-radius:var(--r); overflow:hidden; margin-bottom:var(--px); }
 .site-main > * { min-width:0; }
 .site-main .section-head { margin-bottom:var(--sp-3); }
 /* a form stands at a readable width */
 .narrow { max-width:var(--w-form); }
 
-/* header: one bar on every page */
-.site-head { display:flex; align-items:center; gap:var(--sp-5); padding:var(--sp-3) var(--sp-7); background:var(--surface);
-             border-bottom:1px solid var(--line); }
+/* the way past the header for keyboards: shown once focused */
+.skip { position:absolute; left:var(--sp-3); top:-4rem; z-index:50; padding:var(--sp-2) var(--sp-3);
+        background:var(--surface); border:1px solid var(--line); border-radius:var(--r-sm); font-weight:700; }
+.skip:focus { top:var(--sp-3); }
+.site-main:focus { outline:none; }
+
+/* header: one bar on every page, its content on the page's width; it
+   stays at the top while the page scrolls under it */
+.site-head { position:sticky; top:0; z-index:20; border-bottom:1px solid var(--line);
+             background:color-mix(in oklch, var(--surface) 88%, transparent); backdrop-filter:blur(8px); }
+.site-head-in { position:relative; max-width:var(--w-page); margin:0 auto; min-height:3.75rem; padding:0 var(--sp-7);
+                display:flex; align-items:center; gap:var(--sp-5); }
 .site-brand { font-size:var(--step-3); line-height:1; }
-.site-nav { display:flex; gap:2px; margin-left:auto; font-size:var(--step-m1); font-weight:550; }
-.site-nav a { color:var(--ink); opacity:.72; padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); }
-.site-nav a:hover { opacity:1; background:var(--brand-50); }
-.site-nav a.on { opacity:1; font-weight:700; color:var(--brand-700); background:var(--brand-50); }
+.site-links { display:flex; align-items:center; gap:var(--sp-3); margin-left:auto; }
+.site-nav { display:flex; gap:2px; font-size:var(--step-m1); font-weight:600; }
+.site-nav a { display:inline-flex; align-items:center; min-height:var(--target); padding:0 var(--sp-3);
+              border-radius:var(--r-md); color:var(--ink); }
+.site-nav a:hover { background:var(--surface-2); }
+.site-nav a[aria-current="page"] { background:var(--brand-50); color:var(--brand-700); font-weight:700; }
 .site-tools { display:flex; align-items:center; gap:var(--sp-2); }
+.site-menu-btn { display:none; }
 
 /* the content manager's ribbon (only under /manage) */
 .cm-bar { display:flex; align-items:center; gap:var(--sp-1); padding:var(--sp-2) var(--sp-7); background:var(--co-bg);
@@ -363,9 +375,19 @@ a { color:var(--brand); }
 }
 
 @media (max-width:1000px) {
-  .site-head { flex-wrap:wrap; padding:var(--sp-2) var(--sp-4); gap:var(--sp-2); }
-  .site-nav { margin-left:0; order:3; width:100%; overflow-x:auto; }
-  .site-tools { margin-left:auto; }
+  /* the links fold behind Menu: a panel under the bar, the links one a
+     row, the switches and Cabinet under them (without scripts the
+     panel stays open in the page) */
+  .site-head-in { min-height:3.25rem; padding:0 var(--sp-4); gap:var(--sp-3); flex-wrap:wrap; }
+  .js .site-menu-btn { display:inline-flex; margin-left:auto; min-height:var(--target); }
+  .site-links { flex:1 1 100%; flex-direction:column; align-items:stretch; gap:var(--sp-2); margin:0;
+                padding:var(--sp-2) 0 var(--sp-4); }
+  .js .site-links { position:absolute; left:0; right:0; top:100%; padding:var(--sp-2) var(--sp-4) var(--sp-4);
+                    background:var(--surface); border-bottom:1px solid var(--line); box-shadow:var(--shadow-menu); }
+  .js:not(.nav-open) .site-links { display:none; }
+  .site-nav { flex-direction:column; font-size:var(--step-0); }
+  .site-nav a { min-height:2.75rem; }
+  .site-tools { justify-content:space-between; padding-top:var(--sp-2); border-top:1px solid var(--line); }
   .site-main { padding:var(--sp-5) var(--sp-4) var(--sp-2); }
   .cm-bar { flex-wrap:wrap; padding:var(--sp-2) var(--sp-4); }
   .hero, .duo { grid-template-columns:1fr; }
@@ -378,15 +400,8 @@ a { color:var(--brand); }
 }
 
 @media (max-width:760px) {
-  /* the menu stays one scrollable line, a soft fade says it scrolls */
-  .site-nav { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
-              -webkit-mask-image:linear-gradient(to right, #000 85%, transparent);
-              mask-image:linear-gradient(to right, #000 85%, transparent); padding-right:var(--sp-7); }
-  .site-nav::-webkit-scrollbar { display:none; }
-  .site-nav a { flex:none; white-space:nowrap; min-height:2.75rem; display:inline-flex; align-items:center; }
   .site-brand { font-size:var(--step-2); }
-  .site-tools { gap:var(--sp-1); }
-  .site-tools .btn-quiet { min-height:2.75rem; display:inline-flex; align-items:center; }
+  .site-tools .btn-quiet { min-height:2.75rem; }
 
   /* event rows put tags and actions on a second line */
   .event { flex-wrap:wrap; row-gap:var(--sp-2); }

@@ -1,6 +1,6 @@
 // The behaviour of the shared components (apps/ui), for every app's
 // bundle: copy buttons, the menus of <details> (language, dropdown
-// buttons), local times and date pickers, linked table rows, the theme
+// buttons), the phone menu, local times and date pickers, linked table rows, the theme
 // switch. The contact fields, the rich text editor and the photo viewer
 // are bundles of their own (contact_fields_page.js, rich_editor_page.js,
 // photo_viewer_page.js): their libraries are large. Everything
@@ -68,6 +68,25 @@ document.addEventListener("click", e => {
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") document.querySelectorAll(MENUS).forEach(d => { d.open = false })
 })
+
+// the phone menu: a site's links fold behind a Menu button
+// ([data-nav-toggle], aria-controls naming the links). The open state
+// lives on <html>, which LiveView never patches, so a server update
+// cannot close it under the reader's thumb; a link in it, Escape or a
+// LiveView navigation closes it
+const setNav = open => {
+  document.documentElement.classList.toggle("nav-open", open)
+  document.querySelectorAll("[data-nav-toggle]").forEach(b => b.setAttribute("aria-expanded", String(open)))
+}
+document.addEventListener("click", e => {
+  const toggle = e.target.closest("[data-nav-toggle]")
+  if (toggle) return setNav(!document.documentElement.classList.contains("nav-open"))
+  const menus = [...document.querySelectorAll("[data-nav-toggle]")]
+    .map(b => document.getElementById(b.getAttribute("aria-controls"))).filter(Boolean)
+  if (e.target.closest("a") && menus.some(m => m.contains(e.target))) setNav(false)
+})
+document.addEventListener("keydown", e => { if (e.key === "Escape") setNav(false) })
+window.addEventListener("phx:page-loading-stop", () => setNav(false))
 
 // a linked table row opens its page; links, buttons and fields inside
 // keep their own click, and a text selection is left alone
