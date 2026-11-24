@@ -19,8 +19,6 @@ a { color:var(--brand); }
 .site-main > .chrome { border:1px solid var(--line); border-radius:var(--r); overflow:hidden; margin-bottom:var(--px); }
 .site-main > * { min-width:0; }
 .site-main .section-head { margin-bottom:var(--sp-3); }
-/* a form stands at a readable width */
-.narrow { max-width:var(--w-form); }
 
 /* header: one bar on every page */
 .site-head { display:flex; align-items:center; gap:var(--sp-5); padding:var(--sp-3) var(--sp-7); background:var(--surface);

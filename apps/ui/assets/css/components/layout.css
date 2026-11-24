@@ -4,6 +4,8 @@
 .split { display:grid; grid-template-columns:minmax(0, 2fr) minmax(20rem, 1fr); gap:var(--sp-6); align-items:start; }
 .stack { display:grid; gap:var(--sp-6); align-content:start; }
 .split > *, .stack > * { min-width:0; }
+/* a single form or card at a readable width */
+.narrow { max-width:var(--w-form); }
 @media (max-width:80rem) {
   .split { grid-template-columns:minmax(0, 1fr); }
   /* a side column that is the page's action (a registration) leads once

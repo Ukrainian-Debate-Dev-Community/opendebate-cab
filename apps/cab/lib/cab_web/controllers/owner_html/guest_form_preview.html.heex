@@ -18,20 +18,24 @@
   </.chrome>
 
   <div class="pbody">
+    <.page_head kicker={gettext("Registration form preview")} title={@club.name} />
+
     <.banner kind={:info}>
       {gettext(
         "Preview: this is what a visitor without an account sees in the club page's registration section. Nothing can be sent from here."
       )}
     </.banner>
 
-    <.section title={gettext("Registration")}>
-      <CabWeb.RegistrationHTML.guest_form
-        action={~p"/c/#{@club.uuid}/owner/form/preview"}
-        title={gettext("Register for %{session}", session: gettext("the next session"))}
-        fields={@fields}
-        logo={CabWeb.ClubProfile.logo_path(@club)}
-        preview
-      />
-    </.section>
+    <div class="narrow">
+      <.section title={gettext("Registration")}>
+        <CabWeb.RegistrationHTML.guest_form
+          action={~p"/c/#{@club.uuid}/owner/form/preview"}
+          title={gettext("Register for %{session}", session: gettext("the next session"))}
+          fields={@fields}
+          logo={CabWeb.ClubProfile.logo_path(@club)}
+          preview
+        />
+      </.section>
+    </div>
   </div>
 </Layouts.app>

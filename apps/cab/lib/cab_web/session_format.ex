@@ -23,6 +23,12 @@ defmodule CabWeb.SessionFormat do
   def stage_words(:running), do: gettext("running")
   def stage_words(:done), do: gettext("finished")
 
+  @doc "The tag kind for a session's stage: open sign-ups, closed, running, done."
+  def stage_kind(:signup), do: :info
+  def stage_kind(:closed), do: :warn
+  def stage_kind(:running), do: :ok
+  def stage_kind(_stage), do: nil
+
   @doc "A room's name inside its session: R1, R2, ... (the engine id only as a fallback)."
   def room_label(%{"no" => no}) when is_integer(no), do: gettext("R%{number}", number: no)
   def room_label(%{"id" => id}), do: gettext("R%{number}", number: id)
