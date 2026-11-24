@@ -5,6 +5,8 @@ config :core, Core.Mailer, adapter: Swoosh.Adapters.Test
 config :cab, :uploads_dir, Path.join(System.tmp_dir!(), "cab-uploads-test")
 
 config :cab, :legal_dir, Path.expand("../apps/cab/test/support/legal", __DIR__)
+# every format cab runs, without asking the stubbed engine (Cab.Format.available/1)
+config :cab, :formats, :all
 
 # Configure your database
 #

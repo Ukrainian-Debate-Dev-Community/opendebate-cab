@@ -444,9 +444,9 @@ defmodule PublicWeb.Site do
   def kinds_label("club"), do: gettext("Club events")
   def kinds_label(_), do: gettext("Other events")
 
-  def format_label("bp"), do: gettext("BP")
-  def format_label("apf"), do: gettext("APF")
-  def format_label(_), do: gettext("Other format")
+  # cab's format names (Cab.Format), so the site and cab say the same
+  def format_label("other"), do: gettext("Other format")
+  def format_label(key), do: CabWeb.SessionFormat.format_name(key)
 
   @doc "A club's format or language, with the club's own words for other."
   def format_label("other", text) when is_binary(text) and text != "", do: text

@@ -95,10 +95,13 @@ defmodule PublicWeb.PublicPagesTest do
         languages: ["uk"]
       })
 
-    _lviv = cab_club(head, %{name: "Southport Club", city: "Southport", formats: ["apf"]})
+    _lviv = cab_club(head, %{name: "Southport Club", city: "Southport", formats: ["aus"]})
 
     all = conn |> get(~p"/clubs") |> html_response(200)
     assert all =~ "Northport Debate Club" and all =~ "Southport Club"
+    # the format filter offers what the clubs run
+    assert all =~ "format=aus"
+    assert all =~ "Australs"
 
     by_city = conn |> get(~p"/clubs?#{[city: "Southport"]}") |> html_response(200)
     assert by_city =~ "Southport Club"

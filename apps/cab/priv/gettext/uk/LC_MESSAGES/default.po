@@ -327,8 +327,8 @@ msgstr "Персональне посилання"
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #, elixir-autogen, elixir-format
-msgid "A room seats nine (eight speakers and an adjudicator), so the room count follows the sign-ups;"
-msgstr "У кімнаті дев'ять місць (вісім спікерів і суддя), тож кількість кімнат залежить від реєстрацій;"
+msgid "A room seats %{seats} (%{speakers} speakers and an adjudicator), so the room count follows the sign-ups;"
+msgstr "У кімнаті %{seats} місць (%{speakers} спікерів і суддя), тож кількість кімнат залежить від реєстрацій;"
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex
 #, elixir-autogen, elixir-format
@@ -339,11 +339,6 @@ msgstr "Ціле число від 1 до 10."
 #, elixir-autogen, elixir-format
 msgid "ADJ"
 msgstr "СУД"
-
-#: lib/cab_web/club_profile.ex
-#, elixir-autogen, elixir-format
-msgid "APF"
-msgstr "АПФ"
 
 #: lib/cab_web/controllers/club_public_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -531,6 +526,11 @@ msgstr "Аудиторія"
 msgid "Audience:"
 msgstr "Аудиторія:"
 
+#: lib/cab_web/session_format.ex
+#, elixir-autogen, elixir-format
+msgid "Australs"
+msgstr "Австралійський"
+
 #: lib/cab_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Authentication failed."
@@ -569,7 +569,7 @@ msgstr "Середній бал"
 msgid "Avg score"
 msgstr "Сер. бал"
 
-#: lib/cab_web/club_profile.ex
+#: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "BP"
 msgstr "БПФ"
@@ -614,8 +614,6 @@ msgstr "Бюлетенів подано"
 msgid "By continuing you agree to the"
 msgstr "Продовжуючи, ви погоджуєтеся з документами:"
 
-#: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "CG"
@@ -626,8 +624,6 @@ msgstr "ДУ"
 msgid "CG — CLOSING GOV"
 msgstr "ДУ — ДРУГИЙ УРЯД"
 
-#: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "CO"
@@ -960,8 +956,8 @@ msgstr "Завантажити CSV"
 
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
-msgid "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team with one speaker becomes an iron."
-msgstr "Перетягуйте учасників у слоти; кинете на зайнятий слот, і вони поміняються місцями; витягніть учасника за межі таблиці, щоб зняти його з місця. Команда з одного спікера стає айроном."
+msgid "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team short of speakers gets an iron."
+msgstr "Перетягуйте учасників у слоти; кинете на зайнятий слот, і вони поміняються місцями; витягніть учасника за межі таблиці, щоб зняти його з місця. У команді, де бракує спікерів, є айрон."
 
 #: lib/cab_web/controllers/owner_controller.ex
 #, elixir-autogen, elixir-format
@@ -1182,6 +1178,11 @@ msgstr "Залишити відгук — %{room}"
 #, elixir-autogen, elixir-format
 msgid "Got a personal link from your club? Just open it — no account needed."
 msgstr "Отримали персональне посилання від клубу? Просто відкрийте його — акаунт не потрібен."
+
+#: lib/cab_web/session_format.ex
+#, elixir-autogen, elixir-format
+msgid "Gov"
+msgstr "Уряд"
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
@@ -1702,8 +1703,6 @@ msgstr "Не зараз"
 msgid "Not set yet — the adjudicator sets it when the room begins."
 msgstr "Ще не задано — суддя задає його, коли починається кімната."
 
-#: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "OG"
@@ -1714,8 +1713,6 @@ msgstr "ПУ"
 msgid "OG — OPENING GOV"
 msgstr "ПУ — ПЕРШИЙ УРЯД"
 
-#: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "OO"
@@ -1782,6 +1779,11 @@ msgstr "Відкрити сторінку моєї сесії"
 #, elixir-autogen, elixir-format
 msgid "Open new session"
 msgstr "Відкрити нову сесію"
+
+#: lib/cab_web/session_format.ex
+#, elixir-autogen, elixir-format
+msgid "Opp"
+msgstr "Опозиція"
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
@@ -2596,6 +2598,12 @@ msgstr "Telegram, e-mail — як новачки можуть зв'язатис�
 #, elixir-autogen, elixir-format
 msgid "Terms"
 msgstr "Умови"
+
+#: lib/cab_web/controllers/api/session_controller.ex
+#: lib/cab_web/controllers/owner_controller.ex
+#, elixir-autogen, elixir-format
+msgid "That format can't be chosen now."
+msgstr "Цей формат зараз не можна обрати."
 
 #: lib/cab_web/controllers/owner_controller.ex
 #, elixir-autogen, elixir-format

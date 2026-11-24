@@ -33,6 +33,7 @@ defmodule CabWeb.OwnerController do
         opening: %{values: %{}, errors: %{}},
         archive: Sessions.club_sessions(club),
         live: Sessions.current_for_club(club),
+        formats: Cab.Format.available(conn.assigns.current_user.node_user_id),
         page_title: gettext("%{club} — Edit", club: club.name)
       ]
       |> Keyword.merge(assigns)
@@ -181,10 +182,13 @@ defmodule CabWeb.OwnerController do
   # POST /c/:club_uuid/owner/sessions - name + optional date/time and
   # participant limit; lands on the new session's owner surface
   def open_session(conn, params) do
+    head = conn.assigns.current_user
+
     with {:ok, scheduled_at} <- parse_schedule(conn, params),
          {:ok, name, limit} <- opening_fields(params),
+         {:ok, format} <- opening_format(params["format"], head),
          {:ok, session} <-
-           Sessions.open(conn.assigns.current_user, conn.assigns.club, name, scheduled_at, limit) do
+           Sessions.open(head, conn.assigns.club, name, scheduled_at, limit, format) do
       conn
       |> put_flash(:info, gettext("Session opened. Registration is open."))
       |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}")
@@ -194,7 +198,7 @@ defmodule CabWeb.OwnerController do
         |> put_status(422)
         |> put_flash(:error, errors[:name] || errors[:max_participants])
         |> render_club(
-          opening: %{values: Map.take(params, ~w(name max_participants)), errors: errors}
+          opening: %{values: Map.take(params, ~w(name max_participants format)), errors: errors}
         )
 
       {:error, message} ->
@@ -202,6 +206,16 @@ defmodule CabWeb.OwnerController do
         |> put_flash(:error, error_message(message))
         |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
     end
+  end
+
+  # the format a head chose (BP when the form offers no choice); only
+  # one the engine and cab both run now
+  defp opening_format(blank, _head) when blank in [nil, ""], do: {:ok, "bp"}
+
+  defp opening_format(format, head) do
+    if Cab.Format.available?(format, head.node_user_id),
+      do: {:ok, format},
+      else: {:error, gettext("That format can't be chosen now.")}
   end
 
   # the name and the limit, each refused on its own field

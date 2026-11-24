@@ -38,7 +38,6 @@ defmodule Cab.Clubs.Club do
     timestamps(type: :utc_datetime)
   end
 
-  @formats ~w(bp apf other)
   @languages ~w(uk en other)
   @audiences ~w(school university open)
 
@@ -62,7 +61,12 @@ defmodule Cab.Clubs.Club do
     }
   end
 
-  def formats, do: @formats
+  @doc """
+  The formats a club can name: every format cab runs (Cab.Format), and
+  `other` with the club's own words. Which of them the profile offers
+  is Cab.Format.available/1.
+  """
+  def formats, do: Cab.Format.keys() ++ ["other"]
   def languages, do: @languages
   def audiences, do: @audiences
 
@@ -122,7 +126,7 @@ defmodule Cab.Clubs.Club do
     |> Cab.Text.clean_text(:description, max: @description_max, multiline: true)
     |> Cab.Text.clean_text(:contacts, max: @contacts_max, multiline: true)
     |> one_at_most([:formats, :languages, :audiences])
-    |> validate_subset(:formats, @formats)
+    |> validate_subset(:formats, formats())
     |> validate_subset(:languages, @languages)
     |> validate_subset(:audiences, @audiences)
     |> other_text(:formats, :format_other)

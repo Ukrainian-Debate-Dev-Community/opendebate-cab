@@ -108,7 +108,7 @@ defmodule CabWeb.ClubProfileTest do
   end
 
   test "one of each at most; null means none", %{club: club} do
-    assert {:error, changeset} = Cab.Clubs.update_club(club, %{formats: ["bp", "apf"]})
+    assert {:error, changeset} = Cab.Clubs.update_club(club, %{formats: ["bp", "aus"]})
     assert changeset.errors[:formats]
 
     {:ok, club} = Cab.Clubs.update_club(club, %{formats: ["bp"]})
@@ -119,18 +119,18 @@ defmodule CabWeb.ClubProfileTest do
   test "the club page and the directory show them", %{conn: conn, club: club} do
     {:ok, _} =
       Cab.Clubs.update_club(club, %{
-        formats: ["apf"],
+        formats: ["aus"],
         languages: ["en"],
         audiences: ["university"]
       })
 
     page = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
-    assert page =~ ~r/class="lead">[^<]*APF/
+    assert page =~ ~r/class="lead">[^<]*Australs/
     assert page =~ "Language: English"
     assert page =~ "Audience: university students"
 
     directory = conn |> get(~p"/") |> html_response(200)
-    assert directory =~ "APF"
+    assert directory =~ "Australs"
   end
 
   test "GET /api/cab/v1/clubs lists every club that is not archived, public profile only",
@@ -155,10 +155,10 @@ defmodule CabWeb.ClubProfileTest do
     body =
       conn
       |> log_in(head)
-      |> patch(~p"/api/cab/v1/clubs/#{club.uuid}", %{formats: ["apf"]})
+      |> patch(~p"/api/cab/v1/clubs/#{club.uuid}", %{formats: ["aus"]})
       |> json_response(200)
 
-    assert body["formats"] == ["apf"]
+    assert body["formats"] == ["aus"]
     assert body["languages"] == ["uk"]
 
     assert conn

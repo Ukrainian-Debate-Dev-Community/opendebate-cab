@@ -40,6 +40,15 @@ defmodule PublicWeb.Clubs do
     end
   end
 
+  @doc """
+  The formats the clubs name, in cab's order (Cab.Format): the filter
+  offers only what some club runs.
+  """
+  def formats(clubs) do
+    named = MapSet.new(Enum.flat_map(clubs, &(&1.formats || [])))
+    Enum.filter(Cab.Format.keys(), &MapSet.member?(named, &1))
+  end
+
   def filter(clubs, params) do
     Enum.filter(clubs, fn club ->
       city_is?(club.city, params["city"]) and has?(club.formats, params["format"]) and

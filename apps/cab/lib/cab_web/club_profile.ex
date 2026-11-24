@@ -7,7 +7,16 @@ defmodule CabWeb.ClubProfile do
 
   alias Cab.Clubs.Club
 
-  def format_options, do: Enum.map(Club.formats(), &{format(&1), &1})
+  @doc """
+  The formats the profile offers: those a head can choose now
+  (Cab.Format.available/1), any the club already names, then other.
+  """
+  def format_options(available, chosen \\ []) do
+    keys = Enum.map(available, & &1.key)
+    kept = Enum.filter(chosen || [], &(&1 in Cab.Format.keys() and &1 not in keys))
+    Enum.map(keys ++ kept ++ ["other"], &{format(&1), &1})
+  end
+
   def language_options, do: Enum.map(Club.languages(), &{language(&1), &1})
   def audience_options, do: Enum.map(Club.audiences(), &{audience(&1), &1})
 
@@ -69,9 +78,8 @@ defmodule CabWeb.ClubProfile do
   defp field_label(:format_other), do: gettext("Format")
   defp field_label(:language_other), do: gettext("Language")
 
-  defp format("bp"), do: gettext("BP")
-  defp format("apf"), do: gettext("APF")
-  defp format(_), do: gettext("other format")
+  defp format("other"), do: gettext("other format")
+  defp format(key), do: CabWeb.SessionFormat.format_name(key)
 
   defp language("uk"), do: gettext("Ukrainian")
   defp language("en"), do: gettext("English")
