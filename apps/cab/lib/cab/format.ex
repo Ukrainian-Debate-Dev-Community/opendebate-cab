@@ -83,6 +83,51 @@ defmodule Cab.Format do
     end
   end
 
+  @doc """
+  The formats a head can choose: the ones cab runs that the engine has
+  too (`GET /formats`, matched by code), BP first. The engine is asked
+  with the viewer's engine `actor` at most every ten minutes and the
+  answer kept for everyone; without an actor, or while the engine
+  fails, the last answer stands - BP alone before the first.
+  `config :cab, :formats, :all` skips the engine (tests).
+  """
+  def available(actor \\ nil) do
+    codes =
+      case Application.get_env(:cab, :formats, :engine) do
+        :all -> Enum.map(all(), & &1.code)
+        :engine -> engine_codes(actor)
+      end
+
+    Enum.filter(all(), &(&1.code in codes))
+  end
+
+  @doc "Can a head choose this format key now?"
+  def available?(key, actor \\ nil), do: Enum.any?(available(actor), &(&1.key == key))
+
+  @cache {__MODULE__, :engine_codes}
+  @ttl_seconds 600
+
+  defp engine_codes(actor) do
+    {codes, at} = :persistent_term.get(@cache, {[default().code], nil})
+    fresh? = at != nil and System.monotonic_time(:second) - at < @ttl_seconds
+
+    if fresh? or not is_integer(actor),
+      do: codes,
+      else: fetch_codes(actor, codes)
+  end
+
+  defp fetch_codes(actor, fallback) do
+    case Cab.EngineApi.list_formats(actor) do
+      {:ok, formats} when is_list(formats) ->
+        codes = Enum.map(formats, & &1["code"])
+        :persistent_term.put(@cache, {codes, System.monotonic_time(:second)})
+        codes
+
+      _engine_down ->
+        fallback
+    end
+  end
+
   @doc "Is a score a whole number within the format's range?"
   def valid_score?(%__MODULE__{score_min: min, score_max: max}, score),
     do: is_number(score) and score >= min and score <= max and trunc(score) == score

@@ -102,7 +102,7 @@
               type={:select}
               label={gettext("Format")}
               value={List.first(@profile.formats)}
-              options={CabWeb.ClubProfile.format_options()}
+              options={CabWeb.ClubProfile.format_options(@formats, @profile.formats)}
               other="other"
               other_name={:format_other}
               other_value={@profile.format_other}
@@ -158,6 +158,14 @@
               maxlength={Cab.Sessions.max_lengths().name}
               value={@opening.values["name"]}
               hint={gettext("Shown to members on the club page; defaults to the date.")}
+            />
+            <:block
+              :if={length(@formats) > 1}
+              name={:format}
+              type={:select}
+              label={gettext("Format")}
+              value={@opening.values["format"] || opening_format(@profile, @formats)}
+              options={Enum.map(@formats, &{format_name(&1.key), &1.key})}
             />
             <:block
               names={[:date, :time]}

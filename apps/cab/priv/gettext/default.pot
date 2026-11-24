@@ -317,7 +317,7 @@ msgstr ""
 
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #, elixir-autogen, elixir-format
-msgid "A room seats nine (eight speakers and an adjudicator), so the room count follows the sign-ups;"
+msgid "A room seats %{seats} (%{speakers} speakers and an adjudicator), so the room count follows the sign-ups;"
 msgstr ""
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex
@@ -328,11 +328,6 @@ msgstr ""
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
 msgid "ADJ"
-msgstr ""
-
-#: lib/cab_web/club_profile.ex
-#, elixir-autogen, elixir-format
-msgid "APF"
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_html/show.html.heex
@@ -521,6 +516,11 @@ msgstr ""
 msgid "Audience:"
 msgstr ""
 
+#: lib/cab_web/session_format.ex
+#, elixir-autogen, elixir-format
+msgid "Australs"
+msgstr ""
+
 #: lib/cab_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Authentication failed."
@@ -559,7 +559,7 @@ msgstr ""
 msgid "Avg score"
 msgstr ""
 
-#: lib/cab_web/club_profile.ex
+#: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "BP"
 msgstr ""
@@ -604,8 +604,6 @@ msgstr ""
 msgid "By continuing you agree to the"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "CG"
@@ -616,8 +614,6 @@ msgstr ""
 msgid "CG — CLOSING GOV"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "CO"
@@ -948,7 +944,7 @@ msgstr ""
 
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
-msgid "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team with one speaker becomes an iron."
+msgid "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team short of speakers gets an iron."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_controller.ex
@@ -1169,6 +1165,11 @@ msgstr ""
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Got a personal link from your club? Just open it — no account needed."
+msgstr ""
+
+#: lib/cab_web/session_format.ex
+#, elixir-autogen, elixir-format
+msgid "Gov"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
@@ -1690,8 +1691,6 @@ msgstr ""
 msgid "Not set yet — the adjudicator sets it when the room begins."
 msgstr ""
 
-#: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "OG"
@@ -1702,8 +1701,6 @@ msgstr ""
 msgid "OG — OPENING GOV"
 msgstr ""
 
-#: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
 msgid "OO"
@@ -1769,6 +1766,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Open new session"
+msgstr ""
+
+#: lib/cab_web/session_format.ex
+#, elixir-autogen, elixir-format
+msgid "Opp"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
@@ -2580,6 +2582,12 @@ msgstr ""
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Terms"
+msgstr ""
+
+#: lib/cab_web/controllers/api/session_controller.ex
+#: lib/cab_web/controllers/owner_controller.ex
+#, elixir-autogen, elixir-format
+msgid "That format can't be chosen now."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_controller.ex

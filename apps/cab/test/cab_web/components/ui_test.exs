@@ -328,4 +328,38 @@ defmodule CabWeb.UiTest do
     assert table =~ "empty"
     refute html =~ "tag-"
   end
+
+  test "an Australs allocator: Gov and Opp, three seats each, irons counted" do
+    assigns = %{
+      people: Map.new(1..6, &{&1, %{id: &1, name: "P#{&1}"}}),
+      draft: %{
+        "1:gov:1" => 1,
+        "1:gov:2" => 2,
+        "1:opp:1" => 3,
+        "1:opp:2" => 4,
+        "1:opp:3" => 5,
+        "1:judge" => 6
+      }
+    }
+
+    html =
+      rendered_to_string(~H"""
+      <.allocator
+        format={Cab.Format.get("aus")}
+        rooms={1}
+        people={@people}
+        draft={@draft}
+        form_id="allocator-form"
+        submit="start"
+      />
+      """)
+
+    assert html =~ "<th>Gov</th>"
+    assert html =~ "<th>Opp</th>"
+    refute html =~ "<th>OG</th>"
+    assert html =~ ~s(data-slot="1:gov:3")
+    refute html =~ ~s(data-slot="1:og:1")
+    # Government is one short: an iron
+    assert html =~ "ready, 1 iron"
+  end
 end

@@ -9,7 +9,9 @@
             )}
           <% else %>
             {gettext(
-              "A room seats nine (eight speakers and an adjudicator), so the room count follows the sign-ups;"
+              "A room seats %{seats} (%{speakers} speakers and an adjudicator), so the room count follows the sign-ups;",
+              seats: Cab.Format.room_seats(Cab.Format.of(@current)),
+              speakers: Cab.Format.speeches(Cab.Format.of(@current))
             )}
           <% end %>
           <b>{gettext("nobody is placed automatically")}</b>
@@ -19,6 +21,7 @@
         </p>
       </div>
       <.allocator
+        format={Cab.Format.of(@current)}
         rooms={Cab.Sessions.rooms_for(@current, @state.signups)}
         auto={is_nil(@current.draft_rooms)}
         max_rooms={Cab.Sessions.max_rooms()}
@@ -39,6 +42,7 @@
         </p>
       </div>
       <.allocator
+        format={Cab.Format.of(@current)}
         rooms={Cab.Sessions.rooms_for(@current, @state.signups)}
         auto={is_nil(@current.draft_rooms)}
         max_rooms={Cab.Sessions.max_rooms()}

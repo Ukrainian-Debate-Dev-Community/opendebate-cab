@@ -38,7 +38,13 @@ defmodule Public.EventRequests do
       field("name", "text", gettext("Event name"), true),
       field("dates", "text", gettext("Dates"), true, gettext("For example 14-16 November 2026")),
       field("city", "text", gettext("City"), false),
-      field("format", "text", gettext("Format"), false, gettext("For example BP, APF, WSDC")),
+      field(
+        "format",
+        "text",
+        gettext("Format"),
+        false,
+        gettext("For example BP, Australs, WSDC")
+      ),
       field("details", "longtext", gettext("Details"), false)
     ]
   end

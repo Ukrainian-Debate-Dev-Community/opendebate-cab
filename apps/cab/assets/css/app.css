@@ -187,7 +187,8 @@ main.page-main { width:100%; flex:1 0 auto; }
           vertical-align:top; }
 .dnd td.room { font-weight:750; color:var(--brand); }
 .dnd td.team { border-left:3px solid; }
-.dnd td.t-og { border-left-color:var(--og); } .dnd td.t-oo { border-left-color:var(--oo); }
+.dnd td.t-og, .dnd td.t-gov { border-left-color:var(--og); }
+.dnd td.t-oo, .dnd td.t-opp { border-left-color:var(--oo); }
 .dnd td.t-cg { border-left-color:var(--cg); } .dnd td.t-co { border-left-color:var(--co); }
 .slot { height:1.625rem; border:1.5px dashed var(--line); border-radius:var(--r-xs);
         margin-bottom:var(--sp-1); display:flex; align-items:stretch; width:100%;

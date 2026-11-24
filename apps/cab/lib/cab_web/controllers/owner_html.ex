@@ -12,6 +12,12 @@ defmodule CabWeb.OwnerHTML do
 
   # template helpers
 
+  # a new session's format: the club's own when a head can choose it, else BP
+  defp opening_format(club, formats) do
+    keys = Enum.map(formats, & &1.key)
+    Enum.find(club.formats || [], "bp", &(&1 in keys))
+  end
+
   # where a session stands among its stages, for its steps
   @stages [:signup, :closed, :running, :done]
   defp step_state(stage, step) do
@@ -87,11 +93,6 @@ defmodule CabWeb.OwnerHTML do
   defp role_word("member"), do: gettext("member")
   defp role_word(other), do: other
 
-  defp seat_side("og"), do: gettext("OG")
-  defp seat_side("oo"), do: gettext("OO")
-  defp seat_side("cg"), do: gettext("CG")
-  defp seat_side("co"), do: gettext("CO")
-
   # where the person sits: the draft before rooms exist, the rooms after
   defp seat_words(participant, %{rooms: rooms}, _draft) when rooms != [] do
     Enum.find_value(rooms, gettext("waiting"), fn room ->
@@ -117,7 +118,7 @@ defmodule CabWeb.OwnerHTML do
       {key, _pid} ->
         case String.split(key, ":") do
           [room, "judge"] -> gettext("%{room} adjudicator", room: "R#{room}")
-          [room, side, _n] -> gettext("%{room} %{side}", room: "R#{room}", side: seat_side(side))
+          [room, side, _n] -> gettext("%{room} %{side}", room: "R#{room}", side: side_short(side))
         end
 
       nil ->
