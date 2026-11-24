@@ -588,6 +588,8 @@ defmodule Ui.Components do
     attr :state, :atom, values: [:done, :now, nil]
     attr :note, :string
     attr :dashed, :boolean
+    attr :patch, :string, doc: "the step opens this (a LiveView patch): steps as a switcher"
+    attr :open, :boolean, doc: "the step on view, when the steps switch"
   end
 
   def steps(assigns) do
@@ -595,10 +597,20 @@ defmodule Ui.Components do
     <ol class="steps" aria-label={@label}>
       <li
         :for={step <- @step}
-        class={[step[:state] && to_string(step.state), step[:dashed] && "dashed"]}
+        class={[
+          step[:state] && to_string(step.state),
+          step[:dashed] && "dashed",
+          step[:open] && "open"
+        ]}
         aria-current={step[:state] == :now && "step"}
       >
-        <span class="name">{render_slot(step)}</span>
+        <%= if step[:patch] do %>
+          <.link class="name" patch={step.patch} aria-current={step[:open] && "page"}>
+            {render_slot(step)}
+          </.link>
+        <% else %>
+          <span class="name">{render_slot(step)}</span>
+        <% end %>
         <small :if={step[:note]}>{step.note}</small>
       </li>
     </ol>

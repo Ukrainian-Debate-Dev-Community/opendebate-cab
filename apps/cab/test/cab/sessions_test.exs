@@ -1327,6 +1327,68 @@ defmodule Cab.SessionsTest do
     assert Sessions.user_history(user_fixture(%{node_user_id: nil})) == []
   end
 
+  test "reopen_session runs a finished session's event again and forgets the winner",
+       %{head: head, club: club} do
+    session =
+      session_fixture(club,
+        engine_event_id: 11,
+        engine_round_id: 21,
+        started_at: ~U[2026-10-09 18:00:00Z],
+        finished_at: ~U[2026-10-09 21:00:00Z],
+        winner_name: "Winners",
+        winner_user_ids: [444]
+      )
+
+    test_pid = self()
+
+    stub(fn conn, params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{
+            "id" => 11,
+            "name" => "Night",
+            "status" => "completed"
+          })
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1, "status" => "completed"}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [%{"id" => 71, "status" => "confirmed", "RoomTeams" => []}])
+
+        {"PUT", "/api/events/11"} ->
+          send(test_pid, {:event, params})
+          ok(conn, %{"id" => 11})
+      end
+    end)
+
+    assert :ok = Sessions.reopen_session(head, session)
+    assert_received {:event, %{"status" => "in_progress"}}
+
+    reopened = Sessions.get_by_uuid(session.uuid)
+
+    assert {reopened.finished_at, reopened.winner_name, reopened.winner_user_ids} ==
+             {nil, nil, []}
+
+    assert Sessions.stage_of(reopened) == :running
+
+    # only a finished session reopens: the engine's event runs again
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} -> ok(conn, %{"id" => 11, "status" => "in_progress"})
+        {"GET", "/api/events/11/rounds"} -> ok(conn, [%{"id" => 21, "sequence" => 1}])
+        {"GET", "/api/events/11/participants"} -> ok(conn, [])
+        {"GET", "/api/rounds/21/rooms"} -> ok(conn, [%{"id" => 71, "status" => "confirmed"}])
+      end
+    end)
+
+    assert {:error, :conflict, message} = Sessions.reopen_session(head, reopened)
+    assert message =~ "Only a finished session"
+  end
+
   test "finish completes round and event and records the winner verbatim",
        %{head: head, club: club} do
     session = session_fixture(club, engine_event_id: 11, engine_round_id: 21)

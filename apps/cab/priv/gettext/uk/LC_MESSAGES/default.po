@@ -699,6 +699,11 @@ msgstr "Скасувати вибір"
 msgid "Click the picture or the text to copy it, then paste it into the chat."
 msgstr "Натисніть на зображення або текст, щоб скопіювати, і вставте в чат."
 
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "Close registration"
+msgstr "Закрити реєстрацію"
+
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #: lib/cab_web/controllers/club_public_html/show.html.heex
@@ -914,6 +919,7 @@ msgstr "Дата і час"
 msgid "Debate clubs"
 msgstr "Дебатні клуби"
 
+#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Debates"
@@ -1141,7 +1147,7 @@ msgstr "Знайдіть свій клуб"
 msgid "Finish session"
 msgstr "Завершити сесію"
 
-#: lib/cab_web/controllers/owner_html/session.html.heex
+#: lib/cab_web/controllers/owner_html.ex
 #, elixir-autogen, elixir-format
 msgid "Finished"
 msgstr "Завершено"
@@ -1275,7 +1281,7 @@ msgstr "Якщо цим гостем були ви, додайте його ре
 msgid "In your time zone; members see it in theirs. No date removes it."
 msgstr "У вашому часовому поясі; учасники бачать його у своєму. Без дати час початку прибирається."
 
-#: lib/cab_web/controllers/owner_html/rooms_block.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Infoslide"
@@ -1367,7 +1373,7 @@ msgstr "Залишити окремо"
 msgid "Keep this link — it IS your access: anyone with it acts as you. It opens your view of this session: your registration, the rooms, and (if you adjudicate) the ballot."
 msgstr "Збережіть це посилання — це і є ваш доступ: будь-хто з ним діє від вашого імені. Воно відкриває ваш вигляд цієї сесії: вашу реєстрацію, кімнати та (якщо ви судите) белот."
 
-#: lib/cab_web/controllers/owner_html/rooms_block.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Keyword"
@@ -1510,7 +1516,7 @@ msgid "Most people in this session"
 msgstr "Найбільше людей у цій сесії"
 
 #: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/owner_html/rooms_block.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Motion"
@@ -1546,7 +1552,7 @@ msgstr "Резолюція: ще не опублікована"
 msgid "Motion: {motion}"
 msgstr "Резолюція: {motion}"
 
-#: lib/cab_web/controllers/owner_html/rooms_block.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Motions"
 msgstr "Резолюції"
@@ -1953,11 +1959,6 @@ msgstr "Попередній перегляд"
 msgid "Preview: this is what a visitor without an account sees in the club page's registration section. Nothing can be sent from here."
 msgstr "Попередній перегляд: так розділ реєстрації на сторінці клубу бачить відвідувач без облікового запису. Звідси нічого не надсилається."
 
-#: lib/cab_web/controllers/owner_html/session.html.heex
-#, elixir-autogen, elixir-format
-msgid "Previous sessions live on the"
-msgstr "Попередні сесії є на"
-
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Profile"
@@ -2050,8 +2051,8 @@ msgid "Registering for a session needs no account — the club shares one link."
 msgstr "Для реєстрації на сесію акаунт не потрібен — клуб надсилає одне посилання."
 
 #: lib/cab_web/controllers/club_public_html.ex
+#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex
-#: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registration"
 msgstr "Реєстрація"
@@ -2080,6 +2081,7 @@ msgid "Registration form preview"
 msgstr "Попередній перегляд форми реєстрації"
 
 #: lib/cab_web/controllers/club_public_controller.ex
+#: lib/cab_web/controllers/owner_html/session.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registration is closed for this session."
@@ -2148,8 +2150,18 @@ msgstr[2] ""
 
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
+msgid "Reopen it to edit a ballot or finish again: the results stay, the winners are recorded anew."
+msgstr "Відкрийте її знову, щоб виправити бюлетень або завершити ще раз: результати залишаться, переможців буде записано наново."
+
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
 msgid "Reopen registration"
 msgstr "Знову відкрити реєстрацію"
+
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "Reopen session"
+msgstr "Відкрити сесію знову"
 
 #: lib/cab_web/controllers/club_public_controller.ex
 #, elixir-autogen, elixir-format
@@ -2186,6 +2198,7 @@ msgid "Result"
 msgstr "Результат"
 
 #: lib/cab_web/components/layouts.ex
+#: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Results"
 msgstr "Результати"
@@ -2229,6 +2242,7 @@ msgid "Room %{room} — %{status}"
 msgstr "Кімната %{room} — %{status}"
 
 #: lib/cab_web/components/ui.ex
+#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -2371,6 +2385,11 @@ msgstr "Назва сесії"
 #, elixir-autogen, elixir-format
 msgid "Session opened. Registration is open."
 msgstr "Сесію відкрито. Реєстрація відкрита."
+
+#: lib/cab_web/controllers/owner_controller.ex
+#, elixir-autogen, elixir-format
+msgid "Session reopened. Finish it again when you are done."
+msgstr "Сесію відкрито знову. Завершіть її, коли закінчите."
 
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
@@ -2671,6 +2690,11 @@ msgstr "Поточний логотип"
 #, elixir-autogen, elixir-format
 msgid "The current session lives under Rooms."
 msgstr "Поточна сесія є в розділі «Кімнати»."
+
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "The debates start with the rooms: place everyone under Rooms, then Start session."
+msgstr "Дебати починаються з кімнат: розсадіть усіх у розділі «Кімнати», потім почніть сесію."
 
 #: lib/cab_web/controllers/owner_controller.ex
 #, elixir-autogen, elixir-format
@@ -2975,6 +2999,11 @@ msgstr "Ласкаво просимо до"
 msgid "When and where the club meets, e.g. Thursdays 18:30, Hrushevskoho 4."
 msgstr "Коли й де збирається клуб, наприклад: четвер 18:30, Грушевського 4."
 
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "When the debates are over, Finish session records the winners."
+msgstr "Коли дебати закінчаться, «Завершити сесію» запише переможців."
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Which format, e.g. Karl Popper"
@@ -3233,11 +3262,6 @@ msgstr "скасувати"
 msgid "closes registration and opens these rooms."
 msgstr "закриває реєстрацію й відкриває ці кімнати."
 
-#: lib/cab_web/controllers/owner_html/session.html.heex
-#, elixir-autogen, elixir-format
-msgid "club page"
-msgstr "сторінці клубу"
-
 #: lib/cab_web/controllers/owner_html/members.html.heex
 #, elixir-autogen, elixir-format
 msgid "contact: %{contact}"
@@ -3375,7 +3399,7 @@ msgstr "не прив'язано"
 msgid "not planned yet"
 msgstr "ще не заплановано"
 
-#: lib/cab_web/controllers/owner_html/rooms_block.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "not published yet"
 msgstr "ще не опубліковано"

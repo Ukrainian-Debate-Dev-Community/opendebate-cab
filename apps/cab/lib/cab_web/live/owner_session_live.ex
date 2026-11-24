@@ -32,6 +32,21 @@ defmodule CabWeb.OwnerSessionLive do
     end
   end
 
+  # ?stage=registration|rooms|debates|finished opens that part of the
+  # page; without it, the session's own stage
+  @impl true
+  def handle_params(params, _uri, socket) do
+    view =
+      Enum.find([:registration, :rooms, :debates, :finished], &(to_string(&1) == params["stage"]))
+
+    {:noreply, socket |> assign(:view_param, view) |> assign_view()}
+  end
+
+  defp assign_view(%{assigns: %{state: state}} = socket),
+    do: assign(socket, :view, socket.assigns[:view_param] || CabWeb.OwnerHTML.session_step(state))
+
+  defp assign_view(socket), do: socket
+
   @impl true
   def handle_info({:session_state, _uuid, state}, socket),
     do: {:noreply, load(socket, {:ok, state})}
@@ -331,6 +346,7 @@ defmodule CabWeb.OwnerSessionLive do
         Invitations.search(club, session, state.signups, socket.assigns.query)
       )
       |> assign(:page_title, "#{club.name} — #{state.event["name"]}")
+      |> assign_view()
     else
       _ ->
         socket

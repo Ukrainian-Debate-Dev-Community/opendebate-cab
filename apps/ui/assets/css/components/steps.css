@@ -13,4 +13,10 @@
 .steps .name { font-weight:760; font-size:var(--step-0); color:var(--muted); }
 .steps li.done .name { color:var(--ink); }
 .steps li.now .name { color:var(--brand); }
+/* steps as a switcher: each name opens its part of the page; the one
+   on view is underlined */
+.steps a.name { justify-self:start; min-height:var(--target); display:inline-flex; align-items:center;
+                text-decoration:none; }
+.steps a.name:hover { color:var(--brand); }
+.steps li.open .name { text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:.35em; }
 .steps small { font-size:var(--step-m2); color:var(--muted); font-weight:600; }

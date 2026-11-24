@@ -107,6 +107,11 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
+msgid "Only a finished session can be reopened."
+msgstr ""
+
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
 msgid "Only the club head can remove other people."
 msgstr ""
 

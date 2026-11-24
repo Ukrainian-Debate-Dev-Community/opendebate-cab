@@ -1857,6 +1857,33 @@ defmodule Cab.Sessions do
   end
 
   @doc """
+  REOPENS a finished session: the engine's event runs again and cab
+  forgets that it finished and who won - every ballot and result
+  stays, so a ballot can be edited and the session finished again
+  (which records the winners anew). The engine keeps its round
+  completed, so a reopened session takes no new rooms. Head only (the
+  owner routes); `{:error, :conflict, message}` unless finished.
+  """
+  def reopen_session(%User{} = head, %Session{} = session) do
+    result =
+      with {:ok, actor} <- owner_actor(head, session_club(session)),
+           {:ok, state} <- state(session),
+           :ok <- require_finished(state),
+           {:ok, _} <-
+             EngineApi.update_event(actor, session.engine_event_id, %{status: "in_progress"}) do
+        record(session, finished_at: nil, winner_name: nil, winner_user_ids: [])
+        :ok
+      end
+
+    notify(result, session)
+  end
+
+  defp require_finished(%{stage: :done}), do: :ok
+
+  defp require_finished(_state),
+    do: {:error, :conflict, dgettext("errors", "Only a finished session can be reopened.")}
+
+  @doc """
   A guest's place claimed after the session finished: if that place
   was on a winning team, the account that claimed it is credited with
   the win (the winners were recorded when the guest had no account).

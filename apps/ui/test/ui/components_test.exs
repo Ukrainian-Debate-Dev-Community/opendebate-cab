@@ -427,4 +427,21 @@ defmodule Ui.ComponentsTest do
 
     assert html =~ ~r{<li class="dashed">\s*<span class="name">Semis</span>}
   end
+
+  test "steps as a switcher: each name a patch link, the one on view marked" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.steps label="Session stages">
+        <:step state={:done} patch="/s?stage=registration">Registration</:step>
+        <:step state={:now} patch="/s?stage=rooms" open>Rooms</:step>
+      </.steps>
+      """)
+
+    assert html =~ ~r{<li class="now open" aria-current="step">}
+    assert html =~ ~s(href="/s?stage=rooms")
+    assert html =~ ~s(data-phx-link="patch")
+    assert html =~ ~s(aria-current="page")
+  end
 end

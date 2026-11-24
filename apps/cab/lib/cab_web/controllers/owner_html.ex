@@ -36,6 +36,16 @@ defmodule CabWeb.OwnerHTML do
       else: :rooms
   end
 
+  # the stages as the steps name them
+  defp step_names do
+    [
+      registration: gettext("Registration"),
+      rooms: gettext("Rooms"),
+      debates: gettext("Debates"),
+      finished: gettext("Finished")
+    ]
+  end
+
   # a step behind the current one is done; a finished session is all done
   defp step_state(state, step) do
     current = session_step(state)
@@ -185,8 +195,10 @@ defmodule CabWeb.OwnerHTML do
     )
   end
 
-  defp deletable_rooms?(%{stage: :running, rooms: rooms}) when rooms != [],
-    do: Enum.all?(rooms, &(&1["status"] == "pending"))
+  # back to Rooms: only while no room has started, and not in a session
+  # reopened after it finished (the engine keeps its round completed)
+  defp deletable_rooms?(%{stage: :running, rooms: rooms, round: round}) when rooms != [],
+    do: Enum.all?(rooms, &(&1["status"] == "pending")) and round["status"] != "completed"
 
   defp deletable_rooms?(_state), do: false
 

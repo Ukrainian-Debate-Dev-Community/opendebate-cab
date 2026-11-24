@@ -106,7 +106,9 @@ defmodule CabWeb.PeopleBatchTest do
   end
 
   defp page(conn, user, club, session) do
-    {:ok, view, _html} = conn |> log_in(user) |> live(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+    {:ok, view, _html} =
+      conn |> log_in(user) |> live(~p"/c/#{club.uuid}/owner/s/#{session.uuid}?stage=registration")
+
     view
   end
 

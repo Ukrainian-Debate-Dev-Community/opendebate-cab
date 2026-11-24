@@ -420,7 +420,7 @@ defmodule CabWeb.FeedbackTest do
       html =
         conn
         |> log_in(head)
-        |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+        |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}?stage=debates")
         |> html_response(200)
 
       assert html =~ "1 of 4 teams"

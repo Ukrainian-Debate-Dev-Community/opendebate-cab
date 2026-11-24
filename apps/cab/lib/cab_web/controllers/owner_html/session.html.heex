@@ -6,6 +6,7 @@
   nav_session={@nav_session}
   active="rooms"
 >
+  <%!-- the command bar carries the actions of the stage on view --%>
   <.chrome
     crumbs={[
       {@club.name, ~p"/c/#{@club.uuid}"},
@@ -13,38 +14,45 @@
     ]}
     here={"#{@state.event["name"]} — #{stage_words(@state.stage)}"}
   >
-    <:seg href={~p"/c/#{@club.uuid}/owner/form"}>{gettext("Registration form")}</:seg>
-    <:seg href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/responses"}>
-      {gettext("Responses")}
-    </:seg>
-    <:seg :if={@state.stage == :signup} form="allocator-form" primary>
-      {gettext("Start session")}
-    </:seg>
-    <:seg :if={@state.stage == :closed} form="allocator-form" primary>
-      {gettext("Start session")}
+    <:seg :if={@view == :registration} href={~p"/c/#{@club.uuid}/owner/form"}>
+      {gettext("Registration form")}
     </:seg>
     <:seg
-      :if={@state.stage == :closed}
+      :if={@view == :registration}
+      href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/responses"}
+    >
+      {gettext("Responses")}
+    </:seg>
+    <:seg
+      :if={@view == :registration and @state.stage == :signup}
+      href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/close-signups"}
+      method="post"
+    >
+      {gettext("Close registration")}
+    </:seg>
+    <:seg
+      :if={@view == :registration and @state.stage == :closed}
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-signups"}
       method="post"
     >
       {gettext("Reopen registration")}
     </:seg>
     <:seg
-      :if={@my_ballot_room}
-      href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{@my_ballot_room["id"]}/ballot"}
-    >
-      {gettext("Fill ballot — %{room}", room: room_label(@my_ballot_room))}
-    </:seg>
-    <:seg
-      :if={Cab.Sessions.deletable?(@state)}
+      :if={@view == :registration and Cab.Sessions.deletable?(@state)}
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/delete"}
       quiet
     >
       {gettext("Delete session")}
     </:seg>
     <:seg
-      :if={@state.stage == :running && deletable_rooms?(@state)}
+      :if={@view == :rooms and @state.stage in [:signup, :closed]}
+      form="allocator-form"
+      primary
+    >
+      {gettext("Start session")}
+    </:seg>
+    <:seg
+      :if={@view == :rooms and deletable_rooms?(@state)}
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen-registration"}
       method="post"
       quiet
@@ -52,12 +60,32 @@
       {gettext("Delete rooms")}
     </:seg>
     <:seg
-      :if={@state.stage == :running}
+      :if={@view == :debates and @my_ballot_room}
+      href={~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{@my_ballot_room["id"]}/ballot"}
+    >
+      {gettext("Fill ballot — %{room}", room: room_label(@my_ballot_room))}
+    </:seg>
+    <:seg
+      :if={@view == :debates and @state.stage == :running}
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/finish"}
       method="post"
       primary
     >
       {gettext("Finish session")}
+    </:seg>
+    <:seg
+      :if={@view == :finished and @state.stage == :done}
+      href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}
+    >
+      {gettext("Results")}
+    </:seg>
+    <:seg
+      :if={@view == :finished and @state.stage == :done}
+      href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/reopen"}
+      method="post"
+      quiet
+    >
+      {gettext("Reopen session")}
     </:seg>
   </.chrome>
 
@@ -71,11 +99,16 @@
       </:meta>
     </.page_head>
 
+    <%!-- where the session is; each stage opens its own part of the page --%>
     <.steps label={gettext("Session stages")}>
-      <:step state={step_state(@state, :registration)}>{gettext("Registration")}</:step>
-      <:step state={step_state(@state, :rooms)}>{gettext("Rooms")}</:step>
-      <:step state={step_state(@state, :debates)}>{gettext("Debates")}</:step>
-      <:step state={step_state(@state, :finished)}>{gettext("Finished")}</:step>
+      <:step
+        :for={{step, name} <- step_names()}
+        state={step_state(@state, step)}
+        patch={~p"/c/#{@club.uuid}/owner/s/#{@current.uuid}?#{[stage: step]}"}
+        open={@view == step}
+      >
+        {name}
+      </:step>
     </.steps>
 
     <%!-- the numbers once there are rooms; before, People counts the sign-ups --%>
@@ -85,34 +118,52 @@
       <:stat label={gettext("Ballots in")}>{ballots_in(@state.rooms)}</:stat>
     </.stats>
 
-    <%= case @state.stage do %>
-      <% :done -> %>
-        <.section title={gettext("Session")} pad>
-          {gettext("This session is finished — results live on the")}
-          <.link href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}>{gettext("session page")}</.link>.
-          <p>
-            {gettext("Previous sessions live on the")}
-            <.link href={~p"/c/#{@club.uuid}/owner"}>{gettext("club page")}</.link>.
-          </p>
-        </.section>
-        {feedback_block(assigns)}
-      <% :running -> %>
-        {rooms_block(assigns)}
-        {signups_block(assigns)}
-      <% _signup_or_closed -> %>
+    <%= case @view do %>
+      <% :registration -> %>
         <.copy_banner :if={@state.stage == :signup} id="shared-registration-url" url={@short_url}>
           {gettext("Share to register: the club page")}
         </.copy_banner>
-        <%!-- the people beside what changes them (on phones the forms lead);
-             the allocator needs the full width under them --%>
-        <div class="split">
-          <div class="stack">{signups_block(assigns)}</div>
-          <div class="stack lead">
-            {registration_block(assigns)}
-            {schedule_block(assigns)}
+        <.banner :if={@state.stage != :signup} kind={:info}>
+          {gettext("Registration is closed for this session.")}
+        </.banner>
+        <%!-- the people beside what changes them (on phones the forms lead) --%>
+        <%= if @state.stage in [:signup, :closed] do %>
+          <div class="split">
+            <div class="stack">{signups_block(assigns)}</div>
+            <div class="stack lead">
+              {registration_block(assigns)}
+              {schedule_block(assigns)}
+            </div>
           </div>
-        </div>
+        <% else %>
+          {signups_block(assigns)}
+        <% end %>
+      <% :rooms -> %>
         {rooms_block(assigns)}
+      <% :debates -> %>
+        <%= if @state.rooms != [] do %>
+          {debates_block(assigns)}
+        <% else %>
+          <.section title={gettext("Debates")} pad>
+            {gettext(
+              "The debates start with the rooms: place everyone under Rooms, then Start session."
+            )}
+          </.section>
+        <% end %>
+      <% :finished -> %>
+        <.section title={gettext("Session")} pad>
+          <%= if @state.stage == :done do %>
+            {gettext("This session is finished — results live on the")}
+            <.link href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}>{gettext("session page")}</.link>.
+            <p>
+              {gettext(
+                "Reopen it to edit a ballot or finish again: the results stay, the winners are recorded anew."
+              )}
+            </p>
+          <% else %>
+            {gettext("When the debates are over, Finish session records the winners.")}
+          <% end %>
+        </.section>
     <% end %>
   </div>
 </Layouts.app>

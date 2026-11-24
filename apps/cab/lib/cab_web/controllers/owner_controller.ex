@@ -633,6 +633,31 @@ defmodule CabWeb.OwnerController do
 
   # POST .../owner/sessions/:session_uuid/finish - results live on
   # the public session page
+  # POST .../owner/sessions/:uuid/reopen - a finished session runs again
+  # (its results stay); back to the head's page on its Debates
+  def reopen_session(conn, %{"session_uuid" => session_uuid}) do
+    case Sessions.get_for_club(conn.assigns.club, session_uuid) do
+      %Session{} = session ->
+        back = ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}"
+
+        case Sessions.reopen_session(conn.assigns.current_user, session) do
+          :ok ->
+            conn
+            |> put_flash(:info, gettext("Session reopened. Finish it again when you are done."))
+            |> redirect(to: back)
+
+          {:error, :conflict, message} ->
+            conn |> put_flash(:error, message) |> redirect(to: back)
+
+          {:error, message} ->
+            conn |> put_flash(:error, error_message(message)) |> redirect(to: back)
+        end
+
+      nil ->
+        conn |> CabWeb.ErrorHTML.respond(404)
+    end
+  end
+
   def finish(conn, %{"session_uuid" => session_uuid}) do
     case Sessions.get_for_club(conn.assigns.club, session_uuid) do
       %Session{} = session ->
