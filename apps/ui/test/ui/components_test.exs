@@ -378,7 +378,7 @@ defmodule Ui.ComponentsTest do
   # stats and steps
   # ---------------------------------------------------------------
 
-  test "stats: a label over each figure, a note beside it" do
+  test "stats: a label over each figure, a note under it" do
     assigns = %{}
 
     html =
@@ -392,6 +392,17 @@ defmodule Ui.ComponentsTest do
     assert html =~ ~r{<dl[^>]* class="stats">}
     assert html =~ ~r{<dt>Members</dt>\s*<dd>42<span class="note">\+5 this month</span></dd>}
     assert html =~ ~r{<dt>Sessions</dt>\s*<dd>18</dd>}
+  end
+
+  test "stats: phones keeps a page's main figures on phones" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <.stats phones><:stat label="Win rate">50%</:stat></.stats>
+      """)
+
+    assert html =~ ~r{<dl[^>]* class="stats phones">}
   end
 
   test "steps: the current one is marked for screen readers, a break dashed" do

@@ -10,14 +10,19 @@
       lead={if @current_user.name, do: "@" <> @current_user.username}
     />
 
-    <%!-- the engine's figures as it reports them, and counts of cab's own rows --%>
-    <.stats id="me-stats">
-      <:stat label={gettext("My clubs")}>{length(@memberships)}</:stat>
-      <:stat label={gettext("Sessions")}>{length(@history)}</:stat>
+    <%!-- the engine's figures as it reports them first, then counts of
+         cab's own rows; on phones too: they are what this page is for --%>
+    <.stats id="me-stats" phones>
       <:stat
         :if={@stats}
         label={gettext("Ranked debates")}
-        note={gettext("%{count} ballots", count: @stats["overview"]["total_ballots_received"])}
+        note={
+          ngettext(
+            "%{count} ballot",
+            "%{count} ballots",
+            @stats["overview"]["total_ballots_received"] || 0
+          )
+        }
       >
         {@stats["overview"]["total_debates_ranked"]}
       </:stat>
@@ -36,10 +41,18 @@
       <:stat
         :if={@stats}
         label={gettext("Win rate")}
-        note={gettext("%{count} 1st places", count: @stats["placements"]["first_places"])}
+        note={
+          ngettext(
+            "%{count} first place",
+            "%{count} first places",
+            @stats["placements"]["first_places"] || 0
+          )
+        }
       >
         {fixed(@stats["placements"]["win_rate_percentage"], 1)}%
       </:stat>
+      <:stat label={gettext("My clubs")}>{length(@memberships)}</:stat>
+      <:stat label={gettext("Sessions")}>{length(@history)}</:stat>
     </.stats>
     <p :if={!@stats} class="mut">
       {gettext("No logged debates yet — stats appear after your first scored round.")}

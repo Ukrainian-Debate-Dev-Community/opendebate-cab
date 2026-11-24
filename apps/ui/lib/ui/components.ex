@@ -553,6 +553,7 @@ defmodule Ui.Components do
       </.stats>
   """
   attr :id, :string, default: nil
+  attr :phones, :boolean, default: false, doc: "shown on phones too (the page's main figures)"
 
   slot :stat, required: true do
     attr :label, :string, required: true
@@ -561,7 +562,7 @@ defmodule Ui.Components do
 
   def stats(assigns) do
     ~H"""
-    <dl class="stats" id={@id}>
+    <dl class={if @phones, do: "stats phones", else: "stats"} id={@id}>
       <div :for={stat <- @stat} class="stat">
         <dt>{stat.label}</dt>
         <dd>{render_slot(stat)}<span :if={stat[:note]} class="note">{stat.note}</span></dd>

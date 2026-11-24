@@ -49,7 +49,8 @@ defmodule CabWeb.MePageTest do
 
     html = conn |> log_in(user) |> get(~p"/me") |> html_response(200)
 
-    assert html =~ ~s(id="me-stats")
+    # the figures stay on phones: they are what the page is for
+    assert html =~ ~s(class="stats phones" id="me-stats")
     # the engine's numbers, as reported - nothing recomputed
     assert html =~ "77.40"
     assert html =~ "27.3%"
