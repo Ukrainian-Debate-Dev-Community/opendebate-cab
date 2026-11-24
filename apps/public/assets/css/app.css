@@ -28,11 +28,11 @@ a { color:var(--brand); }
 .skip:focus { top:var(--sp-3); }
 .site-main:focus { outline:none; }
 
-/* header: one bar on every page, its content on the page's width; it
-   stays at the top while the page scrolls under it */
+/* header: one bar on every page, across the whole window; it stays at
+   the top while the page scrolls under it */
 .site-head { position:sticky; top:0; z-index:20; border-bottom:1px solid var(--line);
              background:color-mix(in oklch, var(--surface) 88%, transparent); backdrop-filter:blur(8px); }
-.site-head-in { position:relative; max-width:var(--w-page); margin:0 auto; min-height:3.75rem; padding:0 var(--sp-7);
+.site-head-in { position:relative; min-height:3.75rem; padding:0 var(--sp-7);
                 display:flex; align-items:center; gap:var(--sp-5); }
 .site-brand { font-size:var(--step-3); line-height:1; }
 .site-links { display:flex; align-items:center; gap:var(--sp-3); margin-left:auto; }
