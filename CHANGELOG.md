@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.8.0 - 2026-11-24
+
+6 features, 2 fixes, 1 refactor, 3 chore; breaking: 0
+
+### Features
+
+- public: the header like the design, with a Menu on phones (#85) by @merv1n34k
+- cab: the owner pages laid out like the others (#84) by @merv1n34k
+- cab: the admin page like the others (#80) by @merv1n34k
+- cab: My page and the session page laid out like the club page (#76) by @merv1n34k
+- the clubs page like the design; phones skip the key numbers (#79) by @merv1n34k
+- public: the calendar like the design, with a month grid on phones (#78) by @merv1n34k
+
+### Fixes
+
+- cab: My page keeps its figures on phones (#83) by @merv1n34k
+- ui: the phone field stays on one line (#81) by @merv1n34k
+
+### Other
+
+- refactor: one copy of each style; the public site without the ua- prefix (#82) by @merv1n34k
+- chore(dev): dev:up fetches the deps and says when nix is missing (#77) by @merv1n34k
+- chore(ui): every size, gap and radius from the tokens (#74) by @merv1n34k
+- chore(deps): bump phoenix to 1.8.17 for two HIGH advisories (#75) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 12 commits
+
 ## v0.7.0 - 2026-11-21
 
 3 features, 1 chore; breaking: 0
