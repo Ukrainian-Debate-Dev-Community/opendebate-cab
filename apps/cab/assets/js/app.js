@@ -604,20 +604,6 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
-// the phone menu: the sidenav folds into a top bar with a Menu button.
-// The open state lives on <html>, which LiveView never patches, so a
-// server update cannot close it under the reader's thumb.
-const setNav = open => {
-  document.documentElement.classList.toggle("nav-open", open)
-  document.querySelectorAll("[data-nav-toggle]").forEach(b => b.setAttribute("aria-expanded", String(open)))
-}
-document.addEventListener("click", e => {
-  if (e.target.closest("[data-nav-toggle]")) return setNav(!document.documentElement.classList.contains("nav-open"))
-  if (e.target.closest("#sidenav-menu a")) setNav(false)
-})
-document.addEventListener("keydown", e => { if (e.key === "Escape") setNav(false) })
-window.addEventListener("phx:page-loading-stop", () => setNav(false))
-
 // The lines below enable quality of life phoenix_live_reload
 // development features:
 //

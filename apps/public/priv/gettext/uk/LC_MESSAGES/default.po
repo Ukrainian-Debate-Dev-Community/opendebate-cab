@@ -674,6 +674,11 @@ msgstr "Мова: %{language}"
 msgid "Link"
 msgstr "Посилання"
 
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Main"
+msgstr "Головне меню"
+
 #: lib/public_web/controllers/manage/html/event.html.heex
 #, elixir-autogen, elixir-format
 msgid "Make private"
@@ -733,6 +738,11 @@ msgstr "Зустрічі"
 #, elixir-autogen, elixir-format
 msgid "Members"
 msgstr "Члени"
+
+#: lib/public_web/components/site.ex
+#, elixir-autogen, elixir-format
+msgid "Menu"
+msgstr "Меню"
 
 #: lib/public_web/components/site.ex
 #, elixir-autogen, elixir-format
@@ -1255,6 +1265,11 @@ msgstr "Від"
 #, elixir-autogen, elixir-format
 msgid "Site"
 msgstr "Сайт"
+
+#: lib/public_web/components/layouts.ex
+#, elixir-autogen, elixir-format
+msgid "Skip to content"
+msgstr "Перейти до змісту"
 
 #: lib/public_web/controllers/error_html.ex
 #, elixir-autogen, elixir-format
