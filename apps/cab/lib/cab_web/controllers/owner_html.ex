@@ -12,14 +12,32 @@ defmodule CabWeb.OwnerHTML do
 
   # template helpers
 
-  # where a session stands among its stages, for its steps
-  @stages [:signup, :closed, :running, :done]
-  defp step_state(stage, step) do
-    now = Enum.find_index(@stages, &(&1 == stage))
-    at = Enum.find_index(@stages, &(&1 == step))
+  @steps [:registration, :rooms, :debates, :finished]
+
+  @doc """
+  Where the head is in a session (its state from Cab.Sessions.state/1):
+  `:registration` while it is open; `:rooms` once it closes or the
+  rooms are made, until a motion is out; `:debates` from the first
+  motion or ballot; `:finished`.
+  """
+  def session_step(%{stage: :signup}), do: :registration
+  def session_step(%{stage: :closed}), do: :rooms
+  def session_step(%{stage: :done}), do: :finished
+
+  def session_step(%{rooms: rooms}) do
+    if Enum.any?(rooms, &(Cab.Sessions.motion?(&1) or &1["status"] != "pending")),
+      do: :debates,
+      else: :rooms
+  end
+
+  # a step behind the current one is done; a finished session is all done
+  defp step_state(state, step) do
+    current = session_step(state)
+    now = Enum.find_index(@steps, &(&1 == current))
+    at = Enum.find_index(@steps, &(&1 == step))
 
     cond do
-      at < now -> :done
+      current == :finished or at < now -> :done
       at == now -> :now
       true -> nil
     end

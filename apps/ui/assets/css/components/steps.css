@@ -1,12 +1,16 @@
-/* steps/1: a sequence and where it stands; scrolls sideways when it
-   does not fit */
-.steps { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(6.5rem, 1fr); gap:var(--sp-1);
+/* steps/1: a sequence and where it stands, as one bar - filled up to
+   the current step, the current one half - with the steps' names under
+   it; scrolls sideways when it does not fit */
+.steps { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(6.5rem, 1fr); gap:0;
          list-style:none; padding:0; margin:0; overflow-x:auto; }
-.steps li { display:grid; gap:2px; padding:var(--sp-2) var(--sp-3); border-radius:var(--r-sm);
-            border-top:4px solid var(--line); background:var(--surface); }
-.steps .name { font-weight:760; font-size:var(--step-0); }
-.steps small { font-size:var(--step-m2); color:var(--muted); font-weight:600; }
-.steps li.done { border-top-color:var(--ok); }
-.steps li.now { border-top-color:var(--brand-fill); background:var(--brand-50); }
+.steps li { position:relative; display:grid; gap:2px; padding:var(--sp-3) var(--sp-3) 0 0; }
+.steps li::before { content:""; position:absolute; top:0; left:0; right:0; height:.375rem; background:var(--line); }
+.steps li:first-child::before { border-radius:var(--r-pill) 0 0 var(--r-pill); }
+.steps li:last-child::before { border-radius:0 var(--r-pill) var(--r-pill) 0; }
+.steps li.done::before { background:var(--brand-fill); }
+.steps li.now::before { background:linear-gradient(90deg, var(--brand-fill) 50%, var(--line) 50%); }
+.steps li.dashed::before { background:repeating-linear-gradient(90deg, var(--line) 0 .5rem, transparent .5rem .75rem); }
+.steps .name { font-weight:760; font-size:var(--step-0); color:var(--muted); }
+.steps li.done .name { color:var(--ink); }
 .steps li.now .name { color:var(--brand); }
-.steps li.dashed { border-top-style:dashed; }
+.steps small { font-size:var(--step-m2); color:var(--muted); font-weight:600; }
