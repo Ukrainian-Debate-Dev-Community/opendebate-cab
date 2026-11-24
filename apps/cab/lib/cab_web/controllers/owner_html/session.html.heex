@@ -72,10 +72,10 @@
     </.page_head>
 
     <.steps label={gettext("Session stages")}>
-      <:step state={step_state(@state.stage, :signup)}>{gettext("Registration")}</:step>
-      <:step state={step_state(@state.stage, :closed)}>{gettext("Rooms")}</:step>
-      <:step state={step_state(@state.stage, :running)}>{gettext("Debates")}</:step>
-      <:step state={step_state(@state.stage, :done)}>{gettext("Finished")}</:step>
+      <:step state={step_state(@state, :registration)}>{gettext("Registration")}</:step>
+      <:step state={step_state(@state, :rooms)}>{gettext("Rooms")}</:step>
+      <:step state={step_state(@state, :debates)}>{gettext("Debates")}</:step>
+      <:step state={step_state(@state, :finished)}>{gettext("Finished")}</:step>
     </.steps>
 
     <%!-- the numbers once there are rooms; before, People counts the sign-ups --%>
