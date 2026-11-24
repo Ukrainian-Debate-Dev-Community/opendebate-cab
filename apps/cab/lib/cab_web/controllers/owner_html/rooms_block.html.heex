@@ -67,7 +67,7 @@
         </:col>
         <:col
           :let={room}
-          :for={{label, position, side_class} <- sides()}
+          :for={{label, position, side_class} <- sides(Cab.Format.of(@current))}
           label={label}
           class={"side #{side_class}"}
         >
@@ -101,29 +101,4 @@
         </:col>
       </.table>
     </.section>
-
-    <.section title={gettext("Motions")}>
-      <.table
-        id="session-motions"
-        rows={@state.rooms}
-        row_href={fn room -> ~p"/c/#{@club.uuid}/s/#{@current.uuid}/rooms/#{room["id"]}" end}
-      >
-        <:col :let={room} class="rank">{room_label(room)}</:col>
-        <:col :let={room} label={gettext("Motion")}>
-          <%= if motion = room["Motion"] do %>
-            <b>{motion["motion_text"]}</b>
-          <% else %>
-            <span class="mut">{gettext("not published yet")}</span>
-          <% end %>
-        </:col>
-        <:col :let={room} label={gettext("Infoslide")}>
-          {get_in(room, ["Motion", "infoslide"]) || "—"}
-        </:col>
-        <:col :let={room} label={gettext("Keyword")}>
-          {get_in(room, ["Motion", "keyword"]) || "—"}
-        </:col>
-      </.table>
-    </.section>
-
-    {feedback_block(assigns)}
 <% end %>

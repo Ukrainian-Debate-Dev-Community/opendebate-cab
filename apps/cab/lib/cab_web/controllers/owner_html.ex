@@ -18,14 +18,42 @@ defmodule CabWeb.OwnerHTML do
     Enum.find(club.formats || [], "bp", &(&1 in keys))
   end
 
-  # where a session stands among its stages, for its steps
-  @stages [:signup, :closed, :running, :done]
-  defp step_state(stage, step) do
-    now = Enum.find_index(@stages, &(&1 == stage))
-    at = Enum.find_index(@stages, &(&1 == step))
+  @steps [:registration, :rooms, :debates, :finished]
+
+  @doc """
+  Where the head is in a session (its state from Cab.Sessions.state/1):
+  `:registration` while it is open; `:rooms` once it closes or the
+  rooms are made, until a motion is out; `:debates` from the first
+  motion or ballot; `:finished`.
+  """
+  def session_step(%{stage: :signup}), do: :registration
+  def session_step(%{stage: :closed}), do: :rooms
+  def session_step(%{stage: :done}), do: :finished
+
+  def session_step(%{rooms: rooms}) do
+    if Enum.any?(rooms, &(Cab.Sessions.motion?(&1) or &1["status"] != "pending")),
+      do: :debates,
+      else: :rooms
+  end
+
+  # the stages as the steps name them
+  defp step_names do
+    [
+      registration: gettext("Registration"),
+      rooms: gettext("Rooms"),
+      debates: gettext("Debates"),
+      finished: gettext("Finished")
+    ]
+  end
+
+  # a step behind the current one is done; a finished session is all done
+  defp step_state(state, step) do
+    current = session_step(state)
+    now = Enum.find_index(@steps, &(&1 == current))
+    at = Enum.find_index(@steps, &(&1 == step))
 
     cond do
-      at < now -> :done
+      current == :finished or at < now -> :done
       at == now -> :now
       true -> nil
     end
@@ -94,7 +122,7 @@ defmodule CabWeb.OwnerHTML do
   defp role_word(other), do: other
 
   # where the person sits: the draft before rooms exist, the rooms after
-  defp seat_words(participant, %{rooms: rooms}, _draft) when rooms != [] do
+  defp seat_words(participant, %{rooms: rooms}, _draft, format) when rooms != [] do
     Enum.find_value(rooms, gettext("waiting"), fn room ->
       cond do
         Enum.any?(room["RoomAdjudicators"] || [], &seat_of?(&1, participant)) ->
@@ -105,7 +133,10 @@ defmodule CabWeb.OwnerHTML do
               room["RoomTeams"] || [],
               &Enum.any?(&1["RoomSpeakers"] || [], fn s -> seat_of?(s, participant) end)
             ) ->
-          gettext("%{room} %{side}", room: room_label(room), side: side_code(team["position"]))
+          gettext("%{room} %{side}",
+            room: room_label(room),
+            side: side_code(team["position"], format)
+          )
 
         true ->
           nil
@@ -113,7 +144,7 @@ defmodule CabWeb.OwnerHTML do
     end)
   end
 
-  defp seat_words(participant, _state, draft) do
+  defp seat_words(participant, _state, draft, _format) do
     case Enum.find(draft, fn {_key, pid} -> pid == participant["id"] end) do
       {key, _pid} ->
         case String.split(key, ":") do
@@ -164,8 +195,10 @@ defmodule CabWeb.OwnerHTML do
     )
   end
 
-  defp deletable_rooms?(%{stage: :running, rooms: rooms}) when rooms != [],
-    do: Enum.all?(rooms, &(&1["status"] == "pending"))
+  # back to Rooms: only while no room has started, and not in a session
+  # reopened after it finished (the engine keeps its round completed)
+  defp deletable_rooms?(%{stage: :running, rooms: rooms, round: round}) when rooms != [],
+    do: Enum.all?(rooms, &(&1["status"] == "pending")) and round["status"] != "completed"
 
   defp deletable_rooms?(_state), do: false
 

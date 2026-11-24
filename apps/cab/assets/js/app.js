@@ -75,7 +75,7 @@ const BallotMath = {
       if (tied) {
         const err = document.createElement("span")
         err.className = "err"
-        err.textContent = t("ballot_tied", "Two teams share a total. BP allows no ties, so adjust the scores.")
+        err.textContent = t("ballot_tied", "Two teams share a total. Teams can't tie, so adjust the scores.")
         this.msg.replaceChildren(err)
       } else {
         this.msg.textContent = t("ballot_ready", "Ready to submit.")

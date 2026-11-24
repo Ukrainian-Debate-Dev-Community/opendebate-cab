@@ -753,10 +753,11 @@ defmodule CabWeb.HtmlTreesTest do
       |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
       |> html_response(200)
 
-    # stage words in the crumb, chrome actions for :signup only:
-    # the ONE gold action is Start session, submitting the allocator
+    # stage words in the crumb; the page opens on Registration, its
+    # chrome the registration's actions
     assert html =~ "registration open"
-    assert html =~ "Start session"
+    assert html =~ "Close registration"
+    refute html =~ "Start session"
     refute html =~ "Close sign-ups"
     refute html =~ "Cancel session"
     refute html =~ "Reopen sign-ups"
@@ -774,8 +775,15 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(phx-click="add_member")
     assert html =~ "benched"
 
-    # the EMBEDDED allocator: automatic room count, EMPTY slots -
-    # nobody is ever placed automatically
+    # Rooms: the allocator - automatic room count, EMPTY slots, nobody
+    # ever placed automatically - and the ONE gold action, Start session
+    html =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}?stage=rooms")
+      |> html_response(200)
+
+    assert html =~ "Start session"
     assert html =~ ~s(id="allocator-form" phx-submit="start")
     assert html =~ ~s(phx-hook="Allocator")
     assert html =~ "count automatic"
@@ -797,12 +805,21 @@ defmodule CabWeb.HtmlTreesTest do
       |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
       |> html_response(200)
 
-    # the allocator is embedded here too; Start session submits it
+    # closed registration opens on Rooms: the allocator, Start session
+    # submits it
     assert html =~ "Start session"
     assert html =~ ~s(id="allocator-form")
     assert html =~ ~s(phx-submit="make_rooms")
-    assert html =~ "Reopen registration"
     assert html =~ "registration closed"
+
+    # Registration carries the way back
+    registration =
+      conn
+      |> log_in(head)
+      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}?stage=registration")
+      |> html_response(200)
+
+    assert registration =~ "Reopen registration"
     refute html =~ "Close sign-ups"
     refute html =~ "Compose rooms"
 
@@ -963,7 +980,7 @@ defmodule CabWeb.HtmlTreesTest do
     html =
       conn
       |> log_in(head)
-      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}?stage=rooms")
       |> html_response(200)
 
     # the allocator: a tray of draggable chips over keyed slots the
@@ -1538,7 +1555,7 @@ defmodule CabWeb.HtmlTreesTest do
     html =
       conn
       |> log_in(head)
-      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
+      |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}?stage=rooms")
       |> html_response(200)
 
     assert html =~ "Delete rooms"

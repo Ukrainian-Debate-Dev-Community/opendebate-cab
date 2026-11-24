@@ -1021,6 +1021,65 @@ defmodule Cab.SessionsTest do
     assert_received {:confirmed, %{"id" => 9}}
   end
 
+  # an Australs room: Government v Opposition, three speakers each
+  defp australs_room do
+    %{
+      engine_room()
+      | "RoomTeams" =>
+          for position <- 1..2 do
+            %{
+              "id" => 100 + position,
+              "position" => position,
+              "Team" => %{"name" => "Team #{position}"},
+              "RoomSpeakers" =>
+                for n <- 1..3 do
+                  %{
+                    "id" => 200 + position * 3 - 3 + n,
+                    "EventParticipant" => %{"id" => 300 + position * 3 - 3 + n}
+                  }
+                end
+            }
+          end
+    }
+  end
+
+  test "an Australs ballot: six scores, the higher total wins", %{club: club} do
+    judge = user_fixture(%{node_user_id: 77})
+    session = session_fixture(club, engine_event_id: 11, format: "aus")
+    stub_ballot_room(australs_room(), self())
+
+    scores =
+      for position <- 1..2, n <- 1..3 do
+        %{
+          "position" => position,
+          "speaker_participant_id" => 300 + position * 3 - 3 + n,
+          "iron" => false,
+          "score" => if(position == 2, do: 76.0, else: 74.0)
+        }
+      end
+
+    assert :ok = Sessions.submit_ballot(judge, session, 71, scores)
+    assert_received {:scores, %{"id" => 77}, params}
+
+    assert params["teamRankings"] == [
+             %{"room_team_id" => 102, "rank" => 1},
+             %{"room_team_id" => 101, "rank" => 2}
+           ]
+
+    assert length(params["speakerScores"]) == 6
+
+    # a BP-shaped ballot doesn't fit an Australs room
+    assert {:error, %{scores: message}} =
+             Sessions.submit_ballot(
+               judge,
+               session,
+               71,
+               ballot_scores([{1, 151}, {2, 157}, {3, 149}, {4, 147}])
+             )
+
+    assert message =~ "Position must be 1 to 2"
+  end
+
   test "submit_ballot maps an iron speech onto the teammate's slot", %{club: club} do
     judge = user_fixture(%{node_user_id: 77})
     session = session_fixture(club, engine_event_id: 11)
@@ -1266,6 +1325,68 @@ defmodule Cab.SessionsTest do
 
     # a user without an engine counterpart never participated
     assert Sessions.user_history(user_fixture(%{node_user_id: nil})) == []
+  end
+
+  test "reopen_session runs a finished session's event again and forgets the winner",
+       %{head: head, club: club} do
+    session =
+      session_fixture(club,
+        engine_event_id: 11,
+        engine_round_id: 21,
+        started_at: ~U[2026-10-09 18:00:00Z],
+        finished_at: ~U[2026-10-09 21:00:00Z],
+        winner_name: "Winners",
+        winner_user_ids: [444]
+      )
+
+    test_pid = self()
+
+    stub(fn conn, params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{
+            "id" => 11,
+            "name" => "Night",
+            "status" => "completed"
+          })
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1, "status" => "completed"}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [%{"id" => 71, "status" => "confirmed", "RoomTeams" => []}])
+
+        {"PUT", "/api/events/11"} ->
+          send(test_pid, {:event, params})
+          ok(conn, %{"id" => 11})
+      end
+    end)
+
+    assert :ok = Sessions.reopen_session(head, session)
+    assert_received {:event, %{"status" => "in_progress"}}
+
+    reopened = Sessions.get_by_uuid(session.uuid)
+
+    assert {reopened.finished_at, reopened.winner_name, reopened.winner_user_ids} ==
+             {nil, nil, []}
+
+    assert Sessions.stage_of(reopened) == :running
+
+    # only a finished session reopens: the engine's event runs again
+    stub(fn conn, _params ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/events/11"} -> ok(conn, %{"id" => 11, "status" => "in_progress"})
+        {"GET", "/api/events/11/rounds"} -> ok(conn, [%{"id" => 21, "sequence" => 1}])
+        {"GET", "/api/events/11/participants"} -> ok(conn, [])
+        {"GET", "/api/rounds/21/rooms"} -> ok(conn, [%{"id" => 71, "status" => "confirmed"}])
+      end
+    end)
+
+    assert {:error, :conflict, message} = Sessions.reopen_session(head, reopened)
+    assert message =~ "Only a finished session"
   end
 
   test "finish completes round and event and records the winner verbatim",

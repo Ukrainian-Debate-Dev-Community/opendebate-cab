@@ -227,14 +227,15 @@ defmodule CabWeb.Ui do
   # ---------------------------------------------------------------
 
   @doc """
-  The scored BP ballot (club sessions, tournament prelims): motion
-  header, one color block per team side (OG violet, OO blue, CG
-  green, CO amber), position rows = speaker dropdown + iron check +
-  score input (whole points, 50-100). Team totals and ranks DERIVE live
-  (the BallotMath hook); tied totals mark both blocks amber - BP forbids ties.
+  The scored ballot in the session's `format` (Cab.Format; BP when
+  nil): motion header, one color block per team side (OG violet, OO
+  blue, CG green, CO amber; Gov and Opp as OG and OO), position rows =
+  speaker dropdown + iron check + score input (whole points in the
+  format's range). Team totals and ranks DERIVE live (the BallotMath
+  hook); tied totals mark both blocks amber - teams can't tie.
   Submit lives in the chrome, not here.
 
-  `teams` is a list of `%{side: :og, name: "...", rows: [...]}` where
+  `teams` is a list of `%{side: "og", name: "...", rows: [...]}` where
   each row is `%{role: "PM", speakers: [{label, value}], selected:
   value, iron: boolean, score: number}`. A team may carry
   `tied: true` - its total block renders the amber tied state.
@@ -249,8 +250,11 @@ defmodule CabWeb.Ui do
   attr :teams, :list, required: true
   attr :error, :string, default: nil, doc: "server-side validation message (amber footer)"
   attr :action, :string, default: nil, doc: "POSTs to the in-tree ballot twin action"
+  attr :format, Cab.Format, default: nil, doc: "the session's format; BP when nil"
 
   def ballot(assigns) do
+    assigns = assign(assigns, :format, assigns.format || Cab.Format.default())
+
     ~H"""
     <form class="ballot" id={@id} action={@action} method="post" phx-hook="BallotMath">
       <input :if={@action} type="hidden" name="_csrf_token" value={get_csrf_token()} />
@@ -287,8 +291,8 @@ defmodule CabWeb.Ui do
             <input
               type="number"
               name={"ballot[#{team.side}][#{row.role}][score]"}
-              min="50"
-              max="100"
+              min={@format.score_min}
+              max={@format.score_max}
               step="1"
               value={row[:score]}
             />
@@ -302,17 +306,22 @@ defmodule CabWeb.Ui do
         <%= if @error do %>
           <span class="err server">{@error}</span>
         <% else %>
-          {gettext("Enter all eight scores — ranks derive from team totals.")}
+          {gettext("Enter all %{count} scores — ranks derive from team totals.",
+            count: Cab.Format.speeches(@format)
+          )}
         <% end %>
       </div>
     </form>
     """
   end
 
-  defp side_label(:og), do: gettext("OG — OPENING GOV")
-  defp side_label(:oo), do: gettext("OO — OPENING OPP")
-  defp side_label(:cg), do: gettext("CG — CLOSING GOV")
-  defp side_label(:co), do: gettext("CO — CLOSING OPP")
+  defp side_label(side) when is_atom(side), do: side_label(to_string(side))
+  defp side_label("og"), do: gettext("OG — OPENING GOV")
+  defp side_label("oo"), do: gettext("OO — OPENING OPP")
+  defp side_label("cg"), do: gettext("CG — CLOSING GOV")
+  defp side_label("co"), do: gettext("CO — CLOSING OPP")
+  defp side_label("gov"), do: gettext("GOV — GOVERNMENT")
+  defp side_label("opp"), do: gettext("OPP — OPPOSITION")
   defp side_label(side), do: side |> to_string() |> String.upcase()
 
   defp option({label, value}), do: {label, value}

@@ -51,7 +51,7 @@
     <.section title={gettext("Draw")}>
       <.table id={"room-#{@room["id"]}-draw"} rows={sorted_teams(@room)}>
         <:col :let={room_team} label={gettext("Side")} code>
-          {side_code(room_team["position"])}
+          {side_code(room_team["position"], Cab.Format.of(@session))}
         </:col>
         <:col :let={room_team} :if={!ballot_in?(@room)} label={gettext("Speakers")}>
           {speaker_names(room_team)}

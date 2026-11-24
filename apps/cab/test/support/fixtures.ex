@@ -76,7 +76,8 @@ defmodule Cab.Fixtures do
       scheduled_at: Keyword.get(opts, :scheduled_at),
       signups_closed_at: Keyword.get(opts, :signups_closed_at),
       max_participants: Keyword.get(opts, :max_participants),
-      signups_count: Keyword.get(opts, :signups_count, 0)
+      signups_count: Keyword.get(opts, :signups_count, 0),
+      format: Keyword.get(opts, :format, "bp")
     }
     |> Session.changeset()
     |> Repo.insert!()

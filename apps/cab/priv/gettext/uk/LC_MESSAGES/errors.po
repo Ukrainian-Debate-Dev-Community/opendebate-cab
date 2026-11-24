@@ -121,6 +121,11 @@ msgstr "Залиште хоча б один спосіб входу."
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
+msgid "Only a finished session can be reopened."
+msgstr "Знову відкрити можна лише завершену сесію."
+
+#: lib/cab/sessions.ex
+#, elixir-autogen, elixir-format
 msgid "Only the club head can remove other people."
 msgstr "Прибирати інших людей може лише голова клубу."
 

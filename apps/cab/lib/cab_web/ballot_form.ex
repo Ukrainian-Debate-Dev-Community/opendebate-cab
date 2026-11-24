@@ -5,12 +5,24 @@ defmodule CabWeb.BallotForm do
   `teams` assigns from a room (optionally echoing a submitted
   `ballot` params map back, marking tied totals amber), and parses
   those params into the `Cab.Sessions.submit_ballot/4` scores list.
+  Sides and seats are the session format's (Cab.Format); each side's
+  speaking roles are below.
   """
 
   use Gettext, backend: CabWeb.Gettext
 
-  @sides [:og, :oo, :cg, :co]
-  @roles %{og: ["PM", "DPM"], oo: ["LO", "DLO"], cg: ["MG", "GW"], co: ["MO", "OW"]}
+  alias Cab.Format
+
+  # each side's speakers in speaking order: BP's two, Australs' three
+  # (the third the analyst)
+  @roles %{
+    "og" => ["PM", "DPM"],
+    "oo" => ["LO", "DLO"],
+    "cg" => ["MG", "GW"],
+    "co" => ["MO", "OW"],
+    "gov" => ["PM", "DPM", "GA"],
+    "opp" => ["LO", "DLO", "OA"]
+  }
 
   @doc """
   The `teams` assign for `CabWeb.Ui.ballot/1`: one entry per room
@@ -21,14 +33,14 @@ defmodule CabWeb.BallotForm do
   Without params, a room that already carries submitted scores
   prefills them - editing a ballot never means retyping it.
   """
-  def teams(room, ballot_params \\ nil) do
-    tied = tied_sides(ballot_params)
+  def teams(room, %Format{} = format, ballot_params \\ nil) do
+    tied = tied_sides(ballot_params, format)
 
     room["RoomTeams"]
     |> List.wrap()
     |> Enum.sort_by(& &1["position"])
     |> Enum.map(fn room_team ->
-      side = Enum.at(@sides, room_team["position"] - 1)
+      side = Format.side(format, room_team["position"])
 
       slots =
         Enum.map(room_team["RoomSpeakers"] || [], fn speaker ->
@@ -36,27 +48,27 @@ defmodule CabWeb.BallotForm do
           {participant["display_name"] || "?", participant["id"], slot_score(speaker)}
         end)
 
-      # a 1-speaker (iron) team carries the same participant on both
-      # engine slots: both position rows prefill that speaker, iron
-      # pre-checked on the second; the dropdown lists them once
+      # a team short of speakers carries one participant on more than
+      # one engine slot: those rows prefill that speaker, iron
+      # pre-checked on every repeat; the dropdown lists them once
       options = Enum.uniq(Enum.map(slots, fn {label, id, _score} -> {label, id} end))
-      iron_team? = length(slots) > 1 and length(options) == 1
 
       rows =
-        @roles[side]
+        roles(side)
         |> Enum.with_index()
         |> Enum.map(fn {role, index} ->
           submitted = params_for(ballot_params, side, role)
           {_label, default, stored} = Enum.at(slots, index, {nil, nil, nil})
+
+          repeat? =
+            default != nil and Enum.any?(Enum.take(slots, index), &(elem(&1, 1) == default))
 
           %{
             role: role,
             role_label: role_label(role),
             speakers: options,
             selected: submitted["speaker"] || default,
-            iron:
-              iron?(submitted["iron"]) or
-                (is_nil(ballot_params) and iron_team? and index == 1),
+            iron: iron?(submitted["iron"]) or (is_nil(ballot_params) and repeat?),
             score: submitted["score"] || (is_nil(ballot_params) && stored) || nil
           }
         end)
@@ -80,6 +92,8 @@ defmodule CabWeb.BallotForm do
   def role_label("GW"), do: gettext("GW")
   def role_label("MO"), do: gettext("MO")
   def role_label("OW"), do: gettext("OW")
+  def role_label("GA"), do: gettext("GA")
+  def role_label("OA"), do: gettext("OA")
   def role_label(role), do: role
 
   @doc """
@@ -87,9 +101,9 @@ defmodule CabWeb.BallotForm do
   `%{"og" => %{"PM" => %{"speaker" => _, "iron" => _, "score" => _}, ...}, ...}`
   - as the flat scores list `Cab.Sessions.submit_ballot/4` takes.
   """
-  def scores_from_params(%{} = ballot_params) do
-    for {side, position} <- Enum.with_index(@sides, 1),
-        role <- @roles[side],
+  def scores_from_params(%{} = ballot_params, %Format{} = format) do
+    for {side, position} <- Enum.with_index(format.sides, 1),
+        role <- roles(side),
         row = params_for(ballot_params, side, role),
         row != %{} do
       %{
@@ -101,7 +115,10 @@ defmodule CabWeb.BallotForm do
     end
   end
 
-  def scores_from_params(_ballot_params), do: []
+  def scores_from_params(_ballot_params, _format), do: []
+
+  @doc "A side's speaking roles (Cab.Format side)."
+  def roles(side), do: Map.fetch!(@roles, side)
 
   # the slot's already-submitted score, riding along the room read
   defp slot_score(%{"Scores" => [%{"value" => value} | _]}), do: value
@@ -142,13 +159,13 @@ defmodule CabWeb.BallotForm do
   defp parse_score(_value), do: nil
 
   # sides whose submitted totals collide - the amber tied state
-  defp tied_sides(nil), do: []
+  defp tied_sides(nil, _format), do: []
 
-  defp tied_sides(ballot_params) do
+  defp tied_sides(ballot_params, format) do
     totals =
-      Enum.map(@sides, fn side ->
+      Enum.map(format.sides, fn side ->
         total =
-          @roles[side]
+          roles(side)
           |> Enum.map(&parse_score(params_for(ballot_params, side, &1)["score"]))
           |> Enum.reject(&is_nil/1)
           |> Enum.sum()

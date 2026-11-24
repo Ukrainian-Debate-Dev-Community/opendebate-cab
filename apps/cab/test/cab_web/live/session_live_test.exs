@@ -161,7 +161,7 @@ defmodule CabWeb.SessionLiveTest do
     {:ok, view, html} =
       live(
         init_test_session(conn, %{user_id: head.id}),
-        ~p"/c/#{club.uuid}/owner/s/#{session.uuid}"
+        ~p"/c/#{club.uuid}/owner/s/#{session.uuid}?stage=rooms"
       )
 
     assert html =~ ~s(phx-hook="Allocator")
@@ -202,7 +202,7 @@ defmodule CabWeb.SessionLiveTest do
     {:ok, view, html} =
       live(
         init_test_session(conn, %{user_id: head.id}),
-        ~p"/c/#{club.uuid}/owner/s/#{session.uuid}"
+        ~p"/c/#{club.uuid}/owner/s/#{session.uuid}?stage=rooms"
       )
 
     # nine people: one room, automatic, and - cannot go below one
@@ -223,7 +223,7 @@ defmodule CabWeb.SessionLiveTest do
     {:ok, _view, reloaded} =
       live(
         init_test_session(conn, %{user_id: head.id}),
-        ~p"/c/#{club.uuid}/owner/s/#{session.uuid}"
+        ~p"/c/#{club.uuid}/owner/s/#{session.uuid}?stage=rooms"
       )
 
     assert reloaded =~ "2 room(s), count set by hand"

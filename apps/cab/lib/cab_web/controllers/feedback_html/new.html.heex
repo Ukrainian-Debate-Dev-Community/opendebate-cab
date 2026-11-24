@@ -25,7 +25,7 @@
 
     <.banner kind={:info}>
       {gettext("Your side: %{side} (%{people}). One feedback per side; the first one sent stays.",
-        side: side_code(@room_team["position"]),
+        side: side_code(@room_team["position"], Cab.Format.of(@session)),
         people: speaker_names(@room_team)
       )}
     </.banner>

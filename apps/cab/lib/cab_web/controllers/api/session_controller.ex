@@ -57,12 +57,17 @@ defmodule CabWeb.Api.SessionController do
         uuid: session.uuid,
         club_uuid: club.uuid,
         name: state.event["name"],
+        format: session.format,
         stage: state.stage,
         scheduled_at: session.scheduled_at,
         signups_closed_at: session.signups_closed_at,
         short_link: Sessions.short_url(session),
         signups: Enum.map(state.signups, &public_signup(&1, head?, user)),
-        rooms: Enum.map(state.rooms, &public_room(&1, state.signups, ids?.(&1))),
+        rooms:
+          Enum.map(
+            state.rooms,
+            &public_room(&1, state.signups, ids?.(&1), Cab.Format.of(session))
+          ),
         winner: Sessions.winner_from_rooms(state.rooms),
         winners:
           Enum.map(
@@ -81,7 +86,7 @@ defmodule CabWeb.Api.SessionController do
     |> with_id(participant["id"], head? or own?)
   end
 
-  defp public_room(room, signups, ids?) do
+  defp public_room(room, signups, ids?, format) do
     motion = room["Motion"]
 
     %{
@@ -99,7 +104,8 @@ defmodule CabWeb.Api.SessionController do
       teams:
         for room_team <- SessionFormat.sorted_teams(room) do
           %{
-            side: Enum.at(~w(OG OO CG CO), (room_team["position"] || 1) - 1),
+            # the side's code: OG OO CG CO in BP, GOV OPP in Australs
+            side: String.upcase(Cab.Format.side(format, room_team["position"] || 1) || ""),
             name: get_in(room_team, ["Team", "name"]),
             rank: room_team["rank"],
             points: SessionFormat.team_points(room_team),

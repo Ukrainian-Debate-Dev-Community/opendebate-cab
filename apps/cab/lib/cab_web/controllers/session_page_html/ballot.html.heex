@@ -25,6 +25,7 @@
         room={room_label(@room)}
         motion={@room["Motion"] && @room["Motion"]["motion_text"]}
         teams={@teams}
+        format={@format}
         error={@error}
         action={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@room["id"]}/ballot"}
       />

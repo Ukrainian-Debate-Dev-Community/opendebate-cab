@@ -100,7 +100,7 @@
                 </:col>
                 <:col
                   :let={room}
-                  :for={{label, position, side_class} <- sides()}
+                  :for={{label, position, side_class} <- sides(Cab.Format.of(@session))}
                   label={label}
                   class={"side #{side_class}"}
                 >
@@ -169,7 +169,7 @@
                     {(ballot_in?(room) && room_team["rank"] && ordinal(room_team["rank"])) || "—"}
                   </:col>
                   <:col :let={room_team} label={gettext("Side")} code>
-                    {side_code(room_team["position"])}
+                    {side_code(room_team["position"], Cab.Format.of(@session))}
                   </:col>
                   <:col :let={room_team} label={gettext("Speakers")}>
                     <div :for={speech <- speeches(room_team)} class="rspk">
