@@ -19,8 +19,6 @@ a { color:var(--brand); }
 .site-main > .chrome { position:static; border:1px solid var(--line); border-radius:var(--r); overflow:hidden; margin-bottom:var(--px); }
 .site-main > * { min-width:0; }
 .site-main .section-head { margin-bottom:var(--sp-3); }
-/* a form stands at a readable width */
-.narrow { max-width:var(--w-form); }
 
 /* the way past the header for keyboards: shown once focused */
 .skip { position:absolute; left:var(--sp-3); top:-4rem; z-index:50; padding:var(--sp-2) var(--sp-3);

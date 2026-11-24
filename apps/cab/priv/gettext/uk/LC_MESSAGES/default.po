@@ -604,6 +604,11 @@ msgstr "Белот подано."
 msgid "Ballot — %{room}"
 msgstr "Белот — %{room}"
 
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "Ballots in"
+msgstr "Бюлетенів подано"
+
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "By continuing you agree to the"
@@ -765,6 +770,11 @@ msgstr "Сесії клубу"
 msgid "Club sessions, rooms, ballots and standings — one place for debaters, adjudicators and club heads."
 msgstr "Сесії клубів, кімнати, белот та рейтинг — одне місце для спікерів, суддів і голів клубів."
 
+#: lib/cab_web/controllers/owner_html/club.html.heex
+#, elixir-autogen, elixir-format
+msgid "Club settings"
+msgstr "Налаштування клубу"
+
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
@@ -907,6 +917,11 @@ msgstr "Дата і час"
 #, elixir-autogen, elixir-format
 msgid "Debate clubs"
 msgstr "Дебатні клуби"
+
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "Debates"
+msgstr "Дебати"
 
 #: lib/cab_web/controllers/owner_html/delete_session.html.heex
 #, elixir-autogen, elixir-format
@@ -1099,6 +1114,11 @@ msgstr "Поле видалено."
 msgid "Field saved."
 msgstr "Поле збережено."
 
+#: lib/cab_web/controllers/owner_html/guest_form.html.heex
+#, elixir-autogen, elixir-format
+msgid "Fields"
+msgstr "Поля"
+
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Fill ballot"
@@ -1124,6 +1144,11 @@ msgstr "Знайдіть свій клуб"
 #, elixir-autogen, elixir-format
 msgid "Finish session"
 msgstr "Завершити сесію"
+
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "Finished"
+msgstr "Завершено"
 
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -1981,6 +2006,7 @@ msgid "Register for %{session}"
 msgstr "Реєстрація на %{session}"
 
 #: lib/cab_web/controllers/owner_html/responses.html.heex
+#: lib/cab_web/controllers/owner_html/session.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registered"
@@ -2003,6 +2029,7 @@ msgstr "Для реєстрації на сесію акаунт не потрі
 
 #: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex
+#: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registration"
 msgstr "Реєстрація"
@@ -2024,6 +2051,11 @@ msgstr "Реєстрацію закрито. Розподіліть людей �
 #, elixir-autogen, elixir-format
 msgid "Registration form"
 msgstr "Форма реєстрації"
+
+#: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex
+#, elixir-autogen, elixir-format
+msgid "Registration form preview"
+msgstr "Попередній перегляд форми реєстрації"
 
 #: lib/cab_web/controllers/club_public_controller.ex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -2176,6 +2208,7 @@ msgstr "Кімната %{room} — %{status}"
 
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
+#: lib/cab_web/controllers/owner_html/session.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
@@ -2191,6 +2224,11 @@ msgstr "Суддівства"
 #, elixir-autogen, elixir-format
 msgid "Rooms deleted. Registration is open again."
 msgstr "Кімнати видалено. Реєстрація знову відкрита."
+
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "Run the session"
+msgstr "Проведення сесії"
 
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format
@@ -2312,6 +2350,11 @@ msgstr "Назва сесії"
 msgid "Session opened. Registration is open."
 msgstr "Сесію відкрито. Реєстрація відкрита."
 
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "Session stages"
+msgstr "Етапи сесії"
+
 #: lib/cab_web/controllers/owner_controller.ex
 #: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
@@ -2344,7 +2387,7 @@ msgstr "Поділитися результатами"
 msgid "Share this room"
 msgstr "Поділитися кімнатою"
 
-#: lib/cab_web/controllers/owner_html/registration_block.html.heex
+#: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Share to register: the club page"
 msgstr "Поширте для реєстрації: сторінка клубу"

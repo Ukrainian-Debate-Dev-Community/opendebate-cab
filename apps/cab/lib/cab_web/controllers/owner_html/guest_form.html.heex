@@ -31,13 +31,18 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title={gettext("Registration form")}>
+    <.page_head
+      kicker={gettext("Registration form")}
+      title={@club.name}
+      lead={
+        gettext(
+          "Each field is asked of guests, of members, or of both. Guests answer theirs when they register for a session of the club without an account."
+        )
+      }
+    />
+
+    <.section title={gettext("Fields")}>
       <div class="pad">
-        <p>
-          {gettext(
-            "Each field is asked of guests, of members, or of both. Guests answer theirs when they register for a session of the club without an account."
-          )}
-        </p>
         <p>
           {gettext(
             "Only you see the answers, on each session's People list. If a guest gives an e-mail address, we send them their personal link there."

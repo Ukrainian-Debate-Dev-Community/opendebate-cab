@@ -12,6 +12,22 @@ defmodule CabWeb.OwnerHTML do
 
   # template helpers
 
+  # where a session stands among its stages, for its steps
+  @stages [:signup, :closed, :running, :done]
+  defp step_state(stage, step) do
+    now = Enum.find_index(@stages, &(&1 == stage))
+    at = Enum.find_index(@stages, &(&1 == step))
+
+    cond do
+      at < now -> :done
+      at == now -> :now
+      true -> nil
+    end
+  end
+
+  # the rooms whose ballot is in, as the engine reports their status
+  defp ballots_in(rooms), do: Enum.count(rooms, &(&1["status"] in ["completed", "confirmed"]))
+
   # who the registration form asks a field of, as the editor shows it
   defp scope_name("guests"), do: gettext("Guests only")
   defp scope_name("members"), do: gettext("Members only")

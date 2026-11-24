@@ -11,6 +11,8 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
+    <.page_head kicker={gettext("Members")} title={@club.name} />
+
     <.section title={gettext("Members (%{count})", count: length(@members))}>
       <.table id="members-list" rows={@members} empty={gettext("No members yet.")}>
         <:col :let={membership} label={gettext("Member")}>

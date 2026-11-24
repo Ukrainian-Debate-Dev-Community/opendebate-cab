@@ -20,6 +20,8 @@
   </.chrome>
 
   <div class="pbody">
+    <.page_head kicker={gettext("Responses")} title={@current.name || gettext("Session")} />
+
     <.section title={
       ngettext("Responses — %{count} person", "Responses — %{count} people", length(@rows))
     }>

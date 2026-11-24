@@ -18,106 +18,11 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.section title={gettext("Club profile")}>
-      <.form_for
-        id="club-profile-form"
-        action={~p"/c/#{@club.uuid}/owner/club"}
-        enctype="multipart/form-data"
-        description={gettext("Exactly what visitors read on the club page.")}
-        errors={@profile_errors}
-      >
-        <:block
-          name={:name}
-          type={:text}
-          label={gettext("Club name")}
-          required
-          maxlength={Cab.Clubs.Club.max_lengths().name}
-          value={@profile.name}
-        />
-        <:block
-          name={:city}
-          type={:text}
-          label={gettext("City")}
-          value={@profile.city}
-          maxlength={Cab.Clubs.Club.max_lengths().city}
-        />
-        <:block
-          name={:logo}
-          type={:file}
-          label={gettext("Logo")}
-          accept="image/png,image/jpeg,image/webp"
-          preview={CabWeb.ClubProfile.logo_path(@club)}
-          preview_alt={gettext("The current logo")}
-          remove="remove_logo"
-          remove_label={gettext("Remove the logo")}
-          hint={gettext("Optional. PNG, JPEG or WebP, at most 1 MB; a square image looks best.")}
-        />
-        <:block
-          name={:meeting_info}
-          type={:text}
-          label={gettext("Meetings")}
-          maxlength={Cab.Clubs.Club.max_lengths().meeting_info}
-          value={@profile.meeting_info}
-          hint={gettext("When and where the club meets, e.g. Thursdays 18:30, Hrushevskoho 4.")}
-        />
-        <:block
-          name={:description}
-          type={:longtext}
-          label={gettext("About the club")}
-          maxlength={Cab.Clubs.Club.max_lengths().description}
-          value={@profile.description}
-        />
-        <:block
-          name={:contacts}
-          type={:text}
-          label={gettext("Contacts")}
-          maxlength={Cab.Clubs.Club.max_lengths().contacts}
-          value={@profile.contacts}
-          hint={gettext("Telegram, email — how newcomers reach the club.")}
-        />
-        <:block
-          name={:formats}
-          type={:select}
-          label={gettext("Format")}
-          value={List.first(@profile.formats)}
-          options={CabWeb.ClubProfile.format_options()}
-          other="other"
-          other_name={:format_other}
-          other_value={@profile.format_other}
-          other_placeholder={gettext("Which format, e.g. Karl Popper")}
-        />
-        <:block
-          name={:languages}
-          type={:select}
-          label={gettext("Language")}
-          value={List.first(@profile.languages)}
-          options={CabWeb.ClubProfile.language_options()}
-          other="other"
-          other_name={:language_other}
-          other_value={@profile.language_other}
-          other_placeholder={gettext("Which language, e.g. Polish")}
-        />
-        <:block
-          name={:audiences}
-          type={:select}
-          label={gettext("Audience")}
-          value={List.first(@profile.audiences)}
-          options={CabWeb.ClubProfile.audience_options()}
-        />
-        <:block
-          name={:is_private}
-          type={:select}
-          label={gettext("Standings")}
-          value={if @profile.is_private, do: "true", else: "false"}
-          options={[{gettext("public"), "false"}, {gettext("members only"), "true"}]}
-          hint={
-            gettext(
-              "Members only also keeps the club out of the global standings. Everything else stays public."
-            )
-          }
-        />
-      </.form_for>
-    </.section>
+    <.page_head
+      kicker={gettext("Club settings")}
+      title={@club.name}
+      logo={CabWeb.ClubProfile.logo_path(@club)}
+    />
 
     <.banner
       :if={@live}
@@ -128,42 +33,155 @@
       {gettext("The current session lives under Rooms.")}
     </.banner>
 
-    <.archive_section club={@club} archive={@archive} owner />
+    <%!-- the profile and the sessions; opening one beside them (first on phones) --%>
+    <div class="split">
+      <div class="stack">
+        <.section title={gettext("Club profile")}>
+          <.form_for
+            id="club-profile-form"
+            action={~p"/c/#{@club.uuid}/owner/club"}
+            enctype="multipart/form-data"
+            description={gettext("Exactly what visitors read on the club page.")}
+            errors={@profile_errors}
+          >
+            <:block
+              name={:name}
+              type={:text}
+              label={gettext("Club name")}
+              required
+              maxlength={Cab.Clubs.Club.max_lengths().name}
+              value={@profile.name}
+            />
+            <:block
+              name={:city}
+              type={:text}
+              label={gettext("City")}
+              value={@profile.city}
+              maxlength={Cab.Clubs.Club.max_lengths().city}
+            />
+            <:block
+              name={:logo}
+              type={:file}
+              label={gettext("Logo")}
+              accept="image/png,image/jpeg,image/webp"
+              preview={CabWeb.ClubProfile.logo_path(@club)}
+              preview_alt={gettext("The current logo")}
+              remove="remove_logo"
+              remove_label={gettext("Remove the logo")}
+              hint={
+                gettext("Optional. PNG, JPEG or WebP, at most 1 MB; a square image looks best.")
+              }
+            />
+            <:block
+              name={:meeting_info}
+              type={:text}
+              label={gettext("Meetings")}
+              maxlength={Cab.Clubs.Club.max_lengths().meeting_info}
+              value={@profile.meeting_info}
+              hint={
+                gettext("When and where the club meets, e.g. Thursdays 18:30, Hrushevskoho 4.")
+              }
+            />
+            <:block
+              name={:description}
+              type={:longtext}
+              label={gettext("About the club")}
+              maxlength={Cab.Clubs.Club.max_lengths().description}
+              value={@profile.description}
+            />
+            <:block
+              name={:contacts}
+              type={:text}
+              label={gettext("Contacts")}
+              maxlength={Cab.Clubs.Club.max_lengths().contacts}
+              value={@profile.contacts}
+              hint={gettext("Telegram, email — how newcomers reach the club.")}
+            />
+            <:block
+              name={:formats}
+              type={:select}
+              label={gettext("Format")}
+              value={List.first(@profile.formats)}
+              options={CabWeb.ClubProfile.format_options()}
+              other="other"
+              other_name={:format_other}
+              other_value={@profile.format_other}
+              other_placeholder={gettext("Which format, e.g. Karl Popper")}
+            />
+            <:block
+              name={:languages}
+              type={:select}
+              label={gettext("Language")}
+              value={List.first(@profile.languages)}
+              options={CabWeb.ClubProfile.language_options()}
+              other="other"
+              other_name={:language_other}
+              other_value={@profile.language_other}
+              other_placeholder={gettext("Which language, e.g. Polish")}
+            />
+            <:block
+              name={:audiences}
+              type={:select}
+              label={gettext("Audience")}
+              value={List.first(@profile.audiences)}
+              options={CabWeb.ClubProfile.audience_options()}
+            />
+            <:block
+              name={:is_private}
+              type={:select}
+              label={gettext("Standings")}
+              value={if @profile.is_private, do: "true", else: "false"}
+              options={[{gettext("public"), "false"}, {gettext("members only"), "true"}]}
+              hint={
+                gettext(
+                  "Members only also keeps the club out of the global standings. Everything else stays public."
+                )
+              }
+            />
+          </.form_for>
+        </.section>
 
-    <.section title={gettext("Open a session")}>
-      <.form_for
-        id="open-session-form"
-        action={~p"/c/#{@club.uuid}/owner/sessions"}
-        description={gettext("Registration opens as soon as you open the session.")}
-        errors={@opening.errors}
-      >
-        <:block
-          name={:name}
-          type={:text}
-          label={gettext("Session name")}
-          maxlength={Cab.Sessions.max_lengths().name}
-          value={@opening.values["name"]}
-          hint={gettext("Shown to members on the club page; defaults to the date.")}
-        />
-        <:block
-          names={[:date, :time]}
-          type={:datetime}
-          label={gettext("Date and start time")}
-          hint={gettext("Optional — when the session is planned to start, in your time zone.")}
-        />
-        <:block
-          name={:max_participants}
-          type={:int}
-          label={gettext("Participant limit")}
-          min={1}
-          value={@opening.values["max_participants"]}
-          hint={
-            gettext(
-              "Optional — registration stops once this many people are in. Empty = no limit."
-            )
-          }
-        />
-      </.form_for>
-    </.section>
+        <.archive_section club={@club} archive={@archive} owner />
+      </div>
+      <div class="stack lead">
+        <.section title={gettext("Open a session")}>
+          <.form_for
+            id="open-session-form"
+            action={~p"/c/#{@club.uuid}/owner/sessions"}
+            description={gettext("Registration opens as soon as you open the session.")}
+            errors={@opening.errors}
+          >
+            <:block
+              name={:name}
+              type={:text}
+              label={gettext("Session name")}
+              maxlength={Cab.Sessions.max_lengths().name}
+              value={@opening.values["name"]}
+              hint={gettext("Shown to members on the club page; defaults to the date.")}
+            />
+            <:block
+              names={[:date, :time]}
+              type={:datetime}
+              label={gettext("Date and start time")}
+              hint={
+                gettext("Optional — when the session is planned to start, in your time zone.")
+              }
+            />
+            <:block
+              name={:max_participants}
+              type={:int}
+              label={gettext("Participant limit")}
+              min={1}
+              value={@opening.values["max_participants"]}
+              hint={
+                gettext(
+                  "Optional — registration stops once this many people are in. Empty = no limit."
+                )
+              }
+            />
+          </.form_for>
+        </.section>
+      </div>
+    </div>
   </div>
 </Layouts.app>
