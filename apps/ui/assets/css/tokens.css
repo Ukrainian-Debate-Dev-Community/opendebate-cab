@@ -93,7 +93,6 @@
   /* sign-in providers keep their own faces in both themes */
   --github: #24292F; --github-hover: #31383F; --on-github: #FFFFFF;
   --google: #FFFFFF; --google-hover: #F8F9FA; --google-ink: #3C4043; --google-line: #DADCE0;
-  --provider-off-ink: #5F6368;
 
   /* the full-screen photo viewer: dark in both themes */
   --viewer-bg:    #0E0B11;
