@@ -43,7 +43,7 @@ defmodule CabWeb.BallotForm do
       side = Format.side(format, room_team["position"])
 
       slots =
-        Enum.map(room_team["RoomSpeakers"] || [], fn speaker ->
+        Enum.map(CabWeb.SessionFormat.room_speakers(room_team), fn speaker ->
           participant = speaker["EventParticipant"] || %{}
           {participant["display_name"] || "?", participant["id"], slot_score(speaker)}
         end)

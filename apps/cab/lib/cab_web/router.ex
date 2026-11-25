@@ -58,8 +58,11 @@ defmodule CabWeb.Router do
     # an e-mailed invitation to head a club: sign in, become the head
     get "/head-invitations/:token", HeadInvitationController, :show
 
-    # my page - engine stats verbatim + participation history
-    get "/me", MeController, :show
+    # my page, the participant's hub: an account's own, live
+    live_session :me, on_mount: [CabWeb.Locale, {CabWeb.LiveScope, :account}] do
+      live "/me", MeLive, :show
+    end
+
     # a member's saved answers for one club (My clubs -> Edit)
     get "/me/clubs/:club_uuid/answers", MeController, :edit_answers
     post "/me/clubs/:club_uuid/answers", MeController, :update_answers

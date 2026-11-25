@@ -124,6 +124,12 @@ defmodule CabWeb.SessionFormat do
     |> Enum.uniq()
   end
 
+  @doc """
+  A room team's speaker slots in speaking order: the order the engine
+  made them (their ids) - its reads list them in no set order.
+  """
+  def room_speakers(room_team), do: Enum.sort_by(room_team["RoomSpeakers"] || [], & &1["id"])
+
   @doc "A room's teams in table (position) order."
   def sorted_teams(room), do: Enum.sort_by(room["RoomTeams"] || [], & &1["position"])
 

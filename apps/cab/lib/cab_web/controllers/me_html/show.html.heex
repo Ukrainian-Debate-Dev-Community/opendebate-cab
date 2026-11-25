@@ -10,12 +10,124 @@
       lead={if @current_user.name, do: "@" <> @current_user.username}
     />
 
+    <%!-- NOW: where the user sits in a running session - the room, the
+         draw, the motion and its prep; the chair publishes it here --%>
+    <.section
+      :for={seat <- @seats}
+      id={"now-#{seat.session.uuid}-#{seat.room["id"]}"}
+      title={
+        gettext("Now: %{room}, %{session}",
+          room: room_label(seat.room),
+          session: seat.session.name || seat.club.name
+        )
+      }
+    >
+      <div class="pad">
+        <p>
+          <b>{seat_words(seat, @current_user)}</b>
+          <span class="mut">
+            · {seat.club.name} · {format_name(Cab.Format.of(seat.session).key)}
+          </span>
+        </p>
+      </div>
+      <.table id={"now-draw-#{seat.room["id"]}"} rows={sorted_teams(seat.room)}>
+        <:col :let={room_team} label={gettext("Side")} code>
+          {side_code(room_team["position"], Cab.Format.of(seat.session))}
+        </:col>
+        <:col :let={room_team} label={gettext("Speakers")}>
+          <%= if seat.room_team && room_team["id"] == seat.room_team["id"] do %>
+            <b>{speaker_names(room_team)}</b>
+            <.sub>{gettext("your team")}</.sub>
+          <% else %>
+            {speaker_names(room_team)}
+          <% end %>
+        </:col>
+      </.table>
+      <div class="pad">
+        <p>{gettext("Adjudicator:")} <b>{judge_name(seat.room, seat.state.signups)}</b></p>
+        <%= if motion = seat.room["Motion"] do %>
+          <p class="kicker">{gettext("Motion")}</p>
+          <p><b>{motion["motion_text"]}</b></p>
+          <p :if={motion["infoslide"]}>{motion["infoslide"]}</p>
+          <p :if={seat.room["prep_until"]} class="mut">
+            <span
+              id={"prep-#{seat.room["id"]}"}
+              phx-hook="PrepClock"
+              data-prep-deadline={seat.room["prep_until"]}
+            >
+              {gettext("prep")}
+            </span>
+          </p>
+        <% else %>
+          <p :if={seat.role == :speaker} class="mut">
+            {gettext("The motion shows here the moment the adjudicator publishes it.")}
+          </p>
+        <% end %>
+      </div>
+      <%!-- the chair's motion, while the room has no ballot yet --%>
+      <form
+        :if={seat.role == :chair and seat.room["status"] in ["pending", "judging"]}
+        id={"now-motion-#{seat.room["id"]}"}
+        class="form"
+        phx-submit="publish_motion"
+      >
+        <input type="hidden" name="session" value={seat.session.uuid} />
+        <input type="hidden" name="room" value={seat.room["id"]} />
+        <div class="f-block">
+          <label class="q" for={"now-motion-text-#{seat.room["id"]}"}>
+            {gettext("Motion")} <span class="req">*</span>
+          </label>
+          <input
+            id={"now-motion-text-#{seat.room["id"]}"}
+            type="text"
+            name="motion_text"
+            required
+            maxlength={Cab.Sessions.max_lengths().motion_text}
+            value={get_in(seat.room, ["Motion", "motion_text"])}
+          />
+        </div>
+        <div class="f-block">
+          <label class="q" for={"now-infoslide-#{seat.room["id"]}"}>{gettext("Infoslide")}</label>
+          <textarea
+            id={"now-infoslide-#{seat.room["id"]}"}
+            name="infoslide"
+            maxlength={Cab.Sessions.max_lengths().infoslide}
+          >{get_in(seat.room, ["Motion", "infoslide"])}</textarea>
+        </div>
+        <div class="f-block">
+          <label class="q" for={"now-keyword-#{seat.room["id"]}"}>{gettext("Keyword")}</label>
+          <input
+            id={"now-keyword-#{seat.room["id"]}"}
+            type="text"
+            name="keyword"
+            maxlength={Cab.Sessions.max_lengths().keyword}
+            value={get_in(seat.room, ["Motion", "keyword"])}
+          />
+        </div>
+        <div class="f-submit">
+          <button type="submit" class="btn-go">
+            {if seat.room["Motion"], do: gettext("Update motion"), else: gettext("Publish motion")}
+          </button>
+          <span :if={!seat.room["Motion"]} class="note">
+            {gettext("Publishing shows it to the room and starts 15 minutes of prep.")}
+          </span>
+          <.link
+            :if={seat.room["Motion"]}
+            class="btn-quiet"
+            href={~p"/c/#{seat.club.uuid}/s/#{seat.session.uuid}/rooms/#{seat.room["id"]}/ballot"}
+          >
+            {gettext("Fill ballot")}
+          </.link>
+        </div>
+      </form>
+    </.section>
+
     <%!-- one format's figures at a time, when there are several --%>
     <nav :if={length(@stats_formats) > 1} class="pills" aria-label={gettext("Format")}>
       <.link
         :for={format <- @stats_formats}
         class={format == @stats_format && "on"}
-        href={~p"/me?#{[format: format.key]}"}
+        patch={~p"/me?#{[format: format.key]}"}
       >
         {format_name(format.key)}
       </.link>
