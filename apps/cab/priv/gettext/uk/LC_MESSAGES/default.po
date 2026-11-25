@@ -585,6 +585,7 @@ msgstr "Повернутися до редагування"
 msgid "Back to the clubs"
 msgstr "Назад до клубів"
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Ballot"
@@ -596,6 +597,7 @@ msgid "Ballot %{room}"
 msgstr "Белот %{room}"
 
 #: lib/cab_web/controllers/session_page_controller.ex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "Ballot submitted."
 msgstr "Белот подано."
@@ -1122,7 +1124,6 @@ msgstr "Поле збережено."
 msgid "Fields"
 msgstr "Поля"
 
-#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Fill ballot"
@@ -2613,6 +2614,7 @@ msgstr "Стан"
 msgid "Status"
 msgstr "Статус"
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/ballot.html.heex
 #, elixir-autogen, elixir-format
 msgid "Submit ballot"
@@ -2826,6 +2828,11 @@ msgstr "Ім'я"
 #, elixir-autogen, elixir-format
 msgid "There is nothing at this address."
 msgstr "За цією адресою нічого немає."
+
+#: lib/cab_web/live/me_live.ex
+#, elixir-autogen, elixir-format
+msgid "This ballot is the club head's to edit now."
+msgstr "Цей бюлетень тепер може виправити лише голова клубу."
 
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format

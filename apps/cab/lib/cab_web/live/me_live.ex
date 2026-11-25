@@ -34,6 +34,8 @@ defmodule CabWeb.MeLive do
        history: Sessions.user_history(user),
        feedback_to_give: Cab.Feedback.to_give(user),
        feedback_on_me: Cab.Feedback.on_me_recent(user),
+       # a refused ballot's typed rows and message, per room id
+       ballot_drafts: %{},
        page_title: gettext("My page")
      )
      |> load_seats()}
@@ -94,6 +96,38 @@ defmodule CabWeb.MeLive do
     else
       {:error, message} when is_binary(message) -> {:noreply, put_flash(socket, :error, message)}
       _other -> {:noreply, put_flash(socket, :error, gettext("that did not work — try again"))}
+    end
+  end
+
+  # the chair's ballot, inline: ranks derive from the totals; a refused
+  # one keeps what was typed, with the message
+  def handle_event("submit_ballot", %{"session" => uuid, "room" => room} = params, socket) do
+    with {room_id, ""} <- Integer.parse(room),
+         %{} = seat <- chair_seat(socket.assigns.seats, uuid, room_id) do
+      scores = CabWeb.BallotForm.scores_from_params(params["ballot"], Cab.Format.of(seat.session))
+
+      case Sessions.submit_ballot(socket.assigns.current_user, seat.session, room_id, scores) do
+        :ok ->
+          {:noreply,
+           socket
+           |> update(:ballot_drafts, &Map.delete(&1, room_id))
+           |> put_flash(:info, gettext("Ballot submitted."))
+           |> load_seats()}
+
+        {:error, :forbidden} ->
+          {:noreply,
+           put_flash(socket, :error, gettext("This ballot is the club head's to edit now."))}
+
+        {:error, %{scores: message}} ->
+          {:noreply,
+           update(socket, :ballot_drafts, &Map.put(&1, room_id, {params["ballot"], message}))}
+
+        {:error, message} when is_binary(message) ->
+          {:noreply,
+           update(socket, :ballot_drafts, &Map.put(&1, room_id, {params["ballot"], message}))}
+      end
+    else
+      _ -> {:noreply, put_flash(socket, :error, gettext("that did not work — try again"))}
     end
   end
 

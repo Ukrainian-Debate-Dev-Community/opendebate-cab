@@ -575,6 +575,7 @@ msgstr ""
 msgid "Back to the clubs"
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Ballot"
@@ -586,6 +587,7 @@ msgid "Ballot %{room}"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_controller.ex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "Ballot submitted."
 msgstr ""
@@ -1110,7 +1112,6 @@ msgstr ""
 msgid "Fields"
 msgstr ""
 
-#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Fill ballot"
@@ -2598,6 +2599,7 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/ballot.html.heex
 #, elixir-autogen, elixir-format
 msgid "Submit ballot"
@@ -2810,6 +2812,11 @@ msgstr ""
 #: lib/cab_web/controllers/error_html.ex
 #, elixir-autogen, elixir-format
 msgid "There is nothing at this address."
+msgstr ""
+
+#: lib/cab_web/live/me_live.ex
+#, elixir-autogen, elixir-format
+msgid "This ballot is the club head's to edit now."
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex
