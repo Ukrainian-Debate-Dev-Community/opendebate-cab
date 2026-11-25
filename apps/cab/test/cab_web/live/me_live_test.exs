@@ -51,10 +51,11 @@ defmodule CabWeb.MeLiveTest do
         %{
           "id" => 102,
           "position" => 2,
+          # the engine lists slots in no set order; the ids give it
           "RoomSpeakers" => [
+            speaker(6, 23, "Opp Three"),
             speaker(4, 21, "Opp One"),
-            speaker(5, 22, "Anna"),
-            speaker(6, 23, "Opp Three")
+            speaker(5, 22, "Anna")
           ]
         }
       ]

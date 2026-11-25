@@ -25,7 +25,8 @@ defmodule CabWeb.MeHTML do
     side = Cab.Format.side(Cab.Format.of(session), room_team["position"])
 
     roles =
-      (room_team["RoomSpeakers"] || [])
+      room_team
+      |> room_speakers()
       |> Enum.with_index()
       |> Enum.filter(fn {speaker, _i} ->
         get_in(speaker, ["EventParticipant", "id"]) in seat.participant_ids
