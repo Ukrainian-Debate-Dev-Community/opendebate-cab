@@ -7,3 +7,5 @@ deps/
 erl_crash.dump
 .run/
 /uploads/
+# the dev shell's GC root (Makefile NIX)
+/.nix-dev-profile*
