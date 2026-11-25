@@ -10,7 +10,10 @@ RELEASE_ARTIFACT  = the image $(IMAGE):v{version} (release workflow)
 RUN_DIR = .run
 # Homebrew's postgresql@16 psql (survives upgrades), else psql on PATH
 PSQL   ?= $(shell p="$$(brew --prefix postgresql@16 2>/dev/null)/bin/psql"; [ -x "$$p" ] && echo "$$p" || echo psql)
-NIX     = nix develop --command
+# the dev shell, kept as a GC root (.nix-dev-profile): without one a
+# garbage collection deletes the toolchain under a running dev server,
+# whose modules not yet loaded then fail as undefined
+NIX     = nix develop --profile .nix-dev-profile --command
 # The engine reads engine/.env; without one it starts with these
 # development settings and the secret cab signs with (ENGINE_JWT_SECRET
 # from the repo's .env, else cab's dev default). Prefix for a shell line
