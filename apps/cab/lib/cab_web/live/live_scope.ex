@@ -35,6 +35,24 @@ defmodule CabWeb.LiveScope do
     end
   end
 
+  # an account's own pages (My page): signed in, not a guest's link
+  def on_mount(:account, _params, session, socket) do
+    case session["user_id"] && Accounts.get_viewer(session["user_id"]) do
+      %{guest: false} = user ->
+        {:cont, assign(socket, :current_user, user)}
+
+      %{guest: true} ->
+        {:halt,
+         socket
+         |> put_flash(:error, gettext("Sign in with your own account first."))
+         |> redirect(to: "/signin")}
+
+      nil ->
+        {:halt,
+         socket |> put_flash(:error, gettext("Please sign in.")) |> redirect(to: "/signin")}
+    end
+  end
+
   def on_mount(required, _params, _session, socket) when required in [:member, :owner] do
     cond do
       Clubs.covers?(socket.assigns.club_role, required) ->

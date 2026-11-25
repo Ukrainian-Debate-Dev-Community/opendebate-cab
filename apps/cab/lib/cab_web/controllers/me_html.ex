@@ -17,6 +17,26 @@ defmodule CabWeb.MeHTML do
 
   embed_templates "me_html/*"
 
+  # the user's part in a seat: the chair, or their side and roles in
+  # speaking order (an iron's several)
+  defp seat_words(%{role: :chair}, _user), do: gettext("You adjudicate this room.")
+
+  defp seat_words(%{role: :speaker, room_team: room_team, session: session}, user) do
+    side = Cab.Format.side(Cab.Format.of(session), room_team["position"])
+
+    roles =
+      (room_team["RoomSpeakers"] || [])
+      |> Enum.with_index()
+      |> Enum.filter(fn {speaker, _i} ->
+        Cab.Sessions.own_participant?(speaker["EventParticipant"] || %{}, user)
+      end)
+      |> Enum.map_join(", ", fn {_speaker, i} ->
+        CabWeb.BallotForm.role_label(Enum.at(CabWeb.BallotForm.roles(side), i) || "")
+      end)
+
+    gettext("You speak for %{side}: %{roles}.", side: side_short(side), roles: roles)
+  end
+
   # the Next session column, written out as words - no pills anywhere
   defp tonight_words(nil), do: gettext("quiet")
 

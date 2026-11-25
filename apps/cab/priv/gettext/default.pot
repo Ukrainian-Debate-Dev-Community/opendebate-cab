@@ -412,6 +412,7 @@ msgstr ""
 msgid "Adjudicator"
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Adjudicator:"
@@ -1109,6 +1110,7 @@ msgstr ""
 msgid "Fields"
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Fill ballot"
@@ -1271,6 +1273,7 @@ msgstr ""
 msgid "In your time zone; members see it in theirs. No date removes it."
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
@@ -1363,6 +1366,7 @@ msgstr ""
 msgid "Keep this link — it IS your access: anyone with it acts as you. It opens your view of this session: your registration, the rooms, and (if you adjudicate) the ballot."
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
@@ -1506,6 +1510,7 @@ msgid "Most people in this session"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
@@ -1513,11 +1518,13 @@ msgid "Motion"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_controller.ex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "Motion published."
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_controller.ex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "Motion updated."
 msgstr ""
@@ -1558,10 +1565,10 @@ msgid "My clubs"
 msgstr ""
 
 #: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/me_controller.ex
 #: lib/cab_web/controllers/me_html/answers.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "My page"
 msgstr ""
@@ -1707,6 +1714,11 @@ msgstr ""
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Not set yet — the adjudicator sets it when the room begins."
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Now: %{room}, %{session}"
 msgstr ""
 
 #: lib/cab_web/ballot_form.ex
@@ -1959,6 +1971,7 @@ msgstr ""
 msgid "Profile saved."
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Publish motion"
@@ -1969,6 +1982,7 @@ msgstr ""
 msgid "Publish the room's motion first."
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Publishing shows it to the room and starts 15 minutes of prep."
@@ -2435,6 +2449,7 @@ msgstr ""
 msgid "Shown to members on the club page; defaults to the date."
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -2465,6 +2480,7 @@ msgstr ""
 msgid "Sign in with an account"
 msgstr ""
 
+#: lib/cab_web/live/live_scope.ex
 #: lib/cab_web/user_auth.ex
 #, elixir-autogen, elixir-format
 msgid "Sign in with your own account first."
@@ -2526,6 +2542,7 @@ msgstr ""
 msgid "Speaker points"
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html.ex
@@ -2749,6 +2766,11 @@ msgstr ""
 msgid "The merged account is"
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "The motion shows here the moment the adjudicator publishes it."
+msgstr ""
+
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "The new head takes over; the old head retires."
@@ -2920,6 +2942,7 @@ msgstr ""
 msgid "Unknown login provider."
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Update motion"
@@ -3025,6 +3048,11 @@ msgstr ""
 msgid "Winners:"
 msgstr ""
 
+#: lib/cab_web/controllers/me_html.ex
+#, elixir-autogen, elixir-format
+msgid "You adjudicate this room."
+msgstr ""
+
 #: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/registration_html.ex
 #, elixir-autogen, elixir-format
@@ -3095,6 +3123,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "You set the number of rooms by hand; Automatic makes it follow the sign-ups again;"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html.ex
+#, elixir-autogen, elixir-format
+msgid "You speak for %{side}: %{roles}."
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_html/join.html.heex
@@ -3425,6 +3458,7 @@ msgstr ""
 msgid "played"
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "prep"
@@ -3563,6 +3597,7 @@ msgstr ""
 msgid "team total"
 msgstr ""
 
+#: lib/cab_web/live/me_live.ex
 #: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
 msgid "that did not work — try again"
@@ -3642,6 +3677,11 @@ msgstr ""
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "your only sign-in"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "your team"
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex

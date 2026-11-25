@@ -422,6 +422,7 @@ msgstr "Хто додав"
 msgid "Adjudicator"
 msgstr "Суддя"
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Adjudicator:"
@@ -1121,6 +1122,7 @@ msgstr "Поле збережено."
 msgid "Fields"
 msgstr "Поля"
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Fill ballot"
@@ -1283,6 +1285,7 @@ msgstr "Якщо цим гостем були ви, додайте його ре
 msgid "In your time zone; members see it in theirs. No date removes it."
 msgstr "У вашому часовому поясі; учасники бачать його у своєму. Без дати час початку прибирається."
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
@@ -1375,6 +1378,7 @@ msgstr "Залишити окремо"
 msgid "Keep this link — it IS your access: anyone with it acts as you. It opens your view of this session: your registration, the rooms, and (if you adjudicate) the ballot."
 msgstr "Збережіть це посилання — це і є ваш доступ: будь-хто з ним діє від вашого імені. Воно відкриває ваш вигляд цієї сесії: вашу реєстрацію, кімнати та (якщо ви судите) белот."
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
@@ -1518,6 +1522,7 @@ msgid "Most people in this session"
 msgstr "Найбільше людей у цій сесії"
 
 #: lib/cab_web/components/ui.ex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
@@ -1525,11 +1530,13 @@ msgid "Motion"
 msgstr "Резолюція"
 
 #: lib/cab_web/controllers/session_page_controller.ex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "Motion published."
 msgstr "Резолюцію опубліковано."
 
 #: lib/cab_web/controllers/session_page_controller.ex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "Motion updated."
 msgstr "Резолюцію оновлено."
@@ -1570,10 +1577,10 @@ msgid "My clubs"
 msgstr "Мої клуби"
 
 #: lib/cab_web/components/ui.ex
-#: lib/cab_web/controllers/me_controller.ex
 #: lib/cab_web/controllers/me_html/answers.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "My page"
 msgstr "Моя сторінка"
@@ -1720,6 +1727,11 @@ msgstr "Не зараз"
 #, elixir-autogen, elixir-format
 msgid "Not set yet — the adjudicator sets it when the room begins."
 msgstr "Ще не задано — суддя задає його, коли починається кімната."
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Now: %{room}, %{session}"
+msgstr "Зараз: %{room}, %{session}"
 
 #: lib/cab_web/ballot_form.ex
 #, elixir-autogen, elixir-format
@@ -1971,6 +1983,7 @@ msgstr "Профіль"
 msgid "Profile saved."
 msgstr "Профіль збережено."
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Publish motion"
@@ -1981,6 +1994,7 @@ msgstr "Опублікувати резолюцію"
 msgid "Publish the room's motion first."
 msgstr "Спершу опублікуйте резолюцію кімнати."
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Publishing shows it to the room and starts 15 minutes of prep."
@@ -2450,6 +2464,7 @@ msgstr "Показується замість імені користувача 
 msgid "Shown to members on the club page; defaults to the date."
 msgstr "Бачать члени клубу на сторінці клубу; за замовчуванням дата."
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -2480,6 +2495,7 @@ msgstr "Увійдіть, щоб стати головою %{club}."
 msgid "Sign in with an account"
 msgstr "Увійти з акаунтом"
 
+#: lib/cab_web/live/live_scope.ex
 #: lib/cab_web/user_auth.ex
 #, elixir-autogen, elixir-format
 msgid "Sign in with your own account first."
@@ -2541,6 +2557,7 @@ msgstr "Спікер"
 msgid "Speaker points"
 msgstr "Бали спікерів"
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html.ex
@@ -2764,6 +2781,11 @@ msgstr "Об'єднання неможливе, якщо обидва акаун
 msgid "The merged account is"
 msgstr "Об'єднаний акаунт:"
 
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "The motion shows here the moment the adjudicator publishes it."
+msgstr "Резолюція з'явиться тут, щойно суддя її опублікує."
+
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "The new head takes over; the old head retires."
@@ -2936,6 +2958,7 @@ msgstr "Українська"
 msgid "Unknown login provider."
 msgstr "Невідомий спосіб входу."
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Update motion"
@@ -3041,6 +3064,11 @@ msgstr "Переможець:"
 msgid "Winners:"
 msgstr "Переможці:"
 
+#: lib/cab_web/controllers/me_html.ex
+#, elixir-autogen, elixir-format
+msgid "You adjudicate this room."
+msgstr "Ви судите цю кімнату."
+
 #: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/registration_html.ex
 #, elixir-autogen, elixir-format
@@ -3112,6 +3140,11 @@ msgstr "Ви реєструєтеся зі свого облікового за�
 #, elixir-autogen, elixir-format
 msgid "You set the number of rooms by hand; Automatic makes it follow the sign-ups again;"
 msgstr "Кількість кімнат ви задали вручну; «Автоматично» знову рахуватиме їх за реєстраціями;"
+
+#: lib/cab_web/controllers/me_html.ex
+#, elixir-autogen, elixir-format
+msgid "You speak for %{side}: %{roles}."
+msgstr "Ви виступаєте за %{side}: %{roles}."
 
 #: lib/cab_web/controllers/club_public_html/join.html.heex
 #, elixir-autogen, elixir-format
@@ -3441,6 +3474,7 @@ msgstr "рейтинг кожної сесії і ваша власна істо
 msgid "played"
 msgstr "грав"
 
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "prep"
@@ -3579,6 +3613,7 @@ msgstr "командні бали: {points}"
 msgid "team total"
 msgstr "сума команди"
 
+#: lib/cab_web/live/me_live.ex
 #: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
 msgid "that did not work — try again"
@@ -3659,6 +3694,11 @@ msgstr "ви"
 #, elixir-autogen, elixir-format
 msgid "your only sign-in"
 msgstr "ваш єдиний спосіб входу"
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "your team"
+msgstr "ваша команда"
 
 #: lib/cab_web/components/layouts.ex
 #, elixir-autogen, elixir-format

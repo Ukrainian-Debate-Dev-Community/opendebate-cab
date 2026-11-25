@@ -2135,6 +2135,41 @@ defmodule Cab.Sessions do
   def user_schedule(%User{}), do: []
 
   @doc """
+  Where the user sits now: every running session (started, not
+  finished) they are in, its rooms read once - one
+  `%{session, club, state, room, role, room_team}` per seat, `role`
+  `:chair` (they adjudicate the room) or `:speaker` (in `room_team`).
+  My page's Now.
+  """
+  def user_seats(%User{} = user) do
+    for %{session: session, club: club} <- Enum.uniq_by(user_schedule(user), & &1.session.id),
+        session.started_at != nil and is_nil(session.finished_at),
+        session = %{session | club: club},
+        {:ok, state} <- [state(session)],
+        room <- state.rooms,
+        seat = seat_in(room, user),
+        seat != nil do
+      Map.merge(%{session: session, club: club, state: state, room: room}, seat)
+    end
+  end
+
+  defp seat_in(room, user) do
+    team =
+      Enum.find(room["RoomTeams"] || [], fn room_team ->
+        Enum.any?(
+          room_team["RoomSpeakers"] || [],
+          &own_participant?(&1["EventParticipant"] || %{}, user)
+        )
+      end)
+
+    cond do
+      room_chair?(room, user) -> %{role: :chair, room_team: nil}
+      team -> %{role: :speaker, room_team: team}
+      true -> nil
+    end
+  end
+
+  @doc """
   The club page's "Club Sessions" table: EVERY session, latest first,
   with its status from cab's records - open (registration open) |
   full (open, the limit reached) | closed | running | finished. Pure
