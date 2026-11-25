@@ -21,14 +21,14 @@ defmodule CabWeb.MeHTML do
   # speaking order (an iron's several)
   defp seat_words(%{role: :chair}, _user), do: gettext("You adjudicate this room.")
 
-  defp seat_words(%{role: :speaker, room_team: room_team, session: session}, user) do
+  defp seat_words(%{role: :speaker, room_team: room_team, session: session} = seat, _user) do
     side = Cab.Format.side(Cab.Format.of(session), room_team["position"])
 
     roles =
       (room_team["RoomSpeakers"] || [])
       |> Enum.with_index()
       |> Enum.filter(fn {speaker, _i} ->
-        Cab.Sessions.own_participant?(speaker["EventParticipant"] || %{}, user)
+        get_in(speaker, ["EventParticipant", "id"]) in seat.participant_ids
       end)
       |> Enum.map_join(", ", fn {_speaker, i} ->
         CabWeb.BallotForm.role_label(Enum.at(CabWeb.BallotForm.roles(side), i) || "")

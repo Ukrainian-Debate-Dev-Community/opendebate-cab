@@ -53,7 +53,7 @@ defmodule CabWeb.MeLiveTest do
           "position" => 2,
           "RoomSpeakers" => [
             speaker(4, 21, "Opp One"),
-            speaker(5, 22, "Anna", 55),
+            speaker(5, 22, "Anna"),
             speaker(6, 23, "Opp Three")
           ]
         }
@@ -82,7 +82,12 @@ defmodule CabWeb.MeLiveTest do
           ok(conn, [%{"id" => 21, "sequence" => 1}])
 
         {"GET", "/api/events/11/participants"} ->
-          ok(conn, [%{"id" => 90, "display_name" => "Judy", "user_id" => 66}])
+          # the rooms read names speakers without their accounts: the
+          # sign-ups say who is who
+          ok(conn, [
+            %{"id" => 90, "display_name" => "Judy", "user_id" => 66},
+            %{"id" => 22, "display_name" => "Anna", "user_id" => 55}
+          ])
 
         {"GET", "/api/rounds/21/rooms"} ->
           ok(conn, [room(Agent.get(agent, & &1))])
