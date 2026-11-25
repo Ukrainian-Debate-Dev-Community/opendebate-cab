@@ -147,6 +147,99 @@
       </div>
     </.section>
 
+    <%!-- registration: every session taking sign-ups in the user's
+         clubs; registering (with the club's questions) and cancelling
+         happen right here --%>
+    <.section :if={@open_sessions != []} id="me-registration" title={gettext("Registration")}>
+      <.table id="open-sessions" rows={@open_sessions}>
+        <:col :let={row} label={gettext("Session")}>
+          {row.session.name || row.club.name}
+          <.sub>
+            {row.club.name} · {format_name(Cab.Format.of(row.session).key)}
+            <span :if={row.session.scheduled_at}>
+              · <.local_time at={row.session.scheduled_at} as={:short} />
+            </span>
+          </.sub>
+        </:col>
+        <:col :let={row} label={gettext("Places")}>
+          <%= cond do %>
+            <% row.registered -> %>
+              {gettext("you are registered")}
+            <% Cab.Sessions.full?(row.session) -> %>
+              {gettext("full")}
+            <% left = Cab.Sessions.places_left(row.session) -> %>
+              {ngettext("%{count} place left", "%{count} places left", left)}
+            <% true -> %>
+              {gettext("open")}
+          <% end %>
+        </:col>
+        <:col :let={row}>
+          <button
+            :if={row.registered}
+            type="button"
+            class="btn-quiet btn-sm quiet"
+            phx-click="cancel_registration"
+            phx-value-session={row.session.uuid}
+            data-confirm={gettext("Cancel your registration?")}
+          >
+            {gettext("Cancel")}
+          </button>
+          <button
+            :if={!row.registered and !Cab.Sessions.full?(row.session)}
+            type="button"
+            class="btn-go btn-sm"
+            phx-click="open_register"
+            phx-value-session={row.session.uuid}
+          >
+            {gettext("Register")}
+          </button>
+        </:col>
+      </.table>
+      <.form_for
+        :if={@registering}
+        id="me-register-form"
+        action={~p"/c/#{@registering.session.club.uuid}/register"}
+        submit_event="register"
+        hidden={[{"session", @registering.session.uuid}]}
+        title={
+          gettext("Register for %{session}",
+            session: @registering.session.name || @registering.session.club.name
+          )
+        }
+        description={
+          if @registering.kind == :member,
+            do:
+              gettext(
+                "Your saved answers are filled in. Changes here are for this session only; your defaults change on My page."
+              ),
+            else: gettext("You register with your account; one registration per session.")
+        }
+        errors={@registering.errors}
+      >
+        <:block
+          :for={field <- @registering.fields}
+          name={answer_name(field)}
+          type={block_type(field)}
+          label={field_label(field)}
+          required={field["required"]}
+          hint={field["hint"]}
+          options={field["options"]}
+          value={@registering.values[field["id"]]}
+          input={input_type(field)}
+          placeholder={placeholder(field)}
+          prompt={prompt(field)}
+          maxlength={Core.Forms.max_length(field)}
+        />
+        <:submit note={
+          gettext(
+            "You appear in this session's list right away; the club head seats you as a speaker or the adjudicator."
+          )
+        }>
+          {gettext("Register")}
+        </:submit>
+      </.form_for>
+    </.section>
+
     <%!-- one format's figures at a time, when there are several --%>
     <nav :if={length(@stats_formats) > 1} class="pills" aria-label={gettext("Format")}>
       <.link
