@@ -111,15 +111,40 @@
           <span :if={!seat.room["Motion"]} class="note">
             {gettext("Publishing shows it to the room and starts 15 minutes of prep.")}
           </span>
-          <.link
-            :if={seat.room["Motion"]}
-            class="btn-quiet"
-            href={~p"/c/#{seat.club.uuid}/s/#{seat.session.uuid}/rooms/#{seat.room["id"]}/ballot"}
-          >
-            {gettext("Fill ballot")}
-          </.link>
         </div>
       </form>
+      <%!-- the chair's ballot, once the motion is out and until it is in --%>
+      <%= if seat.role == :chair and seat.room["Motion"] && seat.room["status"] in ["pending", "judging"] do %>
+        <% {typed, error} = Map.get(@ballot_drafts, seat.room["id"], {nil, nil}) %>
+        <div class="pad">
+          <p class="kicker">{gettext("Ballot")}</p>
+        </div>
+        <CabWeb.Ui.ballot
+          id={"now-ballot-#{seat.room["id"]}"}
+          room={room_label(seat.room)}
+          motion={seat.room["Motion"]["motion_text"]}
+          teams={CabWeb.BallotForm.teams(seat.room, Cab.Format.of(seat.session), typed)}
+          format={Cab.Format.of(seat.session)}
+          error={error}
+          submit="submit_ballot"
+          fields={%{"session" => seat.session.uuid, "room" => seat.room["id"]}}
+        />
+        <div class="pad">
+          <button type="submit" form={"now-ballot-#{seat.room["id"]}"} class="btn-go">
+            {gettext("Submit ballot")}
+          </button>
+        </div>
+      <% end %>
+      <%!-- the ballot is in: the result, as the room's draw reads it --%>
+      <div :if={seat.room["status"] in ["completed", "confirmed"]} class="pad">
+        <p class="kicker">{gettext("Result")}</p>
+        <p :for={room_team <- Enum.sort_by(sorted_teams(seat.room), &(&1["rank"] || 9))}>
+          <b>{if room_team["rank"], do: ordinal(room_team["rank"]), else: "—"}</b>
+          {side_code(room_team["position"], Cab.Format.of(seat.session))} · {speaker_names(
+            room_team
+          )} · {points_words(team_points(room_team))}
+        </p>
+      </div>
     </.section>
 
     <%!-- one format's figures at a time, when there are several --%>

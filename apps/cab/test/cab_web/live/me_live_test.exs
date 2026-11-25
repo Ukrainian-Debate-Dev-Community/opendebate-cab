@@ -103,6 +103,15 @@ defmodule CabWeb.MeLiveTest do
         {"PATCH", "/api/rooms/71/prep"} ->
           send(test_pid, :prep)
           ok(conn, %{"id" => 71})
+
+        {"POST", "/api/rooms/71/scores"} ->
+          {:ok, body, conn} = Plug.Conn.read_body(conn)
+          send(test_pid, {:scores, Jason.decode!(body)})
+          Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
+
+        {"PATCH", "/api/rooms/71/confirm"} ->
+          send(test_pid, :confirmed)
+          Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
       end
     end)
   end
@@ -155,6 +164,48 @@ defmodule CabWeb.MeLiveTest do
     assert_received :prep
     assert html =~ "Motion published."
     assert html =~ "Update motion"
+  end
+
+  test "the chair fills the ballot on My page; a tie comes back with the scores kept", %{
+    conn: conn
+  } do
+    head = user_fixture(%{node_user_id: 9})
+    club = club_fixture(head, %{engine_organisation_id: 3})
+    running_session(club)
+    judy = user_fixture(%{node_user_id: 66})
+    stub_engine(self(), %{"motion_text" => "THW ban homework"})
+
+    {:ok, view, html} = conn |> init_test_session(%{user_id: judy.id}) |> live(~p"/me")
+    assert html =~ ~s(id="now-ballot-71")
+    assert html =~ "Enter all 6 scores"
+
+    ballot = fn gov, opp ->
+      %{
+        "gov" => %{
+          "PM" => %{"speaker" => "11", "score" => gov},
+          "DPM" => %{"speaker" => "12", "score" => gov},
+          "GA" => %{"speaker" => "13", "score" => gov}
+        },
+        "opp" => %{
+          "LO" => %{"speaker" => "21", "score" => opp},
+          "DLO" => %{"speaker" => "22", "score" => opp},
+          "OA" => %{"speaker" => "23", "score" => opp}
+        }
+      }
+    end
+
+    # tied totals: refused, the typed scores stay
+    html = view |> form("#now-ballot-71", %{ballot: ballot.("75", "75")}) |> render_submit()
+    assert html =~ "Teams can&#39;t tie"
+    assert html =~ ~s(value="75")
+    refute_received {:scores, _}
+
+    view |> form("#now-ballot-71", %{ballot: ballot.("74", "76")}) |> render_submit()
+
+    assert_received {:scores, %{"teamRankings" => rankings, "speakerScores" => scores}}
+    assert [%{"rank" => 1, "room_team_id" => 102}, %{"rank" => 2}] = rankings
+    assert length(scores) == 6
+    assert_received :confirmed
   end
 
   test "a guest's link is not an account: My page sends them to sign in", %{conn: conn} do

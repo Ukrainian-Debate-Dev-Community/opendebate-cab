@@ -251,13 +251,23 @@ defmodule CabWeb.Ui do
   attr :error, :string, default: nil, doc: "server-side validation message (amber footer)"
   attr :action, :string, default: nil, doc: "POSTs to the in-tree ballot twin action"
   attr :format, Cab.Format, default: nil, doc: "the session's format; BP when nil"
+  attr :submit, :string, default: nil, doc: "a LiveView's phx-submit event instead of a POST"
+  attr :fields, :map, default: %{}, doc: "hidden fields sent with it (which room)"
 
   def ballot(assigns) do
     assigns = assign(assigns, :format, assigns.format || Cab.Format.default())
 
     ~H"""
-    <form class="ballot" id={@id} action={@action} method="post" phx-hook="BallotMath">
+    <form
+      class="ballot"
+      id={@id}
+      action={@action}
+      method="post"
+      phx-submit={@submit}
+      phx-hook="BallotMath"
+    >
       <input :if={@action} type="hidden" name="_csrf_token" value={get_csrf_token()} />
+      <input :for={{name, value} <- @fields} type="hidden" name={name} value={value} />
       <div class="b-motion">
         <span class="k">
           {if @room, do: gettext("Motion — %{room}", room: @room), else: gettext("Motion")}
