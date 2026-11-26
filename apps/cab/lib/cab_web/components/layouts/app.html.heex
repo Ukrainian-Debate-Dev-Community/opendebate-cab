@@ -19,8 +19,11 @@
               {CabWeb.Operator.get(:about) ||
                 gettext("Clubs run weekly practice rounds: pick one and come debate.")}
             </p>
-            <div :if={CabWeb.Operator.get(:site_url)} class="flinks">
-              <a href={CabWeb.Operator.get(:site_url)}>{gettext("Main page")}</a>
+            <div class="flinks">
+              <a :if={CabWeb.Operator.get(:site_url)} href={CabWeb.Operator.get(:site_url)}>
+                {gettext("Main page")}
+              </a>
+              <a href="/tour">{gettext("Guided tours")}</a>
             </div>
           </div>
           <div :if={CabWeb.Operator.get(:org_text)}>

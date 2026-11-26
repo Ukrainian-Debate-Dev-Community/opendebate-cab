@@ -1,0 +1,25 @@
+<Layouts.app flash={@flash} current_user={@current_user}>
+  <.chrome here={gettext("Guided tours")}></.chrome>
+  <div class="pbody">
+    <.page_head
+      kicker={gettext("Guided tours")}
+      title={gettext("See cab at work")}
+      lead={
+        gettext(
+          "Each tour plays by itself on a demo club: sit back and watch how a club night runs for each role."
+        )
+      }
+    />
+    <.section title={gettext("Pick a tour")}>
+      <.table id="tours" rows={@tours} row_href={fn tour -> ~p"/tour/#{tour.key}" end}>
+        <:col :let={tour} label={gettext("Tour")}>
+          <.link href={~p"/tour/#{tour.key}"}>{tour.title}</.link>
+          <.sub>{tour.lead}</.sub>
+        </:col>
+        <:col :let={tour} label={gettext("Length")} class="st">
+          {ngettext("%{count} minute", "%{count} minutes", minutes(tour))}
+        </:col>
+      </.table>
+    </.section>
+  </div>
+</Layouts.app>

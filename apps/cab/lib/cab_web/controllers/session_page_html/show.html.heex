@@ -130,7 +130,7 @@
             <.section :if={@state.rooms != []} title={gettext("Share the results")}>
               <.share_card
                 id={"results-card-#{@session.uuid}"}
-                card={results_card(@state, @session, @club)}
+                card={results_card(@state, @session, @club, @short_url)}
               />
             </.section>
 
@@ -179,8 +179,8 @@
       <div class="stack">
         <.section title={gettext("Session")} pad>
           <p id="session-short-link">
-            {gettext("Short link:")} <code>{bare_url(Cab.Sessions.short_url(@session))}</code>
-            <.copy text={Cab.Sessions.short_url(@session)} />
+            {gettext("Short link:")} <code>{bare_url(@short_url)}</code>
+            <.copy text={@short_url} />
           </p>
           <%= case @winners do %>
             <% [] -> %>

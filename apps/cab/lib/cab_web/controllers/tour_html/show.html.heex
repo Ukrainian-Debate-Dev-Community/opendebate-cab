@@ -1,0 +1,52 @@
+<%!-- the player: the demo page in a frame (clicks never reach it),
+     the bar under it; without the browser's script the steps read as
+     a list --%>
+<div
+  class="tour"
+  id="tour"
+  data-tour={@tour.key}
+  data-steps={steps_json(@tour)}
+  data-label-play={gettext("Play")}
+  data-label-pause={gettext("Pause")}
+  data-label-replay={gettext("Replay")}
+>
+  <header class="tour-top">
+    <.link href={~p"/tour"} class="tour-back">{gettext("All tours")}</.link>
+    <b>{@tour.title}</b>
+    <.link href={~p"/"} class="tour-exit">{gettext("Exit")}</.link>
+  </header>
+
+  <div class="tour-stage">
+    <iframe class="tour-frame" title={gettext("Demo page")} tabindex="-1" aria-hidden="true"></iframe>
+    <div class="tour-shield"></div>
+    <div class="tour-card" hidden>
+      <p class="tour-card-chapter"></p>
+      <p class="tour-card-text"></p>
+    </div>
+  </div>
+
+  <div class="tour-bar" role="region" aria-label={gettext("Tour")}>
+    <button type="button" class="tour-play" aria-label={gettext("Pause")}></button>
+    <div class="tour-caption" aria-live="polite">
+      <p class="tour-chapter"><span class="tour-count"></span> <b></b></p>
+      <p class="tour-text"></p>
+    </div>
+    <input
+      type="range"
+      class="tour-slider"
+      min="0"
+      max={length(@tour.steps) - 1}
+      value="0"
+      step="1"
+      aria-label={gettext("Step")}
+    />
+  </div>
+
+  <ol class="tour-steps">
+    <li :for={step <- @tour.steps}><b>{step.chapter}.</b> {step.text}</li>
+  </ol>
+
+  <nav class="tour-more" aria-label={gettext("Other tours")}>
+    <.link :for={other <- @others} href={~p"/tour/#{other.key}"}>{other.title}</.link>
+  </nav>
+</div>

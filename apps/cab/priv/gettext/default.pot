@@ -22,6 +22,7 @@ msgid "%{club} - Delete session"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_controller.ex
+#: lib/cab_web/tour/pages.ex
 #, elixir-autogen, elixir-format
 msgid "%{club} - Registration form"
 msgstr ""
@@ -47,17 +48,20 @@ msgid "%{club} is now headed by %{head}."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_controller.ex
+#: lib/cab_web/tour/pages.ex
 #, elixir-autogen, elixir-format
 msgid "%{club} — Edit"
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_controller.ex
+#: lib/cab_web/tour/pages.ex
 #, elixir-autogen, elixir-format
 msgid "%{club} — Join"
 msgstr ""
 
 #: lib/cab_web/controllers/member_controller.ex
 #: lib/cab_web/controllers/owner_controller.ex
+#: lib/cab_web/tour/pages.ex
 #, elixir-autogen, elixir-format
 msgid "%{club} — Members"
 msgstr ""
@@ -100,6 +104,13 @@ msgstr[1] ""
 #, elixir-autogen, elixir-format
 msgid "%{count} member"
 msgid_plural "%{count} members"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/cab_web/controllers/tour_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} minute"
+msgid_plural "%{count} minutes"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -258,6 +269,11 @@ msgstr ""
 msgid ", a guest at %{session} in %{club}."
 msgstr ""
 
+#: lib/cab_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "- it plays by itself."
+msgstr ""
+
 #: lib/cab_web/components/layouts.ex
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
@@ -298,6 +314,16 @@ msgstr[1] ""
 msgid "A club head added you to these sessions. Accept to see them on My page under your name; decline to have your name removed."
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "A club's page: who they are, when they meet, and the next session open for sign-up."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "A guest judge gets the same on their personal link page: the motion form and the ballot."
+msgstr ""
+
 #: lib/cab_web/controllers/head_invitation_controller.ex
 #, elixir-autogen, elixir-format
 msgid "A guest's personal link cannot head a club. Sign in with GitHub or Google."
@@ -326,6 +352,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "A room seats %{seats} (%{speakers} speakers and an adjudicator), so the room count follows the sign-ups;"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "A session moves through Registration, Rooms, Debates and Finished; you can switch between them freely."
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
@@ -444,9 +475,19 @@ msgstr ""
 msgid "Admin"
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "After you submit"
+msgstr ""
+
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "All finished sessions of %{club}"
+msgstr ""
+
+#: lib/cab_web/controllers/tour_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "All tours"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html.ex
@@ -472,6 +513,11 @@ msgstr ""
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "An account's username or e-mail. An e-mail no account uses sends an invitation instead."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "And every session you played or judged."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/members.html.heex
@@ -507,6 +553,11 @@ msgstr ""
 #: lib/cab_web/controllers/club_public_html.ex
 #, elixir-autogen, elixir-format
 msgid "Ask the club head about the next session."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Ask to join: answer the club's questions once; the head approves you."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
@@ -601,6 +652,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Ballots in"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Before Finish"
 msgstr ""
 
 #: lib/cab_web/controllers/signin_html/show.html.heex
@@ -777,6 +833,7 @@ msgstr ""
 #: lib/cab_web/controllers/standings_html.ex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #: lib/cab_web/controllers/standings_html/standings_tabs.html.heex
+#: lib/cab_web/tour/pages.ex
 #, elixir-autogen, elixir-format
 msgid "Clubs"
 msgstr ""
@@ -789,6 +846,11 @@ msgstr ""
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Clubs, their heads and accounts across cab."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Coming as a guest"
 msgstr ""
 
 #: lib/cab_web/components/layouts/app.html.heex
@@ -914,6 +976,7 @@ msgstr ""
 
 #: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/controllers/owner_html/session.html.heex
+#: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Debates"
 msgstr ""
@@ -932,6 +995,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Delete session"
+msgstr ""
+
+#: lib/cab_web/controllers/tour_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Demo page"
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
@@ -957,6 +1025,11 @@ msgstr ""
 msgid "Drag chips into slots; drop on a taken slot to swap; drag a placed chip out of the table to unassign. A team short of speakers gets an iron."
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Drag people into rooms: nobody is placed automatically. Start session opens the rooms."
+msgstr ""
+
 #: lib/cab_web/controllers/owner_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Drag people into the rooms first. Nobody is placed automatically."
@@ -975,6 +1048,16 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex
 #, elixir-autogen, elixir-format
 msgid "Each field is asked of guests, of members, or of both. Guests answer theirs when they register for a session of the club without an account."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Each room's motion and ballot arrive as the adjudicators work on their My page."
+msgstr ""
+
+#: lib/cab_web/controllers/tour_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Each tour plays by itself on a demo club: sit back and watch how a club night runs for each role."
 msgstr ""
 
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
@@ -1028,14 +1111,34 @@ msgstr ""
 msgid "Enter an e-mail address."
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Every club on cab, each with its next session. Pick one to see its page."
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Every member is in this session. Type a name to add a guest."
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Every session of your club is one pick away."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Every session you judged stays in your history."
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Exactly what visitors read on the club page."
+msgstr ""
+
+#: lib/cab_web/controllers/tour_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Exit"
 msgstr ""
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
@@ -1052,6 +1155,7 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Feedback"
 msgstr ""
@@ -1069,6 +1173,11 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Feedback on the adjudicator"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Feedback on you"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -1121,6 +1230,16 @@ msgstr ""
 msgid "Fill ballot — %{room}"
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Fill the ballot"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Find a club"
+msgstr ""
+
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Find a club, register for a session, debate — and follow standings and your own results in one place."
@@ -1129,6 +1248,16 @@ msgstr ""
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Find your club"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Finish and reopen"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Finish records the winners. Reopen to fix a ballot and finish again."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/session.html.heex
@@ -1158,6 +1287,11 @@ msgstr ""
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Format"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "From finding a club to your figures: everything a debater does in cab."
 msgstr ""
 
 #: lib/cab_web/ballot_form.ex
@@ -1203,6 +1337,13 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html.ex
 #, elixir-autogen, elixir-format
 msgid "Guests only"
+msgstr ""
+
+#: lib/cab_web/components/layouts/app.html.heex
+#: lib/cab_web/controllers/tour_controller.ex
+#: lib/cab_web/controllers/tour_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Guided tours"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
@@ -1315,6 +1456,7 @@ msgid "Its clubs: %{clubs}."
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_html/join.html.heex
+#: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Join"
 msgstr ""
@@ -1342,6 +1484,21 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/members.html.heex
 #, elixir-autogen, elixir-format
 msgid "Join requests (%{count})"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Join requests arrive with their answers: approve or decline."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Judges register like everyone else: the head's seating decides who adjudicates."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Judging as a guest"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/delete_session.html.heex
@@ -1385,6 +1542,11 @@ msgstr ""
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
 msgid "Later session"
+msgstr ""
+
+#: lib/cab_web/controllers/tour_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Length"
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex
@@ -1450,6 +1612,7 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/members.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Members"
 msgstr ""
@@ -1510,6 +1673,11 @@ msgstr ""
 msgid "Motion"
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Motion and prep"
+msgstr ""
+
 #: lib/cab_web/controllers/session_page_controller.ex
 #: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
@@ -1563,8 +1731,15 @@ msgstr ""
 #: lib/cab_web/controllers/page_html/home.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/live/me_live.ex
+#: lib/cab_web/tour.ex
+#: lib/cab_web/tour/pages.ex
 #, elixir-autogen, elixir-format
 msgid "My page"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "My page is your one place: registration, your seat, the motion, feedback and your figures."
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
@@ -1580,9 +1755,19 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Name, date, format and a place limit - and the session takes sign-ups."
+msgstr ""
+
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "New head"
+msgstr ""
+
+#: lib/cab_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "New here?"
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_html/show.html.heex
@@ -1605,6 +1790,11 @@ msgstr ""
 #: lib/cab_web/controllers/registration_html.ex
 #, elixir-autogen, elixir-format
 msgid "No account needed — you'll get a personal link that is your access to this session."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "No account? Register as a guest: your personal link opens the same page for that session - seat, motion, ballot and feedback."
 msgstr ""
 
 #: lib/cab_web/controllers/page_html/home.html.heex
@@ -1710,6 +1900,11 @@ msgstr ""
 msgid "Not set yet — the adjudicator sets it when the room begins."
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Now tells you which room you adjudicate, with the teams in their seats."
+msgstr ""
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Now: %{room}, %{session}"
@@ -1755,6 +1950,21 @@ msgstr ""
 msgid "On a touch screen, hold a person and drag them to a slot, or tap a person, then a slot."
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Once registered, the session is on your schedule."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Once the ballot is in you see the places and points - and your team gives feedback on the adjudicator, before the head finishes."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Once the session is finished you see each team's feedback - without the team's name - and your average."
+msgstr ""
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "One feedback per team, before the club head finishes the session; the first one sent stays. The adjudicator sees it without your team's name once the session is finished."
@@ -1793,6 +2003,7 @@ msgid "Open"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
+#: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Open a session"
 msgstr ""
@@ -1837,6 +2048,11 @@ msgstr ""
 msgid "Optional. PNG, JPEG or WebP, at most 1 MB; a square image looks best."
 msgstr ""
 
+#: lib/cab_web/controllers/tour_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Other tours"
+msgstr ""
+
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Our organisation"
@@ -1868,6 +2084,11 @@ msgstr ""
 msgid "Participant limit saved."
 msgstr ""
 
+#: lib/cab_web/controllers/tour_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Pause"
+msgstr ""
+
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Pending head invitations"
@@ -1889,6 +2110,7 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/live/me_live.ex
+#: lib/cab_web/tour/pages.ex
 #, elixir-autogen, elixir-format
 msgid "Personal link"
 msgstr ""
@@ -1896,6 +2118,16 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Pick a member, or type a name, a user's username or email"
+msgstr ""
+
+#: lib/cab_web/controllers/tour_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "Pick a tour"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Pick each speaker and score them from 50 to 100; the places follow from the team totals."
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
@@ -1912,6 +2144,11 @@ msgstr ""
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Platform"
+msgstr ""
+
+#: lib/cab_web/controllers/tour_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Play"
 msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex
@@ -1983,6 +2220,11 @@ msgstr ""
 msgid "Publish motion"
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Publish the motion"
+msgstr ""
+
 #: lib/cab_web/controllers/session_page_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Publish the room's motion first."
@@ -1992,6 +2234,11 @@ msgstr ""
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Publishing shows it to the room and starts 15 minutes of prep."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Publishing the motion, filling the ballot, and the feedback you get."
 msgstr ""
 
 #: lib/cab_web/components/ui.ex
@@ -2028,8 +2275,14 @@ msgstr ""
 #: lib/cab_web/controllers/page_html/home.html.heex
 #: lib/cab_web/controllers/registration_html.ex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
+#: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Register"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Register as usual"
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_html.ex
@@ -2065,6 +2318,7 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex
+#: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Registration"
 msgstr ""
@@ -2174,6 +2428,11 @@ msgstr ""
 msgid "Reopen session"
 msgstr ""
 
+#: lib/cab_web/controllers/tour_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Replay"
+msgstr ""
+
 #: lib/cab_web/controllers/club_public_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Request sent. The club head will review it."
@@ -2209,6 +2468,7 @@ msgstr ""
 
 #: lib/cab_web/components/layouts.ex
 #: lib/cab_web/controllers/owner_html/session.html.heex
+#: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Results"
 msgstr ""
@@ -2256,6 +2516,7 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Rooms"
 msgstr ""
@@ -2273,6 +2534,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Run the session"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Running a club night from the first sign-up to the results."
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex
@@ -2326,6 +2592,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Seat"
+msgstr ""
+
+#: lib/cab_web/controllers/tour_html/index.html.heex
+#, elixir-autogen, elixir-format
+msgid "See cab at work"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
@@ -2419,13 +2690,24 @@ msgstr ""
 #: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
+#: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Sessions"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Sessions open in your clubs show here, with the places left. Register or cancel in one click."
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Set to 15 minutes from publishing, or type a time."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Share one link: members and guests register from the club page."
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -2516,6 +2798,11 @@ msgstr ""
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Sign-in methods"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Sign-ups arrive live. Add people by hand; guests get a personal link of their own."
 msgstr ""
 
 #: lib/cab_web/controllers/auth_controller.ex
@@ -2609,6 +2896,11 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
+#: lib/cab_web/controllers/tour_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Step"
+msgstr ""
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/ballot.html.heex
 #, elixir-autogen, elixir-format
@@ -2659,6 +2951,11 @@ msgstr ""
 msgid "Terms"
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Thanks for watching. The other tours: %{tours}."
+msgstr ""
+
 #: lib/cab_web/controllers/api/session_controller.ex
 #: lib/cab_web/controllers/owner_controller.ex
 #, elixir-autogen, elixir-format
@@ -2686,6 +2983,11 @@ msgstr ""
 msgid "That sign-in has its own account"
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "That's it"
+msgstr ""
+
 #: lib/cab_web/controllers/account_controller.ex
 #: lib/cab_web/controllers/admin_controller.ex
 #, elixir-autogen, elixir-format
@@ -2697,9 +2999,29 @@ msgstr ""
 msgid "The accounts stay separate."
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The adjudicator's tour"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The ballot is in: the room sees the result. From now on only the club head can change it."
+msgstr ""
+
 #: lib/cab_web/controllers/club_public_html/join.html.heex
 #, elixir-autogen, elixir-format
 msgid "The club head reads your answers before approving."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The club head's tour"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The club's questions come prefilled with your saved answers, so registering takes seconds."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
@@ -2783,6 +3105,11 @@ msgstr ""
 msgid "The merged account is"
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The motion appears the moment the adjudicator publishes it, and the prep clock counts down."
+msgstr ""
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "The motion shows here the moment the adjudicator publishes it."
@@ -2796,6 +3123,21 @@ msgstr ""
 #: lib/cab_web/controllers/club_public_html.ex
 #, elixir-autogen, elixir-format
 msgid "The next session"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The registration form"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The result"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The results page, public: every room's places and points, ready to share."
 msgstr ""
 
 #: lib/cab_web/live/room_live.ex
@@ -2816,6 +3158,26 @@ msgstr ""
 #: lib/cab_web/controllers/club_public_html.ex
 #, elixir-autogen, elixir-format
 msgid "The session is running."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The session starts"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The speaker's tour"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The stages"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The tie gate"
 msgstr ""
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
@@ -2943,7 +3305,19 @@ msgstr[1] ""
 msgid "Total points"
 msgstr ""
 
+#: lib/cab_web/controllers/tour_html/index.html.heex
+#: lib/cab_web/controllers/tour_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Tour"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Two teams on the same total are refused, and what you typed stays on the form."
+msgstr ""
+
 #: lib/cab_web/components/layouts.ex
+#: lib/cab_web/tour/pages.ex
 #, elixir-autogen, elixir-format
 msgid "Two teams share a total. Teams can't tie, so adjust the scores."
 msgstr ""
@@ -2956,6 +3330,11 @@ msgstr ""
 #: lib/cab_web/controllers/admin_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Type the head's username or e-mail."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Type the motion, an infoslide and a keyword. Publishing shows it to the room and starts 15 minutes of prep."
 msgstr ""
 
 #: lib/cab_web/club_profile.ex
@@ -2994,6 +3373,11 @@ msgstr ""
 msgid "Waiting (%{count})"
 msgstr ""
 
+#: lib/cab_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Watch a guided tour"
+msgstr ""
+
 #: lib/cab_web/controllers/club_public_html.ex
 #, elixir-autogen, elixir-format
 msgid "We also sent it to %{email}."
@@ -3024,6 +3408,11 @@ msgstr ""
 msgid "We e-mailed them."
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Welcome"
+msgstr ""
+
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Welcome to"
@@ -3039,6 +3428,11 @@ msgstr ""
 msgid "When the debates are over, Finish session records the winners."
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "When the head starts the session, Now shows your room, your side and role, and your team - live, no reload."
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
 msgid "Which format, e.g. Karl Popper"
@@ -3052,6 +3446,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/members.html.heex
 #, elixir-autogen, elixir-format
 msgid "Who"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Who has not sent feedback yet: finishing closes it, so Finish asks first."
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -3138,9 +3537,19 @@ msgstr ""
 msgid "You can keep the two accounts apart, or merge them into one."
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "You chair a room"
+msgstr ""
+
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "You may already have an account"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "You read every team's feedback, with the team."
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_html.ex
@@ -3175,6 +3584,16 @@ msgstr ""
 msgid "Your average with the base vote:"
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Your club"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Your club's profile, edited in place: what visitors see on its page."
+msgstr ""
+
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Your data"
@@ -3183,6 +3602,16 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/answers.html.heex
 #, elixir-autogen, elixir-format
 msgid "Your default answers for this club: every registration for its sessions starts from them. Changing an answer while registering changes it for that session only."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Your figures"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Your figures come straight from the debate engine, one format at a time."
 msgstr ""
 
 #: lib/cab_web/controllers/guest_link_controller.ex
@@ -3196,10 +3625,25 @@ msgstr ""
 msgid "Your link to %{session}"
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Your members, each removable."
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/guest_form.html.heex
 #: lib/cab_web/controllers/registration_html.ex
 #, elixir-autogen, elixir-format
 msgid "Your name"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Your own questions: members answer them once and get them prefilled after that."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Your record"
 msgstr ""
 
 #: lib/cab_web/hub.ex
@@ -3216,6 +3660,11 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Your saved answers are filled in. Changes here are for this session only; your defaults change on My page."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Your schedule"
 msgstr ""
 
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -3308,6 +3757,11 @@ msgstr ""
 #: lib/cab_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "cab is in beta testing."
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "cab runs a debate club's nights: every role works in one place. Sit back - this tour plays by itself."
 msgstr ""
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
@@ -3644,6 +4098,16 @@ msgstr ""
 msgid "that did not work — try again"
 msgstr ""
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the adjudicator's"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the club head's"
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex
 #, elixir-autogen, elixir-format
 msgid "the next session"
@@ -3652,6 +4116,11 @@ msgstr ""
 #: lib/cab_web/controllers/invitation_controller.ex
 #, elixir-autogen, elixir-format
 msgid "the session"
+msgstr ""
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the speaker's"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex

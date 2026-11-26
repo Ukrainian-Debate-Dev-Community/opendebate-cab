@@ -28,7 +28,12 @@ defmodule CabWeb.SessionLive do
       session ->
         session = %{session | club: club}
         if connected?(socket), do: Sessions.subscribe(session)
-        {:ok, socket |> assign(:session, session) |> load()}
+
+        {:ok,
+         socket
+         |> assign(:session, session)
+         |> assign(:short_url, Sessions.short_url(session))
+         |> load()}
     end
   end
 
