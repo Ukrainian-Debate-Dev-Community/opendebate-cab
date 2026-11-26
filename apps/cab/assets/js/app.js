@@ -51,25 +51,33 @@ const t = (key, fallback, vars = {}) =>
 // once (see mountDeadHooks below) - one implementation for both.
 // ----------------------------------------------------------------
 
-// the scored ballot: live team totals, derived ranks, tie warning
+// the scored ballot: live team totals, derived ranks, tie warning. A
+// tie counts only between teams whose scores are all in: an untouched
+// ballot keeps the server's "Enter all N scores" line
 const BallotMath = {
   mounted() {
     this.grid = this.el.querySelector("[data-ballot]")
     this.msg = this.el.querySelector(".bfoot")
+    this.prompt = this.msg && this.msg.textContent.trim()
     this.recalc = () => {
-      const teams = [...this.grid.querySelectorAll(".bteam")].map(t => ({
-        el: t,
-        sum: [...t.querySelectorAll("input[type=number]")].reduce((a, i) => a + (parseInt(i.value, 10) || 0), 0),
-      }))
-      const sums = teams.map(t => t.sum)
-      const tied = sums.some((s, i) => sums.indexOf(s) !== i)
+      const teams = [...this.grid.querySelectorAll(".bteam")].map(t => {
+        const inputs = [...t.querySelectorAll("input[type=number]")]
+        return {
+          el: t,
+          sum: inputs.reduce((a, i) => a + (parseInt(i.value, 10) || 0), 0),
+          full: inputs.every(i => i.value.trim() !== ""),
+        }
+      })
+      const ties = team => team.full && teams.some(o => o !== team && o.full && o.sum === team.sum)
+      const tied = teams.some(ties)
+      const complete = teams.every(team => team.full)
       const order = teams.slice().sort((a, b) => b.sum - a.sum)
       const names = [t("place_1", "1st"), t("place_2", "2nd"), t("place_3", "3rd"), t("place_4", "4th")]
       teams.forEach(team => {
         team.el.querySelector(".tot").textContent = String(team.sum)
         team.el.querySelector(".rk").textContent =
           names[order.indexOf(team)] || t("place_n", "{n}th", {n: order.indexOf(team) + 1})
-        team.el.querySelector(".bsum").classList.toggle("tied", teams.some(o => o !== team && o.sum === team.sum))
+        team.el.querySelector(".bsum").classList.toggle("tied", ties(team))
       })
       if (!this.msg || this.msg.querySelector(".err.server")) return
       if (tied) {
@@ -77,8 +85,10 @@ const BallotMath = {
         err.className = "err"
         err.textContent = t("ballot_tied", "Two teams share a total. Teams can't tie, so adjust the scores.")
         this.msg.replaceChildren(err)
-      } else {
+      } else if (complete) {
         this.msg.textContent = t("ballot_ready", "Ready to submit.")
+      } else {
+        this.msg.textContent = this.prompt
       }
     }
     this.grid.addEventListener("input", this.recalc)
