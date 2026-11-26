@@ -338,32 +338,6 @@ defmodule Cab.Feedback do
     Enum.find(feedback, &(&1.room_id == room["id"] and &1.team_id == team_id(room_team)))
   end
 
-  @doc """
-  The rooms where the user's team still owes feedback: ballot in,
-  session not finished, nothing sent yet. Reads the engine only when
-  such a room exists.
-  """
-  def awaiting(%Session{} = session, state, %User{} = user) do
-    candidates =
-      for room <- state.rooms,
-          state.stage != :done,
-          open?(session, room),
-          room_team = my_room_team(state, room, user),
-          room_team != nil,
-          do: {room, room_team}
-
-    case candidates do
-      [] ->
-        []
-
-      _ ->
-        feedback = all(session)
-        for {room, room_team} <- candidates, sent_by(feedback, room, room_team) == nil, do: room
-    end
-  end
-
-  def awaiting(_session, _state, _user), do: []
-
   @doc "The feedback the user's team sent in this room, or nil."
   def own_for_room(%Session{} = session, state, room, %User{} = user) do
     case my_room_team(state, room, user) do

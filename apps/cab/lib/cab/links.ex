@@ -47,6 +47,24 @@ defmodule Cab.Links do
 
   def get_active_by_code(_code), do: nil
 
+  @doc "A guest's live links (sessions preloaded with their club), newest first."
+  def active_for_user(%User{id: user_id}) do
+    Repo.all(
+      from l in Link,
+        where: l.user_id == ^user_id and is_nil(l.revoked_at),
+        order_by: [desc: l.inserted_at, desc: l.id],
+        preload: [session: :club]
+    )
+  end
+
+  @doc "The code of a guest's newest live link (their hub's address), or nil."
+  def latest_code(%User{} = user) do
+    case active_for_user(user) do
+      [link | _] -> link.code
+      [] -> nil
+    end
+  end
+
   @doc "The finished sessions of `club` this guest has a personal link for, newest first."
   def finished_session_uuids(%User{id: user_id}, %Club{id: club_id}) do
     Repo.all(

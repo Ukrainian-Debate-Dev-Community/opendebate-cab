@@ -2103,7 +2103,8 @@ defmodule Cab.Sessions do
   The user's upcoming signups ACROSS CLUBS (the cabinet's schedule):
   the engine's self-scoped schedule read mapped back onto gateway
   sessions - `%{session, club, role}` rows, soonest first. Sessions
-  the gateway does not know (foreign events) are dropped.
+  the gateway does not know (foreign events) are dropped. A guest's
+  are the sessions of their live personal links.
   """
   def user_schedule(%User{node_user_id: node_user_id} = user) when is_integer(node_user_id) do
     with {:ok, actor} <- actor_for(user),
@@ -2132,7 +2133,13 @@ defmodule Cab.Sessions do
     end
   end
 
-  def user_schedule(%User{}), do: []
+  # a guest has no engine account: their sessions are their live links
+  def user_schedule(%User{} = user) do
+    for link <- Cab.Links.active_for_user(user), link.session != nil do
+      %{session: link.session, club: link.session.club, role: "guest"}
+    end
+    |> Enum.sort_by(&(&1.session.scheduled_at || &1.session.inserted_at), DateTime)
+  end
 
   @doc """
   Where the user sits now: every running session (started, not

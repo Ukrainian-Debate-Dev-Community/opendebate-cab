@@ -1,14 +1,21 @@
-<Layouts.app flash={@flash} current_user={@current_user} active="me">
-  <.chrome here={gettext("My page")}></.chrome>
+<Layouts.app flash={@flash} current_user={@current_user} active={!@guest && "me"}>
+  <.chrome here={if @guest, do: gettext("Personal link"), else: gettext("My page")}></.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
     <.page_head
-      kicker={gettext("My page")}
+      kicker={if @guest, do: gettext("Personal link"), else: gettext("My page")}
       title={@current_user.name || @current_user.username}
-      lead={if @current_user.name, do: "@" <> @current_user.username}
+      lead={if @current_user.name && !@guest, do: "@" <> @current_user.username}
     />
+
+    <%!-- a guest's hub: this link's sessions only, for now --%>
+    <.banner :if={@guest} kind={:info}>
+      {gettext(
+        "This page is yours through your personal link: keep it, anyone with it acts as you. Sign in with an account to keep your results under your name."
+      )}
+    </.banner>
 
     <%!-- NOW: where the user sits in a running session - the room, the
          draw, the motion and its prep; the chair publishes it here --%>
@@ -311,7 +318,7 @@
     </.section>
 
     <%!-- one format's figures at a time, when there are several --%>
-    <nav :if={length(@stats_formats) > 1} class="pills" aria-label={gettext("Format")}>
+    <nav :if={!@guest && length(@stats_formats) > 1} class="pills" aria-label={gettext("Format")}>
       <.link
         :for={format <- @stats_formats}
         class={format == @stats_format && "on"}
@@ -323,7 +330,7 @@
 
     <%!-- the engine's figures as it reports them first, then counts of
          cab's own rows; on phones too: they are what this page is for --%>
-    <.stats id="me-stats" phones>
+    <.stats :if={!@guest} id="me-stats" phones>
       <:stat
         :if={@stats}
         label={gettext("Ranked debates")}
@@ -365,7 +372,7 @@
       <:stat label={gettext("My clubs")}>{length(@memberships)}</:stat>
       <:stat label={gettext("Sessions")}>{length(@history)}</:stat>
     </.stats>
-    <p :if={!@stats} class="mut">
+    <p :if={!@guest && !@stats} class="mut">
       {gettext("No logged debates yet — stats appear after your first scored round.")}
     </p>
 
@@ -436,7 +443,7 @@
             <:col :let={entry} label={gettext("Discussion")}>{entry.discussion}</:col>
           </.table>
         </.section>
-        <.section title={gettext("History")}>
+        <.section :if={!@guest} title={gettext("History")}>
           <.table id="me-history" rows={@history} empty={gettext("No sessions played yet.")}>
             <:col :let={row} label={gettext("Session")}>
               <.link href={~p"/c/#{row.club_uuid}/s/#{row.session_uuid}"}>
@@ -459,7 +466,7 @@
         </.section>
       </div>
       <div class="stack">
-        <.section title={gettext("My clubs")}>
+        <.section :if={!@guest} title={gettext("My clubs")}>
           <.table
             id="my-clubs"
             rows={@memberships}

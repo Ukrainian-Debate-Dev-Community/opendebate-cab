@@ -140,9 +140,8 @@ defmodule CabWeb.Router do
     get "/s/:session_uuid/rooms/:id/ballot", SessionPageController, :ballot
     post "/s/:session_uuid/rooms/:id/ballot", SessionPageController, :submit_ballot
 
-    # a team's feedback on its room's adjudicator (team members only)
+    # the old feedback page: a team gives feedback on its hub now
     get "/s/:session_uuid/rooms/:id/feedback", FeedbackController, :new
-    post "/s/:session_uuid/rooms/:id/feedback", FeedbackController, :create
 
     # the roster - the only member-gated page (v3.1: the member tree
     # is gone; registration is a section of the club page, which is
@@ -199,13 +198,18 @@ defmodule CabWeb.Router do
 
   # /l/:code is a guest's permanent personal link - the code IS the identity:
   # opening it signs the browser session in as the guest and lands
-  # on the session page, where their cancel/ballot actions work by
-  # that identity.
+  # on their hub (/l/:code/hub), where their cancel/ballot/feedback
+  # actions work by that identity.
   scope "/", CabWeb do
     pipe_through :browser
 
     get "/l/:code", GuestLinkController, :show
     post "/l/:code/claim", GuestLinkController, :claim
+
+    # the guest's hub: My page for that link's sessions, live
+    live_session :guest_hub, on_mount: [CabWeb.Locale, {CabWeb.LiveScope, :guest_link}] do
+      live "/l/:code/hub", MeLive, :guest
+    end
   end
 
   # JSON API over the same contexts (club creation is admin-only:
