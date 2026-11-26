@@ -9,8 +9,9 @@
 # adjudicates), rebuilding them, motions with the prep clock, ballots with
 # the tie gate and head-only edits of a confirmed ballot, an iron
 # team, waitlist-only removal, finishing with the recorded winner,
-# standings, My page, guests via the shared URL and personal links (a
-# guest judge fills the ballot, a removed guest's link dies), privacy
+# standings, My page, guests via the club page and personal links
+# (their hub; a guest judge fills the ballot, a removed guest's link
+# dies), the head-only room and ballot pages, privacy
 # walls, club profile edits and member removal.
 #
 # Identities are /dev/switch-user cookie jars; the club is seeded via
@@ -99,10 +100,9 @@ echo "club: $CLUB"
 assert head GET "/api/cab/v1/clubs/$CLUB" 200 '.name' "BP Walkthrough $RUN"
 
 # ----------------------------------------------------------------
-say "join requests (a join request IS a pending membership + the two REQUIRED answers)"
+say "join requests (a join request IS a pending membership + the club's member questions)"
 # ----------------------------------------------------------------
-# a bare request (no message/contact) is rejected - never a bare button
-assert j1 POST "/api/cab/v1/clubs/$CLUB/join-requests" 422 '.details.message | length' 1
+# the seeded club asks no member questions: the message and contact go along
 REQ_IDS=""
 for u in j1 s1 s2 s3 s4 s5 s6 s7 s8; do
   assert "$u" POST "/api/cab/v1/clubs/$CLUB/join-requests" 201 '.status' pending \
@@ -480,69 +480,82 @@ for u in s1 s2 s3 s4 s5 s6; do
   assert "$u" POST "/api/cab/v1/sessions/$GSESSION/signups" 201 '.participant_id | type' number '{}'
 done
 
-# the interim owner session surface: registration + signups + rooms
+# the head's session page: registration (shared URL, people), then
+# the Rooms stage, which starts the session
 req head GET "/c/$CLUB/owner/s/$GSESSION"
 [ "$STATUS" = "200" ] || fail "GET /c/$CLUB/owner/s/$GSESSION: status $STATUS, want 200"
 grep -q 'id="shared-registration-url"' "$BODY" || fail "owner surface misses the shared URL"
 grep -q 'id="session-people"' "$BODY" || fail "owner surface misses the people table"
-grep -q "Start session" "$BODY" || fail "owner surface misses the Start session segment"
+grep -q 'id="session-picker"' "$BODY" || fail "owner surface misses the session picker"
+req head GET "/c/$CLUB/owner/s/$GSESSION?stage=rooms"
+grep -q "Start session" "$BODY" || fail "the Rooms stage misses the Start session segment"
 html_ok "owner session surface" GET "/c/$CLUB/owner/s/\$sess" 200
 
-say "anonymous shared URL -> the registration form (no account)"
+say "anonymous club page -> the registration form (no account)"
 : > "$JARS/g1"; : > "$JARS/g2"; : > "$JARS/late"; : > "$JARS/anon2"
-reqc g1 GET "/r/$GSESSION"
-[ "$STATUS" = "200" ] || fail "GET /r/$GSESSION anonymous: status $STATUS, want 200"
-grep -q 'id="guest-register-form"' "$BODY" || fail "shared URL misses the registration form"
-html_ok "registration form" GET "/r/$GSESSION" 200
+REGISTER="/c/$CLUB?session=$GSESSION"
+reqc g1 GET "$REGISTER"
+[ "$STATUS" = "200" ] || fail "GET $REGISTER anonymous: status $STATUS, want 200"
+grep -q 'id="guest-register-form"' "$BODY" || fail "the club page misses the registration form"
+html_ok "registration form" GET "/c/<club>?session=<guest-night>" 200
 
 # register_guest <jar> <name> <as> - browser form flow: GET for the
 # session+csrf, POST, personal /l/<code> link scraped into $PERSONAL
 register_guest() {
   rg_jar="$1"; rg_name="$2"; rg_as="$3"
-  reqc "$rg_jar" GET "/r/$GSESSION"
-  [ "$STATUS" = "200" ] || fail "GET /r/$GSESSION ($rg_jar): status $STATUS, want 200"
+  reqc "$rg_jar" GET "$REGISTER"
+  [ "$STATUS" = "200" ] || fail "GET $REGISTER ($rg_jar): status $STATUS, want 200"
   rg_tok=$(csrf)
   [ -n "$rg_tok" ] || fail "no csrf token on the registration form"
   # the built-in e-mail field is required by default: without it, 422
   STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/$rg_jar" -c "$JARS/$rg_jar" \
-    --data-urlencode "_csrf_token=$rg_tok" --data-urlencode "name=$rg_name" \
-    "$BASE/r/$GSESSION")
-  [ "$STATUS" = "422" ] || fail "POST /r/$GSESSION without e-mail ($rg_jar): status $STATUS, want 422"
+    --data-urlencode "_csrf_token=$rg_tok" --data-urlencode "session=$GSESSION" \
+    --data-urlencode "name=$rg_name" "$BASE/c/$CLUB/register")
+  [ "$STATUS" = "422" ] || fail "POST register without e-mail ($rg_jar): status $STATUS, want 422"
   STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/$rg_jar" -c "$JARS/$rg_jar" \
-    --data-urlencode "_csrf_token=$rg_tok" --data-urlencode "name=$rg_name" \
+    --data-urlencode "_csrf_token=$rg_tok" --data-urlencode "session=$GSESSION" \
+    --data-urlencode "name=$rg_name" \
     --data-urlencode "answers[email]=$rg_jar-$RUN@example.org" \
-    "$BASE/r/$GSESSION")
-  [ "$STATUS" = "200" ] || fail "POST /r/$GSESSION ($rg_jar): status $STATUS, want 200"
+    "$BASE/c/$CLUB/register")
+  [ "$STATUS" = "200" ] || fail "POST register ($rg_jar): status $STATUS, want 200"
   PERSONAL=$(grep -o '/l/[A-Za-z0-9_-]\{30,\}' "$BODY" | head -1)
   [ -n "$PERSONAL" ] || fail "no personal link on the registered page ($rg_jar)"
   grep -q "acts as you" "$BODY" || fail "registered page misses the keep-it warning"
-  html_ok "guest $rg_as registered, link issued" POST "/r/$GSESSION" 200
+  html_ok "guest $rg_as registered, link issued" POST "/c/<club>/register" 200
 }
 
 say "two guests register: one speaker, one judge"
 register_guest g1 "Guest Greta" speak;  G1_LINK=$PERSONAL
 register_guest g2 "Guest Judy"  judge;  G2_LINK=$PERSONAL
 
-say "personal links adopt the identity and land on P6; the registration shows there"
-reqc anon2 GET "$G1_LINK"
-[ "$STATUS" = "302" ] || fail "GET $G1_LINK anonymous: status $STATUS, want 302 to P6"
-req anon2 GET "/c/$CLUB/s/$GSESSION"
-[ "$STATUS" = "200" ] || fail "GET P6 as guest g1: status $STATUS, want 200"
-grep -q "registered for this session" "$BODY" || fail "P6 misses the guest registration"
-html_ok "guest link -> P6 + registration" GET "/l/<g1> -> /c/.../s/..." 200
-reqc anon2 GET "$G2_LINK"
-[ "$STATUS" = "302" ] || fail "GET $G2_LINK anonymous: status $STATUS, want 302 to P6"
-req anon2 GET "/c/$CLUB/s/$GSESSION"
-[ "$STATUS" = "200" ] || fail "GET P6 as guest g2: status $STATUS, want 200"
-grep -q "registered for this session" "$BODY" || fail "P6 misses the guest registration"
-html_ok "second guest link -> P6 + registration" GET "/l/<g2> -> /c/.../s/..." 200
+# guest_hub <jar> <link> - opening the link adopts the identity and
+# lands on the guest's hub, which shows the registration
+guest_hub() {
+  reqc "$1" GET "$2"
+  [ "$STATUS" = "302" ] || fail "GET $2 ($1): status $STATUS, want 302 to the hub"
+  reqc "$1" GET "$2/hub"
+  [ "$STATUS" = "200" ] || fail "GET $2/hub ($1): status $STATUS, want 200"
+}
+
+say "personal links adopt the identity and land on the hub; the registration shows there"
+guest_hub anon2 "$G1_LINK"
+grep -q "you are registered" "$BODY" || fail "the hub misses the guest registration"
+grep -q 'phx-click="cancel_registration"' "$BODY" || fail "the hub misses Cancel"
+html_ok "guest link -> hub + registration" GET "/l/<g1> -> /l/<g1>/hub" 200
+guest_hub anon2 "$G2_LINK"
+grep -q "you are registered" "$BODY" || fail "the hub misses the guest registration"
+html_ok "second guest link -> hub + registration" GET "/l/<g2> -> /l/<g2>/hub" 200
+# the hub is the link's: another browser goes through the link first
+req late GET "$G1_LINK/hub"
+[ "$STATUS" = "302" ] || fail "GET $G1_LINK/hub without the identity: status $STATUS, want 302"
+html_ok "hub without the identity -> the link" GET "/l/<g1>/hub" 302
 
 say "head lists the links; a guest link opens NOTHING beyond its scope"
 assert head GET "/api/cab/v1/sessions/$GSESSION/links" 200 '.links | length' 2
 
 # visiting the personal link signs the browser session in as the guest
 reqc g1 GET "$G1_LINK"
-[ "$STATUS" = "302" ] || fail "GET $G1_LINK (g1): status $STATUS, want 302 to P6"
+[ "$STATUS" = "302" ] || fail "GET $G1_LINK (g1): status $STATUS, want 302 to the hub"
 assert g1 GET "/api/cab/v1/sessions/$GSESSION/links" 403 '.error' forbidden
 req g1 GET "/c/$CLUB/owner"
 [ "$STATUS" = "403" ] || fail "GET /c/$CLUB/owner as guest: status $STATUS, want 403"
@@ -550,11 +563,11 @@ html_ok "guest on owner tree -> 403" GET "/c/.../owner" 403
 req g1 GET "/c/$CLUB/members"
 [ "$STATUS" = "200" ] || fail "GET /c/$CLUB/members as guest: status $STATUS, want 200"
 html_ok "guest reads a public club's roster -> 200" GET "/c/.../members" 200
-# a room of ANOTHER session does not exist on this session's P6 page
+# a ballot page is the head's: a guest goes to their hub
 reqc g2 GET "$G2_LINK"
 req g2 GET "/c/$CLUB/s/$GSESSION/rooms/$IRON_ROOM/ballot"
-[ "$STATUS" = "404" ] || fail "foreign room on P6: status $STATUS, want 404"
-html_ok "foreign-session room -> 404" GET "/c/.../s/<guest>/rooms/<iron>" 404
+[ "$STATUS" = "302" ] || fail "a ballot page as a guest: status $STATUS, want 302 to the hub"
+html_ok "ballot page as a guest -> hub" GET "/c/.../s/<guest>/rooms/<iron>/ballot" 302
 
 say "a guest added by hand leaves: one remove, link 404, no name kept"
 assert head POST "/api/cab/v1/sessions/$GSESSION/links" 201 '.url | contains("/l/")' true \
@@ -574,20 +587,20 @@ assert head POST "/api/cab/v1/sessions/$GSESSION/links" 201 '.url | contains("/l
   '{"name":"Handed Hanna"}'
 assert head GET "/api/cab/v1/sessions/$GSESSION/links" 200 '.links | length' 3
 
-say "close sign-ups: the shared URL turns into the closed notice"
-reqc late GET "/r/$GSESSION"
+say "close sign-ups: the form is gone and a late post is turned away"
+: > "$JARS/late"
+reqc late GET "$REGISTER"
 LATE_TOK=$(csrf)
 assert head POST "/api/cab/v1/sessions/$GSESSION/close-signups" 200 '.stage' closed
-req anon2 GET "/r/$GSESSION"
-[ "$STATUS" = "200" ] || fail "GET /r/$GSESSION after close: status $STATUS, want 200"
-grep -q "Registration is closed" "$BODY" || fail "shared URL misses the closed notice"
-html_ok "closed notice" GET "/r/$GSESSION" 200
+req anon2 GET "$REGISTER"
+[ "$STATUS" = "200" ] || fail "GET $REGISTER after close: status $STATUS, want 200"
+grep -q 'id="guest-register-form"' "$BODY" && fail "the club page still offers the closed session"
+html_ok "no form after close" GET "/c/<club>?session=<guest-night>" 200
 STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/late" -c "$JARS/late" \
-  --data-urlencode "_csrf_token=$LATE_TOK" --data-urlencode "name=Late Larry" \
-  "$BASE/r/$GSESSION")
-[ "$STATUS" = "200" ] || fail "POST /r/$GSESSION after close: status $STATUS, want 200"
-grep -q "Registration is closed" "$BODY" || fail "late registration got past the gate"
-html_ok "registration after close -> closed notice" POST "/r/$GSESSION" 200
+  --data-urlencode "_csrf_token=$LATE_TOK" --data-urlencode "session=$GSESSION" \
+  --data-urlencode "name=Late Larry" "$BASE/c/$CLUB/register")
+[ "$STATUS" = "302" ] || fail "POST register after close: status $STATUS, want 302"
+html_ok "registration after close -> turned away" POST "/c/<club>/register" 302
 assert head GET "/api/cab/v1/sessions/$GSESSION/links" 200 '.links | length' 3
 
 say "compose including guests; the guest judge chairs the room"
@@ -605,28 +618,25 @@ GPIDS=$(jq -r '.rooms[0].teams[].speakers[].id' "$BODY")
 set -- $GPIDS
 GWINNER=$(jq -r '.rooms[0].teams[0].name' "$BODY")
 
-say "the guest judge fills the ballot through P6 (identity from the link)"
-reqc g2 GET "$G2_LINK"
-[ "$STATUS" = "302" ] || fail "GET $G2_LINK (g2): status $STATUS, want 302 to P6"
-reqc g2 GET "/c/$CLUB/s/$GSESSION"
-[ "$STATUS" = "200" ] || fail "GET P6 as the guest judge: status $STATUS, want 200"
-grep -q "Fill ballot" "$BODY" && fail "a ballot is offered before the room's motion"
-html_ok "no ballot before the motion" GET "/c/.../s/<guest-night>" 200
-# the guest chair publishes the motion on the room page (cab checks the
-# seat, the engine sees the club head)
-reqc g2 GET "/c/$CLUB/s/$GSESSION/rooms/$GROOM"
+say "the guest judge works on the hub (identity from the link)"
+guest_hub g2 "$G2_LINK"
+grep -q "id=\"now-motion-$GROOM\"" "$BODY" || fail "the hub misses the chair's motion form"
+grep -q "id=\"now-ballot-$GROOM\"" "$BODY" && fail "a ballot is offered before the room's motion"
+html_ok "the hub: the motion form, no ballot yet" GET "/l/<g2>/hub" 200
+# the hub's forms are live; their REST twins stay: the guest chair
+# publishes the motion (cab checks the seat, the engine sees the head)
 G2_TOK=$(csrf)
 STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/g2" -c "$JARS/g2" \
   --data-urlencode "_csrf_token=$G2_TOK" --data-urlencode "motion_text=THW let guests chair $RUN" \
   "$BASE/c/$CLUB/s/$GSESSION/rooms/$GROOM/motion")
 [ "$STATUS" = "302" ] || fail "guest motion POST: status $STATUS, want 302"
 html_ok "guest chair publishes the motion" POST "/c/.../s/.../rooms/$GROOM/motion" 302
-reqc g2 GET "/c/$CLUB/s/$GSESSION"
-grep -q "Fill ballot" "$BODY" || fail "P6 misses the guest judge's Fill ballot segment"
+reqc g2 GET "$G2_LINK/hub"
+grep -q "id=\"now-ballot-$GROOM\"" "$BODY" || fail "the hub misses the guest judge's ballot"
+html_ok "the hub carries the ballot" GET "/l/<g2>/hub" 200
 reqc g2 GET "/c/$CLUB/s/$GSESSION/rooms/$GROOM/ballot"
-[ "$STATUS" = "200" ] || fail "GET P6 ballot page: status $STATUS, want 200"
-grep -q 'class="ballot"' "$BODY" || fail "guest ballot page misses the ballot"
-html_ok "guest ballot page via P6" GET "/c/.../s/.../rooms/$GROOM/ballot" 200
+[ "$STATUS" = "302" ] || fail "GET the ballot page as the guest: status $STATUS, want 302 to the hub"
+reqc g2 GET "$G2_LINK/hub"
 G2_TOK=$(csrf)
 # og totals highest -> rank 1; all totals distinct
 STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/g2" -c "$JARS/g2" \
@@ -641,7 +651,7 @@ STATUS=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JARS/g2" -c "$JARS/g2" \
   --data-urlencode "ballot[co][OW][speaker]=$8"  --data-urlencode "ballot[co][OW][score]=72" \
   "$BASE/c/$CLUB/s/$GSESSION/rooms/$GROOM/ballot")
 [ "$STATUS" = "302" ] || fail "guest ballot POST: status $STATUS, want 302"
-html_ok "guest ballot submitted via P6" POST "/c/.../s/.../rooms/$GROOM/ballot" 302
+html_ok "guest ballot submitted (the form's twin)" POST "/c/.../s/.../rooms/$GROOM/ballot" 302
 assert head GET "/api/cab/v1/sessions/$GSESSION" 200 '.rooms[0].status' confirmed
 assert head GET "/api/cab/v1/sessions/$GSESSION" 200 '.winner' "$GWINNER"
 
