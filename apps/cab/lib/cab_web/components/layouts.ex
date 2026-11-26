@@ -13,7 +13,7 @@ defmodule CabWeb.Layouts do
 
       <Layouts.app flash={@flash} current_user={@current_user}
                    club={@club} club_role={@club_role}
-                   nav_session={@nav_session} active="rooms">
+                   nav_session={@nav_session} active="sessions">
         <.chrome .../>
         <div class="pbody">...</div>
       </Layouts.app>
@@ -22,7 +22,7 @@ defmodule CabWeb.Layouts do
   attr :current_user, :any, default: nil
   attr :club, :any, default: nil, doc: "club context for the sidenav; nil = global"
   attr :club_role, :atom, default: :public
-  attr :nav_session, :any, default: nil, doc: "the club's current session (sidenav Rooms)"
+  attr :nav_session, :any, default: nil, doc: "the club's current session (sidenav Sessions)"
   attr :active, :string, default: nil, doc: "the lit sidenav item"
 
   slot :inner_block, required: true

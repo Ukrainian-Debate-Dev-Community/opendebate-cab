@@ -99,10 +99,12 @@ defmodule CabWeb.SessionPageController do
 
   # GET .../rooms/:id/ballot - the room judge's ballot (chair or head)
   def ballot(conn, %{"id" => id} = params) do
-    with_chaired_room(conn, params["session_uuid"], id, fn conn, session, room ->
-      if Sessions.motion?(room),
-        do: render_ballot(conn, session, room, nil, nil),
-        else: motion_first(conn, session, room)
+    CabWeb.Hub.head_page(conn, fn conn ->
+      with_chaired_room(conn, params["session_uuid"], id, fn conn, session, room ->
+        if Sessions.motion?(room),
+          do: render_ballot(conn, session, room, nil, nil),
+          else: motion_first(conn, session, room)
+      end)
     end)
   end
 

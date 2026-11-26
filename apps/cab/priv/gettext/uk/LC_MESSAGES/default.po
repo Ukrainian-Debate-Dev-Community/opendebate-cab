@@ -1606,6 +1606,7 @@ msgstr "Мої клуби"
 #: lib/cab_web/controllers/me_html/answers.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "My page"
@@ -2414,6 +2415,7 @@ msgstr "Надіслано"
 #: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/member_html/archive_section.html.heex
+#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/controllers/owner_html/delete_session.html.heex
 #: lib/cab_web/controllers/owner_html/responses.html.heex
 #: lib/cab_web/controllers/owner_html/session.html.heex
@@ -2464,6 +2466,7 @@ msgstr "Сесію почато, кімнат: %{count}."
 msgid "Session times show in this zone. cab keeps every time in UTC."
 msgstr "Час сесій показано в цьому поясі. cab зберігає весь час в UTC."
 
+#: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
@@ -2692,7 +2695,7 @@ msgstr "Команди"
 #: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Teams send feedback on My page; Finish session closes it."
-msgstr "Команди надсилають відгуки на Моїй сторінці; «Завершити сесію» їх закриває."
+msgstr "Команди надсилають відгуки на «Моїй сторінці»; «Завершити сесію» їх закриває."
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
@@ -3246,11 +3249,21 @@ msgstr "Ваше посилання на %{session}"
 msgid "Your name"
 msgstr "Ваше ім'я"
 
+#: lib/cab_web/hub.ex
+#, elixir-autogen, elixir-format
+msgid "Your room, the motion, the ballot and feedback are on My page."
+msgstr "Ваша кімната, резолюція, бюлетень і відгуки тепер на «Моїй сторінці»."
+
 #: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Your saved answers are filled in. Changes here are for this session only; your defaults change on My page."
 msgstr "Ваші збережені відповіді вже заповнено. Зміни тут стосуються лише цієї сесії; типові відповіді змінюються на «Моїй сторінці»."
+
+#: lib/cab_web/controllers/session_page_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your seat, the motion, the ballot and feedback are on"
+msgstr "Ваше місце, резолюція, бюлетень і відгуки на"
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex
 #, elixir-autogen, elixir-format

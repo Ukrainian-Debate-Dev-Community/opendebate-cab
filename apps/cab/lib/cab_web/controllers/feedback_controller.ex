@@ -15,8 +15,10 @@ defmodule CabWeb.FeedbackController do
 
   # GET .../rooms/:id/feedback
   def new(conn, %{"session_uuid" => session_uuid, "id" => id}) do
-    with_team_room(conn, session_uuid, id, fn conn, session, state, room, room_team ->
-      render_form(conn, session, state, room, room_team, %{}, %{})
+    CabWeb.Hub.head_page(conn, fn conn ->
+      with_team_room(conn, session_uuid, id, fn conn, session, state, room, room_team ->
+        render_form(conn, session, state, room, room_team, %{}, %{})
+      end)
     end)
   end
 

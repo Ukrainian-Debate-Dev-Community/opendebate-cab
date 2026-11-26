@@ -437,9 +437,13 @@ assert j1 POST "/api/cab/v1/rooms/$IRON_ROOM/motion" 200 '.motion.text' \
   "{\"session_uuid\":\"$IRON_SESSION\",\"motion_text\":\"THW iron solo $RUN\"}"
 # publishing starts 15 minutes of prep
 assert j1 GET "/api/cab/v1/sessions/$IRON_SESSION" 200 '.rooms[0].motion.prep_until | type' string
-req anon GET "/c/$CLUB/s/$IRON_SESSION/rooms/$IRON_ROOM"
+# the room page is the head's; anyone else is sent to My page
+req head GET "/c/$CLUB/s/$IRON_SESSION/rooms/$IRON_ROOM"
 grep -q 'data-prep-deadline=' "$BODY" || fail "room page misses the prep clock"
 html_ok "prep clock on the room page" GET "/c/.../s/.../rooms/$IRON_ROOM" 200
+req s1 GET "/c/$CLUB/s/$IRON_SESSION/rooms/$IRON_ROOM"
+[ "$STATUS" = "302" ] || fail "a speaker on the room page: status $STATUS, want 302 to My page"
+html_ok "a speaker's room link goes to My page" GET "/c/.../s/.../rooms/$IRON_ROOM" 302
 
 assert j1 POST "/api/cab/v1/rooms/$IRON_ROOM/ballot" 200 '.status' confirmed \
   "{\"session_uuid\":\"$IRON_SESSION\",\"scores\":$IRON_SCORES}"

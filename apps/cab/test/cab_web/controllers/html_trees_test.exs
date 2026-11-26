@@ -379,9 +379,16 @@ defmodule CabWeb.HtmlTreesTest do
     # both formats run: the head picks one, the club's own preset
     assert owner_html =~ ~s(name="format")
     assert owner_html =~ "Australs"
-    # a finished session opens its results, not the head's session page
-    assert owner_html =~ ~s(href="/c/#{club.uuid}/s/#{done.uuid}")
-    refute owner_html =~ ~s(href="/c/#{club.uuid}/owner/s/#{done.uuid}")
+    # the sessions table opens a finished session's results; the
+    # sidenav's Sessions opens the head's page for it
+    table =
+      owner_html
+      |> LazyHTML.from_document()
+      |> LazyHTML.query("#club-sessions")
+      |> LazyHTML.to_html()
+
+    assert table =~ ~s(href="/c/#{club.uuid}/s/#{done.uuid}")
+    refute table =~ ~s(href="/c/#{club.uuid}/owner/s/#{done.uuid}")
 
     # the separate owner Sessions page is gone (v3.1: two trees, no extras)
     assert conn |> log_in(head) |> get("/c/#{club.uuid}/owner/sessions") |> response(404)
@@ -1188,7 +1195,7 @@ defmodule CabWeb.HtmlTreesTest do
     }
   end
 
-  test "the room judge sees Fill ballot on the session page and submits there", %{
+  test "the room judge works on My page; the ballot post stays for the form's twins", %{
     conn: conn,
     club: club
   } do
@@ -1199,18 +1206,12 @@ defmodule CabWeb.HtmlTreesTest do
 
     page = conn |> log_in(judge) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}")
     home = html_response(page, 200)
-    assert home =~ "Fill ballot"
-    assert home =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
+    refute home =~ "Fill ballot"
+    refute home =~ "/rooms/71/ballot"
 
-    html =
-      conn
-      |> log_in(judge)
-      |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
-      |> html_response(200)
-
-    assert html =~ ~s(class="ballot")
-    assert html =~ "THW fill ballots"
-    assert html =~ ~s(form="ballot-71")
+    # the ballot page is the head's; the chair fills it on My page
+    away = conn |> log_in(judge) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
+    assert redirected_to(away) == "/me"
 
     # og total 151 == oo total 151 -> amber re-render naming the total
     tied =
@@ -1238,9 +1239,10 @@ defmodule CabWeb.HtmlTreesTest do
     assert_received :confirmed
   end
 
-  test "one room URL: public sees draw + motion, the chair gets the form and sets it", %{
+  test "the room page is the head's: the form sets the motion; others go to My page", %{
     conn: conn,
-    club: club
+    club: club,
+    head: head
   } do
     judge = user_fixture(%{node_user_id: 44})
     membership_fixture(judge, club)
@@ -1276,20 +1278,20 @@ defmodule CabWeb.HtmlTreesTest do
       end
     end)
 
-    # anonymous: the draw and the honest "not set yet" - no form
-    public_html =
-      conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71") |> html_response(200)
+    room = ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71"
 
-    assert public_html =~ ~s(id="room-71-draw")
-    assert public_html =~ "Not set yet"
-    refute public_html =~ ~s(id="room-motion-71")
+    # anonymous signs in first, then lands on My page
+    assert conn |> get(room) |> redirected_to() == "/signin?return_to=%2Fme"
 
-    # the chair: same URL, the motion form appears and posts
-    chair_html =
-      conn
-      |> log_in(judge)
-      |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71")
-      |> html_response(200)
+    # the chair (a member) works on My page
+    away = conn |> log_in(judge) |> get(room)
+    assert redirected_to(away) == "/me"
+    assert Phoenix.Flash.get(away.assigns.flash, :info) =~ "on My page"
+
+    # the head: the draw and the motion form
+    chair_html = conn |> log_in(head) |> get(room) |> html_response(200)
+
+    assert chair_html =~ ~s(id="room-71-draw")
 
     assert chair_html =~ ~s(id="room-motion-71")
     assert chair_html =~ "Infoslide"
@@ -1366,7 +1368,7 @@ defmodule CabWeb.HtmlTreesTest do
   end
 
   test "once the ballot is in, the room shows each speaker's points, team points and place",
-       %{conn: conn, club: club} do
+       %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
 
     scored =
@@ -1393,6 +1395,7 @@ defmodule CabWeb.HtmlTreesTest do
 
     html =
       conn
+      |> log_in(head)
       |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71")
       |> html_response(200)
 
@@ -1413,14 +1416,14 @@ defmodule CabWeb.HtmlTreesTest do
     home = conn |> log_in(speaker) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}")
     refute html_response(home, 200) =~ "Fill ballot"
 
-    denied =
+    away =
       conn |> log_in(speaker) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
 
-    assert response(denied, 403)
+    assert redirected_to(away) == "/me"
 
-    # anonymous hits the auth wall
+    # anonymous signs in, then lands on My page
     anon = get(conn, ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
-    assert redirected_to(anon) == "/signin"
+    assert redirected_to(anon) == "/signin?return_to=%2Fme"
   end
 
   test "a head opening an unfinished session's page lands on the Rooms page",
@@ -1505,9 +1508,9 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(class="ballot")
     assert html =~ ~s(action="/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
 
-    # the owner tree stays owner-only for members...
-    denied = conn |> log_in(member) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
-    assert response(denied, 403)
+    # the owner tree stays owner-only: a member works on My page...
+    away = conn |> log_in(member) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
+    assert redirected_to(away) == "/me"
 
     # ...but the ladder lets a platform admin (no membership) through
     admin =

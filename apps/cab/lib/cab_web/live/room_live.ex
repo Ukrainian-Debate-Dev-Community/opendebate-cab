@@ -1,10 +1,11 @@
 defmodule CabWeb.RoomLive do
   @moduledoc """
-  `/c/:club_uuid/s/:session_uuid/rooms/:id` - ONE room URL for every
-  viewer, live: the draw, the motion the moment it is published (with
-  the prep clock), the ballot state. Identity picks what renders: the
-  chair or the head also gets the motion form and the ballot link.
-  The motion and the ballot stay REST posts to their routes.
+  `/c/:club_uuid/s/:session_uuid/rooms/:id` - the club head's room
+  page, live: the draw, the motion the moment it is published (with
+  the prep clock), the ballot state, the motion form and the ballot
+  link. Anyone else works on My page (`CabWeb.Hub`); a guest keeps the
+  page until their link page is the same hub. The motion and the
+  ballot stay REST posts to their routes.
   """
   use CabWeb, :live_view
 
@@ -12,6 +13,16 @@ defmodule CabWeb.RoomLive do
 
   @impl true
   def mount(%{"session_uuid" => session_uuid, "id" => id}, _session, socket) do
+    case CabWeb.Hub.away(socket.assigns.club_role, socket.assigns.current_user) do
+      nil ->
+        mount_room(session_uuid, id, socket)
+
+      path ->
+        {:ok, socket |> put_flash(:info, CabWeb.Hub.notice()) |> redirect(to: path)}
+    end
+  end
+
+  defp mount_room(session_uuid, id, socket) do
     club = socket.assigns.club
 
     with {room_id, ""} <- Integer.parse(id),
