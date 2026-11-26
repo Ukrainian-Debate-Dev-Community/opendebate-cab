@@ -4,11 +4,8 @@ defmodule CabWeb.SessionLive do
   page per session, public, stage-aware, re-read whenever the session
   announces a change (signups, rooms, motions, ballots, finish).
 
-  A participant with an account works on My page, which the page
-  points to; a guest (session identity adopted via `/l/:code`) still
-  cancels, fills the ballot and gives feedback from here, until their
-  link page is the same hub. Those actions stay REST posts to their
-  controller routes, so every write keeps its API twin.
+  A participant works on their hub - My page, or a guest's personal
+  link page - which this page points to.
   """
   use CabWeb, :live_view
 
@@ -61,21 +58,19 @@ defmodule CabWeb.SessionLive do
     |> assign_feedback(session, state, user)
     |> assign(:my_signup, my_signup)
     |> assign(:guest, user != nil and Map.get(user, :guest, false))
-    |> assign(:my_ballot_room, my_ballot_room(state, user))
+    |> assign(:hub, CabWeb.Hub.home(user))
     |> assign(:my_room_id, my_room_id(state, user, my_signup))
     |> assign(:page_title, "#{club.name} — #{state.event["name"]}")
   end
 
-  # a team member who still owes feedback gets the action; an
-  # adjudicator sees the feedback on them once the session is finished
+  # an adjudicator sees the feedback on them once the session is finished
   defp assign_feedback(socket, _session, _state, nil),
-    do: assign(socket, feedback_room: nil, on_me: [], my_average: nil)
+    do: assign(socket, on_me: [], my_average: nil)
 
   defp assign_feedback(socket, session, state, user) do
     on_me = Cab.Feedback.on_adjudicator(session, state, user)
 
     assign(socket,
-      feedback_room: List.first(Cab.Feedback.awaiting(session, state, user)),
       on_me: on_me,
       my_average: on_me != [] && Cab.Feedback.my_average(session, state, user)
     )
@@ -101,18 +96,6 @@ defmodule CabWeb.SessionLive do
     do: Enum.find(signups, &Sessions.own_participant?(&1, user))
 
   defp my_signup(_state, _user), do: nil
-
-  # the chrome's gold "Fill ballot" segment: the open room this
-  # viewer chairs - a completed (not yet confirmed) ballot is still
-  # editable by resubmission
-  defp my_ballot_room(%{stage: :running, rooms: rooms}, %User{} = user) do
-    Enum.find(rooms, fn room ->
-      room["status"] in ["pending", "judging", "completed"] and Sessions.motion?(room) and
-        Sessions.room_chair?(room, user)
-    end)
-  end
-
-  defp my_ballot_room(_state, _user), do: nil
 
   # the row tint: the room carrying the viewer's participant (speaker
   # slot or chair)

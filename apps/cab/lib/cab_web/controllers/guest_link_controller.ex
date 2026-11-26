@@ -3,9 +3,9 @@ defmodule CabWeb.GuestLinkController do
   The guest's permanent personal link: `/l/:code` is AUTH ONLY - the
   code resolves on every request (revoked or unknown is a plain 404),
   the browser session adopts the guest identity ("anyone with the
-  link acts as you") and the guest lands on P6, their session's page,
-  where cancel-registration and the judge ballot work through that
-  identity. The identity holds no membership, so the member/owner
+  link acts as you") and the guest lands on their hub (`/l/:code/hub`,
+  My page for that link's sessions), where cancelling, the judge
+  ballot and feedback work through that identity. The identity holds no membership, so the member/owner
   trees and every other club stay closed to it. Opened while signed in
   with a real account, the link offers to claim the guest's history.
   """
@@ -14,7 +14,7 @@ defmodule CabWeb.GuestLinkController do
 
   alias Cab.Links
 
-  # GET /l/:code - adopt the guest identity, land on P6. A signed-in
+  # GET /l/:code - adopt the guest identity, land on the hub. A signed-in
   # ACCOUNT is never replaced: opening someone's link (an owner
   # checking it, a shared device) must not log anyone out.
   def show(conn, %{"code" => code}) do
@@ -23,12 +23,12 @@ defmodule CabWeb.GuestLinkController do
         conn |> CabWeb.ErrorHTML.respond(404)
 
       link ->
-        session_page = ~p"/c/#{link.session.club.uuid}/s/#{link.session.uuid}"
+        hub = ~p"/l/#{link.code}/hub"
         current = get_session(conn, :user_id)
 
         cond do
           current == link.user_id ->
-            redirect(conn, to: session_page)
+            redirect(conn, to: hub)
 
           is_nil(current) or Links.guest?(current) ->
             conn
@@ -41,7 +41,7 @@ defmodule CabWeb.GuestLinkController do
                 name: link.user.name
               )
             )
-            |> redirect(to: session_page)
+            |> redirect(to: hub)
 
           true ->
             render(conn, :claim,

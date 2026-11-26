@@ -389,6 +389,30 @@ defmodule CabWeb.MeLiveTest do
     refute html =~ ~s(id="now-feedback-71")
   end
 
+  test "a guest chair works on their link's hub: the seat, then the motion", %{conn: conn} do
+    head = user_fixture(%{node_user_id: 9})
+    club = club_fixture(head, %{engine_organisation_id: 3})
+    session = running_session(club)
+    guest = user_fixture(%{node_user_id: nil, name: "Judy", username: "guest-judy"})
+    link = link_fixture(guest, session, participant_id: 90)
+    stub_engine(self())
+
+    {:ok, view, html} =
+      conn |> init_test_session(%{user_id: guest.id}) |> live(~p"/l/#{link.code}/hub")
+
+    assert html =~ "Personal link"
+    assert html =~ "You adjudicate this room."
+    refute html =~ ~s(id="me-stats")
+
+    html =
+      view
+      |> form("#now-motion-71", %{motion_text: "THW trust guests"})
+      |> render_submit()
+
+    assert_received {:motion, %{"motion_text" => "THW trust guests"}}
+    assert html =~ "Motion published."
+  end
+
   test "a guest's link is not an account: My page sends them to sign in", %{conn: conn} do
     guest = user_fixture(%{node_user_id: 77})
     head = user_fixture(%{node_user_id: 9})
