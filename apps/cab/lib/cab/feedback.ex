@@ -425,22 +425,23 @@ defmodule Cab.Feedback do
     end)
   end
 
+  @doc """
+  For the club head before Finish: the teams whose room's ballot is in
+  and who have not sent feedback, `[%{room, room_team}]` in room order.
+  """
+  def missing(state, feedback) do
+    for room <- state.rooms,
+        room["status"] in ["completed", "confirmed"],
+        chair_id(room) != nil,
+        room_team <- Enum.sort_by(room["RoomTeams"] || [], & &1["position"]),
+        team_id(room_team) != nil,
+        sent_by(feedback, room, room_team) == nil,
+        do: %{room: room, room_team: room_team}
+  end
+
   # ---------------------------------------------------------------
   # My page
   # ---------------------------------------------------------------
-
-  @doc """
-  The rooms where the user's team still owes feedback, across their
-  running sessions: `[%{session, room}]`.
-  """
-  def to_give(%User{} = user) do
-    for %{session: session, club: club} <- Sessions.user_schedule(user),
-        session.started_at != nil and session.finished_at == nil,
-        session = %{session | club: club},
-        {:ok, state} <- [Sessions.state(session)],
-        room <- awaiting(session, state, user),
-        do: %{session: session, room: room}
-  end
 
   @doc """
   The feedback on the user as an adjudicator in their latest finished

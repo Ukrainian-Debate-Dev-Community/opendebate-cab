@@ -362,7 +362,11 @@ defmodule CabWeb.OwnerSessionLive do
         do: Cab.Feedback.all(session),
         else: []
 
-    assign(socket, feedback: feedback, feedback_progress: Cab.Feedback.progress(state, feedback))
+    assign(socket,
+      feedback: feedback,
+      feedback_progress: Cab.Feedback.progress(state, feedback),
+      feedback_missing: Cab.Feedback.missing(state, feedback)
+    )
   end
 
   # the room the head chairs while its ballot is still open

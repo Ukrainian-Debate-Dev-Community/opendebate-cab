@@ -2,6 +2,25 @@
      then the feedback the teams sent --%>
 {rooms_block(assigns)}
 
+<%!-- before Finish: the teams that still owe feedback (they send it
+     on My page; finishing closes it) --%>
+<.section
+  :if={@state.stage == :running and @feedback_missing != []}
+  id="feedback-missing"
+  title={gettext("Feedback not sent yet")}
+>
+  <.table id="feedback-missing-teams" rows={@feedback_missing}>
+    <:col :let={row} class="rank">{room_label(row.room)}</:col>
+    <:col :let={row} label={gettext("Side")} code>
+      {side_code(row.room_team["position"], Cab.Format.of(@current))}
+    </:col>
+    <:col :let={row} label={gettext("Speakers")}>{speaker_names(row.room_team)}</:col>
+  </.table>
+  <div class="pad mut">
+    {gettext("Teams send feedback on My page; Finish session closes it.")}
+  </div>
+</.section>
+
 <.section title={gettext("Motions")}>
   <.table
     id="session-motions"
