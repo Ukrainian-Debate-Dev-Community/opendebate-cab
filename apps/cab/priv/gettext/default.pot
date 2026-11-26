@@ -1356,7 +1356,7 @@ msgstr ""
 
 #: lib/cab_web/controllers/club_public_html.ex
 #, elixir-autogen, elixir-format
-msgid "Keep this link — it IS your access: anyone with it acts as you. It opens your view of this session: your registration, the rooms, and (if you adjudicate) the ballot."
+msgid "Keep this link — it IS your access: anyone with it acts as you. It opens your page for this session: your registration, your seat and the motion, the ballot if you adjudicate, and feedback."
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
@@ -1799,7 +1799,7 @@ msgstr ""
 
 #: lib/cab_web/controllers/club_public_html.ex
 #, elixir-autogen, elixir-format
-msgid "Open my session page"
+msgid "Open my page"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
