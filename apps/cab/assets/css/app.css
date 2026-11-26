@@ -505,9 +505,10 @@ input.pick { width:0.9375rem; height:0.9375rem; margin:0 var(--sp-2) 0 0; vertic
 .in-tour .footer { display:none; }
 .tour-hole { position:absolute; z-index:1000; pointer-events:none; border-radius:var(--r-sm);
              outline:0.2rem solid var(--gold); box-shadow:0 0 0 100vmax var(--viewer-shade); }
-.tour-callout { position:absolute; z-index:1002; pointer-events:none; padding:var(--sp-3) var(--sp-4);
+.tour-callout { position:fixed; z-index:1002; pointer-events:none; padding:var(--sp-3) var(--sp-4);
                 border-radius:var(--r-md); background:var(--surface); color:var(--ink); box-shadow:var(--shadow-menu);
-                border-left:0.25rem solid var(--gold); font-size:var(--step-0); line-height:1.45; }
+                border-left:0.25rem solid var(--gold); font-size:var(--step-0); line-height:1.45;
+                transition:top 0.3s ease; }
 .tour-callout p { margin:0; }
 .tour-callout-chapter { font-size:var(--step-m1); font-weight:750; color:var(--brand-700); margin-bottom:var(--sp-1) !important; }
 .tour-cursor { position:absolute; z-index:1003; width:1.25rem; height:1.5rem; pointer-events:none;

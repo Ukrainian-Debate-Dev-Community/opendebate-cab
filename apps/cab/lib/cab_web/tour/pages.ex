@@ -30,7 +30,7 @@ defmodule CabWeb.Tour.Pages do
     club = Demo.club()
 
     {CabWeb.PageHTML, :home,
-     base(Demo.speaker(), nil, :public, %{
+     base(Demo.newcomer(), nil, :public, %{
        clubs: [club],
        member_counts: %{club.id => length(Demo.members())},
        tonight: %{club.id => {Demo.session(:signup), :signup, 0}},
@@ -40,9 +40,9 @@ defmodule CabWeb.Tour.Pages do
      })}
   end
 
-  # the club page as Anna sees it before she joins
+  # the club page as Mark sees it before he joins
   defp build("club-visitor") do
-    user = Demo.speaker()
+    user = Demo.newcomer()
     session = Demo.session(:signup)
     {_kind, fields, _values} = {:account, Cab.Clubs.member_fields(session.club), %{}}
 
@@ -60,7 +60,7 @@ defmodule CabWeb.Tour.Pages do
     club = Demo.club()
 
     {CabWeb.ClubPublicHTML, :join,
-     base(%{Demo.speaker() | id: -40}, club, :public, %{
+     base(Demo.newcomer(), club, :public, %{
        fields: Cab.Clubs.member_fields(club),
        answers: %{},
        errors: %{},
@@ -72,13 +72,15 @@ defmodule CabWeb.Tour.Pages do
   # My page
   # ---------------------------------------------------------------
 
-  defp build("me-pending"), do: me(Demo.speaker(), :signup, membership: "pending", newcomer: true)
-  defp build("me-register"), do: me(Demo.speaker(), :signup, registered: false, newcomer: true)
+  defp build("me-pending"),
+    do: me(Demo.newcomer(), :signup, membership: "pending", registered: false, newcomer: true)
+
+  defp build("me-register"), do: me(Demo.speaker(), :signup, registered: false)
 
   defp build("me-register-form"),
-    do: me(Demo.speaker(), :signup, registered: false, registering: true, newcomer: true)
+    do: me(Demo.speaker(), :signup, registered: false, registering: true)
 
-  defp build("me-registered"), do: me(Demo.speaker(), :signup, registered: true, newcomer: true)
+  defp build("me-registered"), do: me(Demo.speaker(), :signup, registered: true)
   defp build("me-now"), do: me(Demo.speaker(), :running, room: :judging)
   defp build("me-result"), do: me(Demo.speaker(), :running, room: :completed)
 
@@ -115,8 +117,7 @@ defmodule CabWeb.Tour.Pages do
 
     {CabWeb.OwnerHTML, :members,
      base(Demo.head(), club, :owner, %{
-       # Anna asks to join tonight: not a member yet
-       members: Enum.reject(Demo.members(), &(&1.user.username == Demo.speaker().username)),
+       members: Demo.members(),
        join_requests: Demo.join_requests(),
        page_title: gettext("%{club} — Members", club: club.name)
      })}
@@ -217,7 +218,7 @@ defmodule CabWeb.Tour.Pages do
     session = if stage != :none, do: Demo.session(stage)
     state = session && Demo.state(stage, Keyword.get(opts, :room, :judging))
     format = Cab.Format.of(Demo.session(:signup))
-    # a newcomer (Anna before her first night here) has no figures yet
+    # a newcomer (Mark, before his first session) has no figures yet
     newcomer? = Keyword.get(opts, :newcomer, false)
     figures? = not guest? and not newcomer?
 

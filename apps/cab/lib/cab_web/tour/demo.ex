@@ -58,6 +58,10 @@ defmodule CabWeb.Tour.Demo do
   @doc "The adjudicator the adjudicator tour follows (R1's chair)."
   def chair, do: user(217, -3)
 
+  @doc "Someone new to the club: the clubs part follows him joining."
+  def newcomer,
+    do: %User{id: -101, username: "mark-hrytsenko", name: "Mark Hrytsenko", node_user_id: -130}
+
   @doc "A guest: no account, a personal link."
   def guest,
     do: %User{id: -9, username: "guest-greta", name: "Greta Lys", node_user_id: nil, guest: true}
@@ -155,7 +159,6 @@ defmodule CabWeb.Tour.Demo do
     for {{name, message}, i} <-
           Enum.with_index(
             [
-              {"Anna Shevchuk", "I want to debate on Thursday nights."},
               {"Mark Hrytsenko", "I debated at school and want to start again."},
               {"Zlata Fedorenko", "A friend brought me last week - I loved it."}
             ],
@@ -163,7 +166,7 @@ defmodule CabWeb.Tour.Demo do
           ) do
       user =
         if i == 0,
-          do: speaker(),
+          do: newcomer(),
           else: %User{
             id: -100 - i,
             username: name |> String.downcase() |> String.replace(" ", "-"),

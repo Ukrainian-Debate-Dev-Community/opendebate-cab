@@ -305,11 +305,6 @@ msgstr "4-те"
 msgid ": the one that heads a club, or else the older one. It gets the other account's debate history (shown under its name), clubs, club head positions, invitations and sign-in methods, and you stay signed in to it. The other account is closed. A club where both are members keeps the stronger membership. It cannot be undone."
 msgstr ": той, що очолює клуб, а якщо такого немає, то старіший. До нього перейдуть історія дебатів іншого акаунта (під його ім'ям), клуби, посади голови клубу, запрошення та способи входу, і ви залишитеся в ньому. Інший акаунт буде закрито. Якщо обидва акаунти є членами одного клубу, лишається вище членство. Скасувати це неможливо."
 
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "A Thursday night at a debate club, through the eyes of the head who runs it, a speaker and an adjudicator."
-msgstr "Четвер у дебатному клубі очима голови клубу, спікерки та судді."
-
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "A club head added you to a session."
@@ -322,6 +317,11 @@ msgstr[2] "Вас додали до %{count} сесій."
 #, elixir-autogen, elixir-format
 msgid "A club head added you to these sessions. Accept to see them on My page under your name; decline to have your name removed."
 msgstr "Голова клубу додав вас до цих сесій. Прийміть, щоб бачити їх на «Моїй сторінці» під своїм ім'ям; відхиліть, щоб ваше ім'я прибрали."
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "A few more things cab does for each of them."
+msgstr "Ще кілька речей, які cab робить для кожного з них."
 
 #: lib/cab_web/controllers/head_invitation_controller.ex
 #, elixir-autogen, elixir-format
@@ -352,6 +352,11 @@ msgstr "Персональне посилання"
 #, elixir-autogen, elixir-format
 msgid "A room seats %{seats} (%{speakers} speakers and an adjudicator), so the room count follows the sign-ups;"
 msgstr "У кімнаті %{seats} місць (%{speakers} спікерів і суддя), тож кількість кімнат залежить від реєстрацій;"
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "A session moves through Registration, Rooms, Debates and Finished. Evening comes: Daria goes to Rooms."
+msgstr "Сесія проходить етапи Реєстрація, Кімнати, Дебати й Завершено. Настає вечір: Дарія переходить до Кімнат."
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -476,8 +481,8 @@ msgstr "Після дебатів Петро заповнює белот: оці
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "After the night"
-msgstr "Після вечора"
+msgid "After the session Petro reads each team's feedback on his call - without the team's name - and his average."
+msgstr "Після сесії Петро читає відгук кожної команди на своє рішення - без назви команди - і свою середню оцінку."
 
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
@@ -511,33 +516,28 @@ msgstr "Ім'я користувача або e-mail акаунта. Якщо e-
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "And between nights Daria keeps the club's own questions: asked once, prefilled after that."
-msgstr "А між вечорами Дарія веде власні питання клубу: відповідають один раз, далі все заповнюється саме."
+msgid "And every session she played or adjudicated."
+msgstr "І кожна сесія, де вона грала чи суддівала."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Anna finds the club"
-msgstr "Анна знаходить клуб"
+msgid "And more"
+msgstr "І ще"
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Anna is a member now: Thursday's session shows on her My page, where she does everything from here on."
-msgstr "Тепер Анна - членкиня клубу: сесія четверга з'являється на її «Моїй сторінці», де вона відтепер робить усе."
+msgid "And the club's profile: what visitors read on its page."
+msgstr "І профіль клубу: те, що відвідувачі читають на його сторінці."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Anna registers"
-msgstr "Анна реєструється"
+msgid "Anna is a member: Thursday's session shows on her My page, where she does everything from here on."
+msgstr "Анна - членкиня клубу: сесія четверга з'являється на її «Моїй сторінці», де вона відтепер робить усе."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Anna sees the result straight away: her team is first, with its speaker points."
 msgstr "Анна одразу бачить результат: її команда перша, зі спікерськими балами."
-
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "Anna wants to debate. Every club on cab is listed with its next session; she picks Riverside."
-msgstr "Анна хоче дебатувати. Усі клуби в cab показано з найближчою сесією; вона обирає Riverside."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
@@ -680,8 +680,8 @@ msgstr "Бюлетенів подано"
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Before the night is finished, Anna's team rates the adjudicator."
-msgstr "Доки вечір не завершено, команда Анни оцінює суддю."
+msgid "Before the session is finished, Anna's team rates the adjudicator."
+msgstr "Доки сесію не завершено, команда Анни оцінює суддю."
 
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -862,6 +862,7 @@ msgstr "Налаштування клубу"
 #: lib/cab_web/controllers/standings_html.ex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #: lib/cab_web/controllers/standings_html/standings_tabs.html.heex
+#: lib/cab_web/tour.ex
 #: lib/cab_web/tour/pages.ex
 #, elixir-autogen, elixir-format
 msgid "Clubs"
@@ -976,13 +977,8 @@ msgstr "ЗПМ"
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Daria approves"
-msgstr "Дарія схвалює"
-
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "Daria follows every room: ballots in, motions out, feedback arriving."
-msgstr "Дарія стежить за кожною кімнатою: белоти надіслано, резолюції опубліковано, відгуки надходять."
+msgid "Daria follows every room: motions out, ballots in, feedback arriving."
+msgstr "Дарія стежить за кожною кімнатою: резолюції опубліковано, белоти надіслано, відгуки надходять."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
@@ -991,8 +987,13 @@ msgstr "Дарія відкриває сесію четверга: назва, �
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Daria sees the request with Anna's answer, and approves it."
-msgstr "Дарія бачить заявку з відповіддю Анни й схвалює її."
+msgid "Daria picks any of the club's sessions here. A finished one can be reopened to fix a ballot, then finished again."
+msgstr "Тут Дарія обирає будь-яку сесію клубу. Завершену можна відкрити знову, щоб виправити белот, і завершити ще раз."
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Daria sees the request with Mark's answer, and approves it. He is a member."
+msgstr "Дарія бачить заявку з відповіддю Марка й схвалює її. Він - член клубу."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
@@ -1271,8 +1272,8 @@ msgstr "Завершено"
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Finishing"
-msgstr "Завершення"
+msgid "Finished: the winners are recorded and the results are public, ready to paste into the club chat."
+msgstr "Завершено: переможців зафіксовано, результати публічні й готові для клубного чату."
 
 #: lib/cab_web/controllers/signin_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -1340,8 +1341,8 @@ msgstr "Гості та члени клубу"
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Guests need no account: a personal link opens the same page for their night - the seat, the motion and, for a guest judge, the ballot."
-msgstr "Гостям акаунт не потрібен: персональне посилання відкриває таку саму сторінку для їхнього вечора - місце, резолюцію, а для судді-гостя - белот."
+msgid "Guests need no account: a personal link opens the same page for their session - the seat, the motion and, for a guest adjudicator, the ballot."
+msgstr "Гостям акаунт не потрібен: персональне посилання відкриває таку саму сторінку для їхньої сесії - місце, резолюцію, а для судді-гостя - белот."
 
 #: lib/cab_web/controllers/owner_html.ex
 #, elixir-autogen, elixir-format
@@ -1389,10 +1390,20 @@ msgstr "Вітаємо, %{name}.\n\nГолова клубу %{club} додав �
 msgid "Hello %{name},\n\nYou are registered for %{session} at %{club}.%{date} This personal link is your way in: it shows the session, your seat and your room.\n\n%{url}\n\nAnyone with this link acts as you, so keep it to yourself. If you sign in to cab later, you can move your results into your account from this link.\n"
 msgstr "Вітаємо, %{name}.\n\nВи зареєструвалися на %{session} у клубі %{club}.%{date} Через це персональне посилання ви входите: на ньому видно сесію, ваше місце і вашу кімнату.\n\n%{url}\n\nХто має це посилання, діє від вашого імені, тож нікому його не передавайте. Якщо згодом увійдете в cab, за цим посиланням зможете перенести свої результати у свій акаунт.\n"
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Her members, each with their saved answers."
+msgstr "Її члени клубу, кожен зі збереженими відповідями."
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "History"
 msgstr "Історія"
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "How a debate club runs on cab: a session played from start to finish, the club around it, and the rest."
+msgstr "Як дебатний клуб працює в cab: сесія від початку до кінця, клуб навколо неї та решта."
 
 #: lib/cab/feedback.ex
 #, elixir-autogen, elixir-format
@@ -1569,6 +1580,16 @@ msgstr "РЕЗОЛЮЦІЯ"
 #, elixir-autogen, elixir-format
 msgid "Main page"
 msgstr "Головна"
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Mark wants to start debating. Every club on cab is listed with its next session; he picks Riverside."
+msgstr "Марк хоче почати дебатувати. Усі клуби в cab показано з найближчою сесією; він обирає Riverside."
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Mark, a newcomer"
+msgstr "Марк, новачок"
 
 #: lib/cab_web/club_profile.ex
 #: lib/cab_web/controllers/owner_html/club.html.heex
@@ -1761,11 +1782,6 @@ msgstr "Немає акаунта з іменем користувача або 
 msgid "No account needed — you'll get a personal link that is your access to this session."
 msgstr "Акаунт не потрібен — ви отримаєте персональне посилання, яке і є вашим доступом до цієї сесії."
 
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "No account?"
-msgstr "Немає акаунта?"
-
 #: lib/cab_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "No clubs here yet."
@@ -1916,18 +1932,13 @@ msgstr "На сенсорному екрані утримуйте учасник
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "On her My page the request waits for the club head."
-msgstr "На її «Моїй сторінці» заявка чекає на голову клубу."
+msgid "On his My page the request waits for the club head."
+msgstr "На його «Моїй сторінці» заявка чекає на голову клубу."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "One Thursday night at Riverside Debate Club, through three people: Daria runs the club, Anna comes to debate, Petro adjudicates. Watch the night from all three sides."
-msgstr "Один четвер у Riverside Debate Club очима трьох людей: Дарія керує клубом, Анна приходить дебатувати, Петро суддіває. Подивіться на вечір з усіх трьох боків."
-
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "One club night on cab"
-msgstr "Один клубний вечір у cab"
+msgid "One Thursday night, from opening the session to the results. Daria runs the club, Anna debates, Petro adjudicates."
+msgstr "Один четвер від відкриття сесії до результатів. Дарія керує клубом, Анна дебатує, Петро суддіває."
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -1980,11 +1991,6 @@ msgstr "Відкрити мою сторінку"
 #, elixir-autogen, elixir-format
 msgid "Open new session"
 msgstr "Відкрити нову сесію"
-
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "Opening the night"
-msgstr "Відкриття вечора"
 
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
@@ -2080,11 +2086,6 @@ msgstr "Персональне посилання"
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Petro now reads each team's feedback on his call - without the team's name - and his average."
-msgstr "Тепер Петро читає відгук кожної команди на своє рішення - без назви команди - і свою середню оцінку."
-
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
 msgid "Petro's My page says he chairs room 1. He types the motion, an infoslide and a keyword, and publishes it."
 msgstr "«Моя сторінка» Петра показує, що він суддя кімнати 1. Він вводить резолюцію, інфослайд і ключове слово та публікує її."
 
@@ -2123,6 +2124,11 @@ msgstr "Відтворити"
 #, elixir-autogen, elixir-format
 msgid "Played as a guest? Paste that session's personal link to move its results onto this account."
 msgstr "Грали як гість? Вставте персональне посилання тієї сесії, щоб перенести її результати в цей акаунт."
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Playing a session"
+msgstr "Сесія"
 
 #: lib/cab_web/bot_guard.ex
 #, elixir-autogen, elixir-format
@@ -2425,16 +2431,16 @@ msgstr[2] "Відповіді — %{count} людей"
 msgid "Result"
 msgstr "Результат"
 
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "Result and feedback"
-msgstr "Результат і відгук"
-
 #: lib/cab_web/components/layouts.ex
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "Results"
 msgstr "Результати"
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "Riverside Debate Club meets on Thursdays. Watch a session through the head who runs it, a speaker and an adjudicator; then the club itself; then the rest."
+msgstr "Riverside Debate Club збирається по четвергах. Подивіться сесію очима голови клубу, спікерки та судді; далі сам клуб; далі решта."
 
 #: lib/cab_web/controllers/member_html/members.html.heex
 #: lib/cab_web/controllers/owner_html/members.html.heex
@@ -2551,11 +2557,6 @@ msgstr "Скануйте або відкрийте"
 msgid "Seat"
 msgstr "Місце"
 
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "Seating the rooms"
-msgstr "Розсадка кімнат"
-
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Select %{name}"
@@ -2593,8 +2594,8 @@ msgstr "Надіслано"
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Sent. Petro reads it, without the team's name, once the night is over."
-msgstr "Надіслано. Петро прочитає відгук без назви команди, коли вечір завершиться."
+msgid "Sent. Petro reads it, without the team's name, once the session is over."
+msgstr "Надіслано. Петро прочитає відгук без назви команди, коли сесія завершиться."
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/member_html/archive_section.html.heex
@@ -2942,8 +2943,8 @@ msgstr "Цей спосіб входу має власний акаунт"
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "That's the night"
-msgstr "Ось і весь вечір"
+msgid "That's the tour"
+msgstr "От і весь тур"
 
 #: lib/cab_web/controllers/account_controller.ex
 #: lib/cab_web/controllers/admin_controller.ex
@@ -2958,13 +2959,13 @@ msgstr "Акаунти лишаються окремими."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "The ballot"
-msgstr "Белот"
+msgid "The club around the sessions: someone new finds it and joins, and Daria keeps it running."
+msgstr "Клуб навколо сесій: новачок знаходить його й вступає, а Дарія дбає про клуб."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "The club asks one question. Her answer is saved, so she will not type it again."
-msgstr "Клуб ставить одне питання. Її відповідь збережено, тож вводити її знову не доведеться."
+msgid "The club asks one question. His answer is saved, so he will not type it again when he registers."
+msgstr "Клуб ставить одне питання. Його відповідь збережено, тож під час реєстрації вводити її знову не доведеться."
 
 #: lib/cab_web/controllers/club_public_html/join.html.heex
 #, elixir-autogen, elixir-format
@@ -2973,8 +2974,13 @@ msgstr "Голова клубу читає ваші відповіді, перш
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "The club's page: who they are and when they meet. Anna asks to join."
-msgstr "Сторінка клубу: хто вони і коли збираються. Анна просить прийняти її до клубу."
+msgid "The club's own questions: who is asked what. Members answer once; their answers come prefilled after that."
+msgstr "Власні питання клубу: кого про що питати. Члени клубу відповідають один раз, далі відповіді заповнюються самі."
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "The club's page: who they are and when they meet. Mark asks to join."
+msgstr "Сторінка клубу: хто вони і коли збираються. Марк просить прийняти його до клубу."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
@@ -3062,11 +3068,6 @@ msgstr "Об'єднання неможливе, якщо обидва акаун
 msgid "The merged account is"
 msgstr "Об'єднаний акаунт:"
 
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "The motion"
-msgstr "Резолюція"
-
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "The motion shows here the moment the adjudicator publishes it."
@@ -3081,21 +3082,6 @@ msgstr "Новий голова бере справи на себе; попер�
 #, elixir-autogen, elixir-format
 msgid "The next session"
 msgstr "Наступна сесія"
-
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "The night moves through Registration, Rooms, Debates and Finished. Evening comes: Daria goes to Rooms."
-msgstr "Вечір проходить етапи Реєстрація, Кімнати, Дебати й Завершено. Настає вечір: Дарія переходить до Кімнат."
-
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "The night starts"
-msgstr "Вечір починається"
-
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "The public results: every room's places and points, ready to paste into the club chat."
-msgstr "Публічні результати: місця й бали кожної кімнати, готові для клубного чату."
 
 #: lib/cab_web/live/room_live.ex
 #, elixir-autogen, elixir-format
@@ -3121,11 +3107,6 @@ msgstr "Сесія триває."
 #, elixir-autogen, elixir-format
 msgid "The session takes sign-ups. Daria shares one link in the club chat; members register on My page, guests from the club page."
 msgstr "Сесія приймає реєстрації. Дарія ділиться одним посиланням у клубному чаті; члени клубу реєструються на «Моїй сторінці», гості - зі сторінки клубу."
-
-#: lib/cab_web/tour.ex
-#, elixir-autogen, elixir-format
-msgid "The winners are recorded. A wrong ballot? Reopen, fix it and finish again."
-msgstr "Переможців зафіксовано. Помилка в белоті? Відкрийте сесію знову, виправте й завершіть ще раз."
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -3356,8 +3337,8 @@ msgstr "Ми надіслали їм e-mail."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Week after week Anna's My page keeps her figures, straight from the debate engine, and every night she played."
-msgstr "Тиждень за тижнем «Моя сторінка» Анни зберігає її статистику просто з двіжка дебатів і кожен вечір, де вона грала."
+msgid "Week after week Anna's My page keeps her figures, straight from the debate engine, one format at a time."
+msgstr "Тиждень за тижнем «Моя сторінка» Анни зберігає її статистику просто з двіжка дебатів, окремо для кожного формату."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
@@ -3664,6 +3645,11 @@ msgstr "API cab"
 #, elixir-autogen, elixir-format
 msgid "cab is in beta testing."
 msgstr "cab на етапі бета-тестування."
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "cab, a guided tour"
+msgstr "cab: тур"
 
 #: lib/cab_web/controllers/admin_html/show.html.heex
 #, elixir-autogen, elixir-format

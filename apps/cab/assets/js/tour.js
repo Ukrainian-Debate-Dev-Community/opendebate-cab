@@ -62,20 +62,22 @@ export const mountTour = () => {
     return inset
   }
 
-  // the spotlight and the caption beside it; tall targets keep to the
-  // screen
-  const spotlight = (step, on) => {
+  // the spotlight: a box over the whole target, on the frame's own page;
+  // it stays there for the step - typing and clicks happen inside it
+  const spotlight = (step) => {
     const d = doc()
     const v = view()
     clear()
-    const target = on || (step.target && d.querySelector(step.target))
+    const target = step.target && d.querySelector(step.target)
     if (!target) return null
 
     const inset = topInset()
     const room = v.innerHeight - inset
     let box = target.getBoundingClientRect()
-    const height = Math.min(box.height, room * 0.62)
-    const want = box.top + v.scrollY - inset - Math.max(16, (room - height - 150) / 2)
+    // a part that fits shows whole with room for the caption; a taller
+    // one starts at its top
+    const fits = box.height + 160 < room
+    const want = box.top + v.scrollY - inset - (fits ? Math.max(16, (room - box.height - 140) / 2) : 16)
     v.scrollTo({top: Math.max(0, want), behavior: "instant"})
     box = target.getBoundingClientRect()
 
@@ -85,29 +87,32 @@ export const mountTour = () => {
       top: `${box.top + v.scrollY - 6}px`,
       left: `${box.left + v.scrollX - 6}px`,
       width: `${box.width + 12}px`,
-      height: `${height + 12}px`
+      height: `${box.height + 12}px`
     })
     d.body.appendChild(hole)
 
+    // the caption floats in the frame's view: below the part, above
+    // it, or at the foot of the screen for a tall one
     const callout = d.createElement("div")
     callout.className = "tour-callout"
     callout.setAttribute("role", "status")
-    const chapter = d.createElement("p")
-    chapter.className = "tour-callout-chapter"
-    chapter.textContent = step.as || step.chapter
+    const who = d.createElement("p")
+    who.className = "tour-callout-chapter"
+    who.textContent = step.as || step.chapter
     const text = d.createElement("p")
     text.textContent = step.text
-    callout.append(chapter, text)
+    callout.append(who, text)
     d.body.appendChild(callout)
 
     const width = Math.min(400, v.innerWidth - 24)
-    const left = Math.min(Math.max(12, box.left + 6), v.innerWidth - width - 12)
     callout.style.width = `${width}px`
-    callout.style.left = `${left + v.scrollX}px`
-    const below = box.top + height + 18
+    callout.style.left = `${Math.min(Math.max(12, box.left + 6), v.innerWidth - width - 12)}px`
     const tall = callout.offsetHeight
-    const top = below + tall < v.innerHeight - 8 ? below : Math.max(inset + 8, box.top - tall - 18)
-    callout.style.top = `${top + v.scrollY}px`
+    let top
+    if (box.bottom + 18 + tall < v.innerHeight - 8) top = box.bottom + 18
+    else if (box.top - tall - 18 > inset + 8) top = box.top - tall - 18
+    else top = v.innerHeight - tall - 12
+    callout.style.top = `${top}px`
     return target
   }
 
@@ -130,36 +135,32 @@ export const mountTour = () => {
     return el
   }
 
-  // the spotlight moves to the field being filled or the button pressed
-  // when it is off screen; a caption over it moves out of the way
-  const overlaps = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
-
   // the sticky bars stay on screen: nothing to scroll to
   const pinned = el => el.closest(".chrome, .sidenav") !== null
 
-  const follow = (el) => {
+  // the field or button acted on comes into view (the spotlight stays on
+  // its part); the caption steps aside when it covers it
+  const reveal = async (el) => {
     const v = view()
-    const box = el.getBoundingClientRect()
-    if (!pinned(el) && (box.top < topInset() || box.bottom > v.innerHeight)) {
-      const pointer = doc().querySelector(".tour-cursor")
-      spotlight(steps[index], el.closest(".f-block, .f-submit, .pad") || el)
-      if (pointer) doc().body.appendChild(pointer)
-      return
+    let box = el.getBoundingClientRect()
+    if (!pinned(el) && (box.top < topInset() + 8 || box.bottom > v.innerHeight - 8)) {
+      v.scrollBy({top: box.top - topInset() - (v.innerHeight - topInset()) / 3, behavior: "smooth"})
+      await sleep(450)
+      box = el.getBoundingClientRect()
     }
     const callout = doc().querySelector(".tour-callout")
-    if (callout && overlaps(callout.getBoundingClientRect(), box)) {
-      const room = topInset() + 8
-      const top = box.top - room > callout.offsetHeight + 16 ? room : v.innerHeight - callout.offsetHeight - 8
-      callout.style.top = `${top + v.scrollY}px`
-    }
+    if (!callout) return
+    // the screen's foot or top, whichever leaves the element clear (the
+    // foot when both do; else the one that covers less of it)
+    const tall = callout.offsetHeight
+    const spots = [v.innerHeight - tall - 12, topInset() + 12]
+    const covered = top => Math.max(0, Math.min(box.bottom, top + tall) - Math.max(box.top, top))
+    const best = spots.reduce((a, b) => covered(b) < covered(a) ? b : a)
+    callout.style.top = `${best}px`
   }
 
   const pointAt = async (el, mine) => {
-    follow(el)
-    const box = el.getBoundingClientRect()
-    if (!pinned(el) && (box.bottom > view().innerHeight || box.top < topInset()))
-      view().scrollBy({top: box.top - view().innerHeight / 2, behavior: "smooth"})
-    await sleep(250)
+    await reveal(el)
     if (mine !== run) return
     const now = el.getBoundingClientRect()
     const pointer = cursor()
