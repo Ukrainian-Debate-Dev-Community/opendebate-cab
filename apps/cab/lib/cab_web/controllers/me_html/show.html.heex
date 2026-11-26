@@ -50,7 +50,7 @@
           <% end %>
         </:col>
       </.table>
-      <div class="pad">
+      <div id={"now-motion-box-#{seat.room["id"]}"} class="pad">
         <p>{gettext("Adjudicator:")} <b>{judge_name(seat.room, seat.state.signups)}</b></p>
         <%= if motion = seat.room["Motion"] do %>
           <p class="kicker">{gettext("Motion")}</p>
@@ -143,7 +143,11 @@
         </div>
       <% end %>
       <%!-- the ballot is in: the result, as the room's draw reads it --%>
-      <div :if={seat.room["status"] in ["completed", "confirmed"]} class="pad">
+      <div
+        :if={seat.room["status"] in ["completed", "confirmed"]}
+        id={"now-result-#{seat.room["id"]}"}
+        class="pad"
+      >
         <p class="kicker">{gettext("Result")}</p>
         <p :for={room_team <- Enum.sort_by(sorted_teams(seat.room), &(&1["rank"] || 9))}>
           <b>{if room_team["rank"], do: ordinal(room_team["rank"]), else: "—"}</b>
@@ -156,7 +160,7 @@
            adjudicator before the head finishes; one per team --%>
       <%= case seat.feedback do %>
         <% {:sent, entry} -> %>
-          <div class="pad">
+          <div id={"now-feedback-sent-#{seat.room["id"]}"} class="pad">
             <p class="kicker">{gettext("Feedback on the adjudicator")}</p>
             <p>
               {gettext("Your team sent feedback:")}

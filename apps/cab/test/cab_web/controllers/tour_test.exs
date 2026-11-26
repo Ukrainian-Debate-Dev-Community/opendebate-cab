@@ -23,6 +23,7 @@ defmodule CabWeb.TourTest do
     assert html =~ ~s(id="tour")
     assert html =~ ~s(data-steps=)
     assert html =~ ~s(class="tour-slider")
+    assert html =~ ~s(class="tour-chapters")
     assert html =~ "The club head&#39;s tour"
     assert html =~ ~s(href="/tour/participant")
 
@@ -32,14 +33,26 @@ defmodule CabWeb.TourTest do
 
   for tour <- Tour.all(), {step, index} <- Enum.with_index(tour.steps), step.frame do
     @step step
-    test "#{tour.key} step #{index + 1} (#{step.frame}): the frame renders, #{step.target || "the page"} is on it",
+    test "#{tour.key} step #{index + 1} (#{step.frame}): the frame renders with all the step points at",
          %{conn: conn} do
       html = conn |> get(~p"/tour/frame/#{@step.frame}") |> html_response(200)
+      page = LazyHTML.from_document(html)
 
-      if target = @step.target do
-        found = html |> LazyHTML.from_document() |> LazyHTML.query(target)
-        assert Enum.count(found) > 0, "#{@step.frame} misses #{target}"
+      selectors =
+        [@step.target, @step.click | Enum.map(@step.set ++ @step.fill, &elem(&1, 0))]
+        |> Enum.reject(&is_nil/1)
+
+      for selector <- selectors do
+        assert Enum.count(LazyHTML.query(page, selector)) > 0, "#{@step.frame} misses #{selector}"
       end
+    end
+  end
+
+  test "every tour opens and closes with a card, and holds long enough to read" do
+    for tour <- Tour.all() do
+      assert hd(tour.steps).frame == nil
+      assert List.last(tour.steps).finale
+      assert Enum.all?(tour.steps, &(Tour.hold(&1) >= 4000))
     end
   end
 

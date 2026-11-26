@@ -10,10 +10,10 @@ defmodule CabWeb.Tour.Pages do
 
   alias CabWeb.Tour.Demo
 
-  @frames ~w(clubs club join guest-register me-register me-schedule me-now me-result
-             me-figures me-chair me-ballot me-tie me-ballot-in me-on-me guest-hub
-             owner-club owner-members owner-form owner-registration owner-rooms
-             owner-debates owner-finished results)
+  @frames ~w(clubs club-visitor join me-pending me-register me-register-form me-registered
+             me-now me-result me-feedback-sent me-figures me-chair me-ballot me-ballot-in
+             me-on-me guest-hub owner-club owner-members owner-form owner-registration
+             owner-rooms owner-debates owner-finished results)
 
   @doc "Every frame's key."
   def frames, do: @frames
@@ -40,36 +40,18 @@ defmodule CabWeb.Tour.Pages do
      })}
   end
 
-  defp build("club") do
+  # the club page as Anna sees it before she joins
+  defp build("club-visitor") do
     user = Demo.speaker()
     session = Demo.session(:signup)
-    {kind, fields} = {:member, Cab.Clubs.member_fields(session.club)}
+    {_kind, fields, _values} = {:account, Cab.Clubs.member_fields(session.club), %{}}
 
     {CabWeb.ClubPublicHTML, :show,
-     base(user, Demo.club(), :member, %{
+     base(user, Demo.club(), :public, %{
        recent: archive(),
        mine: %{},
        members: Demo.members(),
-       registration:
-         registration(session, %{
-           kind: kind,
-           fields: fields,
-           values: Core.Forms.answer_values(Demo.membership(user).answers)
-         }),
-       page_title: Demo.club().name
-     })}
-  end
-
-  defp build("guest-register") do
-    session = Demo.session(:signup)
-
-    {CabWeb.ClubPublicHTML, :show,
-     base(nil, Demo.club(), :public, %{
-       recent: archive(),
-       mine: %{},
-       members: Demo.members(),
-       registration:
-         registration(session, %{kind: :guest, fields: Cab.Clubs.guest_fields(session.club)}),
+       registration: registration(session, %{kind: :account, fields: fields}),
        page_title: Demo.club().name
      })}
   end
@@ -90,25 +72,22 @@ defmodule CabWeb.Tour.Pages do
   # My page
   # ---------------------------------------------------------------
 
-  defp build("me-register"), do: me(Demo.speaker(), :signup, registered: false)
-  defp build("me-schedule"), do: me(Demo.speaker(), :signup, registered: true)
+  defp build("me-pending"), do: me(Demo.speaker(), :signup, membership: "pending", newcomer: true)
+  defp build("me-register"), do: me(Demo.speaker(), :signup, registered: false, newcomer: true)
+
+  defp build("me-register-form"),
+    do: me(Demo.speaker(), :signup, registered: false, registering: true, newcomer: true)
+
+  defp build("me-registered"), do: me(Demo.speaker(), :signup, registered: true, newcomer: true)
   defp build("me-now"), do: me(Demo.speaker(), :running, room: :judging)
   defp build("me-result"), do: me(Demo.speaker(), :running, room: :completed)
+
+  defp build("me-feedback-sent"),
+    do: me(Demo.speaker(), :running, room: :completed, feedback_sent: true)
+
   defp build("me-figures"), do: me(Demo.speaker(), :none, figures: true)
   defp build("me-chair"), do: me(Demo.chair(), :running, room: :pending)
-
-  defp build("me-ballot"),
-    do: me(Demo.chair(), :running, room: :judging, ballot_draft: {ballot(76, 77), nil})
-
-  defp build("me-tie") do
-    me(Demo.chair(), :running,
-      room: :judging,
-      ballot_draft:
-        {ballot(76, 75),
-         gettext("Two teams share a total. Teams can't tie, so adjust the scores.")}
-    )
-  end
-
+  defp build("me-ballot"), do: me(Demo.chair(), :running, room: :judging)
   defp build("me-ballot-in"), do: me(Demo.chair(), :running, room: :completed)
   defp build("me-on-me"), do: me(Demo.chair(), :none, figures: true, on_me: true)
   defp build("guest-hub"), do: me(Demo.guest(), :running, room: :judging, guest: true)
@@ -238,7 +217,9 @@ defmodule CabWeb.Tour.Pages do
     session = if stage != :none, do: Demo.session(stage)
     state = session && Demo.state(stage, Keyword.get(opts, :room, :judging))
     format = Cab.Format.of(Demo.session(:signup))
-    figures? = Keyword.get(opts, :figures, false) or not guest?
+    # a newcomer (Anna before her first night here) has no figures yet
+    newcomer? = Keyword.get(opts, :newcomer, false)
+    figures? = not guest? and not newcomer?
 
     by_format = if figures? and not guest?, do: [{format, Demo.stats()}], else: []
 
@@ -247,20 +228,30 @@ defmodule CabWeb.Tour.Pages do
         do: [%{session: session, club: session.club, role: "speaker"}],
         else: []
 
+    member? = Keyword.get(opts, :membership, "approved") == "approved"
+
     open_sessions =
       cond do
-        stage != :signup -> []
+        stage != :signup or not member? -> []
         guest? -> [%{session: session, club: session.club, registered: true}]
         true -> [%{session: session, club: session.club, registered: schedule != []}]
       end
 
-    seats = if state, do: seats(user, session, state), else: []
-
-    ballot_drafts =
-      case Keyword.get(opts, :ballot_draft) do
-        nil -> %{}
-        draft -> %{71 => draft}
+    registering =
+      if Keyword.get(opts, :registering) do
+        %{
+          session: session,
+          kind: :member,
+          fields: Cab.Clubs.member_fields(session.club),
+          values: Core.Forms.answer_values(Demo.membership(user).answers),
+          errors: %{}
+        }
       end
+
+    seats =
+      if state,
+        do: seats(user, session, state, Keyword.get(opts, :feedback_sent, false)),
+        else: []
 
     {CabWeb.MeHTML, :show,
      base(user, nil, :public, %{
@@ -270,18 +261,22 @@ defmodule CabWeb.Tour.Pages do
        stats_format: if(by_format != [], do: format),
        stats_formats: Enum.map(by_format, &elem(&1, 0)),
        invitations: [],
-       memberships: if(guest?, do: [], else: [Demo.membership(user)]),
+       memberships:
+         if(guest?,
+           do: [],
+           else: [%{Demo.membership(user) | status: Keyword.get(opts, :membership, "approved")}]
+         ),
        tonight: %{-1 => session && {session, stage, length(state.rooms)}},
        schedule: schedule,
        history:
-         if(guest?,
+         if(guest? or newcomer?,
            do: [],
            else: Demo.history(if(user == Demo.chair(), do: "adjudicator", else: "speaker"))
          ),
        feedback_on_me: if(Keyword.get(opts, :on_me), do: on_me(), else: []),
-       ballot_drafts: ballot_drafts,
+       ballot_drafts: %{},
        feedback_drafts: %{},
-       registering: nil,
+       registering: registering,
        seats: seats,
        open_sessions: open_sessions,
        page_title: if(guest?, do: gettext("Personal link"), else: gettext("My page"))
@@ -290,13 +285,16 @@ defmodule CabWeb.Tour.Pages do
 
   # where `user` sits, as `Cab.Sessions.user_seats/1` and My page's
   # feedback read give it
-  defp seats(user, session, state) do
+  defp seats(user, session, state, sent?) do
     for room <- state.rooms,
         seat = seat_in(room, user),
         seat != nil do
       feedback =
-        if seat.role == :speaker and room["status"] in ["completed", "confirmed"],
-          do: :open
+        cond do
+          seat.role != :speaker or room["status"] not in ["completed", "confirmed"] -> nil
+          sent? -> {:sent, hd(Demo.feedback(:running))}
+          true -> :open
+        end
 
       Map.merge(
         %{session: session, club: session.club, state: state, room: room, feedback: feedback},
@@ -330,29 +328,6 @@ defmodule CabWeb.Tour.Pages do
       Map.get(user, :guest) -> 217
       true -> nil
     end
-  end
-
-  # Petro's ballot; OO's first speaker scores `oo`, so 75 puts OG and
-  # OO on the same total
-  defp ballot(og, oo) do
-    %{
-      "og" => %{
-        "PM" => %{"speaker" => "202", "score" => "#{og}"},
-        "DPM" => %{"speaker" => "203", "score" => "75"}
-      },
-      "oo" => %{
-        "LO" => %{"speaker" => "201", "score" => "#{oo}"},
-        "DLO" => %{"speaker" => "204", "score" => "76"}
-      },
-      "cg" => %{
-        "MG" => %{"speaker" => "205", "score" => "74"},
-        "GW" => %{"speaker" => "206", "score" => "73"}
-      },
-      "co" => %{
-        "MO" => %{"speaker" => "207", "score" => "72"},
-        "OW" => %{"speaker" => "208", "score" => "71"}
-      }
-    }
   end
 
   defp on_me do

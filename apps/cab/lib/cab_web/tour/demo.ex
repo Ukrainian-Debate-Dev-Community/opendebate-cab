@@ -403,7 +403,7 @@ defmodule CabWeb.Tour.Demo do
         Enum.at(
           [
             {8, 7, "A clear call; the comparison of OO and CG was convincing."},
-            {9, 8, "Very fair, and the advice on rebuttal helps."},
+            {8, 7, "A clear call, and useful advice on rebuttal."},
             {7, 7, "Good, though we would have liked more on our extension."},
             {6, 7, "We disagree with fourth, but the reasons were clear."}
           ],

@@ -445,43 +445,73 @@ input.pick { width:0.9375rem; height:0.9375rem; margin:0 var(--sp-2) 0 0; vertic
 }
 
 /* ================================================================
-   The guided tours (/tour/:key): a demo page in a frame over a bar
-   with the caption and the progress slider; the spotlight is drawn
-   inside the frame, on cab's own page
+   The guided tours (/tour/:key): a demo page in a frame with the
+   spotlight and the caption drawn on it, a bar with the chapters and
+   the progress under it
    ================================================================ */
 .tour { display:flex; flex-direction:column; min-height:100vh; background:var(--bg); color:var(--ink); }
 .tour.tour-on { position:fixed; inset:0; min-height:0; }
 .tour-top { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3);
             padding:var(--sp-2) var(--px); border-bottom:1px solid var(--line); background:var(--surface);
             font-size:var(--step-m1); }
+.tour-title { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:var(--sp-1) var(--sp-3); text-align:center; }
+.tour-as { color:var(--muted); }
+.tour-as:empty, .tour:not(.tour-on) .tour-as { display:none; }
+.tour-as b { color:var(--brand-700); }
 .tour-stage { position:relative; flex:1; min-height:0; display:none; }
 .tour-on .tour-stage { display:block; }
 .tour-frame { display:block; width:100%; height:100%; border:0; background:var(--bg); }
-/* the frame is watched, never used: clicks stop here */
-.tour-shield { position:absolute; inset:0; }
 .tour-card { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-             gap:var(--sp-3); padding:var(--sp-6) var(--px); text-align:center; background:var(--surface); }
+             gap:var(--sp-4); padding:var(--sp-6) var(--px); text-align:center; background:var(--surface); overflow:auto; }
 .tour-card[hidden] { display:none; }
 .tour-card-chapter { margin:0; font-size:var(--step-3); font-weight:750; color:var(--brand-700); }
 .tour-card-text { margin:0; max-width:36rem; font-size:var(--step-1); }
-.tour-bar { display:none; grid-template-columns:auto 1fr; align-items:center; gap:var(--sp-2) var(--sp-3);
-            padding:var(--sp-3) var(--px); border-top:1px solid var(--line); background:var(--surface); }
+.tour-card-chapters { display:none; margin:0; padding:0; list-style:none; counter-reset:ch;
+                      flex-wrap:wrap; justify-content:center; gap:var(--sp-2); max-width:40rem; }
+.tour-card.first .tour-card-chapters { display:flex; }
+.tour-card-chapters li { counter-increment:ch; padding:var(--sp-1) var(--sp-3); border:1px solid var(--line);
+                         border-radius:var(--r-pill); font-size:var(--step-m1); }
+.tour-card-chapters li::before { content:counter(ch) ". "; color:var(--muted); }
+.tour-card-next { display:none; flex-wrap:wrap; justify-content:center; gap:var(--sp-3); }
+.tour-card.last .tour-card-next { display:flex; }
+.tour-bar { display:none; grid-template-columns:auto 1fr auto; align-items:center; gap:var(--sp-3);
+            padding:var(--sp-2) var(--px) var(--sp-3); border-top:1px solid var(--line); background:var(--surface); }
 .tour-on .tour-bar { display:grid; }
-.tour-play { width:2.5rem; height:2.5rem; border-radius:var(--r-pill); border:1px solid var(--line);
+.tour-play { width:2.75rem; height:2.75rem; border-radius:var(--r-pill); border:0;
              background:var(--brand); color:var(--on-brand); font-weight:800; cursor:pointer; }
-.tour-caption { min-width:0; }
-.tour-caption p { margin:0; }
-.tour-chapter { font-size:var(--step-m1); color:var(--muted); }
-.tour-chapter b { color:var(--ink); }
-.tour-text { font-size:var(--step-0); }
-.tour-slider { grid-column:1 / -1; width:100%; accent-color:var(--brand); }
+.tour-progress { min-width:0; display:flex; flex-direction:column; gap:var(--sp-1); }
+.tour-chapters { display:flex; gap:0.2rem; margin:0; padding:0; list-style:none; }
+.tour-chapters li { flex:1; min-width:0; }
+.tour-chapters button { display:block; width:100%; padding:var(--sp-1) 0 0; border:0; border-top:0.25rem solid var(--line);
+                        background:none; color:var(--muted); font-size:var(--step-m2); text-align:left; cursor:pointer;
+                        white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tour-chapters button.done { border-top-color:var(--brand-fill); }
+.tour-chapters button.on { border-top-color:var(--brand); color:var(--ink); font-weight:700; }
+.tour-slider { width:100%; accent-color:var(--brand); }
+.tour-count { font-size:var(--step-m1); color:var(--muted); font-variant-numeric:tabular-nums; }
 .tour-steps { margin:0; padding:var(--sp-4) var(--px) var(--sp-4) calc(var(--px) + 1.25rem); max-width:var(--w-read); }
 .tour-steps li { margin-bottom:var(--sp-2); }
-.tour-on .tour-steps { display:none; }
+.tour-on .tour-steps, .tour-on .tour-more { display:none; }
 .tour-more { display:flex; flex-wrap:wrap; gap:var(--sp-3); padding:0 var(--px) var(--sp-4); font-size:var(--step-m1); }
-.tour-on .tour-more { display:none; }
-.tour-ended .tour-more { display:flex; position:absolute; left:0; right:0; bottom:calc(100% + var(--sp-2)); justify-content:center; }
-/* inside the frame: a box over the spotlit part, the rest dimmed */
+@media (max-width: 760px) {
+  .tour-chapter-name { display:none; }
+  .tour-chapters button { padding:0; }
+}
+
+/* inside the frame (html.in-tour): the page without its footer, a box
+   over the spotlit part, the caption beside it, the cursor */
+.in-tour .footer { display:none; }
 .tour-hole { position:absolute; z-index:1000; pointer-events:none; border-radius:var(--r-sm);
-             outline:3px solid var(--gold); box-shadow:0 0 0 100vmax var(--viewer-shade);
-             transition:top 0.3s, left 0.3s, width 0.3s, height 0.3s; }
+             outline:0.2rem solid var(--gold); box-shadow:0 0 0 100vmax var(--viewer-shade); }
+.tour-callout { position:absolute; z-index:1002; pointer-events:none; padding:var(--sp-3) var(--sp-4);
+                border-radius:var(--r-md); background:var(--surface); color:var(--ink); box-shadow:var(--shadow-menu);
+                border-left:0.25rem solid var(--gold); font-size:var(--step-0); line-height:1.45; }
+.tour-callout p { margin:0; }
+.tour-callout-chapter { font-size:var(--step-m1); font-weight:750; color:var(--brand-700); margin-bottom:var(--sp-1) !important; }
+.tour-cursor { position:absolute; z-index:1003; width:1.375rem; height:1.375rem; margin:-0.25rem 0 0 -0.25rem; pointer-events:none;
+               border-radius:50% 50% 50% 0; transform:rotate(-15deg); background:var(--ink); border:0.125rem solid var(--surface);
+               box-shadow:var(--shadow-sm); transition:left 0.6s ease, top 0.6s ease; }
+.tour-cursor::after { content:""; position:absolute; inset:-0.625rem; border-radius:50%; border:0.2rem solid var(--gold);
+                      opacity:0; transform:scale(0.4); transition:opacity 0.3s, transform 0.3s; }
+.tour-cursor.down::after { opacity:1; transform:scale(1.2); }
+.tour-pressed { filter:brightness(0.9); transform:translateY(0.0625rem); }
