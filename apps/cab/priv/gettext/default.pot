@@ -12,6 +12,7 @@ msgid ""
 msgstr ""
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "%{adjudicator} sees it, without your team's name, once the session is finished."
 msgstr ""
@@ -147,6 +148,13 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "%{count} selected"
 msgid_plural "%{count} selected"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} team has not sent feedback yet; once finished, feedback is closed. Finish anyway?"
+msgid_plural "%{count} teams have not sent feedback yet; once finished, feedback is closed. Finish anyway?"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -322,6 +330,7 @@ msgid "A room seats %{seats} (%{speakers} speakers and an adjudicator), so the r
 msgstr ""
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "A whole number from 1 to 10."
 msgstr ""
@@ -1051,6 +1060,7 @@ msgstr ""
 
 #: lib/cab/feedback.ex
 #: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Explain your feedback."
 msgstr ""
@@ -1063,7 +1073,18 @@ msgstr ""
 msgid "Feedback"
 msgstr ""
 
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Feedback not sent yet"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Feedback on %{name}"
+msgstr ""
+
 #: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Feedback on the adjudicator"
 msgstr ""
@@ -1085,13 +1106,9 @@ msgid "Feedback opens once the room's ballot is in."
 msgstr ""
 
 #: lib/cab_web/controllers/feedback_controller.ex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "Feedback sent."
-msgstr ""
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Feedback to give"
 msgstr ""
 
 #: lib/cab_web/controllers/feedback_controller.ex
@@ -1769,6 +1786,11 @@ msgstr ""
 msgid "On a touch screen, hold a person and drag them to a slot, or tap a person, then a slot."
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "One feedback per team, before the club head finishes the session; the first one sent stays. The adjudicator sees it without your team's name once the session is finished."
+msgstr ""
+
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
 msgid "One room fewer"
@@ -2348,6 +2370,7 @@ msgid "Select all"
 msgstr ""
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Send feedback"
 msgstr ""
@@ -2467,6 +2490,7 @@ msgid "Shown to members on the club page; defaults to the date."
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -2560,6 +2584,7 @@ msgid "Speaker points"
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html.ex
@@ -2646,6 +2671,11 @@ msgstr ""
 #: lib/cab_web/controllers/standings_html/standings_tabs.html.heex
 #, elixir-autogen, elixir-format
 msgid "Teams"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Teams send feedback on My page; Finish session closes it."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
@@ -3221,6 +3251,11 @@ msgstr ""
 msgid "Your team sees it now; %{adjudicator} sees it, without your team's name, once the session is finished."
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your team sent feedback:"
+msgstr ""
+
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex
 #: lib/cab_web/emails.ex
 #, elixir-autogen, elixir-format
@@ -3348,11 +3383,6 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "full"
-msgstr ""
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "give feedback"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html.ex

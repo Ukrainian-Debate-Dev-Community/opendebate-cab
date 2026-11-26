@@ -12,6 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100 != 11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "%{adjudicator} sees it, without your team's name, once the session is finished."
 msgstr "%{adjudicator} побачить його без назви вашої команди, щойно сесію буде завершено."
@@ -157,6 +158,14 @@ msgid_plural "%{count} selected"
 msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
+
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} team has not sent feedback yet; once finished, feedback is closed. Finish anyway?"
+msgid_plural "%{count} teams have not sent feedback yet; once finished, feedback is closed. Finish anyway?"
+msgstr[0] "%{count} команда ще не надіслала відгук; після завершення відгуки закриті. Все одно завершити?"
+msgstr[1] "%{count} команди ще не надіслали відгук; після завершення відгуки закриті. Все одно завершити?"
+msgstr[2] "%{count} команд ще не надіслали відгук; після завершення відгуки закриті. Все одно завершити?"
 
 #: lib/cab_web/controllers/admin_controller.ex
 #, elixir-autogen, elixir-format
@@ -332,6 +341,7 @@ msgid "A room seats %{seats} (%{speakers} speakers and an adjudicator), so the r
 msgstr "У кімнаті %{seats} місць (%{speakers} спікерів і суддя), тож кількість кімнат залежить від реєстрацій;"
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "A whole number from 1 to 10."
 msgstr "Ціле число від 1 до 10."
@@ -1063,6 +1073,7 @@ msgstr "Діє до"
 
 #: lib/cab/feedback.ex
 #: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Explain your feedback."
 msgstr "Поясніть свій відгук."
@@ -1075,7 +1086,18 @@ msgstr "Поясніть свій відгук."
 msgid "Feedback"
 msgstr "Відгук"
 
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Feedback not sent yet"
+msgstr "Відгуки ще не надіслані"
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Feedback on %{name}"
+msgstr "Відгук про %{name}"
+
 #: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Feedback on the adjudicator"
 msgstr "Відгук на суддю"
@@ -1097,14 +1119,10 @@ msgid "Feedback opens once the room's ballot is in."
 msgstr "Відгук можна залишити, щойно белот кімнати подано."
 
 #: lib/cab_web/controllers/feedback_controller.ex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "Feedback sent."
 msgstr "Відгук надіслано."
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Feedback to give"
-msgstr "Відгуки, які треба залишити"
 
 #: lib/cab_web/controllers/feedback_controller.ex
 #, elixir-autogen, elixir-format
@@ -1781,6 +1799,11 @@ msgstr "АО"
 msgid "On a touch screen, hold a person and drag them to a slot, or tap a person, then a slot."
 msgstr "На сенсорному екрані утримуйте учасника й перетягніть його у слот або торкніться учасника, а потім слоту."
 
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "One feedback per team, before the club head finishes the session; the first one sent stays. The adjudicator sees it without your team's name once the session is finished."
+msgstr "Один відгук від команди, до того як голова клубу завершить сесію; лишається перший надісланий. Суддя побачить його без назви вашої команди, коли сесію завершать."
+
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
 msgid "One room fewer"
@@ -2363,6 +2386,7 @@ msgid "Select all"
 msgstr "Вибрати всіх"
 
 #: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Send feedback"
 msgstr "Надіслати відгук"
@@ -2482,6 +2506,7 @@ msgid "Shown to members on the club page; defaults to the date."
 msgstr "Бачать члени клубу на сторінці клубу; за замовчуванням дата."
 
 #: lib/cab_web/controllers/me_html/show.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -2575,6 +2600,7 @@ msgid "Speaker points"
 msgstr "Бали спікерів"
 
 #: lib/cab_web/controllers/me_html/show.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html.ex
@@ -2662,6 +2688,11 @@ msgstr "Командні бали"
 #, elixir-autogen, elixir-format
 msgid "Teams"
 msgstr "Команди"
+
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Teams send feedback on My page; Finish session closes it."
+msgstr "Команди надсилають відгуки на Моїй сторінці; «Завершити сесію» їх закриває."
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
 #, elixir-autogen, elixir-format
@@ -3237,6 +3268,11 @@ msgstr "Ваша команда вже надіслала відгук."
 msgid "Your team sees it now; %{adjudicator} sees it, without your team's name, once the session is finished."
 msgstr "Ваша команда бачить його вже зараз; %{adjudicator} побачить його без назви вашої команди, щойно сесію буде завершено."
 
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your team sent feedback:"
+msgstr "Ваша команда надіслала відгук:"
+
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex
 #: lib/cab_web/emails.ex
 #, elixir-autogen, elixir-format
@@ -3365,11 +3401,6 @@ msgstr "завершена"
 #, elixir-autogen, elixir-format
 msgid "full"
 msgstr "місць немає"
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "give feedback"
-msgstr "залишити відгук"
 
 #: lib/cab_web/controllers/owner_html.ex
 #, elixir-autogen, elixir-format

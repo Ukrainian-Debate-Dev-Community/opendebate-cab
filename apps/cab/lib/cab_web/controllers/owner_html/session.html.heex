@@ -69,6 +69,14 @@
       :if={@view == :debates and @state.stage == :running}
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/finish"}
       method="post"
+      confirm={
+        @feedback_missing != [] &&
+          ngettext(
+            "%{count} team has not sent feedback yet; once finished, feedback is closed. Finish anyway?",
+            "%{count} teams have not sent feedback yet; once finished, feedback is closed. Finish anyway?",
+            length(@feedback_missing)
+          )
+      }
       primary
     >
       {gettext("Finish session")}

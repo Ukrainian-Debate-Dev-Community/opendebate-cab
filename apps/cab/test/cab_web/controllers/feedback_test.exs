@@ -332,6 +332,15 @@ defmodule CabWeb.FeedbackTest do
       assert %{71 => {1, 4}} = Feedback.progress(state, Feedback.all(session))
     end
 
+    test "the head sees which teams have not sent theirs", %{session: session} do
+      {:ok, state} = Sessions.state(session)
+
+      assert [1002, 1003, 1004] ==
+               state
+               |> Feedback.missing(Feedback.all(session))
+               |> Enum.map(&get_in(&1.room_team, ["Team", "id"]))
+    end
+
     test "the average counts a base of 5 as one vote", %{session: session, judge: judge} do
       {:ok, state} = Sessions.state(session)
       assert 6.5 == Feedback.my_average(session, state, judge)
@@ -427,6 +436,17 @@ defmodule CabWeb.FeedbackTest do
       assert html =~ ~s(id="session-feedback")
       assert html =~ "Team 1"
       assert html =~ "Clear call."
+
+      # before Finish: who still owes feedback, and Finish asks first
+      missing =
+        html
+        |> LazyHTML.from_document()
+        |> LazyHTML.query("#feedback-missing-teams")
+        |> LazyHTML.text()
+
+      assert missing =~ "OO"
+      refute missing =~ "OG"
+      assert html =~ "3 teams have not sent feedback yet"
     end
   end
 

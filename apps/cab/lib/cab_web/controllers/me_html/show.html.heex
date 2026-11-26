@@ -145,6 +145,76 @@
           )} · {points_words(team_points(room_team))}
         </p>
       </div>
+      <%!-- the ballot is in: the speaker's team gives feedback on the
+           adjudicator before the head finishes; one per team --%>
+      <%= case seat.feedback do %>
+        <% {:sent, entry} -> %>
+          <div class="pad">
+            <p class="kicker">{gettext("Feedback on the adjudicator")}</p>
+            <p>
+              {gettext("Your team sent feedback:")}
+              <b>{entry.accuracy} · {entry.reasoning}</b>
+              <span class="mut">· {entry.discussion}</span>
+            </p>
+            <p class="mut">
+              {gettext(
+                "%{adjudicator} sees it, without your team's name, once the session is finished.",
+                adjudicator: judge_name(seat.room, seat.state.signups)
+              )}
+            </p>
+          </div>
+        <% :open -> %>
+          <% {typed, errors} = Map.get(@feedback_drafts, seat.room["id"], {%{}, %{}}) %>
+          <.form_for
+            id={"now-feedback-#{seat.room["id"]}"}
+            action={
+              ~p"/c/#{seat.club.uuid}/s/#{seat.session.uuid}/rooms/#{seat.room["id"]}/feedback"
+            }
+            submit_event="send_feedback"
+            hidden={[{"session", seat.session.uuid}, {"room", seat.room["id"]}]}
+            title={
+              gettext("Feedback on %{name}", name: judge_name(seat.room, seat.state.signups))
+            }
+            description={
+              gettext(
+                "One feedback per team, before the club head finishes the session; the first one sent stays. The adjudicator sees it without your team's name once the session is finished."
+              )
+            }
+            errors={errors}
+          >
+            <:block
+              name={:accuracy}
+              type={:int}
+              label={Cab.Feedback.question_label("accuracy")}
+              hint={gettext("A whole number from 1 to 10.")}
+              min={1}
+              max={10}
+              required
+              value={typed["accuracy"]}
+            />
+            <:block
+              name={:reasoning}
+              type={:int}
+              label={Cab.Feedback.question_label("reasoning")}
+              hint={gettext("A whole number from 1 to 10.")}
+              min={1}
+              max={10}
+              required
+              value={typed["reasoning"]}
+            />
+            <:block
+              name={:discussion}
+              type={:longtext}
+              label={gettext("Discussion")}
+              maxlength={Cab.Feedback.discussion_max()}
+              hint={gettext("Explain your feedback.")}
+              required
+              value={typed["discussion"]}
+            />
+            <:submit>{gettext("Send feedback")}</:submit>
+          </.form_for>
+        <% nil -> %>
+      <% end %>
     </.section>
 
     <%!-- registration: every session taking sign-ups in the user's
@@ -331,22 +401,6 @@
               )}
             </p>
           </div>
-        </.section>
-        <.section :if={@feedback_to_give != []} title={gettext("Feedback to give")}>
-          <.table id="feedback-to-give" rows={@feedback_to_give}>
-            <:col :let={row} label={gettext("Session")}>
-              {row.session.name || row.session.club.name}
-              <.sub>{row.session.club.name}</.sub>
-            </:col>
-            <:col :let={row} label={gettext("Room")}>{room_label(row.room)}</:col>
-            <:col :let={row}>
-              <.link href={
-                ~p"/c/#{row.session.club.uuid}/s/#{row.session.uuid}/rooms/#{row.room["id"]}/feedback"
-              }>
-                {gettext("give feedback")}
-              </.link>
-            </:col>
-          </.table>
         </.section>
         <.section :if={@schedule != []} title={gettext("My schedule")}>
           <.table id="my-schedule" rows={@schedule}>

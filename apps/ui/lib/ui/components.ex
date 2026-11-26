@@ -646,6 +646,7 @@ defmodule Ui.Components do
     attr :formtarget, :string, doc: "and opens the answer there (_blank: a new tab)"
     attr :primary, :boolean, doc: "the page's single gold segment"
     attr :quiet, :boolean, doc: "grey: destructive or exit"
+    attr :confirm, :string, doc: "a link asks this first (data-confirm)"
     attr :id, :string
   end
 
@@ -676,6 +677,7 @@ defmodule Ui.Components do
             <.link
               href={seg.href}
               method={seg[:method] || "get"}
+              data-confirm={seg[:confirm]}
               id={seg[:id]}
               class={[seg[:primary] && "go", seg[:quiet] && "quiet"]}
             >
