@@ -338,32 +338,6 @@ defmodule Cab.Feedback do
     Enum.find(feedback, &(&1.room_id == room["id"] and &1.team_id == team_id(room_team)))
   end
 
-  @doc """
-  The rooms where the user's team still owes feedback: ballot in,
-  session not finished, nothing sent yet. Reads the engine only when
-  such a room exists.
-  """
-  def awaiting(%Session{} = session, state, %User{} = user) do
-    candidates =
-      for room <- state.rooms,
-          state.stage != :done,
-          open?(session, room),
-          room_team = my_room_team(state, room, user),
-          room_team != nil,
-          do: {room, room_team}
-
-    case candidates do
-      [] ->
-        []
-
-      _ ->
-        feedback = all(session)
-        for {room, room_team} <- candidates, sent_by(feedback, room, room_team) == nil, do: room
-    end
-  end
-
-  def awaiting(_session, _state, _user), do: []
-
   @doc "The feedback the user's team sent in this room, or nil."
   def own_for_room(%Session{} = session, state, room, %User{} = user) do
     case my_room_team(state, room, user) do
@@ -425,22 +399,23 @@ defmodule Cab.Feedback do
     end)
   end
 
+  @doc """
+  For the club head before Finish: the teams whose room's ballot is in
+  and who have not sent feedback, `[%{room, room_team}]` in room order.
+  """
+  def missing(state, feedback) do
+    for room <- state.rooms,
+        room["status"] in ["completed", "confirmed"],
+        chair_id(room) != nil,
+        room_team <- Enum.sort_by(room["RoomTeams"] || [], & &1["position"]),
+        team_id(room_team) != nil,
+        sent_by(feedback, room, room_team) == nil,
+        do: %{room: room, room_team: room_team}
+  end
+
   # ---------------------------------------------------------------
   # My page
   # ---------------------------------------------------------------
-
-  @doc """
-  The rooms where the user's team still owes feedback, across their
-  running sessions: `[%{session, room}]`.
-  """
-  def to_give(%User{} = user) do
-    for %{session: session, club: club} <- Sessions.user_schedule(user),
-        session.started_at != nil and session.finished_at == nil,
-        session = %{session | club: club},
-        {:ok, state} <- [Sessions.state(session)],
-        room <- awaiting(session, state, user),
-        do: %{session: session, room: room}
-  end
 
   @doc """
   The feedback on the user as an adjudicator in their latest finished

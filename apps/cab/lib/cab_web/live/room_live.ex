@@ -1,10 +1,11 @@
 defmodule CabWeb.RoomLive do
   @moduledoc """
-  `/c/:club_uuid/s/:session_uuid/rooms/:id` - ONE room URL for every
-  viewer, live: the draw, the motion the moment it is published (with
-  the prep clock), the ballot state. Identity picks what renders: the
-  chair or the head also gets the motion form and the ballot link.
-  The motion and the ballot stay REST posts to their routes.
+  `/c/:club_uuid/s/:session_uuid/rooms/:id` - the club head's room
+  page, live: the draw, the motion the moment it is published (with
+  the prep clock), the ballot state, the motion form and the ballot
+  link. Anyone else works on My page, a guest on their link page
+  (`CabWeb.Hub`). The motion and the ballot stay REST posts to their
+  routes.
   """
   use CabWeb, :live_view
 
@@ -12,6 +13,19 @@ defmodule CabWeb.RoomLive do
 
   @impl true
   def mount(%{"session_uuid" => session_uuid, "id" => id}, _session, socket) do
+    case CabWeb.Hub.away(socket.assigns.club_role, socket.assigns.current_user) do
+      nil ->
+        mount_room(session_uuid, id, socket)
+
+      path ->
+        {:ok,
+         socket
+         |> put_flash(:info, CabWeb.Hub.notice(socket.assigns.current_user))
+         |> redirect(to: path)}
+    end
+  end
+
+  defp mount_room(session_uuid, id, socket) do
     club = socket.assigns.club
 
     with {room_id, ""} <- Integer.parse(id),
@@ -51,7 +65,6 @@ defmodule CabWeb.RoomLive do
       |> assign(:room, room)
       |> assign(:can_act, can_act?(room, socket.assigns))
       |> assign(:can_edit_ballot, can_edit_ballot?(room, socket.assigns))
-      |> assign(:give_feedback, give_feedback?(state, room, socket.assigns))
       |> assign(:page_title, "#{club.name} — #{room_label(room)}")
     else
       nil ->
@@ -62,12 +75,6 @@ defmodule CabWeb.RoomLive do
         |> put_flash(:error, gettext("This session is unavailable right now."))
         |> redirect(to: ~p"/c/#{club.uuid}")
     end
-  end
-
-  # a member of one of the room's teams whose team still owes feedback
-  defp give_feedback?(state, room, %{current_user: user, session: session}) do
-    user != nil and Cab.Feedback.my_room_team(state, room, user) != nil and
-      Enum.any?(Cab.Feedback.awaiting(session, state, user), &(&1["id"] == room["id"]))
   end
 
   # the room was rebuilt away (registration reopened) while open

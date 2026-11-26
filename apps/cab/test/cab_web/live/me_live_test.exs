@@ -26,10 +26,10 @@ defmodule CabWeb.MeLiveTest do
 
   # an Australs room: Anna (node user 55) speaks second for Opp; the
   # chair is node user 66
-  defp room(motion) do
+  defp room(motion, status \\ "pending") do
     %{
       "id" => 71,
-      "status" => "pending",
+      "status" => status,
       "Motion" => motion,
       "prep_until" => motion && "2026-10-09T18:15:00Z",
       "RoomAdjudicators" => [
@@ -42,6 +42,7 @@ defmodule CabWeb.MeLiveTest do
         %{
           "id" => 101,
           "position" => 1,
+          "Team" => %{"id" => 1001},
           "RoomSpeakers" => [
             speaker(1, 11, "Gov One"),
             speaker(2, 12, "Gov Two"),
@@ -51,6 +52,7 @@ defmodule CabWeb.MeLiveTest do
         %{
           "id" => 102,
           "position" => 2,
+          "Team" => %{"id" => 1002},
           # the engine lists slots in no set order; the ids give it
           "RoomSpeakers" => [
             speaker(6, 23, "Opp Three"),
@@ -112,6 +114,62 @@ defmodule CabWeb.MeLiveTest do
         {"PATCH", "/api/rooms/71/confirm"} ->
           send(test_pid, :confirmed)
           Req.Test.json(conn, %{"status" => "success", "message" => "ok"})
+      end
+    end)
+  end
+
+  # the ballot is in: Anna's team may send feedback on Judy
+  defp stub_feedback_engine(test_pid) do
+    {:ok, sent} = Agent.start_link(fn -> [] end)
+
+    Req.Test.stub(Core.Engine, fn conn ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/users/schedule"} ->
+          ok(conn, %{"as_adjudicator" => [], "as_player" => [%{"id" => 11}]})
+
+        {"GET", "/api/users/history"} ->
+          ok(conn, %{"as_adjudicator" => [], "as_player" => []})
+
+        {"GET", "/api/users/" <> _stats} ->
+          ok(conn, nil)
+
+        {"GET", "/api/events/11"} ->
+          ok(conn, %{"id" => 11, "name" => "Thursday", "status" => "in_progress"})
+
+        {"GET", "/api/events/11/rounds"} ->
+          ok(conn, [%{"id" => 21, "sequence" => 1}])
+
+        {"GET", "/api/events/11/participants"} ->
+          ok(conn, [
+            %{"id" => 90, "display_name" => "Judy", "user_id" => 66},
+            %{"id" => 22, "display_name" => "Anna", "user_id" => 55}
+          ])
+
+        {"GET", "/api/rounds/21/rooms"} ->
+          ok(conn, [room(%{"motion_text" => "THW ban homework"}, "completed")])
+
+        {"GET", "/api/events/11/feedback-questions"} ->
+          ok(conn, [%{"key" => "accuracy"}, %{"key" => "reasoning"}])
+
+        {"GET", "/api/events/11/feedback"} ->
+          ok(conn, Agent.get(sent, & &1))
+
+        {"POST", "/api/rooms/71/feedback"} ->
+          {:ok, body, conn} = Plug.Conn.read_body(conn)
+          params = Jason.decode!(body)
+          send(test_pid, {:feedback, params})
+
+          record = %{
+            "id" => 1,
+            "room_id" => 71,
+            "adjudicator_id" => params["adjudicator_id"],
+            "issuer_team_id" => params["issuer_team_id"],
+            "comment" => params["comment"],
+            "answers" => params["answers"]
+          }
+
+          Agent.update(sent, &[record | &1])
+          ok(conn, record)
       end
     end)
   end
@@ -294,6 +352,65 @@ defmodule CabWeb.MeLiveTest do
     assert_received :cancelled
     assert render(view) =~ "Registration cancelled."
     assert Cab.Sessions.get_by_uuid(session.uuid)
+  end
+
+  test "a speaker sends feedback on My page once the ballot is in; a refused one keeps the text",
+       %{conn: conn} do
+    head = user_fixture(%{node_user_id: 9})
+    club = club_fixture(head, %{engine_organisation_id: 3})
+    running_session(club)
+    anna = user_fixture(%{node_user_id: 55})
+    stub_feedback_engine(self())
+
+    {:ok, view, html} = conn |> init_test_session(%{user_id: anna.id}) |> live(~p"/me")
+    assert html =~ ~s(id="now-feedback-71")
+    assert html =~ "Feedback on Judy"
+
+    fields = fn accuracy ->
+      %{"accuracy" => accuracy, "reasoning" => "7", "discussion" => "Clear call."}
+    end
+
+    html = view |> form("#now-feedback-71", fields.("")) |> render_submit()
+    assert html =~ "Enter a whole number from 1 to 10."
+    assert html =~ "Clear call."
+    refute_received {:feedback, _}
+
+    html = view |> form("#now-feedback-71", fields.("8")) |> render_submit()
+
+    assert_received {:feedback,
+                     %{
+                       "adjudicator_id" => 90,
+                       "issuer_team_id" => 1002,
+                       "comment" => "Clear call."
+                     }}
+
+    assert html =~ "Feedback sent."
+    assert html =~ "Your team sent feedback:"
+    refute html =~ ~s(id="now-feedback-71")
+  end
+
+  test "a guest chair works on their link's hub: the seat, then the motion", %{conn: conn} do
+    head = user_fixture(%{node_user_id: 9})
+    club = club_fixture(head, %{engine_organisation_id: 3})
+    session = running_session(club)
+    guest = user_fixture(%{node_user_id: nil, name: "Judy", username: "guest-judy"})
+    link = link_fixture(guest, session, participant_id: 90)
+    stub_engine(self())
+
+    {:ok, view, html} =
+      conn |> init_test_session(%{user_id: guest.id}) |> live(~p"/l/#{link.code}/hub")
+
+    assert html =~ "Personal link"
+    assert html =~ "You adjudicate this room."
+    refute html =~ ~s(id="me-stats")
+
+    html =
+      view
+      |> form("#now-motion-71", %{motion_text: "THW trust guests"})
+      |> render_submit()
+
+    assert_received {:motion, %{"motion_text" => "THW trust guests"}}
+    assert html =~ "Motion published."
   end
 
   test "a guest's link is not an account: My page sends them to sign in", %{conn: conn} do

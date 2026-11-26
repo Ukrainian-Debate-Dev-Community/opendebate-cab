@@ -7,6 +7,7 @@ defmodule CabWeb.LiveScope do
 
       live_session :club, on_mount: [{CabWeb.LiveScope, :club}]
       live_session :owner, on_mount: [{CabWeb.LiveScope, :club}, {CabWeb.LiveScope, :owner}]
+      live_session :guest_hub, on_mount: [{CabWeb.LiveScope, :guest_link}]
   """
   import Phoenix.Component, only: [assign: 3]
   import Phoenix.LiveView, only: [put_flash: 3, redirect: 2]
@@ -50,6 +51,20 @@ defmodule CabWeb.LiveScope do
       nil ->
         {:halt,
          socket |> put_flash(:error, gettext("Please sign in.")) |> redirect(to: "/signin")}
+    end
+  end
+
+  # a guest's hub: the browser holds this link's identity (opening
+  # /l/:code adopts it); anyone else goes through /l/:code first,
+  # which adopts it or offers an account the claim
+  def on_mount(:guest_link, %{"code" => code}, session, socket) do
+    with %{} = link <- Cab.Links.get_active_by_code(code),
+         true <- session["user_id"] == link.user_id,
+         %{} = user <- Accounts.get_viewer(link.user_id) do
+      {:cont, socket |> assign(:current_user, user) |> assign(:link, link)}
+    else
+      nil -> raise CabWeb.NotFoundError
+      _other -> {:halt, redirect(socket, to: "/l/#{code}")}
     end
   end
 

@@ -288,19 +288,34 @@ defmodule CabWeb.GuestLinksTest do
       %{guest: guest, session: session, link: link}
     end
 
-    test "redirects to P6 with the guest identity; removed and unknown codes are 404",
+    test "lands on the guest's hub with the guest identity; removed and unknown codes are 404",
          %{conn: conn, club: club, session: session, link: link} do
       stub_stage([guest_signup(41, nil)])
 
       conn = get(conn, ~p"/l/#{link.code}")
-      assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
+      hub = "/l/#{link.code}/hub"
+      assert redirected_to(conn) == hub
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "anyone with it acts as you"
 
-      # P6 greets the guest with their registration + cancel action
-      html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
-      assert html =~ "You are registered for this session."
-      assert html =~ "Cancel my registration"
-      assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove"
+      # the hub: this link's session, registered, with Cancel
+      html = conn |> get(hub) |> html_response(200)
+      assert html =~ "Personal link"
+      assert html =~ ~s(id="open-sessions")
+      assert html =~ club.name
+      assert html =~ "you are registered"
+      assert html =~ ~s(phx-click="cancel_registration")
+      # an account's parts are not a guest's
+      refute html =~ ~s(id="me-stats")
+      refute html =~ ~s(id="my-clubs")
+
+      # the session page points the guest to the hub
+      page = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
+      assert page =~ "You are registered for this session."
+      assert page =~ ~s(href="#{hub}")
+      refute page =~ "Cancel my registration"
+
+      # another browser holds no identity for the hub: through the link first
+      assert build_conn() |> get(hub) |> redirected_to() == "/l/#{link.code}"
 
       assert conn |> get("/l/#{Cab.Links.Link.generate_code()}") |> response(404)
 
@@ -471,7 +486,7 @@ defmodule CabWeb.GuestLinksTest do
 
       conn = conn |> init_test_session(%{user_id: other.id}) |> get(~p"/l/#{link.code}")
 
-      assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
+      assert redirected_to(conn) == "/l/#{link.code}/hub"
       assert Plug.Conn.get_session(conn, :user_id) == link.user_id
     end
 
@@ -480,11 +495,11 @@ defmodule CabWeb.GuestLinksTest do
       stub_stage([guest_signup(41, nil)])
 
       conn = get(conn, ~p"/l/#{link.code}")
-      assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
+      assert redirected_to(conn) == "/l/#{link.code}/hub"
       # the browser session now carries the guest identity ...
       assert Plug.Conn.get_session(conn, :user_id) == guest.id
 
-      # ... which opens NOTHING beyond P6's public view
+      # ... which opens NOTHING beyond their hub and the public views
       {:ok, private} = Cab.Clubs.update_club(club, %{"is_private" => "true"})
       assert conn |> get(~p"/c/#{private.uuid}/members") |> response(403)
       assert conn |> get(~p"/c/#{club.uuid}/owner") |> response(403)
@@ -640,7 +655,7 @@ defmodule CabWeb.GuestLinksTest do
       %{guest: guest, session: session, link: link}
     end
 
-    test "the chair guest sees Fill ballot on P6, gets the page and submits",
+    test "the chair guest fills the ballot on their hub; the form's post stays",
          %{conn: conn, club: club, session: session, link: link} do
       test_pid = self()
 
@@ -663,23 +678,24 @@ defmodule CabWeb.GuestLinksTest do
         end
       )
 
-      # the personal link lands on P6 with the guest identity
+      session
+      |> Ecto.Changeset.change(started_at: DateTime.utc_now(:second))
+      |> Cab.Repo.update!()
+
+      # the personal link lands on the hub, which carries the room's ballot
       conn = get(conn, ~p"/l/#{link.code}")
-      assert redirected_to(conn) == "/c/#{club.uuid}/s/#{session.uuid}"
+      hub = "/l/#{link.code}/hub"
+      assert redirected_to(conn) == hub
 
-      home = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
-      assert home =~ "Fill ballot"
-      assert home =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
-
-      html =
-        conn
-        |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
-        |> html_response(200)
-
-      assert html =~ ~s(class="ballot")
+      html = conn |> get(hub) |> html_response(200)
+      assert html =~ "You adjudicate this room."
       assert html =~ "THW trust guests"
-      assert html =~ ~s(action="/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
-      assert html =~ ~s(form="ballot-71")
+      assert html =~ ~s(id="now-ballot-71")
+
+      # the ballot page is the head's: the guest goes back to the hub
+      away = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
+      assert redirected_to(away) == hub
+      assert Phoenix.Flash.get(away.assigns.flash, :info) =~ "personal link page"
 
       done =
         conn
@@ -693,24 +709,21 @@ defmodule CabWeb.GuestLinksTest do
       assert_received :confirmed
     end
 
-    test "a guest who is not the chair gets 403; a foreign room is 404",
+    test "a guest who is not the chair cannot send the ballot or the motion",
          %{conn: conn, club: club, session: session, link: link} do
       stub_stage([guest_signup(41, nil)], [running_room(555, 91)])
 
       conn = get(conn, ~p"/l/#{link.code}")
 
+      # the ballot page is the head's: back to the hub
       assert conn
              |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot")
-             |> response(403)
+             |> redirected_to() == "/l/#{link.code}/hub"
 
       assert conn
              |> anon()
              |> post(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot", ballot_params())
              |> response(403)
-
-      assert conn
-             |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/99/ballot")
-             |> response(404)
 
       # nor may they set that room's motion
       assert conn

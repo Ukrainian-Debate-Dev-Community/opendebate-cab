@@ -11,7 +11,7 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "%{adjudicator} sees it, without your team's name, once the session is finished."
 msgstr ""
@@ -147,6 +147,13 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "%{count} selected"
 msgid_plural "%{count} selected"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/cab_web/controllers/owner_html/session.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{count} team has not sent feedback yet; once finished, feedback is closed. Finish anyway?"
+msgid_plural "%{count} teams have not sent feedback yet; once finished, feedback is closed. Finish anyway?"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -321,7 +328,7 @@ msgstr ""
 msgid "A room seats %{seats} (%{speakers} speakers and an adjudicator), so the room count follows the sign-ups;"
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "A whole number from 1 to 10."
 msgstr ""
@@ -360,7 +367,6 @@ msgstr ""
 msgid "Accounts"
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -417,11 +423,6 @@ msgstr ""
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Adjudicator:"
-msgstr ""
-
-#: lib/cab_web/controllers/feedback_html/new.html.heex
-#, elixir-autogen, elixir-format
-msgid "Adjudicator: %{name}"
 msgstr ""
 
 #: lib/cab_web/components/layouts.ex
@@ -533,7 +534,6 @@ msgstr ""
 msgid "Automatic"
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -633,11 +633,6 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "Cancel"
-msgstr ""
-
-#: lib/cab_web/controllers/session_page_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Cancel my registration"
 msgstr ""
 
 #: lib/cab_web/controllers/club_public_html.ex
@@ -939,7 +934,6 @@ msgstr ""
 msgid "Delete session"
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -1050,12 +1044,11 @@ msgid "Expires"
 msgstr ""
 
 #: lib/cab/feedback.ex
-#: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Explain your feedback."
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
@@ -1063,7 +1056,17 @@ msgstr ""
 msgid "Feedback"
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Feedback not sent yet"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "Feedback on %{name}"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Feedback on the adjudicator"
 msgstr ""
@@ -1079,24 +1082,13 @@ msgid "Feedback on your adjudication: %{session}"
 msgstr ""
 
 #: lib/cab/feedback.ex
-#: lib/cab_web/controllers/feedback_html/new.html.heex
 #, elixir-autogen, elixir-format
 msgid "Feedback opens once the room's ballot is in."
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_controller.ex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "Feedback sent."
-msgstr ""
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Feedback to give"
-msgstr ""
-
-#: lib/cab_web/controllers/feedback_controller.ex
-#, elixir-autogen, elixir-format
-msgid "Feedback — %{room}"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_controller.ex
@@ -1125,7 +1117,6 @@ msgid "Fill ballot"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/session.html.heex
-#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Fill ballot — %{room}"
 msgstr ""
@@ -1182,12 +1173,6 @@ msgstr ""
 #: lib/cab_web/ballot_form.ex
 #, elixir-autogen, elixir-format
 msgid "GW"
-msgstr ""
-
-#: lib/cab_web/controllers/session_page_html/room.html.heex
-#: lib/cab_web/controllers/session_page_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "Give feedback — %{room}"
 msgstr ""
 
 #: lib/cab_web/controllers/signin_html/show.html.heex
@@ -1371,7 +1356,7 @@ msgstr ""
 
 #: lib/cab_web/controllers/club_public_html.ex
 #, elixir-autogen, elixir-format
-msgid "Keep this link — it IS your access: anyone with it acts as you. It opens your view of this session: your registration, the rooms, and (if you adjudicate) the ballot."
+msgid "Keep this link — it IS your access: anyone with it acts as you. It opens your page for this session: your registration, your seat and the motion, the ballot if you adjudicate, and feedback."
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
@@ -1576,6 +1561,7 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/answers.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/page_html/home.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "My page"
@@ -1769,6 +1755,11 @@ msgstr ""
 msgid "On a touch screen, hold a person and drag them to a slot, or tap a person, then a slot."
 msgstr ""
 
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "One feedback per team, before the club head finishes the session; the first one sent stays. The adjudicator sees it without your team's name once the session is finished."
+msgstr ""
+
 #: lib/cab_web/components/ui.ex
 #, elixir-autogen, elixir-format
 msgid "One room fewer"
@@ -1808,7 +1799,7 @@ msgstr ""
 
 #: lib/cab_web/controllers/club_public_html.ex
 #, elixir-autogen, elixir-format
-msgid "Open my session page"
+msgid "Open my page"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
@@ -1894,7 +1885,10 @@ msgstr ""
 
 #: lib/cab_web/controllers/account_html/show.html.heex
 #: lib/cab_web/controllers/club_public_html.ex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
+#: lib/cab_web/live/me_live.ex
 #, elixir-autogen, elixir-format
 msgid "Personal link"
 msgstr ""
@@ -1931,7 +1925,6 @@ msgid "Please confirm you are not a robot."
 msgstr ""
 
 #: lib/cab_web/club_scope.ex
-#: lib/cab_web/controllers/feedback_controller.ex
 #: lib/cab_web/controllers/guest_link_controller.ex
 #: lib/cab_web/controllers/session_page_controller.ex
 #: lib/cab_web/live/live_scope.ex
@@ -2017,7 +2010,6 @@ msgstr ""
 msgid "Ready to submit."
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/owner_html/feedback_block.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
@@ -2233,7 +2225,6 @@ msgstr ""
 msgid "Room"
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Room %{room}"
@@ -2347,7 +2338,7 @@ msgstr ""
 msgid "Select all"
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Send feedback"
 msgstr ""
@@ -2372,9 +2363,9 @@ msgstr ""
 msgid "Sent"
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/member_html/archive_section.html.heex
+#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/controllers/owner_html/delete_session.html.heex
 #: lib/cab_web/controllers/owner_html/responses.html.heex
 #: lib/cab_web/controllers/owner_html/session.html.heex
@@ -2425,6 +2416,7 @@ msgstr ""
 msgid "Session times show in this zone. cab keeps every time in UTC."
 msgstr ""
 
+#: lib/cab_web/components/ui.ex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/standings_html/standings_body.html.heex
 #, elixir-autogen, elixir-format
@@ -2467,6 +2459,7 @@ msgid "Shown to members on the club page; defaults to the date."
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -2560,6 +2553,7 @@ msgid "Speaker points"
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/controllers/standings_html.ex
@@ -2646,6 +2640,11 @@ msgstr ""
 #: lib/cab_web/controllers/standings_html/standings_tabs.html.heex
 #, elixir-autogen, elixir-format
 msgid "Teams"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/debates_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Teams send feedback on My page; Finish session closes it."
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/club.html.heex
@@ -2805,7 +2804,6 @@ msgid "The rooms were deleted. Back to the session."
 msgstr ""
 
 #: lib/cab/feedback.ex
-#: lib/cab_web/controllers/feedback_html/new.html.heex
 #, elixir-autogen, elixir-format
 msgid "The session is finished, so feedback is closed."
 msgstr ""
@@ -2893,6 +2891,11 @@ msgstr ""
 #: lib/cab_web/controllers/error_html.ex
 #, elixir-autogen, elixir-format
 msgid "This page is not open to your account."
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "This page is yours through your personal link: keep it, anyone with it acts as you. Sign in with an account to keep your results under your name."
 msgstr ""
 
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex
@@ -3199,26 +3202,35 @@ msgstr ""
 msgid "Your name"
 msgstr ""
 
+#: lib/cab_web/hub.ex
+#, elixir-autogen, elixir-format
+msgid "Your room, the motion, the ballot and feedback are on My page."
+msgstr ""
+
+#: lib/cab_web/hub.ex
+#, elixir-autogen, elixir-format
+msgid "Your room, the motion, the ballot and feedback are on your personal link page."
+msgstr ""
+
 #: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Your saved answers are filled in. Changes here are for this session only; your defaults change on My page."
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
-msgid "Your side: %{side} (%{people}). One feedback per side; the first one sent stays."
+msgid "Your seat, the motion, the ballot and feedback are on"
 msgstr ""
 
 #: lib/cab/feedback.ex
-#: lib/cab_web/controllers/feedback_html/new.html.heex
 #, elixir-autogen, elixir-format
 msgid "Your team already sent feedback."
 msgstr ""
 
-#: lib/cab_web/controllers/feedback_html/new.html.heex
+#: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
-msgid "Your team sees it now; %{adjudicator} sees it, without your team's name, once the session is finished."
+msgid "Your team sent feedback:"
 msgstr ""
 
 #: lib/cab_web/controllers/guest_link_html/claim.html.heex
@@ -3348,11 +3360,6 @@ msgstr ""
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "full"
-msgstr ""
-
-#: lib/cab_web/controllers/me_html/show.html.heex
-#, elixir-autogen, elixir-format
-msgid "give feedback"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html.ex
@@ -3716,6 +3723,11 @@ msgstr ""
 #: lib/cab_web/controllers/account_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "your only sign-in"
+msgstr ""
+
+#: lib/cab_web/controllers/session_page_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "your personal link page"
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex

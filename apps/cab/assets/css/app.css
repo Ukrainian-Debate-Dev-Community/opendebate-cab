@@ -298,6 +298,11 @@ main.page-main { width:100%; flex:1 0 auto; }
 .guest-offer .row { display:flex; gap:var(--sp-2); }
 .guest-offer .row input { flex:1; min-width:0; }
 .guest-offer .row button { flex:none; justify-content:center; }
+/* the head's session picker, under the page head */
+.session-picker { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); margin:0 0 var(--sp-3); }
+.session-picker label { font-weight:650; }
+.session-picker select { flex:1; width:auto; min-width:12rem; max-width:32rem; }
+
 .send-link { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin-top:var(--sp-2); }
 .send-link input { flex:1; width:auto; min-width:12rem; }
 

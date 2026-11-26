@@ -4,7 +4,7 @@
   club={@club}
   club_role={@club_role}
   nav_session={@nav_session}
-  active="rooms"
+  active="sessions"
 >
   <%!-- the command bar carries the actions of the stage on view --%>
   <.chrome
@@ -69,6 +69,14 @@
       :if={@view == :debates and @state.stage == :running}
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/finish"}
       method="post"
+      confirm={
+        @feedback_missing != [] &&
+          ngettext(
+            "%{count} team has not sent feedback yet; once finished, feedback is closed. Finish anyway?",
+            "%{count} teams have not sent feedback yet; once finished, feedback is closed. Finish anyway?",
+            length(@feedback_missing)
+          )
+      }
       primary
     >
       {gettext("Finish session")}
@@ -98,6 +106,25 @@
         <.tag kind={stage_kind(@state.stage)}>{stage_words(@state.stage)}</.tag>
       </:meta>
     </.page_head>
+
+    <%!-- which of the club's sessions this page runs --%>
+    <form
+      :if={length(@club_sessions) > 1}
+      id="session-picker"
+      class="session-picker"
+      phx-change="pick_session"
+    >
+      <label for="session-picker-select">{gettext("Session")}</label>
+      <select id="session-picker-select" name="session" class="input">
+        <option
+          :for={session <- @club_sessions}
+          value={session.uuid}
+          selected={session.uuid == @current.uuid}
+        >
+          {picker_label(session, @zone)}
+        </option>
+      </select>
+    </form>
 
     <%!-- where the session is; each stage opens its own part of the page --%>
     <.steps label={gettext("Session stages")}>

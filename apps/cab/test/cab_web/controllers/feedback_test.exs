@@ -332,6 +332,15 @@ defmodule CabWeb.FeedbackTest do
       assert %{71 => {1, 4}} = Feedback.progress(state, Feedback.all(session))
     end
 
+    test "the head sees which teams have not sent theirs", %{session: session} do
+      {:ok, state} = Sessions.state(session)
+
+      assert [1002, 1003, 1004] ==
+               state
+               |> Feedback.missing(Feedback.all(session))
+               |> Enum.map(&get_in(&1.room_team, ["Team", "id"]))
+    end
+
     test "the average counts a base of 5 as one vote", %{session: session, judge: judge} do
       {:ok, state} = Sessions.state(session)
       assert 6.5 == Feedback.my_average(session, state, judge)
@@ -340,54 +349,30 @@ defmodule CabWeb.FeedbackTest do
   end
 
   describe "pages" do
-    test "the form is for a team member; the chrome sends it; anyone else is turned away",
-         %{conn: conn, club: club, session: session, anna: anna, outsider: outsider} do
+    test "the old feedback address leads each viewer to where feedback is given now",
+         %{conn: conn, club: club, session: session, anna: anna, greta: greta, head: head} do
       path = ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/feedback"
-      html = conn |> log_in(anna) |> get(path) |> html_response(200)
+      code = greta |> Cab.Links.active_for_user() |> hd() |> Map.fetch!(:code)
 
-      assert html =~ ~s(name="accuracy")
-      assert html =~ ~s(name="reasoning")
-      assert html =~ ~s(name="discussion")
-      assert html =~ ~s(form="feedback-71")
-      # the chrome is the form's only button
-      refute html =~ ~s(class="btn-go")
-      refute html =~ ~s(class="btn-quiet")
-
-      assert conn |> log_in(outsider) |> get(path) |> response(403)
-      assert conn |> get(path) |> redirected_to() == "/signin"
-
-      sent = conn |> log_in(anna) |> post(path, form("8", "7", "Clear call."))
-      assert redirected_to(sent) == path
-      assert Phoenix.Flash.get(sent.assigns.flash, :info) =~ "Feedback sent."
-
-      again = conn |> log_in(anna) |> get(path) |> html_response(200)
-      assert again =~ "Your team already sent feedback."
-      assert again =~ "Clear call."
-      refute again =~ ~s(form="feedback-71")
+      assert conn |> log_in(anna) |> get(path) |> redirected_to() == "/me"
+      assert conn |> log_in(greta) |> get(path) |> redirected_to() == "/l/#{code}/hub"
+      assert conn |> get(path) |> redirected_to() == "/signin?return_to=%2Fme"
+      # the head reads every team's feedback on the session's page
+      assert conn |> log_in(head) |> get(path) |> redirected_to() ==
+               "/c/#{club.uuid}/owner/s/#{session.uuid}"
     end
 
-    test "missing answers re-render the form with what was typed",
-         %{conn: conn, club: club, session: session, anna: anna} do
-      path = ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/feedback"
-      html = conn |> log_in(anna) |> post(path, form("8", "", "Kept text")) |> html_response(422)
-      assert html =~ "Enter a whole number from 1 to 10."
-      assert html =~ "Kept text"
-    end
+    test "the session page points a team member to their hub, not to a form",
+         %{conn: conn, club: club, session: session, anna: anna, greta: greta} do
+      page = ~p"/c/#{club.uuid}/s/#{session.uuid}"
 
-    test "the session page offers Give feedback to a team member who owes it",
-         %{conn: conn, club: club, session: session, anna: anna} do
-      html =
-        conn |> log_in(anna) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
+      for viewer <- [anna, greta] do
+        html = conn |> log_in(viewer) |> get(page) |> html_response(200)
+        refute html =~ "Give feedback"
+        refute html =~ "/rooms/71/feedback"
+      end
 
-      assert html =~ "Give feedback"
-      assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/feedback"
-
-      :ok = Feedback.submit(anna, session, 71, form("8", "7", "Done."))
-
-      html =
-        conn |> log_in(anna) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
-
-      refute html =~ "Give feedback"
+      assert conn |> log_in(anna) |> get(page) |> html_response(200) =~ ~s(href="/me")
     end
 
     test "the finished session page shows the adjudicator their feedback without teams",
@@ -427,6 +412,17 @@ defmodule CabWeb.FeedbackTest do
       assert html =~ ~s(id="session-feedback")
       assert html =~ "Team 1"
       assert html =~ "Clear call."
+
+      # before Finish: who still owes feedback, and Finish asks first
+      missing =
+        html
+        |> LazyHTML.from_document()
+        |> LazyHTML.query("#feedback-missing-teams")
+        |> LazyHTML.text()
+
+      assert missing =~ "OO"
+      refute missing =~ "OG"
+      assert html =~ "3 teams have not sent feedback yet"
     end
   end
 

@@ -23,8 +23,8 @@ defmodule CabWeb.Ui do
   @doc """
   The left sidenav - ONLY navigation: brand script cap -> home, plain
   place-name items for the current context (global: Clubs / Standings
-  / My page / + Admin for admins; club: Club / Rooms / Standings /
-  Members / Register) and the profile block
+  / My page / + Admin for admins; club: Club / Sessions (the head's) /
+  Standings / Members) and the profile block
   pinned to the bottom (avatar initials + username -> /account, sign
   out; anonymous: Sign in). No badges, counters or suffixes; the
   active item carries a left border.
@@ -32,7 +32,7 @@ defmodule CabWeb.Ui do
   attr :current_user, :any, default: nil
   attr :club, :any, default: nil, doc: "club context; nil = global"
   attr :club_role, :atom, default: :public
-  attr :nav_session, :any, default: nil, doc: "the club's current session row (Rooms target)"
+  attr :nav_session, :any, default: nil, doc: "the club's current session row (Sessions target)"
   attr :active, :string, default: nil, doc: "the lit item key"
 
   def sidenav(assigns) do
@@ -61,10 +61,11 @@ defmodule CabWeb.Ui do
             label={gettext("Club")}
           />
           <.nav_item
+            :if={Cab.Clubs.covers?(@club_role, :owner)}
             active={@active}
-            key="rooms"
-            href={rooms_href(@club, @club_role, @nav_session)}
-            label={gettext("Rooms")}
+            key="sessions"
+            href={sessions_href(@club, @nav_session)}
+            label={gettext("Sessions")}
           />
           <.nav_item
             active={@active}
@@ -153,16 +154,10 @@ defmodule CabWeb.Ui do
   # the LIVE session lives under Rooms; with no session yet the item
   # falls back to the archive (owner opens new sessions there)
   # a finished session's results are on its session page, for everyone
-  defp rooms_href(club, role, %{uuid: uuid, finished_at: nil}) when role in [:owner, :admin],
-    do: ~p"/c/#{club.uuid}/owner/s/#{uuid}"
-
-  defp rooms_href(club, _role, %{uuid: uuid}), do: ~p"/c/#{club.uuid}/s/#{uuid}"
-  # no session yet: Rooms falls back to the club page (the archive;
-  # the owner's edit view also opens new sessions there)
-  defp rooms_href(club, role, nil) when role in [:owner, :admin],
-    do: ~p"/c/#{club.uuid}/owner"
-
-  defp rooms_href(club, _role, nil), do: ~p"/c/#{club.uuid}"
+  # the head's session page: the club's current session, else the
+  # club's edit view, which opens new sessions
+  defp sessions_href(club, %{uuid: uuid}), do: ~p"/c/#{club.uuid}/owner/s/#{uuid}"
+  defp sessions_href(club, nil), do: ~p"/c/#{club.uuid}/owner"
 
   defp members_href(club, role) when role in [:owner, :admin],
     do: ~p"/c/#{club.uuid}/owner/members"

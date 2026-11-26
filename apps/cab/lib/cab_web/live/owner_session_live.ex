@@ -24,6 +24,7 @@ defmodule CabWeb.OwnerSessionLive do
         {:ok,
          socket
          |> assign(:session_uuid, session.uuid)
+         |> assign(:club_sessions, Sessions.list_for_club(socket.assigns.club))
          |> assign(:short_url, Sessions.short_url(session))
          |> assign(:query, "")
          |> assign(:zone, Cab.TimeZones.for_user(socket.assigns.current_user))
@@ -64,6 +65,19 @@ defmodule CabWeb.OwnerSessionLive do
   def handle_info(_message, socket), do: {:noreply, socket}
 
   @impl true
+  # the picker: another of the club's sessions
+  def handle_event("pick_session", %{"session" => uuid}, socket) do
+    club = socket.assigns.club
+
+    case Sessions.get_for_club(club, uuid) do
+      nil ->
+        {:noreply, socket}
+
+      session ->
+        {:noreply, push_navigate(socket, to: ~p"/c/#{club.uuid}/owner/s/#{session.uuid}")}
+    end
+  end
+
   def handle_event("place", %{"id" => id, "slot" => slot}, socket) do
     socket.assigns.current
     |> Sessions.place(to_int(id), slot)
@@ -362,7 +376,11 @@ defmodule CabWeb.OwnerSessionLive do
         do: Cab.Feedback.all(session),
         else: []
 
-    assign(socket, feedback: feedback, feedback_progress: Cab.Feedback.progress(state, feedback))
+    assign(socket,
+      feedback: feedback,
+      feedback_progress: Cab.Feedback.progress(state, feedback),
+      feedback_missing: Cab.Feedback.missing(state, feedback)
+    )
   end
 
   # the room the head chairs while its ballot is still open

@@ -133,10 +133,10 @@ defmodule CabWeb.ClubPublicHTML do
               </p>
               <p>
                 {gettext(
-                  "Keep this link — it IS your access: anyone with it acts as you. It opens your view of this session: your registration, the rooms, and (if you adjudicate) the ballot."
+                  "Keep this link — it IS your access: anyone with it acts as you. It opens your page for this session: your registration, your seat and the motion, the ballot if you adjudicate, and feedback."
                 )}
               </p>
-              <p><.link href={~p"/l/#{done.link.code}"}>{gettext("Open my session page")}</.link></p>
+              <p><.link href={~p"/l/#{done.link.code}"}>{gettext("Open my page")}</.link></p>
             </div>
           <% {:guest, nil} -> %>
             <CabWeb.RegistrationHTML.guest_form

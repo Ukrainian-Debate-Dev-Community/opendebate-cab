@@ -2,11 +2,15 @@ defmodule CabWeb.MeLive do
   @moduledoc """
   `/me` - the participant's hub, live: where they sit now (the room,
   their side and role, the motion and the prep clock; a chair publishes
-  the motion here), invitations, my clubs and schedule, feedback to
-  give and on them, the engine's figures per format (rule 0, verbatim)
-  and the history. The sessions on their schedule push changes, so a
-  started session, a published motion or a ballot shows without a
-  reload.
+  the motion here, fills the ballot; a team gives feedback),
+  registration, invitations, my clubs and schedule, feedback on them,
+  the engine's figures per format (rule 0, verbatim) and the history.
+  The sessions on their schedule push changes, so a started session, a
+  published motion or a ballot shows without a reload.
+
+  `/l/:code/hub` (`:guest`) is the same page for a personal-link guest:
+  their link's sessions - the seat, the motion, the ballot, feedback,
+  cancelling - without an account's clubs, figures or history.
   """
   use CabWeb, :live_view
 
@@ -15,7 +19,8 @@ defmodule CabWeb.MeLive do
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
-    memberships = Clubs.list_user_memberships(user)
+    guest? = socket.assigns.live_action == :guest
+    memberships = if guest?, do: [], else: Clubs.list_user_memberships(user)
     clubs = for membership <- memberships, membership.status == "approved", do: membership.club
     schedule = Sessions.user_schedule(user)
 
@@ -26,19 +31,25 @@ defmodule CabWeb.MeLive do
     {:ok,
      socket
      |> assign(
-       by_format: stats_by_format(user),
-       invitations: Invitations.for_user(user),
+       guest: guest?,
+       by_format: if(guest?, do: [], else: stats_by_format(user)),
+       invitations: if(guest?, do: [], else: Invitations.for_user(user)),
        memberships: memberships,
        tonight: Sessions.next_by_club(clubs),
        schedule: schedule,
-       history: Sessions.user_history(user),
-       feedback_to_give: Cab.Feedback.to_give(user),
-       feedback_on_me: Cab.Feedback.on_me_recent(user),
+       history: if(guest?, do: [], else: Sessions.user_history(user)),
+       feedback_on_me:
+         if(guest?,
+           do: guest_feedback_on_me(user, schedule),
+           else: Cab.Feedback.on_me_recent(user)
+         ),
        # a refused ballot's typed rows and message, per room id
        ballot_drafts: %{},
+       # a refused feedback's typed values and errors, per room id
+       feedback_drafts: %{},
        # the registration form open on the page: %{session, kind, fields, values, errors}
        registering: nil,
-       page_title: gettext("My page")
+       page_title: if(guest?, do: gettext("Personal link"), else: gettext("My page"))
      )
      |> load_seats()
      |> load_open_sessions()}
@@ -178,11 +189,52 @@ defmodule CabWeb.MeLive do
          %{"id" => participant_id} <-
            Enum.find(state.signups, &Sessions.own_participant?(&1, user)),
          :ok <- Sessions.remove_signup(user, session, participant_id) do
-      {:noreply,
-       socket |> put_flash(:info, gettext("Registration cancelled.")) |> refresh_registrations()}
+      if socket.assigns.guest do
+        # the guest's link went with their place: back to the club
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Registration cancelled."))
+         |> redirect(to: ~p"/c/#{session.club.uuid}")}
+      else
+        {:noreply,
+         socket |> put_flash(:info, gettext("Registration cancelled.")) |> refresh_registrations()}
+      end
     else
       {:error, message} when is_binary(message) -> {:noreply, put_flash(socket, :error, message)}
       _other -> {:noreply, put_flash(socket, :error, gettext("that did not work — try again"))}
+    end
+  end
+
+  # a speaker's team sends its feedback on the room's adjudicator, once
+  # the ballot is in; a refused one keeps what was typed
+  def handle_event("send_feedback", %{"session" => uuid, "room" => room} = params, socket) do
+    with {room_id, ""} <- Integer.parse(room),
+         %{} = seat <- speaker_seat(socket.assigns.seats, uuid, room_id) do
+      attrs = Map.take(params, ~w(accuracy reasoning discussion))
+
+      case Cab.Feedback.submit(socket.assigns.current_user, seat.session, room_id, attrs) do
+        :ok ->
+          {:noreply,
+           socket
+           |> update(:feedback_drafts, &Map.delete(&1, room_id))
+           |> put_flash(:info, gettext("Feedback sent."))
+           |> load_seats()}
+
+        {:error, %{} = errors} ->
+          {:noreply,
+           update(socket, :feedback_drafts, &Map.put(&1, room_id, {attrs, field_errors(errors)}))}
+
+        {:error, :conflict, message} ->
+          {:noreply, socket |> put_flash(:error, message) |> load_seats()}
+
+        {:error, message} when is_binary(message) ->
+          {:noreply, put_flash(socket, :error, message)}
+
+        _other ->
+          {:noreply, put_flash(socket, :error, gettext("that did not work — try again"))}
+      end
+    else
+      _ -> {:noreply, put_flash(socket, :error, gettext("that did not work — try again"))}
     end
   end
 
@@ -225,6 +277,17 @@ defmodule CabWeb.MeLive do
   defp open_session(socket, uuid),
     do: Enum.find(socket.assigns.open_sessions, &(&1.session.uuid == uuid))
 
+  # a guest: their link's sessions while they take sign-ups (they can
+  # only cancel there)
+  defp load_open_sessions(%{assigns: %{guest: true}} = socket) do
+    rows =
+      for %{session: session, club: club} <- socket.assigns.schedule,
+          Sessions.stage_of(session) == :signup,
+          do: %{session: %{session | club: club}, club: club, registered: true}
+
+    assign(socket, :open_sessions, rows)
+  end
+
   # the sessions taking sign-ups in the user's clubs, soonest first,
   # each marked when the user is in it (their schedule says so)
   defp load_open_sessions(socket) do
@@ -244,8 +307,47 @@ defmodule CabWeb.MeLive do
     assign(socket, :open_sessions, rows)
   end
 
-  defp load_seats(socket),
-    do: assign(socket, :seats, Sessions.user_seats(socket.assigns.current_user))
+  # each seat with its feedback: nil (not a speaker, or not open yet),
+  # :open, or {:sent, entry}; the engine is read once per session
+  defp load_seats(socket) do
+    seats = Sessions.user_seats(socket.assigns.current_user)
+
+    sent =
+      seats
+      |> Enum.filter(&(&1.role == :speaker and Cab.Feedback.open?(&1.session, &1.room)))
+      |> Enum.uniq_by(& &1.session.id)
+      |> Map.new(&{&1.session.id, Cab.Feedback.all(&1.session)})
+
+    assign(socket, :seats, Enum.map(seats, &Map.put(&1, :feedback, seat_feedback(&1, sent))))
+  end
+
+  defp seat_feedback(%{role: :speaker} = seat, sent) do
+    case Map.fetch(sent, seat.session.id) do
+      {:ok, feedback} ->
+        case Cab.Feedback.sent_by(feedback, seat.room, seat.room_team) do
+          nil -> :open
+          entry -> {:sent, entry}
+        end
+
+      :error ->
+        nil
+    end
+  end
+
+  defp seat_feedback(_seat, _sent), do: nil
+
+  defp speaker_seat(seats, uuid, room_id) do
+    Enum.find(
+      seats,
+      &(&1.role == :speaker and &1.session.uuid == uuid and &1.room["id"] == room_id)
+    )
+  end
+
+  defp field_errors(errors) do
+    for {key, message} <- errors, key in ~w(accuracy reasoning discussion), into: %{} do
+      {String.to_existing_atom(key), message}
+    end
+  end
 
   defp chair_seat(seats, uuid, room_id) do
     Enum.find(
@@ -260,6 +362,24 @@ defmodule CabWeb.MeLive do
         value != "",
         into: %{},
         do: {String.to_existing_atom(key), value}
+  end
+
+  # a guest who adjudicated: the feedback on them in their finished
+  # link sessions, anonymous, as My page shows an account's
+  defp guest_feedback_on_me(user, schedule) do
+    for %{session: session, club: club} <- schedule,
+        session.finished_at != nil,
+        session = %{session | club: club},
+        {:ok, state} <- [Sessions.state(session)],
+        entries = Cab.Feedback.on_adjudicator(session, state, user),
+        entries != [] do
+      %{
+        session: session,
+        state: state,
+        entries: entries,
+        average: Cab.Feedback.my_average(session, state, user)
+      }
+    end
   end
 
   # the engine's figures per format the user has debated (Cab.Format
