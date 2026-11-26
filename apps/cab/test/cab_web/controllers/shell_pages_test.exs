@@ -88,22 +88,24 @@ defmodule CabWeb.ShellPagesTest do
 
       assert html =~ club.name
 
-      for item <- ~w(Club Rooms Standings Members) do
+      for item <- ~w(Club Standings Members) do
         assert html =~ ">#{item}<"
       end
 
-      # the Sessions item is gone - the club page is the archive
+      # Sessions is the head's; the club page is the archive
       refute html =~ ">Sessions<"
+      refute html =~ ">Rooms<"
 
-      # public: Rooms -> the session page; the roster behind the wall;
-      # registration is not a sidebar item
-      assert html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
+      # public: the roster behind the wall; registration is not a
+      # sidebar item
+      refute html =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}")
       assert html =~ ~s(href="/c/#{club.uuid}/standings/teams")
       assert html =~ ~s(href="/c/#{club.uuid}/members")
       refute html =~ ~s(class="item">Register<)
 
       # the owner's sidenav targets the owner trees
       owner_html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}") |> html_response(200)
+      assert owner_html =~ ">Sessions<"
       assert owner_html =~ ~s(href="/c/#{club.uuid}/owner/s/#{session.uuid}")
       assert owner_html =~ ~s(href="/c/#{club.uuid}/owner/members")
       assert owner_html =~ ~s(href="/c/#{club.uuid}/owner")

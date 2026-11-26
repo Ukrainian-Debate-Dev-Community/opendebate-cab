@@ -34,7 +34,7 @@ defmodule CabWeb.ShortLinkTest do
       end
     end)
 
-    %{club: club, session: session}
+    %{club: club, session: session, head: head}
   end
 
   test "/<code> opens the session; /<code>/<n> opens room n", %{
@@ -77,8 +77,13 @@ defmodule CabWeb.ShortLinkTest do
   end
 
   test "the room page offers its card: the room's data and the short link's QR",
-       %{conn: conn, club: club, session: session} do
-    html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/72") |> html_response(200)
+       %{conn: conn, club: club, session: session, head: head} do
+    html =
+      conn
+      |> init_test_session(%{user_id: head.id})
+      |> get(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/72")
+      |> html_response(200)
+
     assert html =~ ~s(phx-hook="ShareCard")
     # two columns, picture and text, each copied by a click; no buttons
     assert html =~ ~s(data-card-image)

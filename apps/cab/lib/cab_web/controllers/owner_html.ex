@@ -60,6 +60,21 @@ defmodule CabWeb.OwnerHTML do
   end
 
   # the rooms whose ballot is in, as the engine reports their status
+  # one of the club's sessions in the picker: its name, local date, stage
+  defp picker_label(session, zone) do
+    at = session.scheduled_at || session.inserted_at
+    [date, _time] = Cab.TimeZones.local_parts(at, zone)
+
+    Enum.join(
+      [
+        session.name || gettext("Session"),
+        date,
+        stage_words(Cab.Sessions.stage_of(session))
+      ],
+      " — "
+    )
+  end
+
   defp ballots_in(rooms), do: Enum.count(rooms, &(&1["status"] in ["completed", "confirmed"]))
 
   # who the registration form asks a field of, as the editor shows it

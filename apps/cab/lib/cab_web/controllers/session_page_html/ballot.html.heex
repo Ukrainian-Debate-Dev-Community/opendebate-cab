@@ -4,7 +4,7 @@
   club={@club}
   club_role={@club_role}
   nav_session={@nav_session}
-  active="rooms"
+  active={if Cab.Clubs.covers?(@club_role, :owner), do: "sessions", else: "club"}
 >
   <.chrome
     crumbs={[

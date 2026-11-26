@@ -171,7 +171,7 @@ defmodule CabWeb.EightPagesTest do
       # the chair resolves to their display name for non-judges
       assert html =~ "Petro"
 
-      # the judge's own view: <b>you</b> + the gold Fill ballot segment
+      # the judge's own view: <b>you</b>; the ballot is on My page
       judge = user_fixture(%{node_user_id: 199})
 
       judge_html =
@@ -181,8 +181,10 @@ defmodule CabWeb.EightPagesTest do
         |> html_response(200)
 
       assert judge_html =~ ">you</b>"
-      assert judge_html =~ "Fill ballot"
-      assert judge_html =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
+      refute judge_html =~ "Fill ballot"
+      refute judge_html =~ "/rooms/71/ballot"
+      assert judge_html =~ ~s(href="/me")
+      assert judge_html =~ "Your seat, the motion, the ballot and feedback are on"
     end
 
     test "done: results, ranks, winner", %{conn: conn, club: club, session: session} do

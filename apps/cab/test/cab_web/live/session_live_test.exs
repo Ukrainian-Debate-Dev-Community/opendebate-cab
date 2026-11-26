@@ -85,8 +85,12 @@ defmodule CabWeb.SessionLiveTest do
     room = %{"id" => 71, "status" => "pending", "Motion" => nil, "RoomTeams" => []}
     agent = stub_engine([], [room])
 
-    {:ok, view, html} = live(conn, ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71")
-    assert html =~ "Not set yet"
+    {:ok, view, html} =
+      conn
+      |> init_test_session(%{user_id: head.id})
+      |> live(~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71")
+
+    refute html =~ "THW go live"
 
     Agent.update(agent, fn world ->
       %{world | rooms: [%{room | "Motion" => %{"motion_text" => "THW go live"}}]}
@@ -94,12 +98,10 @@ defmodule CabWeb.SessionLiveTest do
 
     Cab.Sessions.broadcast(session)
 
-    html = render(view)
-    assert html =~ "THW go live"
-    refute html =~ "Not set yet"
+    assert render(view) =~ "THW go live"
   end
 
-  test "a confirmed ballot is the head's to edit, not the chair's", %{conn: conn} do
+  test "a confirmed ballot is the head's to edit; the chair is sent to My page", %{conn: conn} do
     head = user_fixture(%{node_user_id: 9})
     club = club_fixture(head, %{engine_organisation_id: 3})
     session = session_fixture(club, engine_event_id: 11)
@@ -121,9 +123,9 @@ defmodule CabWeb.SessionLiveTest do
     {:ok, _view, head_html} = live(init_test_session(conn, %{user_id: head.id}), path)
     assert head_html =~ "Edit ballot"
 
-    {:ok, _view, chair_html} = live(init_test_session(conn, %{user_id: chair.id}), path)
-    refute chair_html =~ "Edit ballot"
-    refute chair_html =~ "Fill ballot"
+    # the chair is not on this page at all: they work on My page
+    assert {:error, {:redirect, %{to: "/me"}}} =
+             live(init_test_session(conn, %{user_id: chair.id}), path)
   end
 
   test "the live allocator: drops update the server draft, Start turns it into rooms",

@@ -4,10 +4,11 @@ defmodule CabWeb.SessionLive do
   page per session, public, stage-aware, re-read whenever the session
   announces a change (signups, rooms, motions, ballots, finish).
 
-  Its actions stay REST: Register links to `/r/:sess`, cancel and the
-  ballot POST to their controller routes, so every write keeps its
-  API twin. Identity-gated, not tree-gated - a guest (session
-  identity adopted via `/l/:code`) sees the same page.
+  A participant with an account works on My page, which the page
+  points to; a guest (session identity adopted via `/l/:code`) still
+  cancels, fills the ballot and gives feedback from here, until their
+  link page is the same hub. Those actions stay REST posts to their
+  controller routes, so every write keeps its API twin.
   """
   use CabWeb, :live_view
 
@@ -59,6 +60,7 @@ defmodule CabWeb.SessionLive do
     |> assign(:winners, Sessions.winners_by_room(state.rooms))
     |> assign_feedback(session, state, user)
     |> assign(:my_signup, my_signup)
+    |> assign(:guest, user != nil and Map.get(user, :guest, false))
     |> assign(:my_ballot_room, my_ballot_room(state, user))
     |> assign(:my_room_id, my_room_id(state, user, my_signup))
     |> assign(:page_title, "#{club.name} — #{state.event["name"]}")

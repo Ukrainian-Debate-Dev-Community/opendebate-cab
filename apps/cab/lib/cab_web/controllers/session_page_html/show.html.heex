@@ -4,7 +4,7 @@
   club={@club}
   club_role={@club_role}
   nav_session={@nav_session}
-  active="rooms"
+  active={if Cab.Clubs.covers?(@club_role, :owner), do: "sessions", else: "club"}
 >
   <.chrome
     crumbs={[{@club.name, ~p"/c/#{@club.uuid}"}]}
@@ -17,8 +17,13 @@
     >
       {gettext("Register")}
     </:seg>
+    <%!-- an account works on My page; a guest here, until their link
+         page is the same hub --%>
+    <:seg :if={!@guest && @my_signup && @state.stage != :done} href={~p"/me"} primary>
+      {gettext("My page")}
+    </:seg>
     <:seg
-      :if={@state.stage == :signup && @my_signup}
+      :if={@guest && @state.stage == :signup && @my_signup}
       href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/signups/#{@my_signup["id"]}/remove"}
       method="post"
       quiet
@@ -26,14 +31,14 @@
       {gettext("Cancel my registration")}
     </:seg>
     <:seg
-      :if={@my_ballot_room}
+      :if={@guest && @my_ballot_room}
       href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@my_ballot_room["id"]}/ballot"}
       primary
     >
       {gettext("Fill ballot — %{room}", room: room_label(@my_ballot_room))}
     </:seg>
     <:seg
-      :if={@feedback_room}
+      :if={@guest && @feedback_room}
       href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{@feedback_room["id"]}/feedback"}
       primary={is_nil(@my_ballot_room)}
     >
@@ -61,6 +66,10 @@
 
     <.banner :if={@state.stage != :done && @my_signup} kind={:good}>
       {gettext("You are registered for this session.")}
+      <span :if={!@guest}>
+        {gettext("Your seat, the motion, the ballot and feedback are on")}
+        <.link href={~p"/me"}>{gettext("My page")}</.link>.
+      </span>
     </.banner>
     <.banner :if={@state.stage in [:closed, :running]} kind={:info}>
       {gettext("Registration is closed for this session.")}
@@ -94,9 +103,13 @@
                 row_class={fn room -> room["id"] == @my_room_id && "me" end}
               >
                 <:col :let={room} class="rank">
-                  <.link href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{room["id"]}"}>
+                  <.link
+                    :if={@guest}
+                    href={~p"/c/#{@club.uuid}/s/#{@session.uuid}/rooms/#{room["id"]}"}
+                  >
                     {room_label(room)}
                   </.link>
+                  <span :if={!@guest}>{room_label(room)}</span>
                 </:col>
                 <:col
                   :let={room}

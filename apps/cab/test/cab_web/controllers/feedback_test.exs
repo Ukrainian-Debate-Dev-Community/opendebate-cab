@@ -349,10 +349,10 @@ defmodule CabWeb.FeedbackTest do
   end
 
   describe "pages" do
-    test "the form is for a team member; the chrome sends it; anyone else is turned away",
-         %{conn: conn, club: club, session: session, anna: anna, outsider: outsider} do
+    test "the form page is a guest's; an account gives feedback on My page",
+         %{conn: conn, club: club, session: session, anna: anna, greta: greta, outsider: outsider} do
       path = ~p"/c/#{club.uuid}/s/#{session.uuid}/rooms/71/feedback"
-      html = conn |> log_in(anna) |> get(path) |> html_response(200)
+      html = conn |> log_in(greta) |> get(path) |> html_response(200)
 
       assert html =~ ~s(name="accuracy")
       assert html =~ ~s(name="reasoning")
@@ -362,14 +362,15 @@ defmodule CabWeb.FeedbackTest do
       refute html =~ ~s(class="btn-go")
       refute html =~ ~s(class="btn-quiet")
 
-      assert conn |> log_in(outsider) |> get(path) |> response(403)
-      assert conn |> get(path) |> redirected_to() == "/signin"
+      assert conn |> log_in(anna) |> get(path) |> redirected_to() == "/me"
+      assert conn |> log_in(outsider) |> get(path) |> redirected_to() == "/me"
+      assert conn |> get(path) |> redirected_to() == "/signin?return_to=%2Fme"
 
-      sent = conn |> log_in(anna) |> post(path, form("8", "7", "Clear call."))
+      sent = conn |> log_in(greta) |> post(path, form("8", "7", "Clear call."))
       assert redirected_to(sent) == path
       assert Phoenix.Flash.get(sent.assigns.flash, :info) =~ "Feedback sent."
 
-      again = conn |> log_in(anna) |> get(path) |> html_response(200)
+      again = conn |> log_in(greta) |> get(path) |> html_response(200)
       assert again =~ "Your team already sent feedback."
       assert again =~ "Clear call."
       refute again =~ ~s(form="feedback-71")
@@ -383,20 +384,21 @@ defmodule CabWeb.FeedbackTest do
       assert html =~ "Kept text"
     end
 
-    test "the session page offers Give feedback to a team member who owes it",
-         %{conn: conn, club: club, session: session, anna: anna} do
-      html =
-        conn |> log_in(anna) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
+    test "the session page offers a guest Give feedback; an account is pointed to My page",
+         %{conn: conn, club: club, session: session, anna: anna, greta: greta} do
+      page = ~p"/c/#{club.uuid}/s/#{session.uuid}"
+      html = conn |> log_in(greta) |> get(page) |> html_response(200)
 
       assert html =~ "Give feedback"
       assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/feedback"
 
-      :ok = Feedback.submit(anna, session, 71, form("8", "7", "Done."))
+      :ok = Feedback.submit(greta, session, 71, form("8", "7", "Done."))
 
-      html =
-        conn |> log_in(anna) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
+      refute conn |> log_in(greta) |> get(page) |> html_response(200) =~ "Give feedback"
 
+      html = conn |> log_in(anna) |> get(page) |> html_response(200)
       refute html =~ "Give feedback"
+      assert html =~ ~s(href="/me")
     end
 
     test "the finished session page shows the adjudicator their feedback without teams",

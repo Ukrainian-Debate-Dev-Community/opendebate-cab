@@ -132,20 +132,22 @@ defmodule CabWeb.UiTest do
 
     member_html =
       rendered_to_string(~H"""
-      <.sidenav club={@club} club_role={:member} nav_session={@session} active="rooms" />
+      <.sidenav club={@club} club_role={:member} nav_session={@session} active="club" />
       """)
 
     assert member_html =~ "Kyiv Debate Club"
 
-    for item <- ~w(Club Rooms Standings Members) do
+    for item <- ~w(Club Standings Members) do
       assert member_html =~ ">#{item}<"
     end
 
-    # the Sessions item is gone - the club page is the archive
+    # Sessions is the head's; a participant works on My page, and the
+    # club page is the archive
     refute member_html =~ ">Sessions<"
+    refute member_html =~ ">Rooms<"
+    refute member_html =~ "/c/abc/s/s1"
 
     assert member_html =~ ~s(href="/c/abc")
-    assert member_html =~ ~s(href="/c/abc/s/s1")
     assert member_html =~ ~s(href="/c/abc/standings/teams")
     assert member_html =~ ~s(href="/c/abc/members")
     # registration lives on the club page, not in the sidebar
@@ -158,39 +160,32 @@ defmodule CabWeb.UiTest do
       """)
 
     assert owner_html =~ ~s(href="/c/abc/owner")
+    assert owner_html =~ ">Sessions<"
     assert owner_html =~ ~s(href="/c/abc/owner/s/s1")
     assert owner_html =~ ~s(href="/c/abc/owner/members")
 
-    # with no session yet the Rooms item falls back to the club page
+    # with no session yet Sessions falls back to the club's edit view
     no_session =
       rendered_to_string(~H"""
-      <.sidenav club={@club} club_role={:member} nav_session={nil} />
+      <.sidenav club={@club} club_role={:owner} nav_session={nil} />
       """)
 
-    refute no_session =~ "/c/abc/s/"
+    refute no_session =~ "/c/abc/owner/s/"
+    assert no_session =~ ~s(href="/c/abc/owner" class="item">Sessions<)
 
-    # a finished session keeps Rooms (its results)
+    # a finished session: the head's page for it (results, reopen)
     assigns =
       Map.put(assigns, :done, %Cab.Sessions.Session{
         uuid: "s0",
         finished_at: ~U[2026-10-08 20:00:00Z]
       })
 
-    done_html =
-      rendered_to_string(~H"""
-      <.sidenav club={@club} club_role={:member} nav_session={@done} />
-      """)
-
-    assert done_html =~ ~s(href="/c/abc/s/s0")
-
-    # the head too: a finished session's results are on its session page
     owner_done =
       rendered_to_string(~H"""
       <.sidenav club={@club} club_role={:owner} nav_session={@done} />
       """)
 
-    assert owner_done =~ ~s(href="/c/abc/s/s0")
-    refute owner_done =~ "/c/abc/owner/s/s0"
+    assert owner_done =~ ~s(href="/c/abc/owner/s/s0")
 
     # a private club's roster is members-only, so outsiders lose the item
     assigns = %{assigns | club: %{assigns.club | is_private: true}}
