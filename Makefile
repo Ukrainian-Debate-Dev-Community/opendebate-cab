@@ -19,7 +19,8 @@ NIX     = nix develop --profile .nix-dev-profile --command
 # from the repo's .env, else cab's dev default). Prefix for a shell line
 # that then runs in engine/.
 ENGINE_SHELL = set -a; [ -f .env ] && . ./.env; set +a; cd engine; \
-	[ -f .env ] || export JWT_SECRET="$${ENGINE_JWT_SECRET:-insecure-dev-engine-secret-not-for-production}" PORT=3100 \
+	[ -f .env ] || export JWT_SECRET="$${ENGINE_JWT_SECRET:-insecure-dev-engine-secret-not-for-production}" \
+		JWT_EXPIRES_IN=1d PORT=3100 \
 		NODE_ENV=development DB_HOST=localhost DB_PORT=5432 DB_USER=postgres DB_PASSWORD=postgres \
 		DB_DATABASE=cab_dev DB_TEST=cab_test;
 
