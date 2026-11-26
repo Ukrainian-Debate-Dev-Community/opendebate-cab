@@ -1,39 +1,31 @@
 defmodule CabWeb.TourTest do
   @moduledoc """
-  The guided tours play cab's real pages with demo data: every step's
-  frame renders and every target it spotlights is on it, so a page that
-  changes shape fails here - the consistency check the tours stand for.
-  Nothing reaches the engine (no stub is set) and nothing is written.
+  The guided tour plays cab's real pages with demo data: every step's
+  frame renders, and the part it spotlights, the fields it types into
+  and what it clicks are all on it, so a page that changes shape fails
+  here - the consistency check the tour stands for. Nothing reaches the
+  engine (no stub is set) and nothing is written.
   """
   use CabWeb.ConnCase, async: true
 
   alias CabWeb.Tour
 
-  test "the list offers every tour", %{conn: conn} do
+  test "/tour plays the tour; it reads as a list without script", %{conn: conn} do
     html = conn |> get(~p"/tour") |> html_response(200)
-
-    for tour <- Tour.all() do
-      assert html =~ ~s(href="/tour/#{tour.key}")
-      assert html =~ Phoenix.HTML.html_escape(tour.title) |> Phoenix.HTML.safe_to_string()
-    end
-  end
-
-  test "a player carries its steps and reads as a list without script", %{conn: conn} do
-    html = conn |> get(~p"/tour/head") |> html_response(200)
     assert html =~ ~s(id="tour")
     assert html =~ ~s(data-steps=)
     assert html =~ ~s(class="tour-slider")
     assert html =~ ~s(class="tour-chapters")
-    assert html =~ "The club head&#39;s tour"
-    assert html =~ ~s(href="/tour/participant")
+    assert html =~ ~s(class="tour-steps")
 
-    assert conn |> get(~p"/tour/nobody") |> response(404)
+    # the three tours of before are this one
+    assert conn |> get(~p"/tour/head") |> redirected_to() == "/tour"
     assert conn |> get(~p"/tour/frame/nothing") |> response(404)
   end
 
-  for tour <- Tour.all(), {step, index} <- Enum.with_index(tour.steps), step.frame do
+  for {step, index} <- Enum.with_index(Tour.get().steps), step.frame do
     @step step
-    test "#{tour.key} step #{index + 1} (#{step.frame}): the frame renders with all the step points at",
+    test "step #{index + 1} (#{step.frame}): the frame renders with all the step points at",
          %{conn: conn} do
       html = conn |> get(~p"/tour/frame/#{@step.frame}") |> html_response(200)
       page = LazyHTML.from_document(html)
@@ -48,11 +40,14 @@ defmodule CabWeb.TourTest do
     end
   end
 
-  test "every tour opens and closes with a card, and holds long enough to read" do
-    for tour <- Tour.all() do
-      assert hd(tour.steps).frame == nil
-      assert List.last(tour.steps).finale
-      assert Enum.all?(tour.steps, &(Tour.hold(&1) >= 4000))
+  test "the tour opens and closes with a card, names whose eyes, and holds long enough to read" do
+    tour = Tour.get()
+    assert hd(tour.steps).frame == nil
+    assert List.last(tour.steps).finale
+
+    for step <- tour.steps do
+      assert Tour.hold(step) >= 4000
+      assert step.frame == nil or step.as, "#{step.frame} says nobody's eyes"
     end
   end
 

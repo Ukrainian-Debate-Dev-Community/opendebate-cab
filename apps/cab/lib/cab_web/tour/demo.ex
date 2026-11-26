@@ -155,16 +155,20 @@ defmodule CabWeb.Tour.Demo do
     for {{name, message}, i} <-
           Enum.with_index(
             [
+              {"Anna Shevchuk", "I want to debate on Thursday nights."},
               {"Mark Hrytsenko", "I debated at school and want to start again."},
               {"Zlata Fedorenko", "A friend brought me last week - I loved it."}
             ],
-            1
+            0
           ) do
-      user = %User{
-        id: -100 - i,
-        username: name |> String.downcase() |> String.replace(" ", "-"),
-        name: name
-      }
+      user =
+        if i == 0,
+          do: speaker(),
+          else: %User{
+            id: -100 - i,
+            username: name |> String.downcase() |> String.replace(" ", "-"),
+            name: name
+          }
 
       %Membership{
         id: -100 - i,
@@ -378,7 +382,7 @@ defmodule CabWeb.Tour.Demo do
             "RoomSpeakers" =>
               for {index, seat} <- Enum.with_index(pair) do
                 person = Enum.at(speakers, index)
-                points = 79 - rank * 2 - seat
+                points = points(no, position, seat, rank)
 
                 %{
                   "id" => 5000 + elem(person, 0),
@@ -390,6 +394,13 @@ defmodule CabWeb.Tour.Demo do
         end
     }
   end
+
+  # R1's points are Petro's ballot in the tour (OG 76+75, OO 77+76, CG
+  # 74+73, CO 72+71); R2 follows its places
+  defp points(1, position, seat, _rank),
+    do: Enum.at([[76, 75], [77, 76], [74, 73], [72, 71]], position - 1) |> Enum.at(seat)
+
+  defp points(_no, _position, seat, rank), do: 79 - rank * 2 - seat
 
   defp participant({pid, name, node}),
     do: %{"id" => pid, "display_name" => name, "user_id" => node}

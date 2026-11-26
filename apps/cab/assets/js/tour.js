@@ -1,4 +1,4 @@
-// The guided tour's player (/tour/:key). Each step shows a demo page in
+// The guided tour's player (/tour). Each step shows a demo page in
 // the frame (or a title card), spotlights one part of it with the
 // caption beside it, types into its fields, moves a cursor to what gets
 // clicked, holds, and moves on; the next step shows what the click led
@@ -94,7 +94,7 @@ export const mountTour = () => {
     callout.setAttribute("role", "status")
     const chapter = d.createElement("p")
     chapter.className = "tour-callout-chapter"
-    chapter.textContent = step.chapter
+    chapter.textContent = step.as || step.chapter
     const text = d.createElement("p")
     text.textContent = step.text
     callout.append(chapter, text)
@@ -119,6 +119,10 @@ export const mountTour = () => {
     if (!el) {
       el = d.createElement("div")
       el.className = "tour-cursor"
+      // an arrow pointer; its tip is the element's corner
+      el.innerHTML =
+        '<svg viewBox="0 0 20 24" aria-hidden="true">' +
+        '<path d="M1 1 L1 19 L5.6 14.8 L9 22.2 L12.4 20.7 L9.1 13.5 L15.3 13.5 Z"/></svg>'
       el.style.left = `${view().scrollX + view().innerWidth / 2}px`
       el.style.top = `${view().scrollY + view().innerHeight / 2}px`
       d.body.appendChild(el)
@@ -215,7 +219,13 @@ export const mountTour = () => {
     const step = steps[index]
     slider.value = index
     $(".tour-count").textContent = `${index + 1} / ${steps.length}`
-    $(".tour-as-name").textContent = step.as
+    // whose screen it is; a switch to someone else is flagged
+    const as = $(".tour-as")
+    const was = $(".tour-as-name").textContent
+    $(".tour-as-name").textContent = step.as || ""
+    as.hidden = !step.as
+    as.classList.remove("changed")
+    if (step.as && was && was !== step.as) { void as.offsetWidth; as.classList.add("changed") }
     chapters.forEach(button => {
       const at = Number(button.dataset.chapter)
       button.classList.toggle("on", at === step.chapter_index)

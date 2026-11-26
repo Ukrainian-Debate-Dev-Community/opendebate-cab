@@ -1,8 +1,9 @@
 defmodule CabWeb.Tour do
   @moduledoc """
-  The guided tours (`/tour/:key`): autoplay walkthroughs of cab for
-  newcomers and demos, one per role, each telling one club night in
-  order. A tour is data: steps of
+  The guided tour (`/tour`): an autoplay walkthrough of cab for
+  newcomers and demos - one club night told in order, the screen
+  passing between the club head, a speaker and an adjudicator as each
+  of them acts. The tour is data: steps of
 
     * `chapter`, `text` - the chapter and the caption (shown beside the
       spotlight);
@@ -13,28 +14,18 @@ defmodule CabWeb.Tour do
       opens (what earlier steps typed); `fill` - what the player types
       (or picks) into the page; `click` - the selector it then clicks;
       the next step shows what the click led to;
-    * `as` - whose eyes the page is seen through, when not the tour's
-      own `persona`.
+    * `as` - whose eyes the page is seen through.
 
   Every step's frame, target, fields and click are checked by the tour
-  test, so a page that changes shape fails it - the tours double as a
+  test, so a page that changes shape fails it - the tour doubles as a
   consistency check.
   """
   use Gettext, backend: CabWeb.Gettext
 
-  @keys ~w(participant adjudicator head)
+  @doc "The tour."
+  def get, do: tour()
 
-  @doc "The tours' keys, in menu order."
-  def keys, do: @keys
-
-  @doc "A tour by key, or nil."
-  def get(key) when key in @keys, do: tour(key)
-  def get(_key), do: nil
-
-  @doc "Every tour."
-  def all, do: Enum.map(@keys, &tour/1)
-
-  @doc "The chapters of a tour, in order, each once."
+  @doc "The chapters of the tour, in order, each once."
   def chapters(tour), do: tour.steps |> Enum.map(& &1.chapter) |> Enum.uniq()
 
   @doc """
@@ -61,173 +52,162 @@ defmodule CabWeb.Tour do
     end
   end
 
-  defp tour("participant") do
+  # one Thursday night at Riverside Debate Club, told in order through
+  # the three people who make it: Daria runs the club, Anna debates,
+  # Petro adjudicates
+  defp tour do
+    daria = gettext("Daria, the club head")
+    anna = gettext("Anna, a speaker")
+    petro = gettext("Petro, an adjudicator")
+
     %{
-      key: "participant",
-      title: gettext("The speaker's tour"),
+      title: gettext("One club night on cab"),
       lead:
-        gettext("One club night through a debater's eyes: from finding a club to your figures."),
-      persona: gettext("Anna, a speaker"),
+        gettext(
+          "A Thursday night at a debate club, through the eyes of the head who runs it, a speaker and an adjudicator."
+        ),
       steps: [
         card(
           gettext("Welcome"),
           gettext(
-            "Meet Anna. She wants to debate on Thursday nights. Follow her from the first click to her results."
+            "One Thursday night at Riverside Debate Club, through three people: Daria runs the club, Anna comes to debate, Petro adjudicates. Watch the night from all three sides."
           )
         ),
         step(
-          gettext("Find a club"),
+          gettext("Opening the night"),
+          "owner-club",
+          "#open-session-form",
+          gettext(
+            "Daria opens Thursday's session: a name, the date, the format and a place limit."
+          ),
+          as: daria,
+          fill: [{"#open-session-form input[name=name]", "Thursday night"}],
+          click: ~s(button[form="open-session-form"])
+        ),
+        step(
+          gettext("Opening the night"),
+          "owner-registration",
+          "#shared-registration-url",
+          gettext(
+            "The session takes sign-ups. Daria shares one link in the club chat; members register on My page, guests from the club page."
+          ),
+          as: daria
+        ),
+        step(
+          gettext("Anna finds the club"),
           "clubs",
           "#clubs-directory tbody tr",
-          gettext("Every club on cab, with its next session. Anna picks Riverside Debate Club."),
+          gettext(
+            "Anna wants to debate. Every club on cab is listed with its next session; she picks Riverside."
+          ),
+          as: anna,
           click: "#clubs-directory tbody tr a"
         ),
         step(
-          gettext("Find a club"),
+          gettext("Anna finds the club"),
           "club-visitor",
           ".chrome .seg",
           gettext("The club's page: who they are and when they meet. Anna asks to join."),
+          as: anna,
           click: ".chrome .seg a"
         ),
         step(
-          gettext("Join"),
+          gettext("Anna finds the club"),
           "join",
           "#join-request-form",
           gettext(
             "The club asks one question. Her answer is saved, so she will not type it again."
           ),
+          as: anna,
           fill: [{~s(#join-request-form input[value="Up to a year"]), "Up to a year"}],
           click: "#join-request-form button[type=submit]"
         ),
         step(
-          gettext("Join"),
+          gettext("Anna finds the club"),
           "me-pending",
           "#my-clubs tbody tr",
-          gettext(
-            "On My page the request waits for the club head. Once approved, Anna is a member."
-          )
+          gettext("On her My page the request waits for the club head."),
+          as: anna
         ),
         step(
-          gettext("Register"),
+          gettext("Daria approves"),
+          "owner-members",
+          "#join-requests",
+          gettext("Daria sees the request with Anna's answer, and approves it."),
+          as: daria,
+          click: ~s(#join-requests a[href$="/approve"])
+        ),
+        step(
+          gettext("Anna registers"),
           "me-register",
           "#me-registration",
           gettext(
-            "Thursday's session is open. Everything Anna does from now on happens on My page."
+            "Anna is a member now: Thursday's session shows on her My page, where she does everything from here on."
           ),
+          as: anna,
           click: "#open-sessions button[phx-click=open_register]"
         ),
         step(
-          gettext("Register"),
+          gettext("Anna registers"),
           "me-register-form",
           "#me-register-form",
           gettext(
             "The club's question comes prefilled with her saved answer. One click and she is in."
           ),
+          as: anna,
           click: "#me-register-form button[type=submit]"
         ),
         step(
-          gettext("Register"),
+          gettext("Anna registers"),
           "me-registered",
           "#open-sessions tbody tr",
-          gettext("Registered, with Cancel if her plans change. The session is on her schedule.")
+          gettext("Registered, with Cancel if her plans change."),
+          as: anna
         ),
         step(
-          gettext("The night"),
-          "me-now",
-          "[id^=now-draw-]",
+          gettext("Seating the rooms"),
+          "owner-registration",
+          "#session-people",
           gettext(
-            "Thursday evening: the head starts the session. Without a reload Anna sees her room, her side and her partner."
-          )
-        ),
-        step(
-          gettext("The night"),
-          "me-now",
-          "#now-motion-box-71",
-          gettext(
-            "The adjudicator publishes the motion: it appears here, and 15 minutes of prep count down."
-          )
-        ),
-        step(
-          gettext("The result"),
-          "me-result",
-          "#now-result-71",
-          gettext(
-            "After the debate the ballot comes in: places and speaker points, straight away."
-          )
-        ),
-        step(
-          gettext("Feedback"),
-          "me-result",
-          "#now-feedback-71",
-          gettext("Before the head finishes the night, Anna's team rates the adjudicator."),
-          fill: [
-            {"#now-feedback-71 input[name=accuracy]", "8"},
-            {"#now-feedback-71 input[name=reasoning]", "7"},
-            {"#now-feedback-71 textarea[name=discussion]",
-             "A clear call, and useful advice on rebuttal."}
-          ],
-          click: "#now-feedback-71 button[type=submit]"
-        ),
-        step(
-          gettext("Feedback"),
-          "me-feedback-sent",
-          "#now-feedback-sent-71",
-          gettext(
-            "Sent. The adjudicator reads it, without the team's name, once the night is over."
-          )
-        ),
-        step(
-          gettext("Her figures"),
-          "me-figures",
-          "#me-stats",
-          gettext("Week after week My page keeps her figures, straight from the debate engine.")
-        ),
-        step(
-          gettext("Her figures"),
-          "me-figures",
-          "#me-history",
-          gettext("And every night she played or judged.")
-        ),
-        step(
-          gettext("No account?"),
-          "guest-hub",
-          "[id^=now-draw-]",
-          gettext(
-            "A guest registers from the club page without an account and gets a personal link. It opens this same page for that night."
+            "Sign-ups reach Daria live: members, people she added by hand, guests with their own personal link."
           ),
-          as: gettext("Greta, a guest")
-        ),
-        finale("participant")
-      ]
-    }
-  end
-
-  defp tour("adjudicator") do
-    %{
-      key: "adjudicator",
-      title: gettext("The adjudicator's tour"),
-      lead: gettext("One night in the chair: the motion, the ballot and the feedback you get."),
-      persona: gettext("Petro, an adjudicator"),
-      steps: [
-        card(
-          gettext("Welcome"),
-          gettext(
-            "Meet Petro. He registered like everyone else; tonight the head seated him as an adjudicator."
-          )
+          as: daria
         ),
         step(
-          gettext("Your room"),
-          "me-chair",
-          "[id^=now-draw-]",
+          gettext("Seating the rooms"),
+          "owner-registration",
+          ".steps",
           gettext(
-            "When the session starts, My page tells Petro the room he chairs and who sits where."
-          )
+            "The night moves through Registration, Rooms, Debates and Finished. Evening comes: Daria goes to Rooms."
+          ),
+          as: daria,
+          click: ".steps li:nth-child(2) a"
+        ),
+        step(
+          gettext("Seating the rooms"),
+          "owner-rooms",
+          ".dnd",
+          gettext(
+            "She drags people into rooms - Anna into Opening Opposition, Petro into the chair - and starts the session."
+          ),
+          as: daria,
+          click: ~s(button[form="allocator-form"])
+        ),
+        step(
+          gettext("The night starts"),
+          "me-now",
+          "[id^=now-draw-]",
+          gettext("Without a reload Anna's My page shows her room, her side and her partner."),
+          as: anna
         ),
         step(
           gettext("The motion"),
           "me-chair",
           "#now-motion-71",
-          gettext("He types the motion, an infoslide and a keyword, and publishes it."),
+          gettext(
+            "Petro's My page says he chairs room 1. He types the motion, an infoslide and a keyword, and publishes it."
+          ),
+          as: petro,
           fill: [
             {"#now-motion-text-71", "This House would ban homework in primary schools"},
             {"#now-infoslide-71",
@@ -238,17 +218,21 @@ defmodule CabWeb.Tour do
         ),
         step(
           gettext("The motion"),
-          "me-ballot",
+          "me-now",
           "#now-motion-box-71",
-          gettext("The room sees the motion at once, and 15 minutes of prep start for everyone.")
+          gettext(
+            "At once the motion is on Anna's page, and 15 minutes of prep count down for the whole room."
+          ),
+          as: anna
         ),
         step(
           gettext("The ballot"),
           "me-ballot",
           "#now-ballot-71",
           gettext(
-            "After the debate, the ballot: a score for each speaker. The places follow from the team totals."
+            "After the debate Petro fills the ballot: a score for each speaker; the places follow from the team totals."
           ),
+          as: petro,
           fill: scores(~w(76 75 75 76 74 73 72 71))
         ),
         step(
@@ -258,129 +242,68 @@ defmodule CabWeb.Tour do
           gettext(
             "Two teams on the same total: cab will not take a tie. Petro raises the leader's score, and the ballot is ready."
           ),
+          as: petro,
           set: scores(~w(76 75 75 76 74 73 72 71)),
           fill: [{~s(#now-ballot-71 input[name="ballot[oo][LO][score]"]), "77"}],
           click: ~s(button[form="now-ballot-71"])
         ),
         step(
-          gettext("The ballot"),
-          "me-ballot-in",
+          gettext("Result and feedback"),
+          "me-result",
           "#now-result-71",
           gettext(
-            "Submitted: the room sees the result. From now on only the club head can change it."
-          )
-        ),
-        step(
-          gettext("Feedback on you"),
-          "me-on-me",
-          "[id^=feedback-on-me-]",
-          gettext(
-            "Once the night is finished, Petro reads each team's feedback - without the team's name - and his average."
-          )
-        ),
-        step(
-          gettext("Feedback on you"),
-          "me-on-me",
-          "#me-history",
-          gettext("Every night he judged stays in his history.")
-        ),
-        step(
-          gettext("No account?"),
-          "guest-hub",
-          "#now-motion-71",
-          gettext(
-            "A guest adjudicator gets the same on their personal link page: the motion form and the ballot."
+            "Anna sees the result straight away: her team is first, with its speaker points."
           ),
-          as: gettext("Greta, a guest")
-        ),
-        finale("adjudicator")
-      ]
-    }
-  end
-
-  defp tour("head") do
-    %{
-      key: "head",
-      title: gettext("The club head's tour"),
-      lead: gettext("Running one club night, from opening the session to the results."),
-      persona: gettext("Daria, the club head"),
-      steps: [
-        card(
-          gettext("Welcome"),
-          gettext(
-            "Meet Daria. She runs Riverside Debate Club, and tonight is Thursday night. Let's run it."
-          )
+          as: anna
         ),
         step(
-          gettext("Open the night"),
-          "owner-club",
-          "#open-session-form",
-          gettext(
-            "A name, the date, the format and a place limit, and the session takes sign-ups."
-          ),
-          fill: [{"#open-session-form input[name=name]", "Thursday night"}],
-          click: ~s(button[form="open-session-form"])
+          gettext("Result and feedback"),
+          "me-result",
+          "#now-feedback-71",
+          gettext("Before the night is finished, Anna's team rates the adjudicator."),
+          as: anna,
+          fill: [
+            {"#now-feedback-71 input[name=accuracy]", "8"},
+            {"#now-feedback-71 input[name=reasoning]", "7"},
+            {"#now-feedback-71 textarea[name=discussion]",
+             "A clear call, and useful advice on rebuttal."}
+          ],
+          click: "#now-feedback-71 button[type=submit]"
         ),
         step(
-          gettext("Registration"),
-          "owner-registration",
-          "#shared-registration-url",
-          gettext(
-            "Daria shares one link. Members register on My page, guests from the club page."
-          )
+          gettext("Result and feedback"),
+          "me-feedback-sent",
+          "#now-feedback-sent-71",
+          gettext("Sent. Petro reads it, without the team's name, once the night is over."),
+          as: anna
         ),
         step(
-          gettext("Registration"),
-          "owner-registration",
-          "#session-people",
-          gettext(
-            "Sign-ups arrive live. She can add people by hand; a guest gets a personal link of their own."
-          )
-        ),
-        step(
-          gettext("Registration"),
-          "owner-registration",
-          ".steps",
-          gettext(
-            "The night moves through Registration, Rooms, Debates and Finished. Daria goes to Rooms."
-          ),
-          click: ".steps li:nth-child(2) a"
-        ),
-        step(
-          gettext("Rooms"),
-          "owner-rooms",
-          ".dnd",
-          gettext(
-            "She drags people into rooms and seats an adjudicator in each; nobody is placed automatically. Then she starts the session."
-          ),
-          click: ~s(button[form="allocator-form"])
-        ),
-        step(
-          gettext("Debates"),
+          gettext("Finishing"),
           "owner-debates",
           "#session-rooms",
-          gettext(
-            "The session runs. Motions and ballots arrive as the adjudicators work on their own My page."
-          )
+          gettext("Daria follows every room: ballots in, motions out, feedback arriving."),
+          as: daria
         ),
         step(
-          gettext("Debates"),
+          gettext("Finishing"),
           "owner-debates",
           "#feedback-missing",
           gettext(
-            "Before finishing she sees which teams have not rated their adjudicator yet: finishing closes feedback."
+            "Two teams have not rated their adjudicator yet. Finishing closes feedback, so Finish asks first."
           ),
+          as: daria,
           click: ~s(.seg a[href$="/finish"])
         ),
         step(
-          gettext("Finished"),
+          gettext("Finishing"),
           "owner-finished",
           ".seg",
           gettext("The winners are recorded. A wrong ballot? Reopen, fix it and finish again."),
+          as: daria,
           click: ".seg a"
         ),
         step(
-          gettext("Results"),
+          gettext("Finishing"),
           "results",
           "[id^=results-card-]",
           gettext(
@@ -389,50 +312,53 @@ defmodule CabWeb.Tour do
           as: gettext("any visitor")
         ),
         step(
-          gettext("Between nights"),
-          "owner-members",
-          "#join-requests",
+          gettext("After the night"),
+          "me-on-me",
+          "[id^=feedback-on-me-]",
           gettext(
-            "Between nights, join requests arrive with their answers. Daria approves them."
+            "Petro now reads each team's feedback on his call - without the team's name - and his average."
           ),
-          click: ~s(#join-requests a[href$="/approve"])
+          as: petro
         ),
         step(
-          gettext("Between nights"),
+          gettext("After the night"),
+          "me-figures",
+          "#me-stats",
+          gettext(
+            "Week after week Anna's My page keeps her figures, straight from the debate engine, and every night she played."
+          ),
+          as: anna
+        ),
+        step(
+          gettext("No account?"),
+          "guest-hub",
+          "#now-motion-71",
+          gettext(
+            "Guests need no account: a personal link opens the same page for their night - the seat, the motion and, for a guest judge, the ballot."
+          ),
+          as: gettext("Greta, a guest")
+        ),
+        step(
+          gettext("No account?"),
           "owner-form",
           "#guest-form-editor",
           gettext(
-            "Her own registration questions: members answer once, and the answers come prefilled after that."
+            "And between nights Daria keeps the club's own questions: asked once, prefilled after that."
+          ),
+          as: daria
+        ),
+        %{
+          card(
+            gettext("That's the night"),
+            gettext(
+              "Thanks for watching. Find a club to debate with, or sign in to see your own page."
+            )
           )
-        ),
-        step(
-          gettext("Between nights"),
-          "owner-club",
-          "#club-profile-form",
-          gettext("And the club's profile: what visitors see on its page.")
-        ),
-        finale("head")
+          | finale: true
+        }
       ]
     }
   end
-
-  defp finale(key) do
-    others = Enum.reject(@keys, &(&1 == key))
-
-    %{
-      card(
-        gettext("That's the night"),
-        gettext("Thanks for watching. Find a club to try it, or watch %{tours}.",
-          tours: Enum.map_join(others, gettext(" or "), &tour_title/1)
-        )
-      )
-      | finale: true
-    }
-  end
-
-  defp tour_title("participant"), do: gettext("the speaker's tour")
-  defp tour_title("adjudicator"), do: gettext("the adjudicator's tour")
-  defp tour_title("head"), do: gettext("the club head's tour")
 
   defp card(chapter, text), do: step(chapter, nil, nil, text)
 

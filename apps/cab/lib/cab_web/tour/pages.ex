@@ -11,7 +11,7 @@ defmodule CabWeb.Tour.Pages do
   alias CabWeb.Tour.Demo
 
   @frames ~w(clubs club-visitor join me-pending me-register me-register-form me-registered
-             me-now me-result me-feedback-sent me-figures me-chair me-ballot me-ballot-in
+             me-now me-result me-feedback-sent me-figures me-chair me-ballot 
              me-on-me guest-hub owner-club owner-members owner-form owner-registration
              owner-rooms owner-debates owner-finished results)
 
@@ -88,7 +88,6 @@ defmodule CabWeb.Tour.Pages do
   defp build("me-figures"), do: me(Demo.speaker(), :none, figures: true)
   defp build("me-chair"), do: me(Demo.chair(), :running, room: :pending)
   defp build("me-ballot"), do: me(Demo.chair(), :running, room: :judging)
-  defp build("me-ballot-in"), do: me(Demo.chair(), :running, room: :completed)
   defp build("me-on-me"), do: me(Demo.chair(), :none, figures: true, on_me: true)
   defp build("guest-hub"), do: me(Demo.guest(), :running, room: :judging, guest: true)
 
@@ -116,7 +115,8 @@ defmodule CabWeb.Tour.Pages do
 
     {CabWeb.OwnerHTML, :members,
      base(Demo.head(), club, :owner, %{
-       members: Demo.members(),
+       # Anna asks to join tonight: not a member yet
+       members: Enum.reject(Demo.members(), &(&1.user.username == Demo.speaker().username)),
        join_requests: Demo.join_requests(),
        page_title: gettext("%{club} — Members", club: club.name)
      })}

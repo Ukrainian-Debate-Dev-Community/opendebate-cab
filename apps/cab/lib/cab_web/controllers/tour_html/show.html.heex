@@ -4,14 +4,12 @@
 <div
   class="tour"
   id="tour"
-  data-tour={@tour.key}
   data-steps={steps_json(@tour)}
   data-label-play={gettext("Play")}
   data-label-pause={gettext("Pause")}
   data-label-replay={gettext("Replay")}
 >
   <header class="tour-top">
-    <.link href={~p"/tour"} class="tour-back">{gettext("All tours")}</.link>
     <span class="tour-title">
       <b>{@tour.title}</b>
       <span class="tour-as">{gettext("You see:")} <b class="tour-as-name"></b></span>
@@ -31,9 +29,7 @@
       <%!-- the last card: where to go next --%>
       <div class="tour-card-next">
         <.link href={~p"/"} class="btn-go">{gettext("Find a club")}</.link>
-        <.link :for={other <- @others} href={~p"/tour/#{other.key}"} class="btn-quiet">
-          {other.title}
-        </.link>
+        <.link href={~p"/signin"} class="btn-quiet">{gettext("Sign in")}</.link>
       </div>
     </div>
   </div>
@@ -64,8 +60,4 @@
   <ol class="tour-steps">
     <li :for={step <- @tour.steps}><b>{step.chapter}.</b> {step.text}</li>
   </ol>
-
-  <nav class="tour-more" aria-label={gettext("Other tours")}>
-    <.link :for={other <- @others} href={~p"/tour/#{other.key}"}>{other.title}</.link>
-  </nav>
 </div>

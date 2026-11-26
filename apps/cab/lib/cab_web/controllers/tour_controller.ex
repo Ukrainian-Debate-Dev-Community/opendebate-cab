@@ -1,36 +1,26 @@
 defmodule CabWeb.TourController do
   @moduledoc """
-  The guided tours: `/tour` lists them, `/tour/:key` plays one (a frame
-  over a bar with the caption and a progress slider), and
-  `/tour/frame/:frame` serves a frame - one of cab's real pages
-  rendered with the demo world (`CabWeb.Tour.Pages`). Nothing is read
-  from the engine and nothing is written.
+  The guided tour: `/tour` plays it (a frame over a bar with the
+  chapters and the progress), and `/tour/frame/:frame` serves a frame -
+  one of cab's real pages rendered with the demo world
+  (`CabWeb.Tour.Pages`). Nothing is read from the engine and nothing is
+  written.
   """
   use CabWeb, :controller
 
   alias CabWeb.Tour
 
   # GET /tour
-  def index(conn, _params) do
-    render(conn, :index, tours: Tour.all(), page_title: gettext("Guided tours"))
+  def show(conn, _params) do
+    tour = Tour.get()
+
+    conn
+    |> put_layout(false)
+    |> render(:show, tour: tour, page_title: tour.title)
   end
 
-  # GET /tour/:key
-  def show(conn, %{"key" => key}) do
-    case Tour.get(key) do
-      nil ->
-        CabWeb.ErrorHTML.respond(conn, 404)
-
-      tour ->
-        conn
-        |> put_layout(false)
-        |> render(:show,
-          tour: tour,
-          others: Enum.reject(Tour.all(), &(&1.key == key)),
-          page_title: tour.title
-        )
-    end
-  end
+  # GET /tour/:key - the three tours of before are one now
+  def redirect_old(conn, _params), do: redirect(conn, to: ~p"/tour")
 
   # GET /tour/frame/:frame - a demo page; the viewer's own identity
   # never shows in it
