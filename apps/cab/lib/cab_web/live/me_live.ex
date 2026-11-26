@@ -36,9 +36,12 @@ defmodule CabWeb.MeLive do
        feedback_on_me: Cab.Feedback.on_me_recent(user),
        # a refused ballot's typed rows and message, per room id
        ballot_drafts: %{},
+       # the registration form open on the page: %{session, kind, fields, values, errors}
+       registering: nil,
        page_title: gettext("My page")
      )
-     |> load_seats()}
+     |> load_seats()
+     |> load_open_sessions()}
   end
 
   # ?format=bp|aus: the figures of that format
@@ -131,8 +134,115 @@ defmodule CabWeb.MeLive do
     end
   end
 
+  # Register: the club's questions open inline (prefilled with the
+  # member's saved answers); a club that asks none registers at once
+  def handle_event("open_register", %{"session" => uuid}, socket) do
+    case open_session(socket, uuid) do
+      nil ->
+        {:noreply, socket}
+
+      %{session: session} ->
+        {kind, fields, values} =
+          Cab.Registrations.form_for(session.club, socket.assigns.current_user)
+
+        if fields == [],
+          do: register(socket, session, %{}),
+          else:
+            {:noreply,
+             assign(socket, :registering, %{
+               session: session,
+               kind: kind,
+               fields: fields,
+               values: values,
+               errors: %{}
+             })}
+    end
+  end
+
+  def handle_event("close_register", _params, socket),
+    do: {:noreply, assign(socket, :registering, nil)}
+
+  def handle_event("register", %{"session" => uuid} = params, socket) do
+    case open_session(socket, uuid) do
+      nil -> {:noreply, socket}
+      %{session: session} -> register(socket, session, params["answers"] || %{})
+    end
+  end
+
+  # cancels the user's own registration in an open session
+  def handle_event("cancel_registration", %{"session" => uuid}, socket) do
+    user = socket.assigns.current_user
+
+    with %{session: session} <- open_session(socket, uuid),
+         {:ok, state} <- Sessions.state(session),
+         %{"id" => participant_id} <-
+           Enum.find(state.signups, &Sessions.own_participant?(&1, user)),
+         :ok <- Sessions.remove_signup(user, session, participant_id) do
+      {:noreply,
+       socket |> put_flash(:info, gettext("Registration cancelled.")) |> refresh_registrations()}
+    else
+      {:error, message} when is_binary(message) -> {:noreply, put_flash(socket, :error, message)}
+      _other -> {:noreply, put_flash(socket, :error, gettext("that did not work — try again"))}
+    end
+  end
+
   @impl true
   def render(assigns), do: CabWeb.MeHTML.show(assigns)
+
+  defp register(socket, session, answers) do
+    case Cab.Registrations.register(socket.assigns.current_user, session, answers) do
+      {:ok, _participant_id} ->
+        if connected?(socket), do: Sessions.subscribe(session)
+
+        {:noreply,
+         socket
+         |> assign(:registering, nil)
+         |> put_flash(:info, gettext("You are registered."))
+         |> refresh_registrations()}
+
+      {:error, {:answers, codes}} ->
+        registering = socket.assigns.registering
+        errors = Ui.FormComponents.answer_errors(registering.fields, codes)
+        {:noreply, assign(socket, :registering, %{registering | values: answers, errors: errors})}
+
+      {:error, :conflict, message} ->
+        {:noreply, socket |> assign(:registering, nil) |> put_flash(:error, message)}
+
+      {:error, message} when is_binary(message) ->
+        {:noreply, put_flash(socket, :error, message)}
+
+      _other ->
+        {:noreply, put_flash(socket, :error, gettext("registration is unavailable right now"))}
+    end
+  end
+
+  defp refresh_registrations(socket) do
+    socket
+    |> assign(:schedule, Sessions.user_schedule(socket.assigns.current_user))
+    |> load_open_sessions()
+  end
+
+  defp open_session(socket, uuid),
+    do: Enum.find(socket.assigns.open_sessions, &(&1.session.uuid == uuid))
+
+  # the sessions taking sign-ups in the user's clubs, soonest first,
+  # each marked when the user is in it (their schedule says so)
+  defp load_open_sessions(socket) do
+    mine = MapSet.new(socket.assigns.schedule, & &1.session.id)
+
+    rows =
+      for %{status: "approved", club: club} <- socket.assigns.memberships,
+          session <- Sessions.open_for_club(club) do
+        %{
+          session: %{session | club: club},
+          club: club,
+          registered: MapSet.member?(mine, session.id)
+        }
+      end
+      |> Enum.sort_by(&(&1.session.scheduled_at || &1.session.inserted_at), DateTime)
+
+    assign(socket, :open_sessions, rows)
+  end
 
   defp load_seats(socket),
     do: assign(socket, :seats, Sessions.user_seats(socket.assigns.current_user))

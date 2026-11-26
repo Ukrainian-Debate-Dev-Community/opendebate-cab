@@ -208,6 +208,94 @@ defmodule CabWeb.MeLiveTest do
     assert_received :confirmed
   end
 
+  test "a member registers on My page, answering the club's question, then cancels", %{conn: conn} do
+    head = user_fixture(%{node_user_id: 9})
+    club = club_fixture(head, %{engine_organisation_id: 3})
+
+    club =
+      form_fields_fixture(club, [
+        %{"label" => "University", "type" => "text", "required" => "yes", "scope" => "members"}
+      ])
+
+    uni = field_id(club, "University")
+    anna = user_fixture(%{node_user_id: 55})
+    membership_fixture(anna, club)
+    session = session_fixture(club, engine_event_id: 12, name: "Friday")
+    test_pid = self()
+    {:ok, signed} = Agent.start_link(fn -> [] end)
+
+    Req.Test.stub(Core.Engine, fn conn ->
+      case {conn.method, conn.request_path} do
+        {"GET", "/api/users/schedule"} ->
+          event = if Agent.get(signed, & &1) == [], do: [], else: [%{"id" => 12}]
+          ok(conn, %{"as_adjudicator" => [], "as_player" => event})
+
+        {"GET", "/api/users/history"} ->
+          ok(conn, %{"as_adjudicator" => [], "as_player" => []})
+
+        {"GET", "/api/users/" <> _stats} ->
+          ok(conn, nil)
+
+        {"GET", "/api/events/12"} ->
+          ok(conn, %{"id" => 12, "name" => "Friday", "status" => "scheduled"})
+
+        {"GET", "/api/events/12/rounds"} ->
+          ok(conn, [%{"id" => 22, "sequence" => 1}])
+
+        {"GET", "/api/events/12/participants"} ->
+          ok(conn, Agent.get(signed, & &1))
+
+        {"GET", "/api/rounds/22/rooms"} ->
+          ok(conn, [])
+
+        {"POST", "/api/events/12/participants"} ->
+          participant = %{
+            "id" => 41,
+            "user_id" => 55,
+            "display_name" => "Anna",
+            "role" => "speaker"
+          }
+
+          Agent.update(signed, fn _ -> [participant] end)
+          send(test_pid, :signed_up)
+          ok(conn, participant)
+
+        {"PUT", "/api/events/12/participants/41"} ->
+          ok(conn, %{"id" => 41})
+
+        {"DELETE", "/api/events/12/participants/41"} ->
+          Agent.update(signed, fn _ -> [] end)
+          send(test_pid, :cancelled)
+          ok(conn, %{})
+      end
+    end)
+
+    {:ok, view, html} = conn |> init_test_session(%{user_id: anna.id}) |> live(~p"/me")
+    assert html =~ ~s(id="me-registration")
+    assert html =~ "Friday"
+
+    # the club asks its members a question: the form opens inline
+    html = view |> element(~s(button[phx-click="open_register"])) |> render_click()
+    assert html =~ ~s(id="me-register-form")
+    assert html =~ "University"
+    refute_received :signed_up
+
+    # an answer left empty is refused there, nothing signed up
+    html = view |> form("#me-register-form", %{answers: %{uni => ""}}) |> render_submit()
+    assert html =~ ~s(id="me-register-form")
+    refute_received :signed_up
+
+    html = view |> form("#me-register-form", %{answers: %{uni => "KPI"}}) |> render_submit()
+    assert_received :signed_up
+    assert html =~ "You are registered."
+    assert html =~ "you are registered"
+
+    view |> element(~s(button[phx-click="cancel_registration"])) |> render_click()
+    assert_received :cancelled
+    assert render(view) =~ "Registration cancelled."
+    assert Cab.Sessions.get_by_uuid(session.uuid)
+  end
+
   test "a guest's link is not an account: My page sends them to sign in", %{conn: conn} do
     guest = user_fixture(%{node_user_id: 77})
     head = user_fixture(%{node_user_id: 9})

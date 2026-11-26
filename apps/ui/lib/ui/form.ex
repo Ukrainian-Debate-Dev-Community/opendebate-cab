@@ -68,6 +68,10 @@ defmodule Ui.Form do
   attr :enctype, :string, default: nil, doc: "multipart/form-data for a :file block"
   attr :logo, :string, default: nil, doc: "an image beside the head block (a logo)"
 
+  attr :submit_event, :string,
+    default: nil,
+    doc: "a LiveView's phx-submit event instead of the POST"
+
   attr :switch, :string,
     default: nil,
     doc: "the :select block whose value shows that `group` only"
@@ -134,6 +138,7 @@ defmodule Ui.Form do
       method={@verb}
       enctype={@enctype}
       data-switch={@switch}
+      phx-submit={@submit_event}
     >
       <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
       <input :if={@override} type="hidden" name="_method" value={@override} />
