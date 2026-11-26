@@ -1,5 +1,40 @@
 # Changelog
 
+## v0.9.0 - 2026-11-26
+
+11 features, 2 fixes, 1 test, 4 chore; breaking: 0
+
+### Features
+
+- cab: a guided tour of cab in three parts (#104) by @merv1n34k
+- cab: the guest's link page is their hub (#102) by @merv1n34k
+- cab: room pages are the head's; Rooms becomes Sessions (#100) by @merv1n34k
+- cab: feedback on My page; who owes it before finish (#99) by @merv1n34k
+- cab: register and cancel on My page (#98) by @merv1n34k
+- cab: the chair's ballot on My page (#96) by @merv1n34k
+- cab: My page is live, with where you sit now (#94) by @merv1n34k
+- cab: standings and My page stats one format at a time (#92) by @merv1n34k
+- cab: the Australs ballot and results; the session's stages as a switcher (#91) by @merv1n34k
+- cab: choose a session's format; the allocator follows it (#89) by @merv1n34k
+- cab: a format per session; the room logic reads it (#87) by @merv1n34k
+
+### Fixes
+
+- cab: an untouched ballot is not a tie (#105) by @merv1n34k
+- dev: give the dev engine a token lifetime (#101) by @merv1n34k
+
+### Other
+
+- test(dev): bring dev:e2e up to date (#103) by @merv1n34k
+- chore(dev): keep the dev shell as a Nix GC root (#97) by @merv1n34k
+- chore: pin the dev engine to v1.6.0 (#93) by @merv1n34k
+- chore(deps): bump db_connection to 2.10.3 for CVE-2026-133555 (#88) by @merv1n34k
+- chore: remove unused dependencies and dead code (#86) by @merv1n34k
+
+### Contributors
+
+- @merv1n34k: 18 commits
+
 ## v0.8.0 - 2026-11-24
 
 6 features, 2 fixes, 1 refactor, 3 chore; breaking: 0
