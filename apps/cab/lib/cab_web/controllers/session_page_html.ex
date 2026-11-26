@@ -66,9 +66,7 @@ defmodule CabWeb.SessionPageHTML do
 
   # the finished session's results card: every room's motion and its
   # sides in place order with the speakers' points (engine values)
-  defp results_card(state, session, club) do
-    link = Cab.Sessions.short_url(session)
-
+  defp results_card(state, session, club, link) do
     Jason.encode!(%{
       kind: "results",
       club: club.name,

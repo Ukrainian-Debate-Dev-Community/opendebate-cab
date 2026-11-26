@@ -203,6 +203,11 @@ defmodule CabWeb.Router do
   scope "/", CabWeb do
     pipe_through :browser
 
+    # the guided tour: demo pages, nothing read or written
+    get "/tour", TourController, :show
+    get "/tour/frame/:frame", TourController, :frame
+    get "/tour/:key", TourController, :redirect_old
+
     get "/l/:code", GuestLinkController, :show
     post "/l/:code/claim", GuestLinkController, :claim
 

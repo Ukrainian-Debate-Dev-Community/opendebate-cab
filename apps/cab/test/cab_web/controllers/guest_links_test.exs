@@ -479,7 +479,7 @@ defmodule CabWeb.GuestLinksTest do
     end
 
     test "a guest device may switch to another guest's link",
-         %{conn: conn, club: club, session: session, link: link} do
+         %{conn: conn, session: session, link: link} do
       stub_stage([guest_signup(41, nil)])
       other = user_fixture(%{node_user_id: nil, username: "guest-other"})
       _other_link = link_fixture(other, session, participant_id: 99)

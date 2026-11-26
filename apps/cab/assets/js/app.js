@@ -30,6 +30,8 @@ import {copyText, formatWhen, clock, viewerZone, toUtcParts, addLocalizer} from 
 // cab's forms have contact fields on many pages: bundled here (other
 // apps load contact_fields_page.js only where they need it)
 import {PhoneField, installContactFields, mountPhoneFields} from "../../../ui/assets/js/contact_fields"
+// the guided tours' player
+import {mountTour} from "./tour"
 
 installContactFields()
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => mountPhoneFields())
@@ -599,6 +601,7 @@ const mountDeadHooks = () => {
   })
 }
 mountDeadHooks()
+mountTour()
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
