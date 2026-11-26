@@ -48,6 +48,7 @@ defmodule CabWeb.TourTest do
     for step <- tour.steps do
       assert Tour.hold(step) >= 4000
       assert step.frame == nil or step.as, "#{step.frame} says nobody's eyes"
+      assert step.frame == nil or Tour.where(step.frame), "#{step.frame} names no page"
     end
   end
 

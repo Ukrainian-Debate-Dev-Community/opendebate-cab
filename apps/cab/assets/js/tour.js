@@ -1,10 +1,11 @@
-// The guided tour's player (/tour). Each step shows a demo page in
-// the frame (or a title card), spotlights one part of it with the
-// caption beside it, types into its fields, moves a cursor to what gets
-// clicked, holds, and moves on; the next step shows what the click led
-// to. The frame's links and forms never act: it is watched, not used,
-// but it scrolls. Without this script the page reads as the list of
-// steps.
+// The guided tour's player (/tour). Each step shows a demo page in the
+// frame (or a title card): a light dim with the step's part cut out and
+// outlined, the caption saying whose screen and which page it is, then
+// the player types into the page's fields and clicks - the field or
+// button acted on gets its own ring - and the next step shows what the
+// click led to. The frame's links and forms never act: it is watched,
+// not used, but it scrolls. Without this script the page reads as the
+// list of steps.
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 export const mountTour = () => {
@@ -22,6 +23,12 @@ export const mountTour = () => {
   let index = 0
   let playing = true
   let run = 0 // bumps on every change: a stale sequence stops
+  const lit = {part: null, active: null}
+
+  // "Anna, a speaker on My page"
+  const whoWhere = step => step.where
+    ? root.dataset.labelWho.replace("%{who}", step.as).replace("%{where}", step.where)
+    : (step.as || "")
 
   // ---- the frame ------------------------------------------------------
 
@@ -35,6 +42,7 @@ export const mountTour = () => {
   })
 
   // watched, not used: no link, form or drag acts; scrolling still works
+  // and keeps the spotlight on its part
   const tame = () => {
     const d = doc()
     if (!d || d.documentElement.classList.contains("in-tour")) return
@@ -42,18 +50,27 @@ export const mountTour = () => {
     const stop = e => { if (e.isTrusted) { e.preventDefault(); e.stopPropagation() } }
     ;["click", "submit", "dragstart", "mousedown", "keydown"].forEach(type =>
       d.addEventListener(type, stop, true))
+    let queued = false
+    const repaint = () => {
+      if (queued) return
+      queued = true
+      view().requestAnimationFrame(() => { queued = false; paint() })
+    }
+    view().addEventListener("scroll", repaint, {passive: true})
+    view().addEventListener("resize", repaint)
   }
 
   const clear = () => {
     const d = doc()
-    if (d) d.querySelectorAll(".tour-hole, .tour-callout, .tour-cursor").forEach(el => el.remove())
+    lit.part = null
+    lit.active = null
+    if (d) d.querySelectorAll(".tour-dim, .tour-ring-part, .tour-ring-act, .tour-callout, .tour-cursor").forEach(el => el.remove())
   }
 
   // the sticky bars at the top of the page (the chrome, the phone's nav)
   const topInset = () => {
-    const d = doc()
     let inset = 0
-    d.querySelectorAll(".chrome, .sidenav .bar").forEach(el => {
+    doc().querySelectorAll(".chrome, .sidenav .bar").forEach(el => {
       const box = el.getBoundingClientRect()
       const style = view().getComputedStyle(el)
       if ((style.position === "sticky" || style.position === "fixed") && box.top < 5 && box.height < 160)
@@ -62,61 +79,97 @@ export const mountTour = () => {
     return inset
   }
 
-  // the spotlight: a box over the whole target, on the frame's own page;
-  // it stays there for the step - typing and clicks happen inside it
-  const spotlight = (step) => {
+  // ---- the spotlight ------------------------------------------------
+
+  const layer = (className) => {
+    const d = doc()
+    let el = d.querySelector(`.${className}`)
+    if (!el) {
+      el = d.createElement("div")
+      el.className = className
+      d.body.appendChild(el)
+    }
+    return el
+  }
+
+  const padded = (el, pad) => {
+    const box = el.getBoundingClientRect()
+    return {x: box.left - pad, y: box.top - pad, w: box.width + pad * 2, h: box.height + pad * 2}
+  }
+
+  const place = (el, r) => Object.assign(el.style, {
+    left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, height: `${r.h}px`
+  })
+
+  // the dim over the screen with the part (and the element acted on)
+  // cut out, their outlines on top; drawn in screen coordinates, so it
+  // is drawn again as the page scrolls
+  const paint = () => {
+    const d = doc()
+    if (!d || !lit.part || !lit.part.isConnected) return
+    const v = view()
+    const holes = [padded(lit.part, 6)]
+    if (lit.active && lit.active.isConnected) holes.push(padded(lit.active, 4))
+    const path = `M0 0H${v.innerWidth}V${v.innerHeight}H0Z` +
+      holes.map(r => `M${r.x} ${r.y}h${r.w}v${r.h}h${-r.w}Z`).join("")
+    layer("tour-dim").style.clipPath = `path(evenodd, "${path}")`
+    place(layer("tour-ring-part"), holes[0])
+    const ring = layer("tour-ring-act")
+    ring.hidden = holes.length < 2
+    if (holes[1]) place(ring, holes[1])
+  }
+
+  // the caption floats on the screen: below the part, above it, or at
+  // the foot for a tall one; it steps aside from what is acted on
+  const caption = (step, box) => {
     const d = doc()
     const v = view()
+    const callout = d.createElement("div")
+    callout.className = "tour-callout"
+    callout.setAttribute("role", "status")
+    const who = d.createElement("p")
+    who.className = "tour-callout-who"
+    who.textContent = whoWhere(step)
+    const text = d.createElement("p")
+    text.textContent = step.text
+    callout.append(who, text)
+    d.body.appendChild(callout)
+
+    const width = Math.min(340, v.innerWidth - 24)
+    callout.style.width = `${width}px`
+    callout.style.left = `${Math.min(Math.max(12, box.left), v.innerWidth - width - 12)}px`
+    const tall = callout.offsetHeight
+    let top
+    if (box.bottom + 14 + tall < v.innerHeight - 8) top = box.bottom + 14
+    else if (box.top - tall - 14 > topInset() + 8) top = box.top - tall - 14
+    else top = v.innerHeight - tall - 12
+    callout.style.top = `${top}px`
+  }
+
+  const spotlight = (step) => {
+    const v = view()
     clear()
-    const target = step.target && d.querySelector(step.target)
-    if (!target) return null
+    const target = step.target && doc().querySelector(step.target)
+    if (!target) return
 
     const inset = topInset()
     const room = v.innerHeight - inset
     let box = target.getBoundingClientRect()
     // a part that fits shows whole with room for the caption; a taller
     // one starts at its top
-    const fits = box.height + 160 < room
-    const want = box.top + v.scrollY - inset - (fits ? Math.max(16, (room - box.height - 140) / 2) : 16)
+    const fits = box.height + 150 < room
+    const want = box.top + v.scrollY - inset - (fits ? Math.max(16, (room - box.height - 130) / 2) : 16)
     v.scrollTo({top: Math.max(0, want), behavior: "instant"})
     box = target.getBoundingClientRect()
 
-    const hole = d.createElement("div")
-    hole.className = "tour-hole"
-    Object.assign(hole.style, {
-      top: `${box.top + v.scrollY - 6}px`,
-      left: `${box.left + v.scrollX - 6}px`,
-      width: `${box.width + 12}px`,
-      height: `${box.height + 12}px`
-    })
-    d.body.appendChild(hole)
-
-    // the caption floats in the frame's view: below the part, above
-    // it, or at the foot of the screen for a tall one
-    const callout = d.createElement("div")
-    callout.className = "tour-callout"
-    callout.setAttribute("role", "status")
-    const who = d.createElement("p")
-    who.className = "tour-callout-chapter"
-    who.textContent = step.as || step.chapter
-    const text = d.createElement("p")
-    text.textContent = step.text
-    callout.append(who, text)
-    d.body.appendChild(callout)
-
-    const width = Math.min(400, v.innerWidth - 24)
-    callout.style.width = `${width}px`
-    callout.style.left = `${Math.min(Math.max(12, box.left + 6), v.innerWidth - width - 12)}px`
-    const tall = callout.offsetHeight
-    let top
-    if (box.bottom + 18 + tall < v.innerHeight - 8) top = box.bottom + 18
-    else if (box.top - tall - 18 > inset + 8) top = box.top - tall - 18
-    else top = v.innerHeight - tall - 12
-    callout.style.top = `${top}px`
-    return target
+    lit.part = target
+    paint()
+    caption(step, box)
   }
 
-  // ---- the cursor, typing and the click -------------------------------
+  // ---- acting: the pointer, typing, the click -------------------------
+
+  const pinned = el => el.closest(".chrome, .sidenav") !== null
 
   const cursor = () => {
     const d = doc()
@@ -128,19 +181,16 @@ export const mountTour = () => {
       el.innerHTML =
         '<svg viewBox="0 0 20 24" aria-hidden="true">' +
         '<path d="M1 1 L1 19 L5.6 14.8 L9 22.2 L12.4 20.7 L9.1 13.5 L15.3 13.5 Z"/></svg>'
-      el.style.left = `${view().scrollX + view().innerWidth / 2}px`
-      el.style.top = `${view().scrollY + view().innerHeight / 2}px`
+      el.style.left = `${view().innerWidth / 2}px`
+      el.style.top = `${view().innerHeight / 2}px`
       d.body.appendChild(el)
     }
     return el
   }
 
-  // the sticky bars stay on screen: nothing to scroll to
-  const pinned = el => el.closest(".chrome, .sidenav") !== null
-
-  // the field or button acted on comes into view (the spotlight stays on
-  // its part); the caption steps aside when it covers it
-  const reveal = async (el) => {
+  // the element acted on comes into view, gets its ring, and the caption
+  // takes the foot or the top of the screen, whichever leaves it clear
+  const focus = async (el) => {
     const v = view()
     let box = el.getBoundingClientRect()
     if (!pinned(el) && (box.top < topInset() + 8 || box.bottom > v.innerHeight - 8)) {
@@ -148,31 +198,30 @@ export const mountTour = () => {
       await sleep(450)
       box = el.getBoundingClientRect()
     }
+    lit.active = el
+    paint()
     const callout = doc().querySelector(".tour-callout")
     if (!callout) return
-    // the screen's foot or top, whichever leaves the element clear (the
-    // foot when both do; else the one that covers less of it)
     const tall = callout.offsetHeight
     const spots = [v.innerHeight - tall - 12, topInset() + 12]
-    const covered = top => Math.max(0, Math.min(box.bottom, top + tall) - Math.max(box.top, top))
-    const best = spots.reduce((a, b) => covered(b) < covered(a) ? b : a)
-    callout.style.top = `${best}px`
+    const covered = top => Math.max(0, Math.min(box.bottom + 8, top + tall) - Math.max(box.top - 8, top))
+    callout.style.top = `${spots.reduce((a, b) => covered(b) < covered(a) ? b : a)}px`
   }
 
   const pointAt = async (el, mine) => {
-    await reveal(el)
+    await focus(el)
     if (mine !== run) return
-    const now = el.getBoundingClientRect()
+    const box = el.getBoundingClientRect()
     const pointer = cursor()
-    pointer.style.left = `${now.left + view().scrollX + Math.min(now.width * 0.75, now.width - 10)}px`
-    pointer.style.top = `${now.top + view().scrollY + now.height / 2}px`
+    pointer.style.left = `${box.left + Math.min(box.width * 0.7, box.width - 10)}px`
+    pointer.style.top = `${box.top + box.height * 0.6}px`
     await sleep(650)
   }
 
   const type = async ([selector, value], mine) => {
     const el = doc().querySelector(selector)
     if (!el) return
-    await pointAt(el, mine)
+    await pointAt(el.type === "radio" ? el.closest("label") || el : el, mine)
     if (mine !== run) return
     if (el.type === "radio" || el.type === "checkbox") {
       el.checked = true
@@ -199,7 +248,7 @@ export const mountTour = () => {
     await sleep(450)
     pointer.classList.remove("down")
     el.classList.remove("tour-pressed")
-    await sleep(500)
+    await sleep(600)
   }
 
   // ---- steps --------------------------------------------------------
@@ -220,18 +269,19 @@ export const mountTour = () => {
     const step = steps[index]
     slider.value = index
     $(".tour-count").textContent = `${index + 1} / ${steps.length}`
-    // whose screen it is; a switch to someone else is flagged
-    const as = $(".tour-as")
-    const was = $(".tour-as-name").textContent
-    $(".tour-as-name").textContent = step.as || ""
-    as.hidden = !step.as
-    as.classList.remove("changed")
-    if (step.as && was && was !== step.as) { void as.offsetWidth; as.classList.add("changed") }
     chapters.forEach(button => {
       const at = Number(button.dataset.chapter)
       button.classList.toggle("on", at === step.chapter_index)
       button.classList.toggle("done", at < step.chapter_index)
     })
+    // whose screen and which page; a switch to someone else is flagged
+    const as = $(".tour-as")
+    const was = as.dataset.who
+    as.dataset.who = step.as || ""
+    $(".tour-as-name").textContent = whoWhere(step)
+    as.hidden = !step.as
+    as.classList.remove("changed")
+    if (step.as && was && was !== step.as) { void as.offsetWidth; as.classList.add("changed") }
     label()
 
     const started = Date.now()

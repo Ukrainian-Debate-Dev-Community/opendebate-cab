@@ -43,6 +43,19 @@ defmodule CabWeb.Tour do
     reading + typing + if(step.click, do: 1800, else: 0)
   end
 
+  @doc "Which page a frame is, as the tour names it beside whose screen it is."
+  def where("me-" <> _rest), do: gettext("My page")
+  def where("guest-hub"), do: gettext("the personal link page")
+  def where("owner-club"), do: gettext("the club settings")
+  def where("owner-members"), do: gettext("the members page")
+  def where("owner-form"), do: gettext("the registration form")
+  def where("owner-" <> _stage), do: gettext("the session page")
+  def where("clubs"), do: gettext("the club list")
+  def where("club-visitor"), do: gettext("the club page")
+  def where("join"), do: gettext("the join form")
+  def where("results"), do: gettext("the results page")
+  def where(_frame), do: nil
+
   @ballot ~w(og:PM og:DPM oo:LO oo:DLO cg:MG cg:GW co:MO co:OW)
 
   # the ballot's eight scores, in order

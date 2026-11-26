@@ -255,6 +255,11 @@ msgstr "%{sent} з %{teams} команд"
 msgid "%{team} (iron)"
 msgstr "%{team} (айрон)"
 
+#: lib/cab_web/controllers/tour_html/show.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{who} on %{where}"
+msgstr "%{who}: %{where}"
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -1732,6 +1737,7 @@ msgstr "Мої клуби"
 #: lib/cab_web/controllers/page_html/home.html.heex
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #: lib/cab_web/live/me_live.ex
+#: lib/cab_web/tour.ex
 #: lib/cab_web/tour/pages.ex
 #, elixir-autogen, elixir-format
 msgid "My page"
@@ -3985,15 +3991,60 @@ msgstr "сума команди"
 msgid "that did not work — try again"
 msgstr "не вийшло — спробуйте ще раз"
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the club list"
+msgstr "список клубів"
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the club page"
+msgstr "сторінка клубу"
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the club settings"
+msgstr "налаштування клубу"
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the join form"
+msgstr "форма вступу"
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the members page"
+msgstr "сторінка членів клубу"
+
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex
 #, elixir-autogen, elixir-format
 msgid "the next session"
 msgstr "наступну сесію"
 
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the personal link page"
+msgstr "сторінка персонального посилання"
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the registration form"
+msgstr "форма реєстрації"
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the results page"
+msgstr "сторінка результатів"
+
 #: lib/cab_web/controllers/invitation_controller.ex
 #, elixir-autogen, elixir-format
 msgid "the session"
 msgstr "без назви"
+
+#: lib/cab_web/tour.ex
+#, elixir-autogen, elixir-format
+msgid "the session page"
+msgstr "сторінка сесії"
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format

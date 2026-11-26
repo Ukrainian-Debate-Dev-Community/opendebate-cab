@@ -500,18 +500,24 @@ input.pick { width:0.9375rem; height:0.9375rem; margin:0 var(--sp-2) 0 0; vertic
   .tour-chapters button { padding:0; }
 }
 
-/* inside the frame (html.in-tour): the page without its footer, a box
-   over the spotlit part, the caption beside it, the cursor */
+/* inside the frame (html.in-tour): the page without its footer; a
+   light dim with the step's part cut out, a thin outline around it, a
+   gold ring on what is acted on, the caption, the pointer - all in
+   screen coordinates */
 .in-tour .footer { display:none; }
-.tour-hole { position:absolute; z-index:1000; pointer-events:none; border-radius:var(--r-sm);
-             outline:0.2rem solid var(--gold); box-shadow:0 0 0 100vmax var(--viewer-shade); }
-.tour-callout { position:fixed; z-index:1002; pointer-events:none; padding:var(--sp-3) var(--sp-4);
-                border-radius:var(--r-md); background:var(--surface); color:var(--ink); box-shadow:var(--shadow-menu);
-                border-left:0.25rem solid var(--gold); font-size:var(--step-0); line-height:1.45;
-                transition:top 0.3s ease; }
+.tour-dim { position:fixed; inset:0; z-index:1000; pointer-events:none;
+            background:color-mix(in srgb, var(--viewer-shade) 40%, transparent); }
+.tour-ring-part, .tour-ring-act { position:fixed; z-index:1001; pointer-events:none; transition:all 0.25s ease; }
+.tour-ring-part { border-radius:var(--r-md); outline:0.125rem solid var(--brand); }
+.tour-ring-act { border-radius:var(--r-sm); outline:0.15rem solid var(--gold);
+                 box-shadow:0 0 0 0.3rem color-mix(in srgb, var(--gold) 28%, transparent); }
+.tour-ring-act[hidden] { display:none; }
+.tour-callout { position:fixed; z-index:1002; pointer-events:none; padding:var(--sp-2) var(--sp-3);
+                border-radius:var(--r-md); background:var(--surface); color:var(--ink); box-shadow:var(--shadow-card);
+                border:1px solid var(--line); font-size:var(--step-m1); line-height:1.45; transition:top 0.3s ease; }
 .tour-callout p { margin:0; }
-.tour-callout-chapter { font-size:var(--step-m1); font-weight:750; color:var(--brand-700); margin-bottom:var(--sp-1) !important; }
-.tour-cursor { position:absolute; z-index:1003; width:1.25rem; height:1.5rem; pointer-events:none;
+.tour-callout-who { font-weight:700; color:var(--brand-700); margin-bottom:0.15rem !important; }
+.tour-cursor { position:fixed; z-index:1003; width:1.25rem; height:1.5rem; pointer-events:none;
                color:var(--ink); transition:left 0.6s ease, top 0.6s ease; }
 .tour-cursor svg { display:block; width:100%; height:100%; overflow:visible; transition:transform 0.15s; }
 .tour-cursor path { fill:currentColor; stroke:var(--surface); stroke-width:1.5; stroke-linejoin:round; }
@@ -520,4 +526,4 @@ input.pick { width:0.9375rem; height:0.9375rem; margin:0 var(--sp-2) 0 0; vertic
                        transition:opacity 0.25s, transform 0.25s; }
 .tour-cursor.down::before { opacity:1; transform:scale(1.3); }
 .tour-cursor.down svg { transform:scale(0.88); transform-origin:0 0; }
-.tour-pressed { filter:brightness(0.9); transform:translateY(0.0625rem); }
+.tour-pressed { filter:brightness(0.92); transform:translateY(0.0625rem); }

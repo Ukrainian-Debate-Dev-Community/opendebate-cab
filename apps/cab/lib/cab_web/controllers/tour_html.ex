@@ -20,6 +20,7 @@ defmodule CabWeb.TourHTML do
         chapter_index: Enum.find_index(chapters, &(&1 == step.chapter)),
         text: step.text,
         as: step.as,
+        where: step.frame && Tour.where(step.frame),
         src: step.frame && ~p"/tour/frame/#{step.frame}",
         target: step.target,
         set: Enum.map(step.set, fn {selector, value} -> [selector, value] end),
