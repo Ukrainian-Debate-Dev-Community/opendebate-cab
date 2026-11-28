@@ -720,7 +720,7 @@ defmodule CabWeb.ApiFlowTest do
       |> delete(~p"/api/cab/v1/sessions/#{session.uuid}")
       |> json_response(409)
 
-    assert refused["error"] =~ "People signed up for this session"
+    assert refused["error"] =~ "People signed up for this spar"
 
     Agent.update(signups, fn _ -> [] end)
 

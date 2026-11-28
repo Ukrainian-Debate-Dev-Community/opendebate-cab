@@ -46,7 +46,7 @@ defmodule CabWeb.ShortLinkTest do
     assert redirected_to(get(conn, "/#{code(session)}")) ==
              "/c/#{club.uuid}?session=#{session.uuid}#register"
 
-    # once it runs: the session page
+    # once it runs: the spar page
     Cab.Repo.update!(Ecto.Changeset.change(session, started_at: ~U[2026-10-22 18:00:00Z]))
 
     assert redirected_to(get(conn, "/#{code(session)}")) ==
@@ -70,7 +70,7 @@ defmodule CabWeb.ShortLinkTest do
     assert get(conn, "/signin") |> html_response(200)
   end
 
-  test "the session page shows its short link", %{conn: conn, club: club, session: session} do
+  test "the spar page shows its short link", %{conn: conn, club: club, session: session} do
     html = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
     assert html =~ ~s(id="session-short-link")
     assert html =~ "/#{code(session)}"

@@ -50,7 +50,7 @@ defmodule CabWeb.ClubPublicHTML do
     end
   end
 
-  defp session_title(session), do: session.name || gettext("The next session")
+  defp session_title(session), do: session.name || gettext("The next spar")
 
   @doc "The club page's lead line: city, formats and when it meets."
   def club_lead(club) do
@@ -133,7 +133,7 @@ defmodule CabWeb.ClubPublicHTML do
               </p>
               <p>
                 {gettext(
-                  "Keep this link — it IS your access: anyone with it acts as you. It opens your page for this session: your registration, your seat and the motion, the ballot if you adjudicate, and feedback."
+                  "Keep this link — it IS your access: anyone with it acts as you. It opens your page for this spar: your registration, your seat and the motion, the ballot if you adjudicate, and feedback."
                 )}
               </p>
               <p><.link href={~p"/l/#{done.link.code}"}>{gettext("Open my page")}</.link></p>
@@ -174,9 +174,9 @@ defmodule CabWeb.ClubPublicHTML do
                 if kind == :member,
                   do:
                     gettext(
-                      "Your saved answers are filled in. Changes here are for this session only; your defaults change on My page."
+                      "Your saved answers are filled in. Changes here are for this spar only; your defaults change on My page."
                     ),
-                  else: gettext("You register with your account; one registration per session.")
+                  else: gettext("You register with your account; one registration per spar.")
               }
               errors={@registration.errors}
             >
@@ -198,7 +198,7 @@ defmodule CabWeb.ClubPublicHTML do
                 menu={session_menu(@club, @registration)}
                 note={
                   gettext(
-                    "You appear in this session's list right away; the club head seats you as a speaker or the adjudicator."
+                    "You appear in this spar's list right away; the club head seats you as a speaker or the adjudicator."
                   )
                 }
               >
@@ -208,18 +208,18 @@ defmodule CabWeb.ClubPublicHTML do
           <% {:full, _done} -> %>
             <div class="pad">
               {gettext("Registration is full.")}
-              {gettext("Ask the club head about the next session.")}
+              {gettext("Ask the club head about the next spar.")}
             </div>
           <% {:registered, _done} -> %>
             <div class="pad">
               <p>
-                {gettext("You are registered for this session.")}
-                {gettext("Cancel or open it in Club Sessions below.")}
+                {gettext("You are registered for this spar.")}
+                {gettext("Cancel or open it in Club Spars below.")}
               </p>
             </div>
           <% {:all_registered, _done} -> %>
             <div class="pad">
-              <p>{gettext("You are registered for every session open for registration:")}</p>
+              <p>{gettext("You are registered for every spar open for registration:")}</p>
               <p :for={choice <- @registration.choices}>
                 <b>{session_title(choice.session)}</b><span :if={choice.session.scheduled_at}>,
                 <.local_time
@@ -227,20 +227,20 @@ defmodule CabWeb.ClubPublicHTML do
                   as={:short}
                 /></span>
               </p>
-              <p>{gettext("Cancel or open them in Club Sessions below.")}</p>
+              <p>{gettext("Cancel or open them in Club Spars below.")}</p>
             </div>
           <% {:closed, _done} -> %>
             <div class="pad">
-              {gettext("No sessions are open for registration right now.")}
-              {gettext("Ask the club head about the next session.")}
+              {gettext("No spars are open for registration right now.")}
+              {gettext("Ask the club head about the next spar.")}
             </div>
           <% {:running, _done} -> %>
             <div class="pad">
-              {gettext("The session is running.")}
+              {gettext("The spar is running.")}
               <.link href={~p"/c/#{@club.uuid}/s/#{@registration.session.uuid}"}>
                 {gettext("watch rooms")}
               </.link>
-              <p>{gettext("No sessions are open for registration right now.")}</p>
+              <p>{gettext("No spars are open for registration right now.")}</p>
             </div>
           <% _other -> %>
         <% end %>

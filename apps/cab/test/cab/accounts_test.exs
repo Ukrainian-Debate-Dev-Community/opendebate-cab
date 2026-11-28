@@ -193,7 +193,7 @@ defmodule Cab.AccountsTest do
       stub_engine(&refuse(&1, 409, "Both users are registered in event 11; remove one first."))
 
       # the head is kept, so the older non-head account is the one folded
-      assert {:error, "Both accounts took part in the same session" <> _} =
+      assert {:error, "Both accounts took part in the same spar" <> _} =
                Accounts.merge_accounts(older, younger)
 
       refute_received {:engine, "POST", "/api/organisations/51/owners", _}

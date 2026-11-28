@@ -190,7 +190,7 @@ defmodule CabWeb.OwnerController do
          {:ok, session} <-
            Sessions.open(head, conn.assigns.club, name, scheduled_at, limit, format) do
       conn
-      |> put_flash(:info, gettext("Session opened. Registration is open."))
+      |> put_flash(:info, gettext("Spar opened. Registration is open."))
       |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner/s/#{session.uuid}")
     else
       {:error, {:fields, errors}} ->
@@ -297,7 +297,7 @@ defmodule CabWeb.OwnerController do
                  session,
                  compose_spec(rooms, Cab.Format.of(session))
                ) do
-            {:ok, count} -> {:ok, gettext("Session started with %{count} room(s).", count: count)}
+            {:ok, count} -> {:ok, gettext("Spar started with %{count} room(s).", count: count)}
             error -> error
           end
 
@@ -400,7 +400,7 @@ defmodule CabWeb.OwnerController do
         with {:ok, _} <-
                Sessions.claim_place(session, fn -> Cab.Invitations.invite(head, session, user) end) do
           added =
-            gettext("%{name} is in the session. They accept on their My page.",
+            gettext("%{name} is in the spar. They accept on their My page.",
               name: user.name || user.username
             )
 
@@ -446,7 +446,7 @@ defmodule CabWeb.OwnerController do
           end
 
         _ ->
-          {:error, gettext("That person isn't in this session.")}
+          {:error, gettext("That person isn't in this spar.")}
       end
     end)
   end
@@ -545,7 +545,7 @@ defmodule CabWeb.OwnerController do
                 render(conn, :delete_session,
                   current: session,
                   name: session.name || state.event["name"],
-                  page_title: gettext("%{club} - Delete session", club: conn.assigns.club.name)
+                  page_title: gettext("%{club} - Delete spar", club: conn.assigns.club.name)
                 )
 
               message ->
@@ -570,7 +570,7 @@ defmodule CabWeb.OwnerController do
         case Sessions.cancel(conn.assigns.current_user, session) do
           {:ok, _session} ->
             conn
-            |> put_flash(:info, gettext("Session deleted."))
+            |> put_flash(:info, gettext("Spar deleted."))
             |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/owner")
 
           {:error, :conflict, message} ->
@@ -643,7 +643,7 @@ defmodule CabWeb.OwnerController do
         case Sessions.reopen_session(conn.assigns.current_user, session) do
           :ok ->
             conn
-            |> put_flash(:info, gettext("Session reopened. Finish it again when you are done."))
+            |> put_flash(:info, gettext("Spar reopened. Finish it again when you are done."))
             |> redirect(to: back)
 
           {:error, :conflict, message} ->
@@ -664,7 +664,7 @@ defmodule CabWeb.OwnerController do
         case Sessions.finish(conn.assigns.current_user, session) do
           :ok ->
             conn
-            |> put_flash(:info, gettext("Session finished."))
+            |> put_flash(:info, gettext("Spar finished."))
             |> redirect(to: ~p"/c/#{conn.assigns.club.uuid}/s/#{session.uuid}")
 
           {:error, :conflict, message} ->

@@ -65,7 +65,7 @@ defmodule CabWeb.Ui do
             active={@active}
             key="sessions"
             href={sessions_href(@club, @nav_session)}
-            label={gettext("Sessions")}
+            label={gettext("Spars")}
           />
           <.nav_item
             active={@active}

@@ -23,7 +23,7 @@ defmodule CabWeb.Emails do
         """
         Hello %{name},
 
-        %{club} added you to %{session}. This personal link is your way in: it shows the session, your seat and your room.
+        %{club} added you to %{session}. This personal link is your way in: it shows the spar, your seat and your room.
 
         %{url}
 
@@ -52,7 +52,7 @@ defmodule CabWeb.Emails do
         """
         Hello %{name},
 
-        You are registered for %{session} at %{club}.%{date} This personal link is your way in: it shows the session, your seat and your room.
+        You are registered for %{session} at %{club}.%{date} This personal link is your way in: it shows the spar, your seat and your room.
 
         %{url}
 
@@ -69,7 +69,7 @@ defmodule CabWeb.Emails do
 
   # the date sentence, when the session has one
   defp on_date(%DateTime{} = at),
-    do: " " <> gettext("The session is on %{date}.", date: Calendar.strftime(at, "%Y-%m-%d"))
+    do: " " <> gettext("The spar is on %{date}.", date: Calendar.strftime(at, "%Y-%m-%d"))
 
   defp on_date(_at), do: ""
 
@@ -112,7 +112,7 @@ defmodule CabWeb.Emails do
         """
         Hello %{name},
 
-        %{inviter} invites you to be the head of %{club} in cab, where debate clubs run their sessions.
+        %{inviter} invites you to be the head of %{club} in cab, where debate clubs run their spars.
 
         Open this link and sign in with GitHub or Google; you become the head as soon as you are signed in:
 
@@ -146,5 +146,5 @@ defmodule CabWeb.Emails do
   end
 
   defp session_name(%Session{name: name}, _club) when is_binary(name) and name != "", do: name
-  defp session_name(_session, _club), do: gettext("a session")
+  defp session_name(_session, _club), do: gettext("a spar")
 end

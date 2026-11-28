@@ -30,7 +30,7 @@
       <.section title={gettext("Registration")}>
         <CabWeb.RegistrationHTML.guest_form
           action={~p"/c/#{@club.uuid}/owner/form/preview"}
-          title={gettext("Register for %{session}", session: gettext("the next session"))}
+          title={gettext("Register for %{session}", session: gettext("the next spar"))}
           fields={@fields}
           logo={CabWeb.ClubProfile.logo_path(@club)}
           preview

@@ -49,7 +49,7 @@ defmodule CabWeb.Tour do
   def where("owner-club"), do: gettext("the club settings")
   def where("owner-members"), do: gettext("the members page")
   def where("owner-form"), do: gettext("the registration form")
-  def where("owner-" <> _stage), do: gettext("the session page")
+  def where("owner-" <> _stage), do: gettext("the spar page")
   def where("clubs"), do: gettext("the club list")
   def where("club-visitor"), do: gettext("the club page")
   def where("join"), do: gettext("the join form")
@@ -74,7 +74,7 @@ defmodule CabWeb.Tour do
     anna = gettext("Anna, a speaker")
     petro = gettext("Petro, an adjudicator")
     mark = gettext("Mark, a newcomer")
-    session = gettext("Playing a session")
+    session = gettext("Debating a spar")
     clubs = gettext("Clubs")
     more = gettext("And more")
 
@@ -82,13 +82,13 @@ defmodule CabWeb.Tour do
       title: gettext("cab, a guided tour"),
       lead:
         gettext(
-          "How a debate club runs on cab: a session played from start to finish, the club around it, and the rest."
+          "How a debate club runs on cab: a spar debated from start to finish, the club around it, and the rest."
         ),
       steps: [
         card(
           gettext("Welcome"),
           gettext(
-            "Riverside Debate Club meets on Thursdays. Watch a session through the head who runs it, a speaker and an adjudicator; then the club itself; then the rest."
+            "Riverside Debate Club meets on Thursdays. Watch a spar through the head who runs it, a speaker and an adjudicator; then the club itself; then the rest."
           )
         ),
 
@@ -96,16 +96,14 @@ defmodule CabWeb.Tour do
         card(
           session,
           gettext(
-            "One Thursday night, from opening the session to the results. Daria runs the club, Anna debates, Petro adjudicates."
+            "One Thursday night, from opening the spar to the results. Daria runs the club, Anna debates, Petro adjudicates."
           )
         ),
         step(
           session,
           "owner-club",
           "#open-session-form",
-          gettext(
-            "Daria opens Thursday's session: a name, the date, the format and a place limit."
-          ),
+          gettext("Daria opens Thursday's spar: a name, the date, the format and a place limit."),
           as: daria,
           fill: [{"#open-session-form input[name=name]", "Thursday night"}],
           click: ~s(button[form="open-session-form"])
@@ -115,7 +113,7 @@ defmodule CabWeb.Tour do
           "owner-registration",
           "#shared-registration-url",
           gettext(
-            "The session takes sign-ups. Daria shares one link in the club chat; members register on My page, guests from the club page."
+            "The spar takes sign-ups. Daria shares one link in the club chat; members register on My page, guests from the club page."
           ),
           as: daria
         ),
@@ -124,7 +122,7 @@ defmodule CabWeb.Tour do
           "me-register",
           "#me-registration",
           gettext(
-            "Anna is a member: Thursday's session shows on her My page, where she does everything from here on."
+            "Anna is a member: Thursday's spar shows on her My page, where she does everything from here on."
           ),
           as: anna,
           click: "#open-sessions button[phx-click=open_register]"
@@ -160,7 +158,7 @@ defmodule CabWeb.Tour do
           "owner-registration",
           ".steps",
           gettext(
-            "A session moves through Registration, Rooms, Debates and Finished. Evening comes: Daria goes to Rooms."
+            "A spar moves through Registration, Draw, Debates and Finished. Evening comes: Daria goes to the Draw."
           ),
           as: daria,
           click: ".steps li:nth-child(2) a"
@@ -170,7 +168,7 @@ defmodule CabWeb.Tour do
           "owner-rooms",
           ".dnd",
           gettext(
-            "She drags people into rooms - Anna into Opening Opposition, Petro into the chair - and starts the session."
+            "She makes the draw - Anna into Opening Opposition, Petro into the chair - and starts the spar."
           ),
           as: daria,
           click: ~s(button[form="allocator-form"])
@@ -242,7 +240,7 @@ defmodule CabWeb.Tour do
           session,
           "me-result",
           "#now-feedback-71",
-          gettext("Before the session is finished, Anna's team rates the adjudicator."),
+          gettext("Before the spar is finished, Anna's team rates the adjudicator."),
           as: anna,
           fill: [
             {"#now-feedback-71 input[name=accuracy]", "8"},
@@ -256,7 +254,7 @@ defmodule CabWeb.Tour do
           session,
           "me-feedback-sent",
           "#now-feedback-sent-71",
-          gettext("Sent. Petro reads it, without the team's name, once the session is over."),
+          gettext("Sent. Petro reads it, without the team's name, once the spar is over."),
           as: anna
         ),
         step(
@@ -290,7 +288,7 @@ defmodule CabWeb.Tour do
         card(
           clubs,
           gettext(
-            "The club around the sessions: someone new finds it and joins, and Daria keeps it running."
+            "The club around the spars: someone new finds it and joins, and Daria keeps it running."
           )
         ),
         step(
@@ -298,7 +296,7 @@ defmodule CabWeb.Tour do
           "clubs",
           "#clubs-directory tbody tr",
           gettext(
-            "Mark wants to start debating. Every club on cab is listed with its next session; he picks Riverside."
+            "Mark wants to start debating. Every club on cab is listed with its next spar; he picks Riverside."
           ),
           as: mark,
           click: "#clubs-directory tbody tr a"
@@ -371,7 +369,7 @@ defmodule CabWeb.Tour do
           "guest-hub",
           "[id^=now-draw-]",
           gettext(
-            "Guests need no account: a personal link opens the same page for their session - the seat, the motion and, for a guest adjudicator, the ballot."
+            "Guests need no account: a personal link opens the same page for their spar - the seat, the motion and, for a guest adjudicator, the ballot."
           ),
           as: gettext("Greta, a guest")
         ),
@@ -380,7 +378,7 @@ defmodule CabWeb.Tour do
           "me-on-me",
           "[id^=feedback-on-me-]",
           gettext(
-            "After the session Petro reads each team's feedback on his call - without the team's name - and his average."
+            "After the spar Petro reads each team's feedback on his call - without the team's name - and his average."
           ),
           as: petro
         ),
@@ -397,7 +395,7 @@ defmodule CabWeb.Tour do
           more,
           "me-figures",
           "#me-history",
-          gettext("And every session she played or adjudicated."),
+          gettext("And every spar she debated or adjudicated."),
           as: anna
         ),
         step(
@@ -405,7 +403,7 @@ defmodule CabWeb.Tour do
           "owner-finished",
           "#session-picker",
           gettext(
-            "Daria picks any of the club's sessions here. A finished one can be reopened to fix a ballot, then finished again."
+            "Daria picks any of the club's spars here. A finished one can be reopened to fix a ballot, then finished again."
           ),
           as: daria
         ),

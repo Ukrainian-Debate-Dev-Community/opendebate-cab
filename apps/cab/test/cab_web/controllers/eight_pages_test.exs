@@ -1,6 +1,6 @@
 defmodule CabWeb.EightPagesTest do
   @moduledoc """
-  The core pages: P1 /signin, the session page's stage variants and
+  The core pages: P1 /signin, the spar page's stage variants and
   the club standings (rule-0 passthrough). The shell, /account,
   /admin and the global standings live in shell_pages_test; the
   owner surfaces in html_trees_test.
@@ -334,7 +334,7 @@ defmodule CabWeb.EightPagesTest do
       assert html =~ "Total points"
       assert html =~ "Avg points"
       # every finished session at once, no session stepper
-      assert html =~ "All finished sessions of"
+      assert html =~ "All finished spars of"
       refute html =~ ~s(class="stepper")
 
       # NO wins/winrate/played strings anywhere on standings pages
@@ -445,7 +445,7 @@ defmodule CabWeb.EightPagesTest do
       refute old_html =~ "Newer Winner"
       # from the earlier one, > steps back to the latest
       assert old_html =~
-               ~r/<a[^>]*href="\/c\/#{club.uuid}\/standings\/teams\?session=[^"]+"[^>]*aria-label="Later session"/
+               ~r/<a[^>]*href="\/c\/#{club.uuid}\/standings\/teams\?session=[^"]+"[^>]*aria-label="Later spar"/
 
       # only teams go session by session
       speakers = conn |> get(~p"/c/#{club.uuid}/standings/speakers") |> html_response(200)
@@ -458,12 +458,12 @@ defmodule CabWeb.EightPagesTest do
       _open = session_fixture(fresh, engine_event_id: 50)
 
       html = conn |> get(~p"/c/#{fresh.uuid}/standings/teams") |> html_response(200)
-      assert html =~ "No finished session yet."
+      assert html =~ "No finished spar yet."
 
       stub(fn conn, _params -> Plug.Conn.send_resp(conn, 500, "boom") end)
 
       html = conn |> get(~p"/c/#{club.uuid}/standings/teams") |> html_response(200)
-      assert html =~ "No results for this session yet."
+      assert html =~ "No results for this spar yet."
     end
 
     test "an unknown tab is 404", %{conn: conn, club: club} do

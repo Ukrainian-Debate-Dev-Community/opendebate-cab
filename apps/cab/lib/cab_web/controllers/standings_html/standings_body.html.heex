@@ -6,7 +6,7 @@
       </:col>
       <:col :let={row} label={gettext("City")}>{row.club.city || "—"}</:col>
       <:col :let={row} label={gettext("Members")} num>{row.members}</:col>
-      <:col :let={row} label={gettext("Sessions")} num>{row.sessions}</:col>
+      <:col :let={row} label={gettext("Spars")} num>{row.sessions}</:col>
       <:col :let={row} label={gettext("Rooms")} num>{row.rooms}</:col>
     </.table>
   </.section>
@@ -16,7 +16,7 @@
       <div class="pad scope-card">
         <%= cond do %>
           <% @whole_club -> %>
-            <p>{gettext("All finished sessions of %{club}", club: @scope.club.name)}</p>
+            <p>{gettext("All finished spars of %{club}", club: @scope.club.name)}</p>
             <%!-- BP and Australs never share a table: one format at a time --%>
             <nav :if={length(@formats) > 1} class="pills" aria-label={gettext("Format")}>
               <.link
@@ -32,14 +32,14 @@
             <.stepper
               prev={step_href(assigns, 1)}
               next={step_href(assigns, -1)}
-              prev_label={gettext("Earlier session")}
-              next_label={gettext("Later session")}
+              prev_label={gettext("Earlier spar")}
+              next_label={gettext("Later spar")}
             >
               {@scope.session.name}, <.local_time at={scope_date(@scope)} as={:day} />
             </.stepper>
           <% true -> %>
             <p>
-              {gettext("session:")} <b>{@scope.session.name}</b>,
+              {gettext("spar:")} <b>{@scope.session.name}</b>,
               <.local_time at={scope_date(@scope)} as={:day} />, {@scope.club.name}
             </p>
         <% end %>
@@ -51,7 +51,7 @@
         empty={
           if @whole_club,
             do: gettext("No results yet."),
-            else: gettext("No results for this session yet.")
+            else: gettext("No results for this spar yet.")
         }
       >
         <:col :let={row} :if={@tab == "teams"} label={gettext("Team")}>{row["name"]}</:col>
@@ -94,8 +94,8 @@
     </.section>
   <% else %>
     <.section title={tab_label(@tab)} pad>
-      {gettext("No finished session yet.")}
-      <p>{gettext("Standings show the latest finished session.")}</p>
+      {gettext("No finished spar yet.")}
+      <p>{gettext("Standings show the latest finished spar.")}</p>
     </.section>
   <% end %>
 <% end %>

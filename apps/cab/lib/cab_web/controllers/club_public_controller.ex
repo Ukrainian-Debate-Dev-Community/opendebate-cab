@@ -30,7 +30,7 @@ defmodule CabWeb.ClubPublicController do
       case {account(conn.assigns.current_user), state.stage} do
         {_viewer, stage} when stage != :signup ->
           conn
-          |> put_flash(:error, gettext("Registration is closed for this session."))
+          |> put_flash(:error, gettext("Registration is closed for this spar."))
           |> redirect(to: ~p"/c/#{club.uuid}")
 
         {nil, :signup} ->

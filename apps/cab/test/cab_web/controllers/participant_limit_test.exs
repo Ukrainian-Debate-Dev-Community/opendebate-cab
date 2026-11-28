@@ -2,7 +2,7 @@ defmodule CabWeb.ParticipantLimitTest do
   @moduledoc """
   The participant limit on the pages: places left and "full" in the
   club page's registration section, the register action refused, the
-  Club Sessions table and the clubs directory, and the head's forms.
+  Club Spars table and the clubs directory, and the head's forms.
   """
 
   use CabWeb.ConnCase, async: true
@@ -83,7 +83,7 @@ defmodule CabWeb.ParticipantLimitTest do
         assert html =~ "Registration is full."
         refute html =~ ~s(id="guest-register-form")
         refute html =~ ~s(id="register-form")
-        # the Club Sessions table
+        # the Club Spars table
         assert html =~ "registration full"
         refute html =~ "registration open"
       end
@@ -113,7 +113,7 @@ defmodule CabWeb.ParticipantLimitTest do
   end
 
   describe "the head" do
-    test "sets and clears the limit on the session page", %{conn: conn, head: head, club: club} do
+    test "sets and clears the limit on the spar page", %{conn: conn, head: head, club: club} do
       session = session_fixture(club)
       engine(4)
       conn = log_in(conn, head)

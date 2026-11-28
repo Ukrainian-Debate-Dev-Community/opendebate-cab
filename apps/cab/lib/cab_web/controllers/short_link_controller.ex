@@ -42,7 +42,7 @@ defmodule CabWeb.ShortLinkController do
           conn
           |> put_flash(
             :info,
-            gettext("Room %{room} is not open yet; here is the session.", room: room)
+            gettext("Room %{room} is not open yet; here is the spar.", room: room)
           )
           |> redirect(to: page)
       end

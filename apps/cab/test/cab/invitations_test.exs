@@ -232,7 +232,7 @@ defmodule Cab.InvitationsTest do
       {:ok, invitation} = Invitations.invite(head, session, olena)
 
       home = conn |> init_test_session(%{user_id: olena.id}) |> get(~p"/") |> html_response(200)
-      assert home =~ "A club head added you to a session."
+      assert home =~ "A club head added you to a spar."
 
       html = conn |> init_test_session(%{user_id: olena.id}) |> get(~p"/me") |> html_response(200)
       assert html =~ ~s(id="my-invitations")

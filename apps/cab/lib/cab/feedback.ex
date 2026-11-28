@@ -192,7 +192,7 @@ defmodule Cab.Feedback do
 
   defp find_room(state, room_id) do
     case Enum.find(state.rooms, &(&1["id"] == room_id)) do
-      nil -> {:error, gettext("That room is not part of this session.")}
+      nil -> {:error, gettext("That room is not part of this spar.")}
       room -> {:ok, room}
     end
   end
@@ -204,7 +204,7 @@ defmodule Cab.Feedback do
   defp require_open(session, room) do
     cond do
       session.finished_at ->
-        {:error, :conflict, gettext("The session is finished, so feedback is closed.")}
+        {:error, :conflict, gettext("The spar is finished, so feedback is closed.")}
 
       room["status"] not in ["completed", "confirmed"] ->
         {:error, :conflict, gettext("Feedback opens once the room's ballot is in.")}

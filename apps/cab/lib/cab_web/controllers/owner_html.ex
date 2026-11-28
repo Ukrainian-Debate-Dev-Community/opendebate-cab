@@ -40,7 +40,7 @@ defmodule CabWeb.OwnerHTML do
   defp step_names do
     [
       registration: gettext("Registration"),
-      rooms: gettext("Rooms"),
+      rooms: gettext("Draw"),
       debates: gettext("Debates"),
       finished: gettext("Finished")
     ]
@@ -67,7 +67,7 @@ defmodule CabWeb.OwnerHTML do
 
     Enum.join(
       [
-        session.name || gettext("Session"),
+        session.name || gettext("Spar"),
         date,
         stage_words(Cab.Sessions.stage_of(session))
       ],
@@ -199,13 +199,13 @@ defmodule CabWeb.OwnerHTML do
 
   # the allocation's title: how many rooms, and who set that number
   defp allocation_title(%{draft_rooms: nil} = session, signups) do
-    gettext("Allocation — %{count} room(s), count automatic",
+    gettext("Draw — %{count} room(s), count automatic",
       count: Cab.Sessions.rooms_for(session, signups)
     )
   end
 
   defp allocation_title(session, signups) do
-    gettext("Allocation — %{count} room(s), count set by hand",
+    gettext("Draw — %{count} room(s), count set by hand",
       count: Cab.Sessions.rooms_for(session, signups)
     )
   end

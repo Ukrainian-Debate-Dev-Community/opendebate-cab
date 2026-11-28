@@ -132,7 +132,7 @@ defmodule CabWeb.RequiredFieldsTest do
         })
         |> html_response(422)
 
-      assert field_error(html, "Session name") == "Use plain text without control characters."
+      assert field_error(html, "Spar name") == "Use plain text without control characters."
 
       assert field_error(html, "Participant limit") ==
                "The participant limit is a whole number above zero, or empty for none."
@@ -145,7 +145,7 @@ defmodule CabWeb.RequiredFieldsTest do
         })
         |> html_response(422)
 
-      assert field_error(html, "Session name") == "120 characters at most."
+      assert field_error(html, "Spar name") == "120 characters at most."
       assert html =~ ~s(name="max_participants" value="12")
       assert Repo.all(Session) == []
     end

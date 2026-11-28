@@ -27,7 +27,7 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "A finished session cannot be cancelled."
+msgid "A finished spar cannot be cancelled."
 msgstr ""
 
 #: lib/cab/sessions.ex
@@ -37,7 +37,7 @@ msgstr ""
 
 #: lib/cab/accounts.ex
 #, elixir-autogen, elixir-format
-msgid "Both accounts took part in the same session. Ask the club head to remove one of them from it first."
+msgid "Both accounts took part in the same spar. Ask the club head to remove one of them from it first."
 msgstr ""
 
 #: lib/cab/links.ex
@@ -107,7 +107,7 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Only a finished session can be reopened."
+msgid "Only a finished spar can be reopened."
 msgstr ""
 
 #: lib/cab/sessions.ex
@@ -117,7 +117,7 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "People signed up for this session, so it cannot be deleted. Only a session nobody signed up for can be."
+msgid "People signed up for this spar, so it cannot be deleted. Only a spar nobody signed up for can be."
 msgstr ""
 
 #: lib/cab/sessions.ex
@@ -187,7 +187,7 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "Someone placed in a room isn't in this session."
+msgid "Someone placed in a room isn't in this spar."
 msgstr ""
 
 #: lib/cab/accounts.ex
@@ -227,12 +227,12 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "That person isn't in this session."
+msgid "That person isn't in this spar."
 msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "That room is not part of this session."
+msgid "That room is not part of this spar."
 msgstr ""
 
 #: lib/cab/sessions.ex
@@ -272,12 +272,12 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "The rooms are fixed once the session runs."
+msgid "The rooms are fixed once the spar runs."
 msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "The start time can only change before the session starts."
+msgid "The start time can only change before the spar starts."
 msgstr ""
 
 #: lib/cab/accounts.ex
@@ -302,17 +302,17 @@ msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "This session has no rooms to delete."
+msgid "This spar has no rooms to delete."
 msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "This session has rooms, so it cannot be deleted. Only a session nobody signed up for can be."
+msgid "This spar has rooms, so it cannot be deleted. Only a spar nobody signed up for can be."
 msgstr ""
 
 #: lib/cab/sessions.ex
 #, elixir-autogen, elixir-format
-msgid "This session is finished, so its people stay on record."
+msgid "This spar is finished, so its people stay on record."
 msgstr ""
 
 #: lib/cab/sessions.ex

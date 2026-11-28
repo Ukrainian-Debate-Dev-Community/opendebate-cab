@@ -235,6 +235,9 @@ defmodule CabWeb.MeLiveTest do
 
     {:ok, view, html} = conn |> init_test_session(%{user_id: judy.id}) |> live(~p"/me")
     assert html =~ ~s(id="now-ballot-71")
+    # the motion is out: its form folds into "Edit motion", the ballot leads
+    assert html =~ "Edit motion"
+    refute html =~ ~r/<details[^>]*id="now-motion-edit-71"[^>]*open/
     assert html =~ "Enter all 6 scores"
 
     ballot = fn gov, opp ->
@@ -242,12 +245,12 @@ defmodule CabWeb.MeLiveTest do
         "gov" => %{
           "PM" => %{"speaker" => "11", "score" => gov},
           "DPM" => %{"speaker" => "12", "score" => gov},
-          "GA" => %{"speaker" => "13", "score" => gov}
+          "GW" => %{"speaker" => "13", "score" => gov}
         },
         "opp" => %{
           "LO" => %{"speaker" => "21", "score" => opp},
           "DLO" => %{"speaker" => "22", "score" => opp},
-          "OA" => %{"speaker" => "23", "score" => opp}
+          "OW" => %{"speaker" => "23", "score" => opp}
         }
       }
     end

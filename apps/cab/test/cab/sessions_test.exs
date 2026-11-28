@@ -335,7 +335,7 @@ defmodule Cab.SessionsTest do
       session = session_fixture(club, engine_event_id: 11)
       stub(fn conn, _params -> state_stub(conn, [], [%{"id" => 71, "status" => "pending"}]) end)
 
-      assert {:error, :conflict, "The rooms are fixed once the session runs."} =
+      assert {:error, :conflict, "The rooms are fixed once the spar runs."} =
                Sessions.set_draft_rooms(session, 2)
     end
   end
@@ -553,7 +553,7 @@ defmodule Cab.SessionsTest do
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6], [7, 999]]))
 
-    assert message =~ "isn't in this session"
+    assert message =~ "isn't in this spar"
 
     assert {:error, %{rooms: message}} =
              Sessions.make_rooms(head, session, compose.(99, [[1, 2], [3, 4], [5, 6], [7, 1]]))
@@ -681,7 +681,7 @@ defmodule Cab.SessionsTest do
     assert :ok = Sessions.remove_signup(head, session, 42)
     assert_received {:deleted, "42", %{"id" => 9}}
 
-    assert {:error, "That person isn't in this session."} =
+    assert {:error, "That person isn't in this spar."} =
              Sessions.remove_signup(head, session, 77)
   end
 
@@ -772,7 +772,7 @@ defmodule Cab.SessionsTest do
              Sessions.remove_signups(head, session, [42, 43, 43, 77])
 
     assert seated =~ "Seated is seated in a room"
-    assert missing == "That person isn't in this session."
+    assert missing == "That person isn't in this spar."
     assert_received {:deleted, "43"}
     refute_received {:deleted, _}
   end
@@ -815,7 +815,7 @@ defmodule Cab.SessionsTest do
     refute_received {:deleted_room, _id}
 
     rooms_stub.([])
-    assert {:error, "This session has no rooms to delete."} = Sessions.delete_rooms(head, session)
+    assert {:error, "This spar has no rooms to delete."} = Sessions.delete_rooms(head, session)
   end
 
   test "editing a confirmed ballot: head only, unconfirm + replace + reconfirm, never wiped",
@@ -901,12 +901,12 @@ defmodule Cab.SessionsTest do
     # one sign-up is enough to keep it
     Agent.update(world, fn _ -> {[signup], []} end)
     assert {:error, :conflict, message} = Sessions.cancel(head, session)
-    assert message =~ "People signed up for this session"
+    assert message =~ "People signed up for this spar"
 
     # rooms (and with them any ballot) keep it too
     Agent.update(world, fn _ -> {[signup], [%{"id" => 71, "status" => "confirmed"}]} end)
     assert {:error, :conflict, message} = Sessions.cancel(head, session)
-    assert message =~ "This session has rooms"
+    assert message =~ "This spar has rooms"
 
     refute_received :event_deleted
     assert Sessions.get_by_uuid(session.uuid)
@@ -1273,7 +1273,7 @@ defmodule Cab.SessionsTest do
     assert {:error, %{scores: message}} = Sessions.submit_ballot(judge, session, 71, scores)
     assert message =~ "doesn't match the room's draw"
 
-    assert {:error, "That room is not part of this session."} =
+    assert {:error, "That room is not part of this spar."} =
              Sessions.submit_ballot(
                judge,
                session,
@@ -1386,7 +1386,7 @@ defmodule Cab.SessionsTest do
     end)
 
     assert {:error, :conflict, message} = Sessions.reopen_session(head, reopened)
-    assert message =~ "Only a finished session"
+    assert message =~ "Only a finished spar"
   end
 
   test "finish completes round and event and records the winner verbatim",

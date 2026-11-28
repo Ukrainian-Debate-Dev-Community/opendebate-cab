@@ -42,14 +42,14 @@
       href={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/delete"}
       quiet
     >
-      {gettext("Delete session")}
+      {gettext("Delete spar")}
     </:seg>
     <:seg
       :if={@view == :rooms and @state.stage in [:signup, :closed]}
       form="allocator-form"
       primary
     >
-      {gettext("Start session")}
+      {gettext("Start spar")}
     </:seg>
     <:seg
       :if={@view == :rooms and deletable_rooms?(@state)}
@@ -79,7 +79,7 @@
       }
       primary
     >
-      {gettext("Finish session")}
+      {gettext("Finish spar")}
     </:seg>
     <:seg
       :if={@view == :finished and @state.stage == :done}
@@ -93,14 +93,14 @@
       method="post"
       quiet
     >
-      {gettext("Reopen session")}
+      {gettext("Reopen spar")}
     </:seg>
   </.chrome>
 
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.page_head kicker={gettext("Run the session")} title={@state.event["name"]}>
+    <.page_head kicker={gettext("Run the spar")} title={@state.event["name"]}>
       <:meta>
         <.local_time :if={@current.scheduled_at} at={@current.scheduled_at} as={:datetime} />
         <.tag kind={stage_kind(@state.stage)}>{stage_words(@state.stage)}</.tag>
@@ -114,7 +114,7 @@
       class="session-picker"
       phx-change="pick_session"
     >
-      <label for="session-picker-select">{gettext("Session")}</label>
+      <label for="session-picker-select">{gettext("Spar")}</label>
       <select id="session-picker-select" name="session" class="input">
         <option
           :for={session <- @club_sessions}
@@ -127,7 +127,7 @@
     </form>
 
     <%!-- where the session is; each stage opens its own part of the page --%>
-    <.steps label={gettext("Session stages")}>
+    <.steps label={gettext("Spar stages")}>
       <:step
         :for={{step, name} <- step_names()}
         state={step_state(@state, step)}
@@ -151,7 +151,7 @@
           {gettext("Share to register: the club page")}
         </.copy_banner>
         <.banner :if={@state.stage != :signup} kind={:info}>
-          {gettext("Registration is closed for this session.")}
+          {gettext("Registration is closed for this spar.")}
         </.banner>
         <%!-- the people beside what changes them (on phones the forms lead) --%>
         <%= if @state.stage in [:signup, :closed] do %>
@@ -173,22 +173,22 @@
         <% else %>
           <.section title={gettext("Debates")} pad>
             {gettext(
-              "The debates start with the rooms: place everyone under Rooms, then Start session."
+              "The debates start with the draw: place everyone under Draw, then Start spar."
             )}
           </.section>
         <% end %>
       <% :finished -> %>
-        <.section title={gettext("Session")} pad>
+        <.section title={gettext("Spar")} pad>
           <%= if @state.stage == :done do %>
-            {gettext("This session is finished — results live on the")}
-            <.link href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}>{gettext("session page")}</.link>.
+            {gettext("This spar is finished — results live on the")}
+            <.link href={~p"/c/#{@club.uuid}/s/#{@current.uuid}"}>{gettext("spar page")}</.link>.
             <p>
               {gettext(
                 "Reopen it to edit a ballot or finish again: the results stay, the winners are recorded anew."
               )}
             </p>
           <% else %>
-            {gettext("When the debates are over, Finish session records the winners.")}
+            {gettext("When the debates are over, Finish spar records the winners.")}
           <% end %>
         </.section>
     <% end %>

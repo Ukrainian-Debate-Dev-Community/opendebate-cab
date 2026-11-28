@@ -84,7 +84,9 @@ defmodule CabWeb.StandingsFormatTest do
     refute html =~ "12.5%"
     assert html =~ ~s(href="/me?format=bp")
 
+    # BP shows first places, Australs (two teams) a win rate
     bp = conn |> log_in(user) |> get(~p"/me?format=bp") |> html_response(200)
-    assert bp =~ "12.5%"
+    assert bp =~ "First places"
+    refute bp =~ "12.5%"
   end
 end

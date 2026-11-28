@@ -247,5 +247,5 @@ defmodule CabWeb.SessionPageController do
   defp presence(_value), do: nil
 
   defp error_message(message) when is_binary(message), do: message
-  defp error_message(_other), do: gettext("This session is unavailable right now.")
+  defp error_message(_other), do: gettext("This spar is unavailable right now.")
 end

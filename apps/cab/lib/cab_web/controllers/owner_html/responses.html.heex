@@ -10,7 +10,7 @@
     crumbs={[
       {@club.name, ~p"/c/#{@club.uuid}"},
       {gettext("Club"), ~p"/c/#{@club.uuid}/owner"},
-      {@current.name || gettext("Session"), ~p"/c/#{@club.uuid}/owner/s/#{@current.uuid}"}
+      {@current.name || gettext("Spar"), ~p"/c/#{@club.uuid}/owner/s/#{@current.uuid}"}
     ]}
     here={gettext("Responses")}
   >
@@ -20,7 +20,7 @@
   </.chrome>
 
   <div class="pbody">
-    <.page_head kicker={gettext("Responses")} title={@current.name || gettext("Session")} />
+    <.page_head kicker={gettext("Responses")} title={@current.name || gettext("Spar")} />
 
     <.section title={
       ngettext("Responses — %{count} person", "Responses — %{count} people", length(@rows))

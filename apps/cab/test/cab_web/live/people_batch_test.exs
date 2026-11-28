@@ -278,7 +278,7 @@ defmodule CabWeb.PeopleBatchTest do
 
       assert [
                %{"participant_id" => 42, "error" => seated},
-               %{"participant_id" => 99, "error" => "That person isn't in this session."}
+               %{"participant_id" => 99, "error" => "That person isn't in this spar."}
              ] = body["refused"]
 
       assert seated =~ "Hugo Guest is seated in a room"

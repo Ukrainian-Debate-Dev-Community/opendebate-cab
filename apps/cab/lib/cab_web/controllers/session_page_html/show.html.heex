@@ -26,7 +26,7 @@
   <div class="pbody">
     <.flash_banners flash={@flash} />
 
-    <.page_head kicker={gettext("Session")} title={@state.event["name"]}>
+    <.page_head kicker={gettext("Spar")} title={@state.event["name"]}>
       <:meta>
         <.local_time
           at={@session.scheduled_at || @session.inserted_at}
@@ -42,7 +42,7 @@
     </.stats>
 
     <.banner :if={@state.stage != :done && @my_signup} kind={:good}>
-      {gettext("You are registered for this session.")}
+      {gettext("You are registered for this spar.")}
       <span :if={@hub}>
         {gettext("Your seat, the motion, the ballot and feedback are on")}
         <.link href={@hub}>
@@ -51,7 +51,7 @@
       </span>
     </.banner>
     <.banner :if={@state.stage in [:closed, :running]} kind={:info}>
-      {gettext("Registration is closed for this session.")}
+      {gettext("Registration is closed for this spar.")}
     </.banner>
 
     <div class="split">
@@ -124,7 +124,7 @@
             </.section>
 
             <.section :if={@state.rooms == []} title={gettext("Rooms")} pad>
-              {gettext("This session finished without rooms.")}
+              {gettext("This spar finished without rooms.")}
             </.section>
 
             <.section :if={@state.rooms != []} title={gettext("Share the results")}>
@@ -152,7 +152,8 @@
                   row_class={fn room_team -> room_team["rank"] == 1 && "win" end}
                 >
                   <:col :let={room_team} label={gettext("Place")} class="st">
-                    {(ballot_in?(room) && room_team["rank"] && ordinal(room_team["rank"])) || "—"}
+                    {(ballot_in?(room) && room_team["rank"] &&
+                        place_words(room_team["rank"], Cab.Format.of(@session))) || "—"}
                   </:col>
                   <:col :let={room_team} label={gettext("Side")} code>
                     {side_code(room_team["position"], Cab.Format.of(@session))}
@@ -168,7 +169,12 @@
                   <:col :let={room_team} label={gettext("Speaker points")} num>
                     {points_words(team_points(room_team))}
                   </:col>
-                  <:col :let={room_team} label={gettext("Team points")} num>
+                  <:col
+                    :let={room_team}
+                    :if={team_points?(Cab.Format.of(@session))}
+                    label={gettext("Team points")}
+                    num
+                  >
                     {points_words(rank_points(room, room_team))}
                   </:col>
                 </.table>
@@ -177,7 +183,7 @@
         <% end %>
       </div>
       <div class="stack">
-        <.section title={gettext("Session")} pad>
+        <.section title={gettext("Spar")} pad>
           <p id="session-short-link">
             {gettext("Short link:")} <code>{bare_url(@short_url)}</code>
             <.copy text={@short_url} />

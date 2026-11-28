@@ -23,7 +23,7 @@ defmodule CabWeb.InvitationController do
           |> put_flash(
             :info,
             gettext("You are in %{session} at %{club}.",
-              session: session.name || gettext("the session"),
+              session: session.name || gettext("the spar"),
               club: session.club.name
             )
           )

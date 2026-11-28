@@ -27,7 +27,7 @@ defmodule CabWeb.Api.FeedbackController do
            Feedback.submit(conn.assigns.current_user, conn.assigns.session, room_id, attrs) do
       conn |> put_status(201) |> json(%{room_id: room_id, status: "sent"})
     else
-      :error -> {:error, gettext("That room is not part of this session.")}
+      :error -> {:error, gettext("That room is not part of this spar.")}
       error -> error
     end
   end

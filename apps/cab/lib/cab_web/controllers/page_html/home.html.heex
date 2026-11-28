@@ -8,12 +8,12 @@
       href={~p"/c/#{@open_club.uuid}"}
       link={gettext("Open")}
     >
-      {gettext("%{club}: a session is open.", club: @open_club.name)}
+      {gettext("%{club}: a spar is open.", club: @open_club.name)}
     </.banner>
     <.banner :if={@invitations > 0} kind={:info} href={~p"/me"} link={gettext("My page")}>
       {ngettext(
-        "A club head added you to a session.",
-        "Club heads added you to %{count} sessions.",
+        "A club head added you to a spar.",
+        "Club heads added you to %{count} spars.",
         @invitations
       )} {gettext("Accept or decline on My page.")}
     </.banner>
@@ -23,11 +23,11 @@
       <p>
         {CabWeb.Operator.get(:welcome) ||
           gettext(
-            "Find a club, register for a session, debate — and follow standings and your own results in one place."
+            "Find a club, register for a spar, debate — and follow standings and your own results in one place."
           )}
       </p>
       <p class="mut">
-        {gettext("Registering for a session needs no account — the club shares one link.")}
+        {gettext("Registering for a spar needs no account — the club shares one link.")}
         <.link href={~p"/signin"}>{gettext("Sign in")}</.link>
         {gettext("to keep your history, schedule and personal stats.")}
       </p>
@@ -55,7 +55,7 @@
           {CabWeb.ClubProfile.formats(club.formats, club.format_other)}
         </:col>
         <:col :let={club} label={gettext("Members")} num>{@member_counts[club.id] || 0}</:col>
-        <:col :let={club} label={gettext("Next session")} class="st">
+        <:col :let={club} label={gettext("Next spar")} class="st">
           <%= case @tonight[club.id] do %>
             <% nil -> %>
               {gettext("not planned yet")}

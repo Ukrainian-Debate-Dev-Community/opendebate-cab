@@ -391,7 +391,7 @@ defmodule Cab.Sessions do
 
           _stage ->
             {:error, :conflict,
-             dgettext("errors", "The start time can only change before the session starts.")}
+             dgettext("errors", "The start time can only change before the spar starts.")}
         end
       end
 
@@ -725,7 +725,7 @@ defmodule Cab.Sessions do
   defp require_draftable(%{stage: stage}) when stage in [:signup, :closed], do: :ok
 
   defp require_draftable(_session),
-    do: {:error, :conflict, dgettext("errors", "The rooms are fixed once the session runs.")}
+    do: {:error, :conflict, dgettext("errors", "The rooms are fixed once the spar runs.")}
 
   defp parse_slot(slot, rooms, %Format{} = format) when is_binary(slot) do
     seats = Enum.map(1..format.seats, &Integer.to_string/1)
@@ -1035,7 +1035,7 @@ defmodule Cab.Sessions do
   defp require_waitlisted(%{stage: :done}, _participant),
     do:
       {:error, :conflict,
-       dgettext("errors", "This session is finished, so its people stay on record.")}
+       dgettext("errors", "This spar is finished, so its people stay on record.")}
 
   defp require_waitlisted(%{rooms: rooms}, participant) do
     if MapSet.member?(seated_ids(rooms), participant["id"]),
@@ -1051,7 +1051,7 @@ defmodule Cab.Sessions do
 
   defp find_participant(participants, participant_id) do
     case Enum.find(participants, &(&1["id"] == participant_id)) do
-      nil -> {:error, dgettext("errors", "That person isn't in this session.")}
+      nil -> {:error, dgettext("errors", "That person isn't in this spar.")}
       participant -> {:ok, participant}
     end
   end
@@ -1276,8 +1276,7 @@ defmodule Cab.Sessions do
 
       cond do
         Enum.any?(judges ++ pids, &(not MapSet.member?(signed_ids, &1))) ->
-          {:error,
-           %{rooms: dgettext("errors", "Someone placed in a room isn't in this session.")}}
+          {:error, %{rooms: dgettext("errors", "Someone placed in a room isn't in this spar.")}}
 
         judges ++ pids != Enum.uniq(judges ++ pids) ->
           {:error, %{rooms: dgettext("errors", "Someone is placed in two seats.")}}
@@ -1415,7 +1414,7 @@ defmodule Cab.Sessions do
            {:ok, rooms} <- EngineApi.list_rooms(actor, round_id) do
         cond do
           rooms == [] ->
-            {:error, dgettext("errors", "This session has no rooms to delete.")}
+            {:error, dgettext("errors", "This spar has no rooms to delete.")}
 
           Enum.any?(rooms, &(&1["status"] != "pending")) ->
             {:error, dgettext("errors", "Rooms can only be deleted before any ballot is in.")}
@@ -1460,7 +1459,7 @@ defmodule Cab.Sessions do
 
   # a finished session is the club's history: it stays
   defp require_unfinished(%Session{finished_at: %DateTime{}}),
-    do: {:error, :conflict, dgettext("errors", "A finished session cannot be cancelled.")}
+    do: {:error, :conflict, dgettext("errors", "A finished spar cannot be cancelled.")}
 
   defp require_unfinished(_session), do: :ok
 
@@ -1473,20 +1472,20 @@ defmodule Cab.Sessions do
   a session with rooms (so maybe ballots) or sign-ups stays too.
   """
   def deletion_refusal(%{stage: :done}),
-    do: dgettext("errors", "A finished session cannot be cancelled.")
+    do: dgettext("errors", "A finished spar cannot be cancelled.")
 
   def deletion_refusal(%{rooms: [_ | _]}),
     do:
       dgettext(
         "errors",
-        "This session has rooms, so it cannot be deleted. Only a session nobody signed up for can be."
+        "This spar has rooms, so it cannot be deleted. Only a spar nobody signed up for can be."
       )
 
   def deletion_refusal(%{signups: [_ | _]}),
     do:
       dgettext(
         "errors",
-        "People signed up for this session, so it cannot be deleted. Only a session nobody signed up for can be."
+        "People signed up for this spar, so it cannot be deleted. Only a spar nobody signed up for can be."
       )
 
   def deletion_refusal(_state), do: nil
@@ -1630,7 +1629,7 @@ defmodule Cab.Sessions do
 
   defp find_room(rooms, room_id) do
     case Enum.find(rooms, &(&1["id"] == room_id)) do
-      nil -> {:error, dgettext("errors", "That room is not part of this session.")}
+      nil -> {:error, dgettext("errors", "That room is not part of this spar.")}
       room -> {:ok, room}
     end
   end
@@ -1881,7 +1880,7 @@ defmodule Cab.Sessions do
   defp require_finished(%{stage: :done}), do: :ok
 
   defp require_finished(_state),
-    do: {:error, :conflict, dgettext("errors", "Only a finished session can be reopened.")}
+    do: {:error, :conflict, dgettext("errors", "Only a finished spar can be reopened.")}
 
   @doc """
   A guest's place claimed after the session finished: if that place
@@ -2183,7 +2182,7 @@ defmodule Cab.Sessions do
   end
 
   @doc """
-  The club page's "Club Sessions" table: EVERY session, latest first,
+  The club page's "Club Spars" table: EVERY session, latest first,
   with its status from cab's records - open (registration open) |
   full (open, the limit reached) | closed | running | finished. Pure
   database, no engine call.

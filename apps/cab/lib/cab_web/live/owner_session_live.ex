@@ -306,7 +306,7 @@ defmodule CabWeb.OwnerSessionLive do
   def handle_event("start", _params, socket) do
     socket.assigns.current_user
     |> Sessions.start_from_draft(socket.assigns.current)
-    |> reply(socket, &gettext("Session started with %{count} room(s).", count: &1))
+    |> reply(socket, &gettext("Spar started with %{count} room(s).", count: &1))
   end
 
   def handle_event("make_rooms", _params, socket) do
@@ -364,7 +364,7 @@ defmodule CabWeb.OwnerSessionLive do
     else
       _ ->
         socket
-        |> put_flash(:error, gettext("This session is unavailable right now."))
+        |> put_flash(:error, gettext("This spar is unavailable right now."))
         |> redirect(to: ~p"/c/#{club.uuid}/owner")
     end
   end

@@ -21,8 +21,8 @@ defmodule CabWeb.BallotFormTest do
     [gov, opp] = BallotForm.teams(room, Cab.Format.get("aus"))
 
     assert {gov.side, opp.side} == {"gov", "opp"}
-    assert Enum.map(gov.rows, & &1.role) == ["PM", "DPM", "GA"]
-    assert Enum.map(opp.rows, & &1.role) == ["LO", "DLO", "OA"]
+    assert Enum.map(gov.rows, & &1.role) == ["PM", "DPM", "GW"]
+    assert Enum.map(opp.rows, & &1.role) == ["LO", "DLO", "OW"]
     assert Enum.map(opp.rows, & &1.iron) == [false, false, true]
     assert Enum.map(opp.rows, & &1.selected) == [21, 22, 21]
     assert length(opp.rows |> hd() |> Map.get(:speakers)) == 2
@@ -33,12 +33,12 @@ defmodule CabWeb.BallotFormTest do
       "gov" => %{
         "PM" => %{"speaker" => "11", "score" => "75"},
         "DPM" => %{"speaker" => "12", "score" => "74"},
-        "GA" => %{"speaker" => "13", "score" => "73"}
+        "GW" => %{"speaker" => "13", "score" => "73"}
       },
       "opp" => %{
         "LO" => %{"speaker" => "21", "score" => "76"},
         "DLO" => %{"speaker" => "22", "score" => "75"},
-        "OA" => %{"speaker" => "21", "iron" => "on", "score" => "70"}
+        "OW" => %{"speaker" => "21", "iron" => "on", "score" => "70"}
       }
     }
 
