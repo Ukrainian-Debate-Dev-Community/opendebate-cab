@@ -350,6 +350,12 @@ defmodule CabWeb.MeLiveTest do
     assert_received :signed_up
     assert html =~ "You are registered."
     assert html =~ "you are registered"
+    refute html =~ "checked in"
+
+    # the head checks her in on the night: My page says so, live
+    Agent.update(signed, fn [participant] -> [Map.put(participant, "checked_in", true)] end)
+    Cab.Sessions.broadcast(session)
+    assert render(view) =~ "checked in"
 
     view |> element(~s(button[phx-click="cancel_registration"])) |> render_click()
     assert_received :cancelled

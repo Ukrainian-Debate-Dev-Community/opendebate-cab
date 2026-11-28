@@ -39,7 +39,7 @@ defmodule CabWeb.OwnerHTML do
   # the stages as the steps name them
   defp step_names do
     [
-      registration: gettext("Registration"),
+      registration: gettext("Check-in"),
       rooms: gettext("Draw"),
       debates: gettext("Debates"),
       finished: gettext("Finished")
@@ -82,12 +82,24 @@ defmodule CabWeb.OwnerHTML do
   defp scope_name("members"), do: gettext("Members only")
   defp scope_name(_both), do: gettext("Guests and members")
 
-  # the allocator's people: participant id => %{id, name}
+  # the allocator's people: participant id => %{id, name, absent}; once
+  # anyone is checked in, those not checked in are marked absent
   defp people(signups) do
+    any_here? = Enum.any?(signups, &Cab.Sessions.checked_in?/1)
+
     Map.new(signups, fn participant ->
-      {participant["id"], %{id: participant["id"], name: participant["display_name"]}}
+      {participant["id"],
+       %{
+         id: participant["id"],
+         name: participant["display_name"],
+         absent: any_here? and not Cab.Sessions.checked_in?(participant)
+       }}
     end)
   end
+
+  # "12 of 18 checked in"
+  defp checked_in_count(signups),
+    do: Enum.count(signups, &Cab.Sessions.checked_in?/1)
 
   defp guest_link(%{"id" => participant_id}, links),
     do: Enum.find(links, &(&1.engine_participant_id == participant_id))
@@ -186,15 +198,26 @@ defmodule CabWeb.OwnerHTML do
     ngettext("%{count} person", "%{count} people", people)
   end
 
+  # who the draw is for: those checked in (once anyone is), else everyone registered
   defp attendance_line(session, signups) do
     rooms = Cab.Sessions.rooms_for(session, signups)
+    here = checked_in_count(signups)
 
-    ngettext(
-      "%{people} checked in, %{count} room.",
-      "%{people} checked in, %{count} rooms.",
-      rooms,
-      people: signed_up_counts(signups)
-    )
+    if here > 0,
+      do:
+        ngettext(
+          "%{people} checked in, %{count} room.",
+          "%{people} checked in, %{count} rooms.",
+          rooms,
+          people: here
+        ),
+      else:
+        ngettext(
+          "%{people} registered, nobody checked in yet: %{count} room.",
+          "%{people} registered, nobody checked in yet: %{count} rooms.",
+          rooms,
+          people: length(signups)
+        )
   end
 
   # the allocation's title: how many rooms, and who set that number

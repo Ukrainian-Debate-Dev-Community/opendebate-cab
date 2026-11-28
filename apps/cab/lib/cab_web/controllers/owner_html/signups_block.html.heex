@@ -1,4 +1,25 @@
 <.section title={gettext("People (%{count})", count: signed_up_counts(@state.signups))}>
+  <%!-- check-in: who is here tonight; the draw takes those checked in --%>
+  <div :if={@state.signups != []} id="check-in" class="pad checkin-bar">
+    <span class="count">
+      {gettext("%{here} of %{count} checked in",
+        here: checked_in_count(@state.signups),
+        count: length(@state.signups)
+      )}
+    </span>
+    <button
+      :if={
+        @state.stage in [:signup, :closed] and
+          checked_in_count(@state.signups) < length(@state.signups)
+      }
+      type="button"
+      class="btn-quiet"
+      phx-click="check_in_all"
+    >
+      {gettext("Check in all")}
+    </button>
+    <span class="mut">{gettext("Mark who is here; the draw takes those checked in.")}</span>
+  </div>
   <div :if={@links != []} class="pad">
     <p>{gettext("A guest's personal link is their only access — share it only with them.")}</p>
     <.form for={%{}} id="send-guest-link" class="send-link" phx-submit="send_link">
@@ -36,6 +57,14 @@
       <span class="count">
         {ngettext("%{count} selected", "%{count} selected", MapSet.size(@selected))}
       </span>
+      <button
+        :if={@state.stage in [:signup, :closed]}
+        type="button"
+        class="btn-quiet"
+        phx-click="check_in_selected"
+      >
+        {gettext("Check in")}
+      </button>
       <button
         type="button"
         id="copy-links"
@@ -110,6 +139,24 @@
       <.sub>{person_kind(participant, @links, @members, @invitations)}</.sub>
       <%!-- the guest's answers to the club's registration form: head only --%>
       <Ui.FormComponents.form_answers answers={guest_answers(participant, @links)} />
+    </:col>
+    <:col :let={participant} label={gettext("Here")}>
+      <%= if @state.stage in [:signup, :closed] do %>
+        <button
+          type="button"
+          class={["here", Cab.Sessions.checked_in?(participant) && "on"]}
+          phx-click="check_in"
+          phx-value-id={participant["id"]}
+          phx-value-here={to_string(!Cab.Sessions.checked_in?(participant))}
+          aria-pressed={to_string(Cab.Sessions.checked_in?(participant))}
+        >
+          {if Cab.Sessions.checked_in?(participant),
+            do: gettext("checked in"),
+            else: gettext("check in")}
+        </button>
+      <% else %>
+        {if Cab.Sessions.checked_in?(participant), do: gettext("checked in"), else: "—"}
+      <% end %>
     </:col>
     <:col :let={participant} label={gettext("Seat")}>
       {seat_words(participant, @state, @draft, Cab.Format.of(@current))}

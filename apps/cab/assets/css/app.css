@@ -166,6 +166,8 @@ main.page-main { width:100%; flex:1 0 auto; }
 .chip .k { font-size:var(--step-m2); font-weight:800; letter-spacing:.05em;
            color:var(--brand); margin-left:auto; }
 .chip.adj .k { color:var(--oo); }
+/* not checked in: still placeable, but marked */
+.chip.absent { opacity:0.55; border-style:dashed; }
 .chip.dragging { opacity:.35; }
 /* the copy that follows a finger drag; it ignores touches so the slot
    under the finger is found */
@@ -301,6 +303,13 @@ main.page-main { width:100%; flex:1 0 auto; }
 /* the chair's motion on My page: open until published, then folded into "Edit motion" */
 .motion-edit > summary { cursor:pointer; font-weight:700; color:var(--brand-700); }
 .motion-edit[open] > summary { color:var(--muted); }
+
+/* check-in: who is here, on the head's people table */
+.checkin-bar { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2) var(--sp-3); }
+.checkin-bar .count { font-weight:700; }
+.here { border:1px solid var(--line); border-radius:var(--r-pill); padding:0.1rem var(--sp-2);
+        background:var(--surface); color:var(--muted); font-size:var(--step-m1); cursor:pointer; white-space:nowrap; }
+.here.on { background:var(--ok-bg); color:var(--ok-ink); border-color:transparent; font-weight:700; }
 
 /* the head's session picker, under the page head */
 .session-picker { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); margin:0 0 var(--sp-3); }

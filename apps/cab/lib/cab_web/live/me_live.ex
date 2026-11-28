@@ -72,8 +72,12 @@ defmodule CabWeb.MeLive do
   # a session on the schedule changed (rooms made, a motion out, a
   # ballot in): read where the user sits again
   @impl true
-  def handle_info({:session_state, _uuid, _state}, socket), do: {:noreply, load_seats(socket)}
-  def handle_info({:session_changed, _uuid}, socket), do: {:noreply, load_seats(socket)}
+  def handle_info({:session_state, _uuid, _state}, socket),
+    do: {:noreply, socket |> load_seats() |> load_open_sessions()}
+
+  def handle_info({:session_changed, _uuid}, socket),
+    do: {:noreply, socket |> load_seats() |> load_open_sessions()}
+
   def handle_info(_message, socket), do: {:noreply, socket}
 
   # the chair publishes (or updates) their room's motion; a first
@@ -291,20 +295,35 @@ defmodule CabWeb.MeLive do
   # the sessions taking sign-ups in the user's clubs, soonest first,
   # each marked when the user is in it (their schedule says so)
   defp load_open_sessions(socket) do
+    user = socket.assigns.current_user
     mine = MapSet.new(socket.assigns.schedule, & &1.session.id)
 
     rows =
       for %{status: "approved", club: club} <- socket.assigns.memberships,
           session <- Sessions.open_for_club(club) do
+        registered = MapSet.member?(mine, session.id)
+
         %{
           session: %{session | club: club},
           club: club,
-          registered: MapSet.member?(mine, session.id)
+          registered: registered,
+          checked_in: registered and checked_in?(%{session | club: club}, user)
         }
       end
       |> Enum.sort_by(&(&1.session.scheduled_at || &1.session.inserted_at), DateTime)
 
     assign(socket, :open_sessions, rows)
+  end
+
+  # has the head checked the user in for this session?
+  defp checked_in?(session, user) do
+    case Sessions.state(session) do
+      {:ok, %{signups: signups}} ->
+        Enum.any?(signups, &(Sessions.own_participant?(&1, user) and Sessions.checked_in?(&1)))
+
+      _error ->
+        false
+    end
   end
 
   # each seat with its feedback: nil (not a speaker, or not open yet),

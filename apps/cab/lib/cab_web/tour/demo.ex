@@ -313,9 +313,18 @@ defmodule CabWeb.Tour.Demo do
   end
 
   @doc "The engine's sign-ups (participants)."
-  def signups do
+  def signups(stage \\ :running) do
+    # before the draw two speakers are not here yet; once rooms exist,
+    # everyone seated was checked in
+    late = if stage in [:signup, :closed], do: [214, 216], else: []
+
     for {pid, name, node} <- @people,
-        do: %{"id" => pid, "display_name" => name, "user_id" => node}
+        do: %{
+          "id" => pid,
+          "display_name" => name,
+          "user_id" => node,
+          "checked_in" => pid not in late
+        }
   end
 
   @doc """
@@ -338,7 +347,7 @@ defmodule CabWeb.Tour.Demo do
         "status" => if(stage == :done, do: "completed", else: "scheduled")
       },
       round: if(rooms != [], do: %{"id" => -21, "sequence" => 1}),
-      signups: signups(),
+      signups: signups(stage),
       rooms: rooms,
       stage: stage
     }
