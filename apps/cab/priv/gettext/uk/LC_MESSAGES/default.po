@@ -361,7 +361,7 @@ msgstr "У кімнаті %{seats} місць (%{speakers} спікерів і �
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "A spar moves through Registration, Draw, Debates and Finished. Evening comes: Daria goes to the Draw."
-msgstr "Спаринг проходить етапи Реєстрація, Розсадка, Дебати й Завершено. Настає вечір: Дарія переходить до розсадки."
+msgstr "Спаринг проходить етапи Реєстрація, Сітка, Дебати й Завершено. Настає вечір: Дарія переходить до сітки."
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -1090,17 +1090,17 @@ msgstr "Спершу розподіліть людей по кімнатах. А
 #: lib/cab_web/controllers/session_page_html/room.html.heex
 #, elixir-autogen, elixir-format
 msgid "Draw"
-msgstr "Розсадка"
+msgstr "Сітка"
 
 #: lib/cab_web/controllers/owner_html.ex
 #, elixir-autogen, elixir-format
 msgid "Draw — %{count} room(s), count automatic"
-msgstr "Розсадка — кімнат: %{count}, кількість автоматична"
+msgstr "Сітка — кімнат: %{count}, кількість автоматична"
 
 #: lib/cab_web/controllers/owner_html.ex
 #, elixir-autogen, elixir-format
 msgid "Draw — %{count} room(s), count set by hand"
-msgstr "Розсадка — кімнат: %{count}, кількість задано вручну"
+msgstr "Сітка — кімнат: %{count}, кількість задано вручну"
 
 #: lib/cab_web/controllers/owner_html/signups_block.html.heex
 #, elixir-autogen, elixir-format
@@ -2631,7 +2631,7 @@ msgstr "Поширте для реєстрації: сторінка клубу"
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "She makes the draw - Anna into Opening Opposition, Petro into the chair - and starts the spar."
-msgstr "Вона робить розсадку - Анну в Першу опозицію, Петра на місце судді - і починає спаринг."
+msgstr "Вона складає сітку - Анну в Першу опозицію, Петра на місце судді - і починає спаринг."
 
 #: lib/cab_web/controllers/session_page_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -3011,7 +3011,7 @@ msgstr "Поточний спаринг - у розділі «Спаринги»
 #: lib/cab_web/controllers/owner_html/session.html.heex
 #, elixir-autogen, elixir-format
 msgid "The debates start with the draw: place everyone under Draw, then Start spar."
-msgstr "Дебати починаються з розсадки: розмістіть усіх у розділі «Розсадка», потім «Почати спаринг»."
+msgstr "Дебати починаються з сітки: розмістіть усіх у розділі «Сітка», потім «Почати спаринг»."
 
 #: lib/cab_web/controllers/owner_controller.ex
 #, elixir-autogen, elixir-format
