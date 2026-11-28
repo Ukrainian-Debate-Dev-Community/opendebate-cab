@@ -262,6 +262,7 @@
           <%= cond do %>
             <% row.registered -> %>
               {gettext("you are registered")}
+              <.sub :if={Map.get(row, :checked_in)}>{gettext("checked in")}</.sub>
             <% Cab.Sessions.full?(row.session) -> %>
               {gettext("full")}
             <% left = Cab.Sessions.places_left(row.session) -> %>

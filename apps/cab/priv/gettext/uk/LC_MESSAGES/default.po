@@ -181,6 +181,11 @@ msgstr "%{done} E-mail не вдалося надіслати: надішліт�
 msgid "%{field}: %{error}"
 msgstr "%{field}: %{error}"
 
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{here} of %{count} checked in"
+msgstr "%{here} з %{count} на місці"
+
 #: lib/cab_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
 msgid "%{method} is now linked to this account."
@@ -229,6 +234,14 @@ msgid_plural "%{people} checked in, %{count} rooms."
 msgstr[0] "%{people} на місці, %{count} кімната."
 msgstr[1] "%{people} на місці, %{count} кімнати."
 msgstr[2] "%{people} на місці, %{count} кімнат."
+
+#: lib/cab_web/controllers/owner_html.ex
+#, elixir-autogen, elixir-format
+msgid "%{people} registered, nobody checked in yet: %{count} room."
+msgid_plural "%{people} registered, nobody checked in yet: %{count} rooms."
+msgstr[0] "%{people} зареєстровано, ще ніхто не відмічений: %{count} кімната."
+msgstr[1] "%{people} зареєстровано, ще ніхто не відмічений: %{count} кімнати."
+msgstr[2] "%{people} зареєстровано, ще ніхто не відмічений: %{count} кімнат."
 
 #: lib/cab_web/session_format.ex
 #, elixir-autogen, elixir-format
@@ -360,8 +373,8 @@ msgstr "У кімнаті %{seats} місць (%{speakers} спікерів і �
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "A spar moves through Registration, Draw, Debates and Finished. Evening comes: Daria goes to the Draw."
-msgstr "Спаринг проходить етапи Реєстрація, Сітка, Дебати й Завершено. Настає вечір: Дарія переходить до сітки."
+msgid "A spar moves through Check-in, Draw, Debates and Finished. Everyone is checked in: Daria goes to the Draw."
+msgstr "Спаринг проходить етапи Чек-ін, Сітка, Дебати й Завершено. Усі на місці: Дарія переходить до сітки."
 
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
@@ -749,6 +762,21 @@ msgstr "Змініть час, щоб перенести кінець підго
 #, elixir-autogen, elixir-format
 msgid "Chapters"
 msgstr "Розділи"
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Check in"
+msgstr "Відмітити"
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Check in all"
+msgstr "Відмітити всіх"
+
+#: lib/cab_web/controllers/owner_html.ex
+#, elixir-autogen, elixir-format
+msgid "Check-in"
+msgstr "Чек-ін"
 
 #: lib/cab_web/live/owner_session_live.ex
 #, elixir-autogen, elixir-format
@@ -1416,6 +1444,11 @@ msgstr "Вітаємо, %{name}.\n\nВи зареєструвалися на %{s
 msgid "Her members, each with their saved answers."
 msgstr "Її члени клубу, кожен зі збереженими відповідями."
 
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Here"
+msgstr "На місці"
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "History"
@@ -1606,6 +1639,11 @@ msgstr "Головна"
 #, elixir-autogen, elixir-format
 msgid "Mark wants to start debating. Every club on cab is listed with its next spar; he picks Riverside."
 msgstr "Марк хоче почати дебатувати. Усі клуби в cab показано з найближчим спарингом; він обирає Riverside."
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Mark who is here; the draw takes those checked in."
+msgstr "Відмічайте, хто прийшов; у сітку йдуть ті, хто на місці."
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
@@ -2291,7 +2329,6 @@ msgstr "Для реєстрації на спаринг акаунт не пот
 
 #: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/me_html/show.html.heex
-#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registration"
@@ -2711,8 +2748,8 @@ msgstr "Способи входу"
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Sign-ups reach Daria live: members, people she added by hand, guests with their own personal link."
-msgstr "Реєстрації надходять до Дарії наживо: члени клубу, люди, яких вона додала вручну, гості з власним персональним посиланням."
+msgid "Sign-ups reach Daria live - members, people she added by hand, guests with a personal link - and on the night she checks in who is here."
+msgstr "Реєстрації надходять до Дарії наживо - члени клубу, люди, яких вона додала вручну, гості з персональним посиланням - а ввечері вона відмічає, хто прийшов."
 
 #: lib/cab_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
@@ -3667,6 +3704,17 @@ msgstr "cab: тур"
 msgid "cancel"
 msgstr "скасувати"
 
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "check in"
+msgstr "відмітити"
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "checked in"
+msgstr "на місці"
+
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "closes registration and opens these rooms."
@@ -3804,6 +3852,11 @@ msgstr "резолюцію задано, %{status}"
 #, elixir-autogen, elixir-format
 msgid "nobody is placed automatically"
 msgstr "автоматично нікого не розсаджують"
+
+#: lib/cab_web/components/ui.ex
+#, elixir-autogen, elixir-format
+msgid "not checked in"
+msgstr "не відмічено"
 
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex
 #, elixir-autogen, elixir-format

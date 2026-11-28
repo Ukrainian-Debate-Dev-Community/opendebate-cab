@@ -787,7 +787,54 @@ defmodule Cab.Sessions do
   `room_count/1`.
   """
   def rooms_for(%Session{draft_rooms: rooms}, _signups) when is_integer(rooms), do: rooms
-  def rooms_for(%Session{} = session, signups), do: room_count(signups, Format.of(session))
+
+  def rooms_for(%Session{} = session, signups),
+    do: room_count(present(signups), Format.of(session))
+
+  @doc "Is this sign-up checked in (marked present by the head)?"
+  def checked_in?(participant), do: participant["checked_in"] == true
+
+  @doc """
+  Who the draw is for: those checked in, once the head has checked
+  anyone in; before that, everyone registered.
+  """
+  def present(signups) do
+    case Enum.filter(signups, &checked_in?/1) do
+      [] -> signups
+      here -> here
+    end
+  end
+
+  @doc """
+  CHECK-IN: the head marks people present (or not) - one, the picked
+  ones, or everyone - in the engine's own check-in, until the spar is
+  finished. `:ok`, `{:error, :forbidden}` or the engine's refusal.
+  """
+  def check_in(%User{} = user, %Session{} = session, participant_ids, here?)
+      when is_list(participant_ids) and is_boolean(here?) do
+    club = session_club(session)
+
+    result =
+      with true <- Clubs.covers?(Clubs.role_for(club, user), :owner) || {:error, :forbidden},
+           true <-
+             is_nil(session.finished_at) ||
+               {:error, :conflict,
+                dgettext("errors", "This spar is finished, so its people stay on record.")},
+           {:ok, actor} <- Clubs.club_actor(club),
+           {:ok, _} <- mark_present(actor, session, participant_ids, here?) do
+        :ok
+      end
+
+    notify(result, session)
+  end
+
+  defp mark_present(_actor, _session, [], _here?), do: {:ok, :none}
+
+  defp mark_present(actor, session, [id], here?),
+    do: EngineApi.check_in(actor, session.engine_event_id, id, here?)
+
+  defp mark_present(actor, session, ids, here?),
+    do: EngineApi.check_in_many(actor, session.engine_event_id, ids, here?)
 
   @doc """
   The head reopens sign-ups: only possible while `:closed` (no rooms

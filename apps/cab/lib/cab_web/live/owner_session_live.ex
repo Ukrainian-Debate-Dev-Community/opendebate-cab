@@ -236,6 +236,25 @@ defmodule CabWeb.OwnerSessionLive do
   def handle_event("cancel_remove", _params, socket),
     do: {:noreply, assign(socket, :confirm_remove, false)}
 
+  # check-in: the head marks who is here - one person, the picked ones,
+  # or everyone not yet checked in
+  def handle_event("check_in", %{"id" => id, "here" => here}, socket),
+    do: {:noreply, check_in(socket, [to_int(id)], here == "true")}
+
+  def handle_event("check_in_selected", _params, socket) do
+    ids = for id <- socket.assigns.selected, do: id
+    {:noreply, socket |> check_in(ids, true) |> assign(selected: MapSet.new())}
+  end
+
+  def handle_event("check_in_all", _params, socket) do
+    ids =
+      for participant <- socket.assigns.state.signups,
+          not Sessions.checked_in?(participant),
+          do: participant["id"]
+
+    {:noreply, check_in(socket, ids, true)}
+  end
+
   # each checked person goes through the single removal; who stays is listed with why
   def handle_event("remove_selected", _params, socket) do
     %{current_user: head, current: session, state: state, selected: selected} = socket.assigns
@@ -381,6 +400,17 @@ defmodule CabWeb.OwnerSessionLive do
       feedback_progress: Cab.Feedback.progress(state, feedback),
       feedback_missing: Cab.Feedback.missing(state, feedback)
     )
+  end
+
+  defp check_in(socket, ids, here?) do
+    %{current_user: head, current: session} = socket.assigns
+
+    case Sessions.check_in(head, session, ids, here?) do
+      :ok -> load(socket)
+      {:error, :conflict, message} -> put_flash(socket, :error, message)
+      {:error, message} when is_binary(message) -> put_flash(socket, :error, message)
+      _other -> put_flash(socket, :error, gettext("that did not work — try again"))
+    end
   end
 
   # the room the head chairs while its ballot is still open

@@ -149,7 +149,7 @@ defmodule CabWeb.Tour do
           "owner-registration",
           "#session-people",
           gettext(
-            "Sign-ups reach Daria live: members, people she added by hand, guests with their own personal link."
+            "Sign-ups reach Daria live - members, people she added by hand, guests with a personal link - and on the night she checks in who is here."
           ),
           as: daria
         ),
@@ -158,7 +158,7 @@ defmodule CabWeb.Tour do
           "owner-registration",
           ".steps",
           gettext(
-            "A spar moves through Registration, Draw, Debates and Finished. Evening comes: Daria goes to the Draw."
+            "A spar moves through Check-in, Draw, Debates and Finished. Everyone is checked in: Daria goes to the Draw."
           ),
           as: daria,
           click: ".steps li:nth-child(2) a"

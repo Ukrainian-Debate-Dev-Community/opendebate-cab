@@ -372,11 +372,12 @@ defmodule CabWeb.Ui do
   def allocator(assigns) do
     placed = MapSet.new(Map.values(assigns.draft))
 
+    # those checked in first; the absent (not checked in) after them
     tray =
       assigns.people
       |> Map.values()
       |> Enum.reject(&MapSet.member?(placed, &1.id))
-      |> Enum.sort_by(& &1.name)
+      |> Enum.sort_by(&{Map.get(&1, :absent, false), &1.name})
 
     format = assigns.format || Cab.Format.default()
     assigns = assign(assigns, format: format, sides: format.sides, tray: tray)
@@ -477,7 +478,12 @@ defmodule CabWeb.Ui do
 
   defp chip(assigns) do
     ~H"""
-    <span class={["chip", @tag == :adj && "adj"]} draggable="true" data-id={@person.id}>
+    <span
+      class={["chip", @tag == :adj && "adj", Map.get(@person, :absent) && "absent"]}
+      draggable="true"
+      data-id={@person.id}
+      title={Map.get(@person, :absent) && gettext("not checked in")}
+    >
       <span class="n" title={@person.name}>{@person.name}</span><span :if={@tag} class="k">{tag_word(
         @tag
       )}</span>

@@ -172,6 +172,11 @@ msgstr ""
 msgid "%{field}: %{error}"
 msgstr ""
 
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "%{here} of %{count} checked in"
+msgstr ""
+
 #: lib/cab_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
 msgid "%{method} is now linked to this account."
@@ -217,6 +222,13 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "%{people} checked in, %{count} room."
 msgid_plural "%{people} checked in, %{count} rooms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/cab_web/controllers/owner_html.ex
+#, elixir-autogen, elixir-format
+msgid "%{people} registered, nobody checked in yet: %{count} room."
+msgid_plural "%{people} registered, nobody checked in yet: %{count} rooms."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -349,7 +361,7 @@ msgstr ""
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "A spar moves through Registration, Draw, Debates and Finished. Evening comes: Daria goes to the Draw."
+msgid "A spar moves through Check-in, Draw, Debates and Finished. Everyone is checked in: Daria goes to the Draw."
 msgstr ""
 
 #: lib/cab_web/controllers/me_html/show.html.heex
@@ -737,6 +749,21 @@ msgstr ""
 #: lib/cab_web/controllers/tour_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "Chapters"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Check in"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Check in all"
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html.ex
+#, elixir-autogen, elixir-format
+msgid "Check-in"
 msgstr ""
 
 #: lib/cab_web/live/owner_session_live.ex
@@ -1403,6 +1430,11 @@ msgstr ""
 msgid "Her members, each with their saved answers."
 msgstr ""
 
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Here"
+msgstr ""
+
 #: lib/cab_web/controllers/me_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "History"
@@ -1592,6 +1624,11 @@ msgstr ""
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
 msgid "Mark wants to start debating. Every club on cab is listed with its next spar; he picks Riverside."
+msgstr ""
+
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "Mark who is here; the draw takes those checked in."
 msgstr ""
 
 #: lib/cab_web/tour.ex
@@ -2278,7 +2315,6 @@ msgstr ""
 
 #: lib/cab_web/controllers/club_public_html.ex
 #: lib/cab_web/controllers/me_html/show.html.heex
-#: lib/cab_web/controllers/owner_html.ex
 #: lib/cab_web/controllers/owner_html/guest_form_preview.html.heex
 #, elixir-autogen, elixir-format
 msgid "Registration"
@@ -2695,7 +2731,7 @@ msgstr ""
 
 #: lib/cab_web/tour.ex
 #, elixir-autogen, elixir-format
-msgid "Sign-ups reach Daria live: members, people she added by hand, guests with their own personal link."
+msgid "Sign-ups reach Daria live - members, people she added by hand, guests with a personal link - and on the night she checks in who is here."
 msgstr ""
 
 #: lib/cab_web/controllers/auth_controller.ex
@@ -3650,6 +3686,17 @@ msgstr ""
 msgid "cancel"
 msgstr ""
 
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "check in"
+msgstr ""
+
+#: lib/cab_web/controllers/me_html/show.html.heex
+#: lib/cab_web/controllers/owner_html/signups_block.html.heex
+#, elixir-autogen, elixir-format
+msgid "checked in"
+msgstr ""
+
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "closes registration and opens these rooms."
@@ -3786,6 +3833,11 @@ msgstr ""
 #: lib/cab_web/controllers/owner_html/rooms_block.html.heex
 #, elixir-autogen, elixir-format
 msgid "nobody is placed automatically"
+msgstr ""
+
+#: lib/cab_web/components/ui.ex
+#, elixir-autogen, elixir-format
+msgid "not checked in"
 msgstr ""
 
 #: lib/cab_web/controllers/owner_html/registration_block.html.heex

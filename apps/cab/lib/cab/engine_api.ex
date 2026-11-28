@@ -281,6 +281,23 @@ defmodule Cab.EngineApi do
     Engine.post(actor, "/api/events/#{event_id}/participants", body) |> unwrap()
   end
 
+  @doc "Marks one participant present or not (the engine's check-in)."
+  def check_in(actor, event_id, participant_id, here?) when is_boolean(here?) do
+    Engine.patch(actor, "/api/events/#{event_id}/participants/#{participant_id}/check-in", %{
+      checked_in: here?
+    })
+    |> unwrap()
+  end
+
+  @doc "Marks several participants present or not at once."
+  def check_in_many(actor, event_id, participant_ids, here?) when is_boolean(here?) do
+    Engine.patch(actor, "/api/events/#{event_id}/check-ins", %{
+      status: here?,
+      participant_ids: participant_ids
+    })
+    |> unwrap()
+  end
+
   def update_participant(actor, event_id, participant_id, attrs) do
     Engine.put(actor, "/api/events/#{event_id}/participants/#{participant_id}", attrs)
     |> unwrap()
