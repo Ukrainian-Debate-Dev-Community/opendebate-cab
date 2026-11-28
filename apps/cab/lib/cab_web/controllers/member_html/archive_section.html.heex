@@ -1,6 +1,6 @@
-<.section title={gettext("Club Sessions")}>
-  <.table id="club-sessions" rows={@archive} empty={gettext("No sessions yet.")}>
-    <:col :let={row} label={gettext("Session")}>{row.name}</:col>
+<.section title={gettext("Club Spars")}>
+  <.table id="club-sessions" rows={@archive} empty={gettext("No spars yet.")}>
+    <:col :let={row} label={gettext("Spar")}>{row.name}</:col>
     <:col :let={row} label={gettext("Date and time")}>
       <.local_time at={row.date} as={:short} />
     </:col>

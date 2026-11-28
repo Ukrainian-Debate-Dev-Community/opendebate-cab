@@ -44,7 +44,7 @@ defmodule CabWeb.CabinetHomeTest do
 
     # directory: name, city, members, Next session words
     assert html =~ ~s(id="clubs-directory")
-    assert html =~ "Next session"
+    assert html =~ "Next spar"
     assert html =~ "Kyiv Debate Club"
     assert html =~ ~s(href="/c/#{club.uuid}")
     assert html =~ "not planned yet"
@@ -178,7 +178,7 @@ defmodule CabWeb.CabinetHomeTest do
 
     html = conn |> log_in(user) |> get(~p"/") |> html_response(200)
 
-    assert html =~ "a session is open"
+    assert html =~ "a spar is open"
     assert html =~ ~s(href="/c/#{club.uuid}")
     # the club list: a Register button, no "registration open" words
     assert html =~
@@ -187,7 +187,7 @@ defmodule CabWeb.CabinetHomeTest do
     refute html =~ "registration open"
   end
 
-  test "My page lists past participations, rows linking to the session page",
+  test "My page lists past participations, rows linking to the spar page",
        %{conn: conn} do
     head = user_fixture(%{node_user_id: 339})
     user = user_fixture(%{username: "bo", node_user_id: 344})
@@ -227,7 +227,7 @@ defmodule CabWeb.CabinetHomeTest do
     html = conn |> log_in(user) |> get(~p"/me") |> html_response(200)
 
     assert html =~ ~s(id="me-history")
-    refute html =~ "No sessions played yet."
+    refute html =~ "No spars debated yet."
     assert html =~ "Kyiv Debate Club"
     assert html =~ "speaker"
     assert html =~ "won"

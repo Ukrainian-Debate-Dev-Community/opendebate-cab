@@ -38,8 +38,8 @@
 
     <.stats>
       <:stat label={gettext("Members")}>{length(@members)}</:stat>
-      <:stat label={gettext("Club sessions")}>{length(@recent)}</:stat>
-      <:stat :if={next_session(@recent)} label={gettext("Next session")}>
+      <:stat label={gettext("Club spars")}>{length(@recent)}</:stat>
+      <:stat :if={next_session(@recent)} label={gettext("Next spar")}>
         <.local_time at={next_session(@recent).date} as={:short} />
       </:stat>
     </.stats>

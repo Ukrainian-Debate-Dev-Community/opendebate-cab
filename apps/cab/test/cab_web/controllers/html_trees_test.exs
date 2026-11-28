@@ -232,7 +232,7 @@ defmodule CabWeb.HtmlTreesTest do
     page = conn |> log_in(user) |> get(~p"/me/clubs/#{club.uuid}/answers") |> html_response(200)
     assert page =~ ~s(id="member-answers-form")
     assert page =~ ~s(value="KPI")
-    assert page =~ "that session only"
+    assert page =~ "that spar only"
 
     failed =
       conn |> log_in(user) |> post(~p"/me/clubs/#{club.uuid}/answers", %{answers: %{uni => ""}})
@@ -366,7 +366,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert member_html =~ "Done night"
     assert member_html =~ ~s(href="/c/#{club.uuid}/s/#{done.uuid}")
     refute member_html =~ ~s(id="open-session-form")
-    refute member_html =~ "Open new session"
+    refute member_html =~ "Open new spar"
 
     # owner path: the archive + open-session form live on /owner now
     owner_html =
@@ -375,7 +375,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert owner_html =~ ~s(id="club-sessions")
     assert owner_html =~ ~s(id="open-session-form")
     assert owner_html =~ ~s(form="open-session-form")
-    assert owner_html =~ "Open new session"
+    assert owner_html =~ "Open new spar"
     # both formats run: the head picks one, the club's own preset
     assert owner_html =~ ~s(name="format")
     assert owner_html =~ "Australs"
@@ -452,7 +452,7 @@ defmodule CabWeb.HtmlTreesTest do
   end
 
   # ---------------------------------------------------------------
-  # Member registration through the session page
+  # Member registration through the spar page
   # ---------------------------------------------------------------
 
   test "a member registers in the club page's section; answers stay with the session", %{
@@ -494,7 +494,7 @@ defmodule CabWeb.HtmlTreesTest do
       end
     end)
 
-    # the session page's gold Register segment -> the club page section
+    # the spar page's gold Register segment -> the club page section
     page =
       conn |> log_in(member) |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
 
@@ -508,7 +508,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ ~s(id="register-form")
     assert html =~ ~s(name="answers[#{uni}]")
     assert html =~ ~s(value="KPI")
-    assert html =~ "this session only"
+    assert html =~ "this spar only"
     refute html =~ "Who invited you"
     refute html =~ ~s(name="name")
     # the section's Register is the gold action; Request to join is not shown to members
@@ -580,19 +580,19 @@ defmodule CabWeb.HtmlTreesTest do
     html = conn |> log_in(member) |> get(~p"/c/#{club.uuid}") |> html_response(200)
     # registered for the only open session: the section says so, no
     # buttons - cancelling and opening are the table's
-    assert html =~ "You are registered for every session open for registration:"
-    assert html =~ "Cancel or open them in Club Sessions below."
-    refute html =~ "Register for another session"
+    assert html =~ "You are registered for every spar open for registration:"
+    assert html =~ "Cancel or open them in Club Spars below."
+    refute html =~ "Register for another spar"
     assert html =~ "/c/#{club.uuid}/s/#{session.uuid}/signups/41/remove?from=club"
     refute html =~ ~s(id="register-form")
-    # the Club Sessions table: status in words, the viewer's action
+    # the Club Spars table: status in words, the viewer's action
     assert html =~ "registration open"
     assert html =~ "Cancel registration"
 
     Cab.Repo.update!(Ecto.Changeset.change(session, started_at: ~U[2026-10-22 18:00:00Z]))
 
     running = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
-    assert running =~ "The session is running."
+    assert running =~ "The spar is running."
     # a running session's row opens it
     assert running =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}" class="btn-quiet btn-sm")
     refute running =~ ~s(id="guest-register-form")
@@ -648,7 +648,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert Core.Forms.answer_values(registration.answers) == %{who => "Anna"}
   end
 
-  test "registered member cancels from the session page; register bounces once closed", %{
+  test "registered member cancels from the spar page; register bounces once closed", %{
     conn: conn,
     club: club
   } do
@@ -764,9 +764,9 @@ defmodule CabWeb.HtmlTreesTest do
     # chrome the registration's actions
     assert html =~ "registration open"
     assert html =~ "Close registration"
-    refute html =~ "Start session"
+    refute html =~ "Start spar"
     refute html =~ "Close sign-ups"
-    refute html =~ "Cancel session"
+    refute html =~ "Cancel spar"
     refute html =~ "Reopen sign-ups"
     refute html =~ "Delete rooms"
 
@@ -783,14 +783,14 @@ defmodule CabWeb.HtmlTreesTest do
     assert html =~ "benched"
 
     # Rooms: the allocator - automatic room count, EMPTY slots, nobody
-    # ever placed automatically - and the ONE gold action, Start session
+    # ever placed automatically - and the ONE gold action, Start spar
     html =
       conn
       |> log_in(head)
       |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}?stage=rooms")
       |> html_response(200)
 
-    assert html =~ "Start session"
+    assert html =~ "Start spar"
     assert html =~ ~s(id="allocator-form" phx-submit="start")
     assert html =~ ~s(phx-hook="Allocator")
     assert html =~ "count automatic"
@@ -801,7 +801,7 @@ defmodule CabWeb.HtmlTreesTest do
     end
   end
 
-  test "owner surface at :closed: allocator + Start session + Reopen registration; lifecycle twins redirect back",
+  test "owner surface at :closed: allocator + Start spar + Reopen registration; lifecycle twins redirect back",
        %{conn: conn, club: club, head: head} do
     session = closed_session_fixture(club, engine_event_id: 11)
     stub_signup_stage(signup_stage_signups())
@@ -812,9 +812,9 @@ defmodule CabWeb.HtmlTreesTest do
       |> get(~p"/c/#{club.uuid}/owner/s/#{session.uuid}")
       |> html_response(200)
 
-    # closed registration opens on Rooms: the allocator, Start session
+    # closed registration opens on Rooms: the allocator, Start spar
     # submits it
-    assert html =~ "Start session"
+    assert html =~ "Start spar"
     assert html =~ ~s(id="allocator-form")
     assert html =~ ~s(phx-submit="make_rooms")
     assert html =~ "registration closed"
@@ -903,7 +903,7 @@ defmodule CabWeb.HtmlTreesTest do
     # once rooms are made the start is history
     stub_running_session(running_room(44))
     refused = conn |> log_in(head) |> post(path, %{date: "2026-12-01", time: "19:00"})
-    assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "before the session starts"
+    assert Phoenix.Flash.get(refused.assigns.flash, :error) =~ "before the spar starts"
     assert Cab.Repo.reload(session).scheduled_at == nil
 
     html =
@@ -962,10 +962,10 @@ defmodule CabWeb.HtmlTreesTest do
   end
 
   # ---------------------------------------------------------------
-  # The embedded allocator (dnd) - Start session consumes its state
+  # The embedded allocator (dnd) - Start spar consumes its state
   # ---------------------------------------------------------------
 
-  test "the allocator is the dnd table; Start session posts the composition", %{
+  test "the allocator is the dnd table; Start spar posts the composition", %{
     conn: conn,
     club: club,
     head: head
@@ -1005,7 +1005,7 @@ defmodule CabWeb.HtmlTreesTest do
     # the submit segment is the chrome's one gold action; the room
     # count is automatic - 8 speakers = 1 room, no "+ room" anywhere
     assert html =~ ~s(form="allocator-form")
-    assert html =~ "Start session"
+    assert html =~ "Start spar"
     refute html =~ "+ room"
     refute html =~ ~s(data-slot="2:og:1")
 
@@ -1054,7 +1054,7 @@ defmodule CabWeb.HtmlTreesTest do
       })
 
     assert redirected_to(posted) == "/c/#{club.uuid}/owner/s/#{session.uuid}"
-    assert Phoenix.Flash.get(posted.assigns.flash, :info) =~ "Session started with 1 room(s)."
+    assert Phoenix.Flash.get(posted.assigns.flash, :info) =~ "Spar started with 1 room(s)."
     assert_received {:room, room_params}
 
     assert [
@@ -1496,7 +1496,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert show =~ ~s(href="/c/#{club.uuid}/s/#{session.uuid}/rooms/71")
     assert show =~ "/c/#{club.uuid}/s/#{session.uuid}/rooms/71/ballot"
     assert show =~ "waiting for the ballot"
-    assert show =~ "Finish session"
+    assert show =~ "Finish spar"
     refute show =~ "tag-"
 
     html =
@@ -1636,7 +1636,7 @@ defmodule CabWeb.HtmlTreesTest do
     assert ballot_html =~ ~s(value="78")
   end
 
-  test "session cancel lands on the archive; finish lands on the session page; a finished session stays",
+  test "session cancel lands on the archive; finish lands on the spar page; a finished session stays",
        %{conn: conn, club: club, head: head} do
     session = session_fixture(club, engine_event_id: 11)
     spare = session_fixture(club, engine_event_id: 12)
@@ -1724,7 +1724,7 @@ defmodule CabWeb.HtmlTreesTest do
       |> post(~p"/c/#{club.uuid}/owner/sessions/#{spare.uuid}/cancel")
 
     assert redirected_to(cancelled) == "/c/#{club.uuid}/owner"
-    assert Phoenix.Flash.get(cancelled.assigns.flash, :info) == "Session deleted."
+    assert Phoenix.Flash.get(cancelled.assigns.flash, :info) == "Spar deleted."
     assert_received :event_deleted
     assert Enum.map(Cab.Sessions.list_for_club(club), & &1.uuid) == [session.uuid]
   end

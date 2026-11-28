@@ -10,7 +10,7 @@
     <:seg href={~p"/c/#{@club.uuid}"} quiet>{gettext("View as public")}</:seg>
     <:seg href={~p"/c/#{@club.uuid}/owner/form"}>{gettext("Registration form")}</:seg>
     <:seg form="open-session-form" primary={is_nil(@live)}>
-      {gettext("Open new session")}
+      {gettext("Open new spar")}
     </:seg>
     <:seg form="club-profile-form" primary={not is_nil(@live)}>{gettext("Save")}</:seg>
   </.chrome>
@@ -30,7 +30,7 @@
       href={~p"/c/#{@club.uuid}/owner/s/#{@live.uuid}"}
       link={gettext("Open")}
     >
-      {gettext("The current session lives under Rooms.")}
+      {gettext("The current spar lives under Spars.")}
     </.banner>
 
     <%!-- the profile and the sessions; opening one beside them (first on phones) --%>
@@ -144,17 +144,17 @@
         <.archive_section club={@club} archive={@archive} owner />
       </div>
       <div class="stack lead">
-        <.section title={gettext("Open a session")}>
+        <.section title={gettext("Open a spar")}>
           <.form_for
             id="open-session-form"
             action={~p"/c/#{@club.uuid}/owner/sessions"}
-            description={gettext("Registration opens as soon as you open the session.")}
+            description={gettext("Registration opens as soon as you open the spar.")}
             errors={@opening.errors}
           >
             <:block
               name={:name}
               type={:text}
-              label={gettext("Session name")}
+              label={gettext("Spar name")}
               maxlength={Cab.Sessions.max_lengths().name}
               value={@opening.values["name"]}
               hint={gettext("Shown to members on the club page; defaults to the date.")}
@@ -171,9 +171,7 @@
               names={[:date, :time]}
               type={:datetime}
               label={gettext("Date and start time")}
-              hint={
-                gettext("Optional — when the session is planned to start, in your time zone.")
-              }
+              hint={gettext("Optional — when the spar is planned to start, in your time zone.")}
             />
             <:block
               name={:max_participants}

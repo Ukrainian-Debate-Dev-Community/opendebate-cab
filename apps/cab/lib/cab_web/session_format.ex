@@ -156,6 +156,21 @@ defmodule CabWeb.SessionFormat do
     end
   end
 
+  @doc """
+  The team that sent a feedback, as people know it: its side and
+  speakers in that room ("OG - Bohdan Kravets & Daryna Moroz"); the
+  engine's team names stay internal.
+  """
+  def feedback_team_label(%{rooms: rooms}, %{room_id: room_id, team_id: team_id}, format) do
+    with %{} = room <- Enum.find(rooms, &(&1["id"] == room_id)),
+         %{} = room_team <-
+           Enum.find(room["RoomTeams"] || [], &(get_in(&1, ["Team", "id"]) == team_id)) do
+      "#{side_code(room_team["position"], format)} - #{speaker_names(room_team)}"
+    else
+      _ -> "—"
+    end
+  end
+
   @doc "Is the room's ballot in (submitted or confirmed)?"
   def ballot_in?(room), do: room["status"] in ["completed", "confirmed"]
 
@@ -214,6 +229,17 @@ defmodule CabWeb.SessionFormat do
   end
 
   defp score_value(_score), do: nil
+
+  @doc """
+  A side's result as debaters say it: the place in BP (1st..4th), won
+  or lost where two teams meet (Australs).
+  """
+  def place_words(1, %Cab.Format{sides: [_, _]}), do: gettext("won")
+  def place_words(_rank, %Cab.Format{sides: [_, _]}), do: gettext("lost")
+  def place_words(rank, _format), do: ordinal(rank)
+
+  @doc "Do a room's sides earn team points (BP's 3/2/1/0), or win or lose (two teams)?"
+  def team_points?(%Cab.Format{sides: sides}), do: length(sides) > 2
 
   def ordinal(1), do: gettext("1st")
   def ordinal(2), do: gettext("2nd")

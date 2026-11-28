@@ -89,10 +89,13 @@ defmodule CabWeb.SessionPageHTML do
               for room_team <- result_rows(room) do
                 %{
                   side: side_code(room_team["position"], Cab.Format.of(session)),
-                  place: ballot_in?(room) && room_team["rank"] && ordinal(room_team["rank"]),
+                  place:
+                    ballot_in?(room) && room_team["rank"] &&
+                      place_words(room_team["rank"], Cab.Format.of(session)),
                   winner: room_team["rank"] == 1,
                   points: team_points(room_team),
-                  team_points: rank_points(room, room_team),
+                  team_points:
+                    if(team_points?(Cab.Format.of(session)), do: rank_points(room, room_team)),
                   speakers: Enum.map(speeches(room_team), &Map.take(&1, [:name, :points, :iron]))
                 }
               end

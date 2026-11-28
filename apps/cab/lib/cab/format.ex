@@ -8,7 +8,7 @@ defmodule Cab.Format do
 
   - British Parliamentary (`bp`): four teams of two - OG, OO, CG, CO.
   - Australs (`aus`): Government v Opposition, three speakers a team
-    (the third is the analyst), no reply speech, scored like BP.
+    (the third is the whip), no reply speech, scored like BP.
   """
 
   @enforce_keys [:key, :code, :sides, :seats, :score_min, :score_max]

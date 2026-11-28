@@ -10,31 +10,31 @@
     crumbs={[
       {@club.name, ~p"/c/#{@club.uuid}"},
       {gettext("Club"), ~p"/c/#{@club.uuid}/owner"},
-      {@name || gettext("Session"), ~p"/c/#{@club.uuid}/owner/s/#{@current.uuid}"}
+      {@name || gettext("Spar"), ~p"/c/#{@club.uuid}/owner/s/#{@current.uuid}"}
     ]}
-    here={gettext("Delete session")}
+    here={gettext("Delete spar")}
   >
     <:seg href={~p"/c/#{@club.uuid}/owner/s/#{@current.uuid}"}>
-      {gettext("Keep the session")}
+      {gettext("Keep the spar")}
     </:seg>
   </.chrome>
 
   <div class="pbody">
-    <.page_head kicker={gettext("Delete session")} title={@name || gettext("Session")} />
+    <.page_head kicker={gettext("Delete spar")} title={@name || gettext("Spar")} />
 
     <div class="narrow">
-      <.section title={gettext("Delete session")}>
+      <.section title={gettext("Delete spar")}>
         <.form_for
           id="delete-session-form"
           action={~p"/c/#{@club.uuid}/owner/sessions/#{@current.uuid}/cancel"}
-          title={gettext("Delete %{session}?", session: @name || gettext("this session"))}
+          title={gettext("Delete %{session}?", session: @name || gettext("this spar"))}
           description={
             gettext(
-              "Nobody has signed up, so the session can go: it disappears from the club, and its registration link and short link stop working. This cannot be undone."
+              "Nobody has signed up, so the spar can go: it disappears from the club, and its registration link and short link stop working. This cannot be undone."
             )
           }
         >
-          <:submit quiet>{gettext("Delete session")}</:submit>
+          <:submit quiet>{gettext("Delete spar")}</:submit>
         </.form_for>
       </.section>
     </div>

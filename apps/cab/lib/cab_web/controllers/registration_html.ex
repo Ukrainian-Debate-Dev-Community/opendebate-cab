@@ -40,7 +40,7 @@ defmodule CabWeb.RegistrationHTML do
       title={@title}
       logo={@logo}
       description={
-        gettext("No account needed — you'll get a personal link that is your access to this session.")
+        gettext("No account needed — you'll get a personal link that is your access to this spar.")
       }
       errors={@errors}
       guard={if(!@preview, do: CabWeb.Turnstile.site_key())}
@@ -72,7 +72,7 @@ defmodule CabWeb.RegistrationHTML do
         menu={@menu}
         note={
           gettext(
-            "You appear in this session's list right away; the club head seats you as a speaker or the adjudicator."
+            "You appear in this spar's list right away; the club head seats you as a speaker or the adjudicator."
           )
         }
       >

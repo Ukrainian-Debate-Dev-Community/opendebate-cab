@@ -71,55 +71,67 @@
           </p>
         <% end %>
       </div>
-      <%!-- the chair's motion, while the room has no ballot yet --%>
-      <form
+      <%!-- the chair's motion, while the room has no ballot yet; once it
+           is out the form folds into "Edit motion", so the ballot leads --%>
+      <details
         :if={seat.role == :chair and seat.room["status"] in ["pending", "judging"]}
-        id={"now-motion-#{seat.room["id"]}"}
-        class="form"
-        phx-submit="publish_motion"
+        id={"now-motion-edit-#{seat.room["id"]}"}
+        class="motion-edit"
+        open={is_nil(seat.room["Motion"])}
       >
-        <input type="hidden" name="session" value={seat.session.uuid} />
-        <input type="hidden" name="room" value={seat.room["id"]} />
-        <div class="f-block">
-          <label class="q" for={"now-motion-text-#{seat.room["id"]}"}>
-            {gettext("Motion")} <span class="req">*</span>
-          </label>
-          <input
-            id={"now-motion-text-#{seat.room["id"]}"}
-            type="text"
-            name="motion_text"
-            required
-            maxlength={Cab.Sessions.max_lengths().motion_text}
-            value={get_in(seat.room, ["Motion", "motion_text"])}
-          />
-        </div>
-        <div class="f-block">
-          <label class="q" for={"now-infoslide-#{seat.room["id"]}"}>{gettext("Infoslide")}</label>
-          <textarea
-            id={"now-infoslide-#{seat.room["id"]}"}
-            name="infoslide"
-            maxlength={Cab.Sessions.max_lengths().infoslide}
-          >{get_in(seat.room, ["Motion", "infoslide"])}</textarea>
-        </div>
-        <div class="f-block">
-          <label class="q" for={"now-keyword-#{seat.room["id"]}"}>{gettext("Keyword")}</label>
-          <input
-            id={"now-keyword-#{seat.room["id"]}"}
-            type="text"
-            name="keyword"
-            maxlength={Cab.Sessions.max_lengths().keyword}
-            value={get_in(seat.room, ["Motion", "keyword"])}
-          />
-        </div>
-        <div class="f-submit">
-          <button type="submit" class="btn-go">
-            {if seat.room["Motion"], do: gettext("Update motion"), else: gettext("Publish motion")}
-          </button>
-          <span :if={!seat.room["Motion"]} class="note">
-            {gettext("Publishing shows it to the room and starts 15 minutes of prep.")}
-          </span>
-        </div>
-      </form>
+        <summary class="pad">
+          {if seat.room["Motion"], do: gettext("Edit motion"), else: gettext("Publish the motion")}
+        </summary>
+        <form
+          id={"now-motion-#{seat.room["id"]}"}
+          class="form"
+          phx-submit="publish_motion"
+        >
+          <input type="hidden" name="session" value={seat.session.uuid} />
+          <input type="hidden" name="room" value={seat.room["id"]} />
+          <div class="f-block">
+            <label class="q" for={"now-motion-text-#{seat.room["id"]}"}>
+              {gettext("Motion")} <span class="req">*</span>
+            </label>
+            <input
+              id={"now-motion-text-#{seat.room["id"]}"}
+              type="text"
+              name="motion_text"
+              required
+              maxlength={Cab.Sessions.max_lengths().motion_text}
+              value={get_in(seat.room, ["Motion", "motion_text"])}
+            />
+          </div>
+          <div class="f-block">
+            <label class="q" for={"now-infoslide-#{seat.room["id"]}"}>{gettext("Infoslide")}</label>
+            <textarea
+              id={"now-infoslide-#{seat.room["id"]}"}
+              name="infoslide"
+              maxlength={Cab.Sessions.max_lengths().infoslide}
+            >{get_in(seat.room, ["Motion", "infoslide"])}</textarea>
+          </div>
+          <div class="f-block">
+            <label class="q" for={"now-keyword-#{seat.room["id"]}"}>{gettext("Keyword")}</label>
+            <input
+              id={"now-keyword-#{seat.room["id"]}"}
+              type="text"
+              name="keyword"
+              maxlength={Cab.Sessions.max_lengths().keyword}
+              value={get_in(seat.room, ["Motion", "keyword"])}
+            />
+          </div>
+          <div class="f-submit">
+            <button type="submit" class="btn-go">
+              {if seat.room["Motion"],
+                do: gettext("Update motion"),
+                else: gettext("Publish motion")}
+            </button>
+            <span :if={!seat.room["Motion"]} class="note">
+              {gettext("Publishing shows it to the room and starts 15 minutes of prep.")}
+            </span>
+          </div>
+        </form>
+      </details>
       <%!-- the chair's ballot, once the motion is out and until it is in --%>
       <%= if seat.role == :chair and seat.room["Motion"] && seat.room["status"] in ["pending", "judging"] do %>
         <% {typed, error} = Map.get(@ballot_drafts, seat.room["id"], {nil, nil}) %>
@@ -150,7 +162,11 @@
       >
         <p class="kicker">{gettext("Result")}</p>
         <p :for={room_team <- Enum.sort_by(sorted_teams(seat.room), &(&1["rank"] || 9))}>
-          <b>{if room_team["rank"], do: ordinal(room_team["rank"]), else: "—"}</b>
+          <b>
+            {if room_team["rank"],
+              do: place_words(room_team["rank"], Cab.Format.of(seat.session)),
+              else: "—"}
+          </b>
           {side_code(room_team["position"], Cab.Format.of(seat.session))} · {speaker_names(
             room_team
           )} · {points_words(team_points(room_team))}
@@ -169,7 +185,7 @@
             </p>
             <p class="mut">
               {gettext(
-                "%{adjudicator} sees it, without your team's name, once the session is finished.",
+                "%{adjudicator} sees it, without your team's name, once the spar is finished.",
                 adjudicator: judge_name(seat.room, seat.state.signups)
               )}
             </p>
@@ -188,7 +204,7 @@
             }
             description={
               gettext(
-                "One feedback per team, before the club head finishes the session; the first one sent stays. The adjudicator sees it without your team's name once the session is finished."
+                "One feedback per team, before the club head finishes the spar; the first one sent stays. The adjudicator sees it without your team's name once the spar is finished."
               )
             }
             errors={errors}
@@ -233,7 +249,7 @@
          happen right here --%>
     <.section :if={@open_sessions != []} id="me-registration" title={gettext("Registration")}>
       <.table id="open-sessions" rows={@open_sessions}>
-        <:col :let={row} label={gettext("Session")}>
+        <:col :let={row} label={gettext("Spar")}>
           {row.session.name || row.club.name}
           <.sub>
             {row.club.name} · {format_name(Cab.Format.of(row.session).key)}
@@ -291,9 +307,9 @@
           if @registering.kind == :member,
             do:
               gettext(
-                "Your saved answers are filled in. Changes here are for this session only; your defaults change on My page."
+                "Your saved answers are filled in. Changes here are for this spar only; your defaults change on My page."
               ),
-            else: gettext("You register with your account; one registration per session.")
+            else: gettext("You register with your account; one registration per spar.")
         }
         errors={@registering.errors}
       >
@@ -313,7 +329,7 @@
         />
         <:submit note={
           gettext(
-            "You appear in this session's list right away; the club head seats you as a speaker or the adjudicator."
+            "You appear in this spar's list right away; the club head seats you as a speaker or the adjudicator."
           )
         }>
           {gettext("Register")}
@@ -360,21 +376,22 @@
       >
         {fixed(@stats["overview"]["average_speaker_score"], 2)}
       </:stat>
+      <%!-- BP ranks four teams: first places, not a win rate; two teams
+           (Australs) win or lose --%>
+      <:stat :if={@stats && team_points?(@stats_format)} label={gettext("First places")}>
+        {@stats["placements"]["first_places"] || 0}
+      </:stat>
       <:stat
-        :if={@stats}
+        :if={@stats && !team_points?(@stats_format)}
         label={gettext("Win rate")}
         note={
-          ngettext(
-            "%{count} first place",
-            "%{count} first places",
-            @stats["placements"]["first_places"] || 0
-          )
+          ngettext("%{count} win", "%{count} wins", @stats["placements"]["first_places"] || 0)
         }
       >
         {fixed(@stats["placements"]["win_rate_percentage"], 1)}%
       </:stat>
       <:stat label={gettext("My clubs")}>{length(@memberships)}</:stat>
-      <:stat label={gettext("Sessions")}>{length(@history)}</:stat>
+      <:stat label={gettext("Spars")}>{length(@history)}</:stat>
     </.stats>
     <p :if={!@guest && !@stats} class="mut">
       {gettext("No logged debates yet — stats appear after your first scored round.")}
@@ -384,9 +401,9 @@
       <div class="stack">
         <.section :if={@invitations != []} title={gettext("Invitations")}>
           <.table id="my-invitations" rows={@invitations}>
-            <:col :let={invitation} label={gettext("Session")}>
+            <:col :let={invitation} label={gettext("Spar")}>
               <.link href={~p"/c/#{invitation.session.club.uuid}/s/#{invitation.session.uuid}"}>
-                {invitation.session.name || gettext("Session")}
+                {invitation.session.name || gettext("Spar")}
               </.link>
               <.sub>{invitation.session.club.name}</.sub>
             </:col>
@@ -408,14 +425,14 @@
           <div class="pad">
             <p class="mut">
               {gettext(
-                "A club head added you to these sessions. Accept to see them on My page under your name; decline to have your name removed."
+                "A club head added you to these spars. Accept to see them on My page under your name; decline to have your name removed."
               )}
             </p>
           </div>
         </.section>
         <.section :if={@schedule != []} title={gettext("My schedule")}>
           <.table id="my-schedule" rows={@schedule}>
-            <:col :let={row} label={gettext("Session")}>
+            <:col :let={row} label={gettext("Spar")}>
               <.link href={~p"/c/#{row.club.uuid}/s/#{row.session.uuid}"}>
                 {row.club.name}
               </.link>
@@ -448,8 +465,8 @@
           </.table>
         </.section>
         <.section :if={!@guest} title={gettext("History")}>
-          <.table id="me-history" rows={@history} empty={gettext("No sessions played yet.")}>
-            <:col :let={row} label={gettext("Session")}>
+          <.table id="me-history" rows={@history} empty={gettext("No spars debated yet.")}>
+            <:col :let={row} label={gettext("Spar")}>
               <.link href={~p"/c/#{row.club_uuid}/s/#{row.session_uuid}"}>
                 <.local_time at={row.date} as={:date} />
               </.link>
@@ -463,7 +480,7 @@
                 <% row.role == "adjudicator" -> %>
                   {gettext("adjudicated")}
                 <% true -> %>
-                  {gettext("played")}
+                  {gettext("debated")}
               <% end %>
             </:col>
           </.table>
@@ -485,7 +502,7 @@
                   do: ", #{m.club.city}"}
               </.sub>
             </:col>
-            <:col :let={m} label={gettext("Next session")} class="st">
+            <:col :let={m} label={gettext("Next spar")} class="st">
               <%= cond do %>
                 <% m.status != "approved" -> %>
                   —

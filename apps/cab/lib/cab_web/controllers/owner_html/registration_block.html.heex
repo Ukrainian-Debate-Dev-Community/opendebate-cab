@@ -76,7 +76,7 @@
           <p>{gettext("We e-mail them their personal link; the address is not stored.")}</p>
         </.form>
         <p :if={String.trim(@query) == "" and @suggestions.members == []}>
-          {gettext("Every member is in this session. Type a name to add a guest.")}
+          {gettext("Every member is in this spar. Type a name to add a guest.")}
         </p>
       </div>
     </div>
@@ -90,7 +90,7 @@
       <:block
         name={:max_participants}
         type={:int}
-        label={gettext("Most people in this session")}
+        label={gettext("Most people in this spar")}
         min={1}
         value={@current.max_participants}
         hint={

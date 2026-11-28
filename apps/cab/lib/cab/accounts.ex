@@ -358,7 +358,7 @@ defmodule Cab.Accounts do
     do:
       dgettext(
         "errors",
-        "Both accounts took part in the same session. Ask the club head to remove one of them from it first."
+        "Both accounts took part in the same spar. Ask the club head to remove one of them from it first."
       )
 
   defp merge_message("The source user holds roles" <> _),

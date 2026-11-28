@@ -59,7 +59,9 @@
           {points_words(team_points(room_team))}
         </:col>
         <:col :let={room_team} :if={ballot_in?(@room)} label={gettext("Place")} num>
-          {if room_team["rank"], do: ordinal(room_team["rank"]), else: "—"}
+          {if room_team["rank"],
+            do: place_words(room_team["rank"], Cab.Format.of(@session)),
+            else: "—"}
         </:col>
       </.table>
       <div class="pad">{gettext("Adjudicator:")} <b>{judge_name(@room, @state.signups)}</b></div>

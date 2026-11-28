@@ -93,7 +93,7 @@ defmodule CabWeb.ShellPagesTest do
       end
 
       # Sessions is the head's; the club page is the archive
-      refute html =~ ">Sessions<"
+      refute html =~ ">Spars<"
       refute html =~ ">Rooms<"
 
       # public: the roster behind the wall; registration is not a
@@ -105,7 +105,7 @@ defmodule CabWeb.ShellPagesTest do
 
       # the owner's sidenav targets the owner trees
       owner_html = conn |> log_in(head) |> get(~p"/c/#{club.uuid}") |> html_response(200)
-      assert owner_html =~ ">Sessions<"
+      assert owner_html =~ ">Spars<"
       assert owner_html =~ ~s(href="/c/#{club.uuid}/owner/s/#{session.uuid}")
       assert owner_html =~ ~s(href="/c/#{club.uuid}/owner/members")
       assert owner_html =~ ~s(href="/c/#{club.uuid}/owner")
@@ -349,7 +349,7 @@ defmodule CabWeb.ShellPagesTest do
       session |> Ecto.Changeset.change(finished_at: nil) |> Cab.Repo.update!()
 
       html = conn |> get(~p"/standings/teams") |> html_response(200)
-      assert html =~ "No finished session yet."
+      assert html =~ "No finished spar yet."
     end
   end
 end

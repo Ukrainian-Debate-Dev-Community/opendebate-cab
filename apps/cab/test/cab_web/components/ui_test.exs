@@ -18,7 +18,7 @@ defmodule CabWeb.UiTest do
       <.chrome crumbs={[{"Kyiv Debate Club", "/c/abc"}]} here="rooms">
         <:seg href="/delete" method="post" quiet>Delete rooms</:seg>
         <:seg href="/motion">Edit motion</:seg>
-        <:seg href="/finish" method="post" primary>Finish session</:seg>
+        <:seg href="/finish" method="post" primary>Finish spar</:seg>
       </.chrome>
       """)
 
@@ -143,7 +143,7 @@ defmodule CabWeb.UiTest do
 
     # Sessions is the head's; a participant works on My page, and the
     # club page is the archive
-    refute member_html =~ ">Sessions<"
+    refute member_html =~ ">Spars<"
     refute member_html =~ ">Rooms<"
     refute member_html =~ "/c/abc/s/s1"
 
@@ -160,7 +160,7 @@ defmodule CabWeb.UiTest do
       """)
 
     assert owner_html =~ ~s(href="/c/abc/owner")
-    assert owner_html =~ ">Sessions<"
+    assert owner_html =~ ">Spars<"
     assert owner_html =~ ~s(href="/c/abc/owner/s/s1")
     assert owner_html =~ ~s(href="/c/abc/owner/members")
 
@@ -171,7 +171,7 @@ defmodule CabWeb.UiTest do
       """)
 
     refute no_session =~ "/c/abc/owner/s/"
-    assert no_session =~ ~s(href="/c/abc/owner" class="item">Sessions<)
+    assert no_session =~ ~s(href="/c/abc/owner" class="item">Spars<)
 
     # a finished session: the head's page for it (results, reopen)
     assigns =

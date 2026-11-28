@@ -101,7 +101,7 @@ defmodule CabWeb.GuestLinksTest do
       assert html =~ ~s(class="dd-btn go split")
       # the form registers for the nearest; the menu offers the others
       assert html =~ ~s(href="/c/#{club.uuid}?session=#{later.uuid}#register")
-      # the Club Sessions table offers Register on every open session
+      # the Club Spars table offers Register on every open session
       assert html =~ ~s(href="/c/#{club.uuid}?session=#{nearer.uuid}#register")
       assert html =~ ~s(name="session" value="#{nearer.uuid}")
       # a session closed for sign-ups is not offered
@@ -175,7 +175,7 @@ defmodule CabWeb.GuestLinksTest do
       stub_stage([])
 
       html = conn |> get(~p"/c/#{club.uuid}") |> html_response(200)
-      assert html =~ "No sessions are open for registration right now."
+      assert html =~ "No spars are open for registration right now."
       refute html =~ ~s(id="guest-register-form")
     end
 
@@ -308,9 +308,9 @@ defmodule CabWeb.GuestLinksTest do
       refute html =~ ~s(id="me-stats")
       refute html =~ ~s(id="my-clubs")
 
-      # the session page points the guest to the hub
+      # the spar page points the guest to the hub
       page = conn |> get(~p"/c/#{club.uuid}/s/#{session.uuid}") |> html_response(200)
-      assert page =~ "You are registered for this session."
+      assert page =~ "You are registered for this spar."
       assert page =~ ~s(href="#{hub}")
       refute page =~ "Cancel my registration"
 

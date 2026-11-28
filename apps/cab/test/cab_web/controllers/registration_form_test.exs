@@ -556,7 +556,7 @@ defmodule CabWeb.RegistrationFormTest do
         assert email.text_body =~ "Hello Greta Guest"
 
         assert email.text_body =~
-                 "registered for Guest night at #{club.name}. The session is on 2026-11-05."
+                 "registered for Guest night at #{club.name}. The spar is on 2026-11-05."
 
         assert email.text_body =~ "/l/#{link.code}"
       end)

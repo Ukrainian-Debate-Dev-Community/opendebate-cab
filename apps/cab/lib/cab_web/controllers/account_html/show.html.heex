@@ -26,7 +26,7 @@
             {gettext("This device's time zone"), ""}
             | Enum.map(Cab.Accounts.time_zones(), &{&1, &1})
           ]}
-          hint={gettext("Session times show in this zone. cab keeps every time in UTC.")}
+          hint={gettext("Spar times show in this zone. cab keeps every time in UTC.")}
         />
       </.form_for>
       <div class="pad">
@@ -43,7 +43,7 @@
         action={~p"/account/claim"}
         description={
           gettext(
-            "Played as a guest? Paste that session's personal link to move its results onto this account."
+            "Debated as a guest? Paste that spar's personal link to move its results onto this account."
           )
         }
       >

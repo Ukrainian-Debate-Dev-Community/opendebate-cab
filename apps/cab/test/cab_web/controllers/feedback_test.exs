@@ -265,7 +265,7 @@ defmodule CabWeb.FeedbackTest do
 
       Agent.update(engine, &%{&1 | status: "confirmed"})
 
-      assert {:error, :conflict, "The session is finished, so feedback is closed."} =
+      assert {:error, :conflict, "The spar is finished, so feedback is closed."} =
                Feedback.submit(anna, finish(session, engine), 71, form("8", "7", "Too late."))
 
       refute_received {:feedback_sent, _, _}
@@ -362,7 +362,7 @@ defmodule CabWeb.FeedbackTest do
                "/c/#{club.uuid}/owner/s/#{session.uuid}"
     end
 
-    test "the session page points a team member to their hub, not to a form",
+    test "the spar page points a team member to their hub, not to a form",
          %{conn: conn, club: club, session: session, anna: anna, greta: greta} do
       page = ~p"/c/#{club.uuid}/s/#{session.uuid}"
 
@@ -410,7 +410,12 @@ defmodule CabWeb.FeedbackTest do
 
       assert html =~ "1 of 4 teams"
       assert html =~ ~s(id="session-feedback")
-      assert html =~ "Team 1"
+      # the team by its side and speakers, never the engine's team name
+      table =
+        html |> LazyHTML.from_document() |> LazyHTML.query("#session-feedback") |> LazyHTML.text()
+
+      assert table =~ "OG - "
+      refute table =~ "Team 1"
       assert html =~ "Clear call."
 
       # before Finish: who still owes feedback, and Finish asks first

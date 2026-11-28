@@ -349,9 +349,16 @@ defmodule Ui.FormComponents do
   def form_answers(assigns) do
     ~H"""
     <span :for={answer <- @answers} class="sub answer">
-      {field_label(answer)}: <.answer_value answer={answer} />
+      {answer_lead(answer)} <.answer_value answer={answer} />
     </span>
     """
+  end
+
+  # the label before an answer: "Your e-mail:", but a question keeps its
+  # own mark ("How long have you been debating?" - never "?:")
+  defp answer_lead(answer) do
+    label = field_label(answer) || ""
+    if String.ends_with?(label, ["?", "!", ":", "."]), do: label, else: label <> ":"
   end
 
   @doc "One answer's value; e-mail, phone and Telegram link out."

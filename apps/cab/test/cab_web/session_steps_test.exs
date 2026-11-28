@@ -8,7 +8,7 @@ defmodule CabWeb.SessionStepsTest do
 
     assert session_step(%{stage: :signup, rooms: []}) == :registration
     assert session_step(%{stage: :closed, rooms: []}) == :rooms
-    # Start session made the rooms: no motion out yet
+    # Start spar made the rooms: no motion out yet
     assert session_step(%{stage: :running, rooms: [pending]}) == :rooms
     # the first motion out
     assert session_step(%{stage: :running, rooms: [%{pending | "Motion" => %{"id" => 3}}]}) ==

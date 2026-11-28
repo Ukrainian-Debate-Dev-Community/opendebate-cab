@@ -41,6 +41,8 @@ defmodule CabWeb.Layouts do
       "place_2" => gettext("2nd"),
       "place_3" => gettext("3rd"),
       "place_4" => gettext("4th"),
+      "won" => gettext("won"),
+      "lost" => gettext("lost"),
       "place_n" => gettext("{n}th"),
       "ballot_tied" => gettext("Two teams share a total. Teams can't tie, so adjust the scores."),
       "ballot_ready" => gettext("Ready to submit."),

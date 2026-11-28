@@ -53,9 +53,11 @@ defmodule CabWeb.MePageTest do
     assert html =~ ~s(class="stats phones" id="me-stats")
     # the engine's numbers, as reported - nothing recomputed
     assert html =~ "77.40"
-    assert html =~ "27.3%"
+    # BP ranks four teams: first places, not a win rate
+    assert html =~ "First places"
+    refute html =~ "27.3%"
     assert html =~ ~s(id="me-history")
-    assert html =~ "No sessions played yet."
+    assert html =~ "No spars debated yet."
     # the global sidenav lights My page
     assert html =~ ">My page<"
   end

@@ -14,14 +14,14 @@ defmodule CabWeb.BallotForm do
   alias Cab.Format
 
   # each side's speakers in speaking order: BP's two, Australs' three
-  # (the third the analyst)
+  # (the third the whip)
   @roles %{
     "og" => ["PM", "DPM"],
     "oo" => ["LO", "DLO"],
     "cg" => ["MG", "GW"],
     "co" => ["MO", "OW"],
-    "gov" => ["PM", "DPM", "GA"],
-    "opp" => ["LO", "DLO", "OA"]
+    "gov" => ["PM", "DPM", "GW"],
+    "opp" => ["LO", "DLO", "OW"]
   }
 
   @doc """
@@ -92,8 +92,6 @@ defmodule CabWeb.BallotForm do
   def role_label("GW"), do: gettext("GW")
   def role_label("MO"), do: gettext("MO")
   def role_label("OW"), do: gettext("OW")
-  def role_label("GA"), do: gettext("GA")
-  def role_label("OA"), do: gettext("OA")
   def role_label(role), do: role
 
   @doc """

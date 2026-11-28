@@ -74,7 +74,10 @@ const BallotMath = {
       const tied = teams.some(ties)
       const complete = teams.every(team => team.full)
       const order = teams.slice().sort((a, b) => b.sum - a.sum)
-      const names = [t("place_1", "1st"), t("place_2", "2nd"), t("place_3", "3rd"), t("place_4", "4th")]
+      // places in BP; won / lost where two teams meet
+      const names = teams.length === 2
+        ? [t("won", "won"), t("lost", "lost")]
+        : [t("place_1", "1st"), t("place_2", "2nd"), t("place_3", "3rd"), t("place_4", "4th")]
       teams.forEach(team => {
         team.el.querySelector(".tot").textContent = String(team.sum)
         team.el.querySelector(".rk").textContent =
@@ -481,7 +484,9 @@ const drawResults = (canvas, d, draw = true) => {
     text(t("card_side", "SIDE"), xSide, y + 29, CARD.muted)
     text(t("card_speakers", "SPEAKERS"), xPeople, y + 29, CARD.muted)
     right(t("card_speaker_points", "SPEAKER POINTS"), xSpk, y + 29, CARD.muted)
-    right(t("card_team_points", "TEAM POINTS"), xTeam, y + 29, CARD.muted)
+    // team points in BP; two teams (Australs) only win or lose
+    const showTeam = room.rows.some(row => row.team_points != null)
+    if (showTeam) right(t("card_team_points", "TEAM POINTS"), xTeam, y + 29, CARD.muted)
     y += 44
 
     for (const row of room.rows) {
@@ -500,7 +505,7 @@ const drawResults = (canvas, d, draw = true) => {
         font(600, 24); text(pts(sp.points), xPeople + nameW + 14, yy, row.winner ? CARD.ink : CARD.muted)
       })
       font(weight, 26); right(pts(row.points), xSpk, base, CARD.ink)
-      font(800, 28); right(pts(row.team_points), xTeam, base, row.winner ? CARD.brand : CARD.ink)
+      if (showTeam) { font(800, 28); right(pts(row.team_points), xTeam, base, row.winner ? CARD.brand : CARD.ink) }
       y += rowH
     }
     y += 40
@@ -519,7 +524,8 @@ const resultsText = (d) => {
     if (room.infoslide) lines.push(t("text_infoslide", "Infoslide: {text}", {text: room.infoslide}))
     for (const row of room.rows) {
       const people = row.speakers.map(s => `${s.name} ${pts(s.points)}`).join(", ")
-      lines.push(`${row.place || "\u2014"} ${row.side}: ${people} - ${pts(row.points)} (${t("text_team_points", "team points: {points}", {points: pts(row.team_points)})})`)
+      const team = row.team_points == null ? "" : ` (${t("text_team_points", "team points: {points}", {points: pts(row.team_points)})})`
+      lines.push(`${row.place || "\u2014"} ${row.side}: ${people} - ${pts(row.points)}${team}`)
     }
   }
   lines.push("", d.link_text)
